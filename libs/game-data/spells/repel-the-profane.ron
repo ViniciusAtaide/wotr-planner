@@ -1,0 +1,13 @@
+(
+    key: "repel-the-profane",
+    blueprint: "041581ac635afe24daa421de5d2c2ee1",
+    name: "Repel the Profane",
+    school: Necromancy,
+    guide: "angel#repel-the-profane-necromancy",
+    summary: "Undead, evil outsiders and priests of evil gods that fail a Will save are frightened 1 round per caster level, else shaken 1 round, despite any fear immunity.",
+    target: "All creatures within a 50' cone",
+    saving_throw: "Will partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

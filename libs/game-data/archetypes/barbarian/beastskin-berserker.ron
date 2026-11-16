@@ -1,0 +1,14 @@
+(
+    key: "barbarian/beastskin-berserker",
+    class: "barbarian",
+    blueprint: "e791f31b7fd225645ae709958afe2e91",
+    name: "Beastskin Berserker",
+    summary: "Barbarian who turns into a beast while raging, with fewer rage powers.",
+    guide: "barbarian#beastskin-berserker",
+    levels: [
+        (level: 1, features: ["barbarian/beastskin-berserker/savage-rapport", "barbarian/rage"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 4, features: ["barbarian/beastskin-berserker/feral-transformation-i"]),
+        (level: 8, features: ["barbarian/beastskin-berserker/feral-transformation-ii"]),
+        (level: 12, features: ["barbarian/beastskin-berserker/feral-transformation-iii", "barbarian/danger-sense"]),
+    ],
+)

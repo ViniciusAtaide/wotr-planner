@@ -1,0 +1,1 @@
+(key: "extra-feat", blueprint: "e10c4f18a6c8b4342afe6954bde0587b", name: "Extra Feat", summary: "Gain one normal feat of your choice.", group: Miscellaneous, guide: "mythic-paths#extra-feat", extra_pick: Feat)

@@ -1,0 +1,1 @@
+(key: "trickster/improved-mythic-trick/reuse-magic-device", blueprint: "1383f21534d8b6a45bdbdc8ddce7a187", name: "Reuse Magic Device", summary: "Wands use no charges, and you can equip any magic item regardless of its requirements.", guide: "trickster#reuse-magic-device", prerequisite: SelectionOption("trickster/mythic-trick/infuse-magic-device"))

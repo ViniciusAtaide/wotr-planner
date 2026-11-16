@@ -1,0 +1,15 @@
+// Robe.
+(
+    key: "earths-embrace",
+    blueprint: "bb2ded7279ea5e34fb8578b3d2eebffa",
+    name: "Earth's Embrace",
+    slot: Robe,
+    guide: "items#robes",
+    bonuses: [
+        (target: Ability(Constitution), amount: 2, kind: Enhancement),
+        (target: Skill("lore-nature"), amount: 4, kind: Competence),
+    ],
+    always_on: [
+        "Saves +4 vs fire",
+    ],
+)

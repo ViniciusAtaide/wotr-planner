@@ -1,0 +1,14 @@
+(
+    key: "cacophonous-call-mass",
+    blueprint: "1262284b6fa45b9458b8c3693edbd676",
+    name: "Cacophonous Call, Mass",
+    school: Enchantment,
+    guide: "bard#cacophonous-call-mass-enchantment",
+    summary: "Enemies near the target that fail their saves are nauseated.",
+    target: "All enemies within 30' of target creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

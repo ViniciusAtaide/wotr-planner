@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/sun",
+    blueprint: "c85c8791ee13d4c4ea10d93c97a19afc",
+    name: "Sun Domain",
+    summary: "Stronger channel against undead and a blinding Nimbus of Light from 8th level; spells from Faerie Fire to Elemental Swarm.",
+    guide: "character-creation#sun-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/sun/suns-blessing"]),
+        (level: 8, features: ["cleric/domain/sun/nimbus-of-light"]),
+    ],
+)

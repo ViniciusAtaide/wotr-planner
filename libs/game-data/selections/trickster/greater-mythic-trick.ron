@@ -1,0 +1,20 @@
+(
+    key: "trickster/greater-mythic-trick",
+    blueprint: "446f4a8b32019f5478a8dfeddac74710",
+    name: "Greater Mythic Trick",
+    summary: "At ranks 7 and 10, raise one of your second-tier mythic tricks to its third tier.",
+    guide: "trickster#greater-mythic-trick",
+    options: [
+        "trickster/greater-mythic-trick/athletics-iii",
+        "trickster/greater-mythic-trick/knowledge-arcana-iii",
+        "trickster/greater-mythic-trick/knowlege-world-iii",
+        "trickster/greater-mythic-trick/lore-nature-iii",
+        "trickster/greater-mythic-trick/lore-religion-iii",
+        "trickster/greater-mythic-trick/mobility-iii",
+        "trickster/greater-mythic-trick/perception-iii",
+        "trickster/greater-mythic-trick/persuasion-iii",
+        "trickster/greater-mythic-trick/stealth-iii",
+        "trickster/greater-mythic-trick/trickery-iii",
+        "trickster/greater-mythic-trick/use-magic-device-iii",
+    ],
+)

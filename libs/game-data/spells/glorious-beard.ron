@@ -1,0 +1,14 @@
+(
+    key: "glorious-beard",
+    blueprint: "30302d12c4aed124ba55857c7dfab114",
+    name: "Glorious Beard",
+    school: Transmutation,
+    guide: "trickster#glorious-beard-transmutation",
+    summary: "The target grows a beard that gives +2 natural armour and DR 5/slashing.",
+    target: "One friendly creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

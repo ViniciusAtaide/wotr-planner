@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/water",
+    blueprint: "0f457943bb99f9b48b709c90bfc0467e",
+    name: "Water",
+    summary: "Minor: a weapon deals +1d4 cold for 1 minute. Major (10th): an ally gains fire resistance equal to your level for 1 minute.",
+    guide: "warpriest#water",
+    domain: "cleric/domain/water",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/water/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/water/major-blessing"]),
+    ],
+)

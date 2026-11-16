@@ -1,0 +1,15 @@
+(
+    key: "bloodrager/bloodline/undead",
+    blueprint: "9f4ea90e9b9c27c48b541dbef184b3b7",
+    name: "Undead",
+    summary: "Undead bloodline: frightening charges, ghost touch attacks at 4th, cold and negative resistance at 8th, fear strikes at 12th.",
+    guide: "bloodrager#undead-bloodrager",
+    levels: [
+        (level: 1, features: ["bloodrager/bloodline/undead/frightful-charger"], feat_list: "bloodrager/bloodline/undead/feats"),
+        (level: 4, features: ["bloodrager/bloodline/undead/ghost-strike"]),
+        (level: 8, features: ["bloodrager/bloodline/undead/deaths-gift"]),
+        (level: 12, features: ["bloodrager/bloodline/undead/frightful-strikes"]),
+        (level: 16, features: ["bloodrager/bloodline/undead/incorporeal-bloodrager"]),
+        (level: 20, features: ["bloodrager/bloodline/undead/one-foot-in-the-grave"]),
+    ],
+)

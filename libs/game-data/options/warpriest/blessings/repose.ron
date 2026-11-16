@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/repose",
+    blueprint: "64a416082927673409deb330af04d6d2",
+    name: "Repose",
+    summary: "Minor: a melee touch staggers for 1 round, or puts a staggered foe to sleep. Major (10th): healing channels also harm undead for half as much.",
+    guide: "warpriest#repose",
+    domain: "cleric/domain/repose",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/repose/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/repose/major-blessing"]),
+    ],
+)

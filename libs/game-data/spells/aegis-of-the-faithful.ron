@@ -1,0 +1,14 @@
+(
+    key: "aegis-of-the-faithful",
+    blueprint: "d7882fc74a30f5f43afb644045299b63",
+    name: "Aegis of the Faithful",
+    school: Abjuration,
+    guide: "angel#aegis-of-the-faithful-abjuration",
+    summary: "The target is under Displacement, Shield, Protection from Arrows, Shield of Faith and Resist Energy against every energy type at once.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

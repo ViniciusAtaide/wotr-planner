@@ -1,0 +1,14 @@
+(
+    key: "beast-shape-iv",
+    blueprint: "940a545a665194b48b722c1f9dd78d53",
+    name: "Beast Shape IV",
+    school: Transmutation,
+    guide: "wizard-spells#beast-shape-iv-transmutation",
+    summary: "You turn into a Large smilodon, shambling mound or wyvern.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

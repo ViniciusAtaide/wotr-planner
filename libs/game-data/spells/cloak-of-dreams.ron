@@ -1,0 +1,14 @@
+(
+    key: "cloak-of-dreams",
+    blueprint: "7f71a70d822af94458dc1a235507e972",
+    name: "Cloak of Dreams",
+    school: Enchantment,
+    guide: "wizard-spells#cloak-of-dreams-enchantment",
+    summary: "Living creatures within 5 ft of you must save each round or sleep for 1 minute, helpless until wounded.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: FullRound,
+)

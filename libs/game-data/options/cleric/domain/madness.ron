@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/madness",
+    blueprint: "9ebe166b9b901c746b1858029f13a2c5",
+    name: "Madness Domain",
+    summary: "Vision of Madness and a confusion aura from 8th level; spells from Cause Fear to Weird.",
+    guide: "character-creation#madness-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/madness/vision-of-madness"]),
+        (level: 8, features: ["cleric/domain/madness/aura-of-madness"]),
+    ],
+)

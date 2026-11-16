@@ -1,0 +1,14 @@
+(
+    key: "foxs-cunning",
+    blueprint: "ae4d3ad6a8fda1542acf2e9bbc13d113",
+    name: "Fox's Cunning",
+    school: Transmutation,
+    guide: "wizard-spells#foxs-cunning-transmutation",
+    summary: "+4 enhancement bonus to the target's Intelligence.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

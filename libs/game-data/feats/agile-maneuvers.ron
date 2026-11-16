@@ -1,0 +1,1 @@
+(key: "agile-maneuvers", blueprint: "197306972c98bb843af738dc7529a7ac", name: "Agile Maneuvers", summary: "Your CMB is based on Dexterity rather than Strength.", category: CombatManoeuvres, guide: "feats#agile-maneuvers", prerequisite: Any([Feat("bull-rush"), Feat("dirty-trick"), Feat("sunder-armor"), Feat("trip")]))

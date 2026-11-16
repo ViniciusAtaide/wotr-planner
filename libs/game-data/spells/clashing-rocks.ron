@@ -1,0 +1,13 @@
+(
+    key: "clashing-rocks",
+    blueprint: "01300baad090d634cb1a1b2defe068d6",
+    name: "Clashing Rocks",
+    school: Conjuration,
+    guide: "wizard-spells#clashing-rocks-conjuration",
+    summary: "A ranged touch hit deals 20d6 bludgeoning and knocks prone (10d6 on a miss); a save halves it and avoids the fall; creatures in the rocks' path take 10d6 too.",
+    target: "One enemy creature within long range",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

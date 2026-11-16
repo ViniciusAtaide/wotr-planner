@@ -1,0 +1,14 @@
+(
+    key: "timely-assistance",
+    blueprint: "b76383fb806d61b41bfe93f0651e3964",
+    name: "Timely Assistance",
+    slot: Belt,
+    guide: "items#belts",
+    bonuses: [
+        (target: Ability(Constitution), amount: 4, kind: Enhancement),
+        (target: Ability(Wisdom), amount: 4, kind: Enhancement),
+    ],
+    other_effects: [
+        "When an ally within 20 feet lands a killing blow, the wearer's next spell is extended.",
+    ],
+)

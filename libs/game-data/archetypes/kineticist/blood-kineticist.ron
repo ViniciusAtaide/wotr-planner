@@ -1,0 +1,17 @@
+(
+    key: "kineticist/blood-kineticist",
+    class: "kineticist",
+    blueprint: "365b50dba54efb74fa24c07e9b7a838c",
+    name: "Blood Kineticist",
+    summary: "Water-only kineticist (Water at 1st and 7th, Water blast at 1st) with its own blood infusions such as Wrack, Bleeding and Vampiric.",
+    guide: "kineticist#blood-kineticist",
+    levels: [
+        (level: 1, features: ["kineticist/blood-kineticist/wrack", "kineticist/burn", "kineticist/gather-power", "kineticist/kinetic-blast"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["kineticist/blood-kineticist/element"]),
+        (level: 5, features: ["kineticist/blood-kineticist/bleeding-infusion", "kineticist/blood-kineticist/metakinesis-empowered", "kineticist/infusion-specialization"]),
+        (level: 7, features: ["kineticist/blood-kineticist/blood-blast"]),
+        (level: 9, features: ["kineticist/blood-kineticist/gut-wrenching-infusion", "kineticist/blood-kineticist/metakinesis-maximized"]),
+        (level: 11, features: ["kineticist/blood-kineticist/vampiric-infusion", "kineticist/supercharge"]),
+        (level: 13, features: ["kineticist/blood-kineticist/metakinesis-quicken"], selections: ["kineticist/infusions"]),
+        (level: 20, features: ["kineticist/blood-kineticist/blood-mastery"], selections: ["kineticist/wild-talents"]),
+    ],
+)

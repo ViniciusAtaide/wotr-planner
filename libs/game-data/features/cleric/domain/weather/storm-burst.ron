@@ -1,0 +1,1 @@
+(key: "cleric/domain/weather/storm-burst", blueprint: "1c37869ee06ca33459f16f23f4969e7d", name: "Storm Burst", summary: "30-foot ranged touch for 1d6 +1 per two levels and -2 to the target's attacks next round; 3 + Wisdom modifier uses a day.", guide: "character-creation#weather-domain")

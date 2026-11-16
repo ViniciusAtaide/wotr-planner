@@ -1,0 +1,1 @@
+(key: "courtier", blueprint: "d7f5d62db424d3c4bbfb178bbb0b4e22", name: "Courtier", group: Noble, note: "Proficient with rapier and buckler.", class_skills: ["persuasion", "trickery"], weapons: ["rapier"])

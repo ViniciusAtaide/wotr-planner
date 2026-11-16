@@ -1,0 +1,1 @@
+(key: "breadth-of-experience", blueprint: "351bfb6ce48d441da02cc141e7f19ed8", name: "Breadth of Experience", summary: "Knowledge and Lore checks all get +2.", category: Racial, guide: "feats#breadth-of-experience", prerequisite: Any([Race("dwarf"), Race("elf"), Race("gnome")]))

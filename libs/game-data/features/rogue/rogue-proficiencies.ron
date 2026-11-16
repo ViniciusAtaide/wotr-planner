@@ -1,0 +1,1 @@
+(key: "rogue/rogue-proficiencies", blueprint: "33e2a7e4ad9daa54eaf808e1483bb43c", name: "Rogue Proficiencies", summary: "Simple weapons, rapier, short sword, short bow and light armour; no shields.", guide: "rogue#rogue-proficiencies", weapons: ["rapier", "short-bow", "short-sword"])

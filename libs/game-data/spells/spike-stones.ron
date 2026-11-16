@@ -1,0 +1,14 @@
+(
+    key: "spike-stones",
+    blueprint: "d1afa8bc28c99104da7d784115552de5",
+    name: "Spike Stones",
+    school: Transmutation,
+    guide: "druid-spells#spike-stones-transmutation",
+    summary: "The area halves speed and deals 1d8 piercing per 5 ft moved; anyone hurt is slowed to half speed for 1 minute unless it makes a Reflex save.",
+    target: "Target point within medium range, 40' burst",
+    duration: "1 minute / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

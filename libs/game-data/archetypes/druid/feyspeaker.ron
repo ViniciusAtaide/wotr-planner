@@ -1,0 +1,21 @@
+(
+    key: "druid/feyspeaker",
+    class: "druid",
+    blueprint: "da69747aa3dd0044ebff5f3d701cdde3",
+    name: "Feyspeaker",
+    summary: "Cha-based druid with 1/2 BAB, 4 skill points, delayed wild shape and wizard enchantments and illusions.",
+    guide: "druid#feyspeaker",
+    skill_points: 4,
+    class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "perception", "persuasion"],
+    levels: [
+        (level: 1, features: ["druid/druid-proficiencies", "druid/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"], selections: ["druid/nature-bond"]),
+        (level: 4, features: ["druid/feyspeaker/fey-magic", "druid/resist-natures-lure"]),
+        (level: 6, features: ["druid/feyspeaker/fey-magic", "druid/feyspeaker/wild-shape-wolf"]),
+        (level: 8, features: ["druid/feyspeaker/fey-magic", "druid/feyspeaker/wild-shape-leopard", "druid/feyspeaker/wild-shape-wolf"]),
+        (level: 10, features: ["druid/feyspeaker/fey-magic", "druid/feyspeaker/wild-shape-bear-shambling-mound", "druid/feyspeaker/wild-shape-wolf"]),
+        (level: 12, features: ["druid/feyspeaker/fey-magic", "druid/feyspeaker/wild-shape-smilodon-huge-elemental", "druid/feyspeaker/wild-shape-wolf"]),
+        (level: 14, features: ["druid/feyspeaker/fey-magic", "druid/feyspeaker/wild-shape-wolf"]),
+        (level: 16, features: ["druid/feyspeaker/fey-magic", "druid/feyspeaker/wild-shape-wolf"]),
+        (level: 18, features: ["druid/feyspeaker/fey-magic", "druid/feyspeaker/wild-shape-wolf"]),
+    ],
+)

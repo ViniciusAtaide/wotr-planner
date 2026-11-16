@@ -1,0 +1,14 @@
+(
+    key: "grease",
+    blueprint: "95851f6e85fe87d4190675db0419d112",
+    name: "Grease",
+    school: Conjuration,
+    guide: "wizard-spells#grease-conjuration",
+    summary: "Grease coats a 10 ft radius; creatures there when cast, and each round after, must pass a Reflex save or fall prone.",
+    target: "One enemy creature within close range, 10' burst",
+    duration: "1 minute / level",
+    saving_throw: "Reflex negates",
+    spell_resistance: false,
+    descriptors: [MovementImpairing],
+    casting_time: Standard,
+)

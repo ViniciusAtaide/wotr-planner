@@ -41,7 +41,8 @@ const BORROWED_FEATURES: [(&str, &str); 7] = [
 
 /// Every selection of the data, by key.
 fn any_selection(key: &str) -> &'static rules::FeatureSelection {
-    DATA.selections()
+    DATA.selections
+        .iter()
         .find(|selection| selection.key.as_str() == key)
         .unwrap_or_else(|| panic!("no selection {key}"))
 }
@@ -110,20 +111,14 @@ fn slot_offering(build: &Build, level: u8, option: &str) -> SlotId {
 fn the_borrowed_picks_replace_their_features() {
     for (class_key, feature) in BORROWED_FEATURES {
         let class = class(class_key);
-        let defined = class
-            .features
-            .iter()
-            .chain(class.archetypes.iter().flat_map(|a| &a.features))
-            .any(|f| f.key.as_str() == feature);
+        let defined = DATA.features.iter().any(|f| f.key.as_str() == feature);
         assert!(!defined, "{feature} is still a feature");
         let on_a_row = class
             .levels
             .iter()
             .map(|row| &row.features)
             .chain(
-                class
-                    .archetypes
-                    .iter()
+                DATA.archetypes_of(&class.key)
                     .flat_map(|a| a.levels.iter().map(|row| &row.features)),
             )
             .flatten()
@@ -383,8 +378,8 @@ fn each_borrowing_class_picks_at_its_tables_levels() {
     }
     // Game: BardClass 772c83a25e2268e448e841dcd548235f (8 archetypes, one a companion's, Penta_UniqueBard; none of
     // the other seven touches the talents) and SkaldClass 6afa347d804838b48bda16acb0573dc0 (7)
-    assert_eq!(class("bard").archetypes.len(), 7);
-    assert_eq!(class("skald").archetypes.len(), 7);
+    assert_eq!(DATA.archetypes_of(&class("bard").key).count(), 7);
+    assert_eq!(DATA.archetypes_of(&class("skald").key).count(), 7);
     for (build, selection, levels) in cases {
         let who = format!("{:?} {selection}", build.class_choices);
         assert_eq!(levels_with_slot_of(&build, selection), levels, "{who}");

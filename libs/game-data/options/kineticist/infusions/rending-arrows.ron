@@ -1,0 +1,1 @@
+(key: "kineticist/infusions/rending-arrows", blueprint: "8896ac251d394dceaf650793aa85e177", name: "Rending Arrows", summary: "Sharpshooter substance, 3 Burn: each hit gives the target -2 AC, stacking to -10.", guide: "kineticist#rending-arrows", prerequisite: All([ClassLevel(class: "kineticist", level: 10), Archetype("kineticist/kinetic-sharpshooter")]))

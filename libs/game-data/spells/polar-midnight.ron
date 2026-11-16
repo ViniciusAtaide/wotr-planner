@@ -1,0 +1,14 @@
+(
+    key: "polar-midnight",
+    blueprint: "ba48abb52b142164eba309fd09898856",
+    name: "Polar Midnight",
+    school: Transmutation,
+    guide: "cleric-spells#polar-midnight-transmutation",
+    summary: "Creatures in the area take 5d6 cold and 1d6 Dexterity damage each round; a Fortitude save stops only the Dexterity damage.",
+    target: "Target point within close range, 30' burst",
+    duration: "1 round / level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Cold],
+    casting_time: Standard,
+)

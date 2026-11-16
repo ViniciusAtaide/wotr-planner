@@ -1,0 +1,14 @@
+(
+    key: "holy-word",
+    blueprint: "4737294a66c91b844842caee8cf505c8",
+    name: "Holy Word",
+    school: Evocation,
+    guide: "cleric-spells#holy-word-evocation",
+    summary: "Non-good creatures within 40 ft are blinded, paralysed or killed as HD fall below your caster level (killed: over 10 below); Will negates.",
+    target: "All creatures within 40' of caster",
+    duration: "Varies",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [Good, Sonic],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "long-bow", blueprint: "7a1211c05ec2c46428f41e3c0db9423f", name: "Long Bow", proficiency: Martial, stats: (damage: (count: 1, sides: 8), threat: 20, multiplier: 3, handedness: TwoHanded, ranged: Projectile))

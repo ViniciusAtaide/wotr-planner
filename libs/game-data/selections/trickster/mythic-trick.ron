@@ -1,0 +1,20 @@
+(
+    key: "trickster/mythic-trick",
+    blueprint: "4fbc563529717de4d92052048143e0f1",
+    name: "Mythic Trick",
+    summary: "From rank 3, at every rank, gain a creative use of one of your skills.",
+    guide: "trickster#mythic-trick",
+    options: [
+        "trickster/mythic-trick/athletics-i",
+        "trickster/mythic-trick/infuse-magic-device",
+        "trickster/mythic-trick/knowledge-arcana-i",
+        "trickster/mythic-trick/knowledge-world-i",
+        "trickster/mythic-trick/lore-nature-i",
+        "trickster/mythic-trick/lore-religion-i",
+        "trickster/mythic-trick/mobility-i",
+        "trickster/mythic-trick/perception-i",
+        "trickster/mythic-trick/persuasion-i",
+        "trickster/mythic-trick/stealth-i",
+        "trickster/mythic-trick/trickery-i",
+    ],
+)

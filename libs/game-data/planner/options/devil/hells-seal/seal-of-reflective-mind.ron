@@ -1,0 +1,4 @@
+(
+    why: "An ability of the Devil's Hell's Decree or Hell's Seal feature in the game, not a feature of its own.",
+    entry: (key: "devil/hells-seal/seal-of-reflective-mind", name: "Seal of Reflective Mind", summary: "The ally automatically saves against enchantments and illusions and reflects them at the caster with DC + MR/2.", guide: "other-mythic-paths#seal-of-reflective-mind"),
+)

@@ -1,0 +1,13 @@
+(
+    key: "orders-wrath",
+    blueprint: "1ec8f035d8329134d96cdc7b90fdc2e1",
+    name: "Order's Wrath",
+    school: Evocation,
+    guide: "cleric-spells#orders-wrath-evocation",
+    summary: "Chaotic creatures are dazed 1 round and take 1d8 per two caster levels (max 5d8), chaotic outsiders 1d6 per level (max 10d6); neutral take half.",
+    target: "All creatures within 20' of target creature within medium range",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [Law],
+    casting_time: Standard,
+)

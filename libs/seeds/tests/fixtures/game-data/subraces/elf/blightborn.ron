@@ -1,0 +1,11 @@
+(
+    key: "elf/blightborn",
+    race: "elf",
+    name: "Blightborn",
+    guide: "character-creation#elf-blightborn",
+    ability_modifiers: [
+        Fixed(ability: Dexterity, amount: 2),
+        Fixed(ability: Wisdom, amount: 2),
+        Fixed(ability: Constitution, amount: -2),
+    ],
+)

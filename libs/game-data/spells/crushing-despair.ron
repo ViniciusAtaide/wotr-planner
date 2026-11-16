@@ -1,0 +1,14 @@
+(
+    key: "crushing-despair",
+    blueprint: "4baf4109145de4345861fe0f2209d903",
+    name: "Crushing Despair",
+    school: Enchantment,
+    guide: "wizard-spells#crushing-despair-enchantment",
+    summary: "Each creature that fails its save takes -2 to attacks, damage, saves, and ability and skill checks.",
+    target: "All creatures within a 30' cone",
+    duration: "1 minute / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

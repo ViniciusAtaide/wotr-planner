@@ -1,0 +1,1 @@
+(key: "trickster/improved-mythic-trick/trickery-ii", blueprint: "1b8271896e4a3e14389729f3df6a847e", name: "Trickery II", summary: "A Trickery check at -20 stands in for the caster level check to Greater Dispel Magic everything on a target or area.", guide: "trickster#trickery-ii", prerequisite: SelectionOption("trickster/mythic-trick/trickery-i"))

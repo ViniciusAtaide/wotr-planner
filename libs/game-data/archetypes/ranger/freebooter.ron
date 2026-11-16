@@ -1,0 +1,16 @@
+(
+    key: "ranger/freebooter",
+    class: "ranger",
+    blueprint: "4fd9705f1aebf614f9500bb0e7341179",
+    name: "Freebooter",
+    summary: "Pirate-captain ranger with teamwork abilities instead of favoured enemies and an animal companion.",
+    guide: "ranger#freebooter",
+    levels: [
+        (level: 1, features: ["ranger/freebooter/freebooters-bane"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 4, features: ["ranger/freebooter/freebooters-bond"]),
+        (level: 5, features: ["ranger/freebooter/freebooters-bane"]),
+        (level: 10, features: ["ranger/freebooter/freebooters-bane"], feat_slots: [OptionList(selection: "ranger/combat-style-feat")]),
+        (level: 15, features: ["ranger/freebooter/freebooters-bane"]),
+        (level: 20, features: ["ranger/freebooter/freebooters-bane", "ranger/master-hunter"]),
+    ],
+)

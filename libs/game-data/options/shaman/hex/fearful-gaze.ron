@@ -1,0 +1,1 @@
+(key: "shaman/hex/fearful-gaze", blueprint: "89603c7a9ba690d46b95148b46a34f7d", name: "Fearful Gaze", summary: "Bones: shake a creature within 30 feet for 1 round (Will negates); frightened from 8th, panicked from 16th.", guide: "shaman#fearful-gaze", prerequisite: SelectionOption("shaman/spirit/bones"))

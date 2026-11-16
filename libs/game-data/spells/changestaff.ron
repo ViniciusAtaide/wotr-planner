@@ -1,0 +1,15 @@
+(
+    key: "changestaff",
+    blueprint: "26be70c4664d07446bdfe83504c1d757",
+    name: "Changestaff",
+    school: Transmutation,
+    guide: "druid-spells#changestaff-transmutation",
+    summary: "Turns your quarterstaff into a treant that fights for you.",
+    components: "Quarterstaff",
+    target: "Target point within close range",
+    duration: "1 hour / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: FullRound,
+)

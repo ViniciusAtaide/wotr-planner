@@ -1,0 +1,13 @@
+(
+    key: "abyssal-storm",
+    blueprint: "58e9e2883bca1574e9c932e72fd361f9",
+    name: "Abyssal Storm",
+    school: Evocation,
+    guide: "demon#abyssal-storm-evocation",
+    summary: "Creatures in the burst take 1d6 electricity plus 1d6 unholy per caster level.",
+    target: "All creatures within a 40' burst centred on the caster",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

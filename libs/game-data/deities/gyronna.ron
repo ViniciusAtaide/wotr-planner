@@ -1,0 +1,9 @@
+(
+    key: "gyronna",
+    blueprint: "8b535b6842e063d48a571a042c3c6e8f",
+    name: "Gyronna",
+    guide: "character-creation#deities",
+    alignments: [ChaoticNeutral, NeutralEvil, ChaoticEvil],
+    favoured_weapons: ["dagger"],
+    domains: ["cleric/domain/chaos", "cleric/domain/destruction", "cleric/domain/evil", "cleric/domain/madness"],
+)

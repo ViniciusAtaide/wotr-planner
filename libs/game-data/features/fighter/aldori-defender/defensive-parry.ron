@@ -1,0 +1,1 @@
+(key: "fighter/aldori-defender/defensive-parry", blueprint: "faa56353e193e5940a305c60b4412ea5", name: "Defensive Parry", summary: "From 3rd level, a full attack with a dueling sword gives +1 dodge AC against melee until your next turn, +1 per 4 levels (max +5).", guide: "fighter#defensive-parry")

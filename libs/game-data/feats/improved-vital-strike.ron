@@ -1,0 +1,1 @@
+(key: "improved-vital-strike", blueprint: "52913092cd018da47845f36e6fbe240f", name: "Improved Vital Strike", summary: "Standard action: one attack at your highest bonus that rolls the weapon's damage three times.", category: Weapon, guide: "feats#improved-vital-strike", prerequisite: All([Feat("vital-strike"), BaseAttackBonus(11)]))

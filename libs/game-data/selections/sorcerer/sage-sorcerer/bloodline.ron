@@ -1,0 +1,13 @@
+(
+    key: "sorcerer/sage-sorcerer/bloodline",
+    blueprint: "24bef8d1bee12274686f6da6ccbc8914",
+    name: "Bloodline (Sage Sorcerer)",
+    summary: "The Sage Sorcerer's fixed bloodline, built on the Arcane one.",
+    guide: "sorcerer#sage-sorcerer",
+    option_levels: ["dragon-disciple", "sorcerer"],
+    skipped_levels: [1],
+    options: [],
+    shared_options: [
+        "sorcerer/bloodline/arcane",
+    ],
+)

@@ -1,0 +1,14 @@
+(
+    key: "color-spray",
+    blueprint: "91da41b9793a4624797921f221db653c",
+    name: "Color Spray",
+    school: Illusion,
+    guide: "wizard-spells#color-spray-illusion",
+    summary: "Creatures in the cone are stunned; those of 4 HD or less are also blinded, and those of 2 HD or less knocked prone, for longer; sightless ones are immune.",
+    target: "15' cone",
+    duration: "Based on targets' HD",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting],
+    casting_time: Standard,
+)

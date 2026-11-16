@@ -1,0 +1,11 @@
+(
+    key: "wizard/arcane-bomber",
+    class: "wizard",
+    blueprint: "17b26d5302cd3e243a281a0beec6256b",
+    name: "Arcane Bomber",
+    summary: "Wizard-alchemist hybrid who throws bombs; no arcane bond and four opposition schools.",
+    guide: "wizard#arcane-bomber",
+    levels: [
+        (level: 1, features: ["wizard/arcane-bomber/arcane-bombs", "wizard/arcane-bomber/cantrips", "wizard/arcane-bomber/spellblast", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)]),
+    ],
+)

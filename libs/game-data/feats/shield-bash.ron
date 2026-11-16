@@ -1,0 +1,1 @@
+(key: "shield-bash", blueprint: "121811173a614534e8720d7550aae253", name: "Shield Bash", summary: "Shields become weapons: 1d3 for a light shield, 1d4 for a heavy one, with two-weapon fighting penalties.", category: ArmourAndShield, guide: "feats#shield-bash", prerequisite: Feat("shield-proficiency"))

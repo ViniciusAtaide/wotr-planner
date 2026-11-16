@@ -466,15 +466,7 @@ fn bloodline_ascendance_passes_over_a_row_the_holdings_selection_skips() {
     assert_eq!(held_at_7(&engine()), 1);
     // The Seeker invented to skip the 20th row too.
     let mut data = world();
-    let seeker = data
-        .all_classes_mut()
-        .find(|class| class.key.as_str() == "sorcerer")
-        .unwrap()
-        .archetypes
-        .iter_mut()
-        .flat_map(|archetype| &mut archetype.selections)
-        .find(|selection| selection.key.as_str() == "sorcerer/seeker/bloodline")
-        .unwrap();
+    let seeker = selection_mut(&mut data, "sorcerer/seeker/bloodline");
     seeker.skipped_levels.insert(20);
     assert_eq!(held_at_7(&engine_on(data)), 0);
 }
@@ -494,15 +486,7 @@ fn a_replacement_for_a_skipped_row_is_held_once_early_or_at_its_level() {
         pick_mythic_ability("bloodline-ascendance"),
     );
     let mut data = world();
-    let seeker = data
-        .all_classes_mut()
-        .find(|class| class.key.as_str() == "sorcerer")
-        .unwrap()
-        .archetypes
-        .iter_mut()
-        .flat_map(|archetype| &mut archetype.selections)
-        .find(|selection| selection.key.as_str() == "sorcerer/seeker/bloodline")
-        .unwrap();
+    let seeker = selection_mut(&mut data, "sorcerer/seeker/bloodline");
     seeker.skipped_levels.insert(20);
     let replacement = FeatureKey::new("sorcerer/bloodline/arcane/apotheosis");
     seeker.replaced_by.insert(20, replacement.clone());

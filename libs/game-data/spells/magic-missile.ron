@@ -1,0 +1,13 @@
+(
+    key: "magic-missile",
+    blueprint: "4ac47ddb9fa1eaf43a1b6809980cfbd2",
+    name: "Magic Missile",
+    school: Evocation,
+    guide: "wizard-spells#magic-missile-evocation",
+    summary: "Unerring missiles deal 2-5 force damage each: one missile, plus another every two caster levels after the first, to five at 9th level.",
+    target: "One enemy creature within medium range",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

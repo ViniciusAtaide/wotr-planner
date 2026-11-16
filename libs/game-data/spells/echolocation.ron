@@ -1,0 +1,14 @@
+(
+    key: "echolocation",
+    blueprint: "20b548bf09bb3ea4bafea78dcb4f3db6",
+    name: "Echolocation",
+    school: Transmutation,
+    guide: "wizard-spells#echolocation-transmutation",
+    summary: "You gain 40 ft blindsight.",
+    target: "Personal",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

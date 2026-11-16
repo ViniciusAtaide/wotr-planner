@@ -1,0 +1,13 @@
+(
+    key: "life-blast",
+    blueprint: "a8666d26bbbd9b640958284e0eee3602",
+    name: "Life Blast",
+    school: Necromancy,
+    guide: "druid-spells#life-blast-necromancy",
+    summary: "A 50 ft line of positive energy hits only undead, for 1d6 per caster level up to 12d6 (Will halves).",
+    target: "All creatures along a 50' line",
+    saving_throw: "Will half",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

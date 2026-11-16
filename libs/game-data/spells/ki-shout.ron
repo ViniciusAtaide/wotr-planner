@@ -1,0 +1,14 @@
+(
+    key: "ki-shout",
+    blueprint: "5c8cde7f0dcec4e49bfa2632dfe2ecc0",
+    name: "Ki Shout",
+    school: Evocation,
+    guide: "wizard-spells#ki-shout-evocation",
+    summary: "Deals 1d6 sonic damage per caster level and stuns the target for 1 round; on a successful save it takes half and isn't stunned.",
+    target: "One enemy creature within close range",
+    duration: "1 round",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Stunned, Sonic],
+    casting_time: Standard,
+)

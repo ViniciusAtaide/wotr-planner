@@ -1,0 +1,1 @@
+(key: "boar-shred", blueprint: "bfd867bce95e420e82b3c96abb133876", name: "Boar Shred", summary: "Tearing flesh adds 1d6 bleed per round, and demoralising takes only a move action.", category: UnarmedCombat, guide: "feats#boar-shred", prerequisite: All([Feat("boar-ferocity"), SkillRanks(skill: "persuasion", ranks: 9)]))

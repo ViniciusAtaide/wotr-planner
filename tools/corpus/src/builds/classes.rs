@@ -25,8 +25,8 @@ pub(super) fn neutral_human() -> Build {
 pub(super) fn every_class(data: &GameData) -> Vec<Named> {
     let mut out = Vec::new();
     for class in &data.classes {
-        let archetypes =
-            std::iter::once(None).chain(class.archetypes.iter().map(|a| Some(a.key.clone())));
+        let archetypes = std::iter::once(None)
+            .chain(data.archetypes_of(&class.key).map(|a| Some(a.key.clone())));
         for archetype in archetypes {
             let mut build = neutral_human();
             build.class_choices.insert(

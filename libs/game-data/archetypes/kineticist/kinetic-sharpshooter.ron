@@ -1,0 +1,16 @@
+(
+    key: "kineticist/kinetic-sharpshooter",
+    class: "kineticist",
+    blueprint: "e0684d0a6ef44cae9d095f5318618a85",
+    name: "Kinetic Sharpshooter",
+    summary: "Kineticist (Dance of Masks DLC) who fires blasts through a bow or crossbow and stores infusion charges in a quiver; no Gather Power.",
+    guide: "kineticist#kinetic-sharpshooter",
+    levels: [
+        (level: 1, features: ["kineticist/burn", "kineticist/kinetic-blast", "kineticist/kinetic-sharpshooter/charged-ammunition", "kineticist/kinetic-sharpshooter/kinetic-sharpshooter-proficiencies"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["kineticist/element"]),
+        (level: 3, features: ["kineticist/elemental-overflow", "kineticist/kinetic-sharpshooter/kinetic-quiver"], selections: ["kineticist/infusions"]),
+        (level: 5, features: ["kineticist/infusion-specialization", "kineticist/kinetic-sharpshooter/metakinesis-empowered"], selections: ["kineticist/infusions"]),
+        (level: 9, features: ["kineticist/kinetic-sharpshooter/metakinesis-maximized"], selections: ["kineticist/infusions"]),
+        (level: 11, selections: ["kineticist/infusions"]),
+        (level: 13, features: ["kineticist/kinetic-sharpshooter/metakinesis-quicken"], selections: ["kineticist/infusions"]),
+    ],
+)

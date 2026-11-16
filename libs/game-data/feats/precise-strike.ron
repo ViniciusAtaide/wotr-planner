@@ -1,0 +1,1 @@
+(key: "precise-strike", blueprint: "5662d1b793db90c4b9ba68037fd2a768", name: "Precise Strike", summary: "Flanking a foe with an ally who has this feat adds 1d6 to each of your melee hits, not multiplied on a crit.", category: Teamwork, guide: "feats#precise-strike", prerequisite: All([AbilityScore(ability: Dexterity, score: 13), BaseAttackBonus(1)]))

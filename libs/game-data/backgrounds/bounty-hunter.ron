@@ -1,0 +1,1 @@
+(key: "bounty-hunter", blueprint: "15a072cca47e2444ebfd178b71f4e797", name: "Bounty Hunter", group: Warrior, note: "Proficient with club, light mace and heavy mace.", class_skills: ["stealth"], feats: ["armor-proficiency-light-armor"], weapons: ["club", "heavy-mace", "light-mace"])

@@ -1,0 +1,1 @@
+(key: "metamagic-heighten-spell", blueprint: "2f5d1e705c7967546b72ad8218ccf99c", name: "Metamagic (Heighten Spell)", summary: "Cast the spell at a higher level, up to your highest, raising its DC and beating spell-level immunities.", category: Magic, guide: "feats#metamagic-heighten-spell")

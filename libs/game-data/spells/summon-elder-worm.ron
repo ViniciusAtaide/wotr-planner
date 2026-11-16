@@ -1,0 +1,14 @@
+(
+    key: "summon-elder-worm",
+    blueprint: "954f1469ed62843409783c9fa7472998",
+    name: "Summon Elder Worm",
+    school: Conjuration,
+    guide: "druid-spells#summon-elder-worm-conjuration",
+    summary: "Calls up a purple worm to fight for you.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

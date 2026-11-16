@@ -1,0 +1,1 @@
+(key: "wizard/school/necromancer/power-over-undead", blueprint: "927707dce06627d4f880c90b5575125f", name: "Power Over Undead", summary: "Turn undead 3 + Int times a day (DC 10 + half level + Cha); at 20th, undead lose channel resistance.", guide: "wizard#power-over-undead")

@@ -1,0 +1,1 @@
+(key: "bloodrager/bloodline/abyssal/abyssal-bloodrage", blueprint: "29fc83f824111bb41829957486752c93", name: "Abyssal Bloodrage", summary: "From 12th level, bloodrage's morale bonus to attack and damage gains +1, and +1 more at 16th and 20th, but its AC penalty grows to -4.", guide: "bloodrager#abyssal-bloodrage", steps: (on: Classes(["bloodrager"]), at: [16, 20]))

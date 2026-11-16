@@ -1,0 +1,23 @@
+(
+    key: "druid/elemental-rampager",
+    class: "druid",
+    blueprint: "f815594bd1e3454182022d375bf70fd1",
+    name: "Elemental Rampager",
+    summary: "Con and Wis druid with claws and an elemental rage; no animal companion or domain.",
+    guide: "druid#elemental-rampager",
+    levels: [
+        (level: 1, features: ["druid/druid-proficiencies", "druid/elemental-rampager/claws", "druid/elemental-rampager/rampage", "druid/nature-sense", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
+        (level: 4, features: ["druid/elemental-rampager/elemental-damage", "druid/elemental-rampager/elemental-rampage", "druid/elemental-rampager/energy-resistance", "druid/elemental-rampager/wild-shape-wolf"]),
+        (level: 6, features: ["druid/elemental-rampager/rampage", "druid/elemental-rampager/wild-shape-leopard-small-elemental", "druid/elemental-rampager/wild-shape-wolf"]),
+        (level: 8, features: ["druid/elemental-rampager/wild-shape-bear-medium-elemental", "druid/elemental-rampager/wild-shape-wolf"]),
+        (level: 9, features: ["druid/elemental-rampager/claws", "druid/elemental-rampager/energy-resistance"]),
+        (level: 10, features: ["druid/elemental-rampager/wild-shape-smilodon-large-elemental-shambling-mound", "druid/elemental-rampager/wild-shape-wolf"]),
+        (level: 11, features: ["druid/elemental-rampager/elemental-ability", "druid/elemental-rampager/elemental-damage", "druid/elemental-rampager/rampage"]),
+        (level: 12, features: ["druid/elemental-rampager/wild-shape-huge-elemental", "druid/elemental-rampager/wild-shape-wolf"]),
+        (level: 14, features: ["druid/elemental-rampager/wild-shape-wolf"]),
+        (level: 15, features: ["druid/elemental-rampager/claws", "druid/elemental-rampager/energy-resistance"]),
+        (level: 16, features: ["druid/elemental-rampager/rampage", "druid/elemental-rampager/wild-shape-wolf"]),
+        (level: 18, features: ["druid/elemental-rampager/wild-shape-wolf"]),
+        (level: 20, features: ["druid/elemental-rampager/elemental-ability", "druid/elemental-rampager/elemental-damage", "druid/elemental-rampager/energy-immunity"]),
+    ],
+)

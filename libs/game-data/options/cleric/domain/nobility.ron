@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/nobility",
+    blueprint: "8480f2d1ca764774895ee6fd610a568e",
+    name: "Nobility Domain",
+    summary: "Inspiring Word and an insight aura from 8th level; spells from Divine Favor to Overwhelming Presence.",
+    guide: "character-creation#nobility-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/nobility/inspiring-word"]),
+        (level: 8, features: ["cleric/domain/nobility/inspiring-command"]),
+    ],
+)

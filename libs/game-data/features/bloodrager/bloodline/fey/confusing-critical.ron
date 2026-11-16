@@ -1,0 +1,1 @@
+(key: "bloodrager/bloodline/fey/confusing-critical", blueprint: "7b2cee44ff286e640bb7ed053de80785", name: "Confusing Critical", summary: "A confirmed critical hit confuses the target for 1 round unless it passes a Will save (DC 10 + half class level + Con modifier).", guide: "bloodrager#confusing-critical")

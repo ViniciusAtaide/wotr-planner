@@ -1,0 +1,1 @@
+(key: "cleaving-shot", blueprint: "b3fb61cecd4de98419d82e465bc588f2", name: "Cleaving Shot", summary: "A ranged critical hit or kill deals your weapon damage to every other enemy within 10 ft.", group: Ranged, guide: "mythic-paths#cleaving-shot")

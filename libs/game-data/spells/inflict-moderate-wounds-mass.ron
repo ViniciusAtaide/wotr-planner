@@ -1,0 +1,13 @@
+(
+    key: "inflict-moderate-wounds-mass",
+    blueprint: "03944622fbe04824684ec29ff2cec6a7",
+    name: "Inflict Moderate Wounds, Mass",
+    school: Necromancy,
+    guide: "cleric-spells#inflict-moderate-wounds-mass-necromancy",
+    summary: "Creatures in the area take 2d8 + 1 per caster level (Will half); undead are healed that much instead.",
+    target: "All creatures within 30' of target point within close range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

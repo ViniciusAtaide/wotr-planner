@@ -1,0 +1,15 @@
+// Headwear.
+(
+    key: "battlemages-headband",
+    blueprint: "229111433080fe247800e95385c9af20",
+    name: "Battlemage's Headband",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 2, kind: Enhancement),
+        (target: Ability(Charisma), amount: 2, kind: Enhancement),
+    ],
+    other_effects: [
+        "Killing with a melee weapon empowers the next spell cast.",
+    ],
+)

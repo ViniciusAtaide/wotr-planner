@@ -1,0 +1,4 @@
+(
+    why: "The game has one blueprint per dragon colour, element, energy, form or bloodline, none of them primary; the planner holds one entry for whichever is held.",
+    entry: (key: "monk/scaled-fist/dragon-breath", name: "Dragon Breath", summary: "From 12th level, 3 ki: breath for 1d6 elemental damage per level in a 30' cone or 60' line (Reflex, DC 10 + half level + Cha).", guide: "monk#scaled-fist"),
+)

@@ -1,0 +1,12 @@
+(
+    key: "cavalier/order/order-of-the-cockatrice",
+    blueprint: "4e2fb051c9c4c144dbad08d994906f99",
+    name: "Order of the Cockatrice",
+    summary: "Glory-seeking order: +1 damage (+1 per 4 levels) against a challenged foe only you threaten.",
+    guide: "cavalier#order-of-the-cockatrice",
+    levels: [
+        (level: 2, features: ["cavalier/order/order-of-the-cockatrice/braggart"], feats: ["dazzling-display"]),
+        (level: 8, features: ["cavalier/order/order-of-the-cockatrice/steal-glory"]),
+        (level: 15, features: ["cavalier/order/order-of-the-cockatrice/moment-of-triumph"]),
+    ],
+)

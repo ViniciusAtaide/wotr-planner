@@ -1,0 +1,22 @@
+(
+    key: "fighter/tower-shield-specialist",
+    class: "fighter",
+    blueprint: "a599da9a8a6b9e54083b0a4d2a25db59",
+    name: "Tower Shield Specialist",
+    summary: "Fighter skilled with tower shields instead of Weapon Training.",
+    guide: "fighter#tower-shield-specialist",
+    levels: [
+        (level: 2, features: ["fighter/tower-shield-specialist/burst-barrier"], feat_slots: [CombatFeat]),
+        (level: 3, features: ["fighter/armor-training", "fighter/tower-shield-specialist/tower-shield-training"]),
+        (level: 5, features: ["fighter/tower-shield-specialist/tower-shield-specialist"]),
+        (level: 6, features: ["fighter/tower-shield-specialist/burst-barrier"], feat_slots: [CombatFeat]),
+        (level: 9, features: ["fighter/tower-shield-specialist/tower-shield-defense"]),
+        (level: 10, features: ["fighter/tower-shield-specialist/burst-barrier"], feat_slots: [CombatFeat]),
+        (level: 13, features: ["fighter/tower-shield-specialist/total-cover"]),
+        (level: 14, features: ["fighter/tower-shield-specialist/burst-barrier"], feat_slots: [CombatFeat]),
+        (level: 16, features: ["fighter/tower-shield-specialist/tower-shield-evasion"], feat_slots: [CombatFeat]),
+        (level: 17),
+        (level: 18, features: ["fighter/tower-shield-specialist/burst-barrier"], feat_slots: [CombatFeat]),
+        (level: 20, features: ["fighter/tower-shield-specialist/tower-shield-improved-evasion"], feat_slots: [CombatFeat]),
+    ],
+)

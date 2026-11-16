@@ -1,0 +1,14 @@
+(
+    key: "glitterdust",
+    blueprint: "ce7dad2b25acf85429b6c9550787b2d9",
+    name: "Glitterdust",
+    school: Conjuration,
+    guide: "wizard-spells#glitterdust-conjuration",
+    summary: "Creatures in the area are blinded unless they pass a Will save, and outlined either way, taking -40 on Stealth checks.",
+    target: "Target point within medium range, 10' burst",
+    duration: "1 round / level",
+    saving_throw: "Will negates (blinding only)",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

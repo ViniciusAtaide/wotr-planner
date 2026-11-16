@@ -1,0 +1,14 @@
+(
+    key: "touch-of-gracelessness",
+    blueprint: "ad10bfec6d7ae8b47870e3a545cc8900",
+    name: "Touch of Gracelessness",
+    school: Transmutation,
+    guide: "wizard-spells#touch-of-gracelessness-transmutation",
+    summary: "Your touch gives a Dexterity penalty of 1d6 + 1 per two caster levels (max 1d6+5), halved on a Fortitude save; Dexterity can't drop below 1.",
+    target: "One enemy creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

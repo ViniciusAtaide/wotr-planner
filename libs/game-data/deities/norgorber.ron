@@ -1,0 +1,9 @@
+(
+    key: "norgorber",
+    blueprint: "805b6bdc8c96f4749afc687a003f9628",
+    name: "Norgorber",
+    guide: "character-creation#deities",
+    alignments: [TrueNeutral, LawfulEvil, NeutralEvil, ChaoticEvil],
+    favoured_weapons: ["short-sword"],
+    domains: ["cleric/domain/charm", "cleric/domain/death", "cleric/domain/evil", "cleric/domain/knowledge", "cleric/domain/trickery"],
+)

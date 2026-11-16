@@ -1,0 +1,19 @@
+(
+    key: "inquisitor/living-grimoire",
+    class: "inquisitor",
+    blueprint: "b68b52e5e802426d989a3d4f8c986761",
+    name: "Living Grimoire",
+    summary: "Dance of Masks inquisitor who prepares spells with Intelligence and fights with a holy book, without judgments or Bane.",
+    guide: "inquisitor#living-grimoire",
+    casting_ability: Intelligence,
+    levels: [
+        (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/living-grimoire/holy-book", "inquisitor/living-grimoire/orisons", "inquisitor/living-grimoire/spellbook", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/domain"]),
+        (level: 4, features: ["inquisitor/living-grimoire/sacred-word"]),
+        (level: 5, features: ["inquisitor/living-grimoire/blessed-script"]),
+        (level: 8, features: ["inquisitor/living-grimoire/sacred-word"]),
+        (level: 10, features: ["inquisitor/living-grimoire/blessed-script"]),
+        (level: 12, features: ["inquisitor/living-grimoire/sacred-word"], feat_slots: [Category(Teamwork)]),
+        (level: 16, features: ["inquisitor/living-grimoire/blessed-script", "inquisitor/living-grimoire/sacred-word"]),
+        (level: 20, features: ["inquisitor/living-grimoire/sacred-word", "inquisitor/living-grimoire/word-of-god"]),
+    ],
+)

@@ -1,0 +1,1 @@
+(key: "slayer/spawn-slayer/gain-leverage", blueprint: "c14f5310a3a8fd84f868c65135708a31", name: "Gain Leverage", summary: "From 7th level, CMB and CMD bonus against Large or bigger studied targets: +1 Large, +2 Huge, +4 Gargantuan, +8 Colossal.", guide: "slayer#gain-leverage")

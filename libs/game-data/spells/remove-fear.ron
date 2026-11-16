@@ -1,0 +1,14 @@
+(
+    key: "remove-fear",
+    blueprint: "55a037e514c0ee14a8e3ed14b47061de",
+    name: "Remove Fear",
+    school: Abjuration,
+    guide: "cleric-spells#remove-fear-abjuration",
+    summary: "Allies in the area gain a +4 morale bonus on saves against fear, and any fear already on them is suppressed while the spell lasts.",
+    target: "All allies within 30' of close range target",
+    duration: "10 minutes",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

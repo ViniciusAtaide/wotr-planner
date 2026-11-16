@@ -1,0 +1,8 @@
+(
+    // Ticket 32: a pick naming a value of its own, from a short list.
+    key: "rogue/rogue-talents/weapon-training",
+    name: "Weapon Training",
+    guide: "rogue#weapon-training",
+    parameter: Weapon,
+    values: [Weapon("dagger"), Weapon("longsword")],
+)

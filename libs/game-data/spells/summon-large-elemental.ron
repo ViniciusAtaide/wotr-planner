@@ -1,0 +1,14 @@
+(
+    key: "summon-large-elemental",
+    blueprint: "89404dd71edc1aa42962824b44156fe5",
+    name: "Summon Large Elemental",
+    school: Conjuration,
+    guide: "wizard-spells#summon-large-elemental-conjuration",
+    summary: "Summons a Large elemental of your choice: air, earth, fire or water.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

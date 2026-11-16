@@ -1,0 +1,6 @@
+(
+    key: "sorcerer/school/necromancy",
+    name: "Necromancy",
+    guide: "character-creation#school-power",
+    prerequisite: Any([Not(PickedThrough("sorcerer/school")), Alignment(NeutralEvil)]),
+)

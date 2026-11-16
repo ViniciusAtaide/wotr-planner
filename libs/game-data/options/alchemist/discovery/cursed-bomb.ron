@@ -1,0 +1,1 @@
+(key: "alchemist/discovery/cursed-bomb", blueprint: "bf8f80f3a492e7946924e1cd9c4b0867", name: "Cursed Bomb", summary: "Requires 12th level: a direct hit must save on Will or suffer Bestow Curse.", guide: "alchemist#cursed-bomb", prerequisite: ClassLevel(class: "alchemist", level: 12))

@@ -1,0 +1,1 @@
+(key: "light-mace", blueprint: "cf3e703db4b81904e982a66d7b8474ea", name: "Light Mace", proficiency: Simple, stats: (damage: (count: 1, sides: 6), threat: 20, multiplier: 2, handedness: Light, finesse: true))

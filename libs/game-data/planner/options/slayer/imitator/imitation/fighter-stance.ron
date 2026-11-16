@@ -1,0 +1,4 @@
+(
+    why: "An ability of ImitationFeature in the game, not a feature of its own.",
+    entry: (key: "slayer/imitator/imitation/fighter-stance", name: "Fighter Stance", summary: "+1 attack and damage, +1 per 5 levels (max +5), and Armor Training at 6th and 14th.", guide: "slayer#fighter-stance"),
+)

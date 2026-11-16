@@ -1,0 +1,13 @@
+(
+    key: "burning-arc",
+    blueprint: "eaac3d36e0336cb479209a6f65e25e7c",
+    name: "Burning Arc",
+    school: Evocation,
+    guide: "wizard-spells#burning-arc-evocation",
+    summary: "Burns the target for 1d6 per caster level (max 10d6) and one more enemy within 15 ft per 3 levels; each extra target halves the dice, rounded down.",
+    target: "One enemy creature within close range",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

@@ -1,0 +1,13 @@
+(
+    key: "molten-orb",
+    blueprint: "42a65895ba0cb3a42b6019039dd2bff1",
+    name: "Molten Orb",
+    school: Evocation,
+    guide: "wizard-spells#molten-orb-evocation",
+    summary: "A thrown grenade does 2d6 fire on a direct hit; all within 5 ft take 1d6 fire, halved by a Reflex save, then 1d6 a round for 1d3 rounds.",
+    target: "One enemy creature within close range, 5' burst",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

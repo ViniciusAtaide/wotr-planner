@@ -1,0 +1,1 @@
+(key: "kineticist/infusions/unraveling-infusion", blueprint: "79339d57d491d824ba0aa4ed0c114b2f", name: "Unraveling Infusion", summary: "Substance, 3 Burn, fire blasts: a target hit past SR is subject to Dispel Magic.", guide: "kineticist#unraveling-infusion", prerequisite: All([ClassLevel(class: "kineticist", level: 10), SelectionOption("kineticist/element/fire")]))

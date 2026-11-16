@@ -1,0 +1,17 @@
+(
+    key: "shaman/wildland-shaman",
+    class: "shaman",
+    blueprint: "bb14b164c2ce4e2bb05434a3218ff73d",
+    name: "Wildland Shaman",
+    summary: "Half-orc only: the Battle spirit and any animal companion instead of a familiar, with no wandering spirits.",
+    guide: "shaman#wildland-shaman",
+    prerequisite: Race("half-orc"),
+    levels: [
+        (level: 1, features: ["shaman/wildland-shaman/animal-companion", "shaman/wildland-shaman/orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/wildland-shaman/spirit"]),
+        (level: 4, selections: ["shaman/hex"]),
+        (level: 6, features: ["shaman/wildland-shaman/battle-hex"]),
+        (level: 12, selections: ["shaman/hex"]),
+        (level: 14, features: ["shaman/wildland-shaman/battle-hex"]),
+        (level: 20, selections: ["shaman/hex"]),
+    ],
+)

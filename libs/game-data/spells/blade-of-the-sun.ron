@@ -1,0 +1,13 @@
+(
+    key: "blade-of-the-sun",
+    blueprint: "cc8be337fff61284caabe3340fc48294",
+    name: "Blade of the Sun",
+    school: Evocation,
+    guide: "angel#blade-of-the-sun-evocation",
+    summary: "Every creature in a 60 ft line takes 1d8 damage for every two caster levels.",
+    target: "All creatures along a 60' line",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

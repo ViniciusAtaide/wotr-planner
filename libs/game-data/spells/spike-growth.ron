@@ -1,0 +1,14 @@
+(
+    key: "spike-growth",
+    blueprint: "29b0f9026ad05e14789d84e867cc6dff",
+    name: "Spike Growth",
+    school: Transmutation,
+    guide: "druid-spells#spike-growth-transmutation",
+    summary: "Creatures take 1d4 piercing per 5 ft moved through the area; one that is hurt is slowed to half base speed for 1 minute unless it makes a Reflex save.",
+    target: "Target point within long range, 40' burst",
+    duration: "1 minute / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

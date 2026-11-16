@@ -1,0 +1,21 @@
+(
+    key: "sorcerer/seeker-sorcerer",
+    class: "sorcerer",
+    blueprint: "7229db6fc0b07af4180e783eed43c4d9",
+    name: "Seeker (Sorcerer)",
+    summary: "Keeps a bloodline's arcana, spells and feats but few of its powers; gains Trickery bonuses and bonus magic feats at 5th, 10th and 15th.",
+    guide: "sorcerer#seeker-sorcerer",
+    levels: [
+        (level: 1, features: ["sorcerer/seeker-sorcerer/cantrips", "sorcerer/seeker-sorcerer/seekers-trapfinding", "sorcerer/seeker-sorcerer/sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/seeker-sorcerer/bloodline"]),
+        (level: 3, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-1"]),
+        (level: 5, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-2"], feat_slots: [Category(Magic)]),
+        (level: 7, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-3"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 9, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-4"]),
+        (level: 10, feat_slots: [Category(Magic)]),
+        (level: 11, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-5"]),
+        (level: 13, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-6"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 15, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-7"], feat_slots: [Category(Magic)]),
+        (level: 17, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-8"]),
+        (level: 19, features: ["sorcerer/seeker-sorcerer/bloodline-spell-lvl-9"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+    ],
+)

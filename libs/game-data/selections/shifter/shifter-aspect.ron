@@ -1,0 +1,19 @@
+(
+    key: "shifter/shifter-aspect",
+    blueprint: "121829d239124685b430f5263031bf83",
+    name: "Shifter Aspect",
+    summary: "Minor form for 3 + level minutes a day (swift); from 4th, major form for an hour, level + Wis times a day; new aspect at 5th, 10th, 15th and 20th.",
+    guide: "shifter#shifter-aspect",
+    options: [
+        "shifter/shifter-aspect/bear-aspect",
+        "shifter/shifter-aspect/boar-aspect",
+        "shifter/shifter-aspect/dinosaur-aspect",
+        "shifter/shifter-aspect/horse-aspect",
+        "shifter/shifter-aspect/lizard-aspect",
+        "shifter/shifter-aspect/mammoth-aspect",
+        "shifter/shifter-aspect/spider-aspect",
+        "shifter/shifter-aspect/tiger-aspect",
+        "shifter/shifter-aspect/wolf-aspect",
+        "shifter/shifter-aspect/wolverine-aspect",
+    ],
+)

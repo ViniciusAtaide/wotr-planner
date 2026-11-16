@@ -1,0 +1,1 @@
+(key: "emergency-help", blueprint: "22ce17c5253183b42845a5bfc54f8afa", name: "Emergency Help", summary: "3/day, teleport as a move action to an ally under 30 HP; your first healing spell before next round ends is empowered and maximized.", group: Healing, guide: "mythic-paths#emergency-help")

@@ -1,0 +1,1 @@
+(key: "slayer/spawn-slayer/studied-spawn", blueprint: "c2e2b3b4bd9601c43b8891957e830534", name: "Studied Spawn", summary: "Studied Target bonuses grow against big foes: +1 vs Large at 5th, +2 vs Huge at 10th, +3 Gargantuan at 15th, +4 Colossal at 20th.", guide: "slayer#studied-spawn")

@@ -1,0 +1,1 @@
+(key: "defensive-combat-training-mythic", blueprint: "479ee593a2a9cad4db68468c39a623ba", name: "Defensive Combat Training (Mythic)", summary: "CMD +MR/2.", group: CombatManoeuvre, guide: "mythic-paths#defensive-combat-training-mythic", prerequisite: Feat("defensive-combat-training"))

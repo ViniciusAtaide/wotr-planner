@@ -1,0 +1,14 @@
+(
+    key: "siphon-life",
+    blueprint: "7bd52a86498c7854ebe99bc3cfb85bfe",
+    name: "Siphon Life",
+    school: Necromancy,
+    guide: "lich#siphon-life-necromancy",
+    summary: "A ranged touch drains 1d6 HP per caster level and gives you that much temporary HP for an hour.",
+    target: "Creature within medium range",
+    duration: "1 hour",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

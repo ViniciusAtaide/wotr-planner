@@ -1,0 +1,14 @@
+(
+    key: "blessing-of-unlife",
+    blueprint: "2abf1b69cec760d4ebc73d5ce8d79f0a",
+    name: "Blessing of Unlife",
+    school: Necromancy,
+    guide: "lich#blessing-of-unlife-necromancy",
+    summary: "The target gains DR 5/bludgeoning, negative energy affinity and the immunities of an undead.",
+    target: "Friendly creature within close range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

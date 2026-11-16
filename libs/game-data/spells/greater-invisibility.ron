@@ -1,0 +1,14 @@
+(
+    key: "greater-invisibility",
+    blueprint: "ecaa0def35b38f949bd1976a6c9539e0",
+    name: "Greater Invisibility",
+    school: Illusion,
+    guide: "wizard-spells#greater-invisibility-illusion",
+    summary: "The target turns invisible and stays so even when it attacks.",
+    target: "One friendly creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

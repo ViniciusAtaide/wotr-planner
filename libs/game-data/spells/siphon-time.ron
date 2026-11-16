@@ -1,0 +1,14 @@
+(
+    key: "siphon-time",
+    blueprint: "e346cc550c5bfdf428faa7cdb4849d8e",
+    name: "Siphon Time",
+    school: Transmutation,
+    guide: "lich#siphon-time-transmutation",
+    summary: "Slows enemies and hastes allies in the burst.",
+    target: "All creatures within a 30' burst centred on target creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

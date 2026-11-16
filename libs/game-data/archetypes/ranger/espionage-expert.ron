@@ -1,0 +1,19 @@
+(
+    key: "ranger/espionage-expert",
+    class: "ranger",
+    blueprint: "7888187acfd26b7499cf255b0d6dcb0e",
+    name: "Espionage Expert",
+    summary: "Charisma-casting urban ranger with skill bonuses, no animal companion and no favoured terrains.",
+    guide: "ranger#espionage-expert",
+    class_skills: ["knowledge-arcana", "knowledge-world", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
+    levels: [
+        (level: 1, features: ["ranger/espionage-expert/trapfinding", "ranger/favored-enemy"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 3, features: ["ranger/espionage-expert/undercover"]),
+        (level: 4, features: ["ranger/espionage-expert/espionage-expert-magic", "ranger/espionage-expert/rangers-bond"]),
+        (level: 8),
+        (level: 12),
+        (level: 13),
+        (level: 18, feat_slots: [OptionList(selection: "ranger/combat-style-feat")]),
+        (level: 20, features: ["ranger/espionage-expert/espionage-master", "ranger/favored-enemy"]),
+    ],
+)

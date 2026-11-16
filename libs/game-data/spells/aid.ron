@@ -1,0 +1,14 @@
+(
+    key: "aid",
+    blueprint: "03a9630394d10164a9410882d31572f0",
+    name: "Aid",
+    school: Enchantment,
+    guide: "cleric-spells#aid-enchantment",
+    summary: "The target gains a +1 morale bonus on attacks and on saves against fear, plus 1d8 + 1 per caster level temporary HP (max 1d8 + 10).",
+    target: "One friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

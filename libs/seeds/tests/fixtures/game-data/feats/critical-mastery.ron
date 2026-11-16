@@ -1,0 +1,18 @@
+(
+    // "Two of: ..." plus a class level, with a nested choice.
+    key: "critical-mastery",
+    name: "Critical Mastery",
+    category: Weapon,
+    guide: "feats#critical-mastery",
+    prerequisite: All([
+        AtLeast(2, [
+            Feat("power-attack"),
+            Feat("dirty-trick"),
+            Any([
+                Feat("cornugon-smash"),
+                ClassLevel(class: "rogue", level: 3),
+            ]),
+        ]),
+        ClassLevel(class: "fighter", level: 2),
+    ]),
+)

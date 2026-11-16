@@ -1,0 +1,1 @@
+(key: "double-slice", blueprint: "8a6a1920019c45d40b4561f05dcb3240", name: "Double Slice", summary: "Add your full Strength bonus, not half, to off-hand weapon damage.", category: Weapon, guide: "feats#double-slice", prerequisite: All([Feat("two-weapon-fighting"), AbilityScore(ability: Dexterity, score: 15)]))

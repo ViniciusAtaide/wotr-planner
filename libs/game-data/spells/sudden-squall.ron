@@ -1,0 +1,13 @@
+(
+    key: "sudden-squall",
+    blueprint: "4e22d7cfda74b3644b31de8e7c044e21",
+    name: "Sudden Squall",
+    school: Evocation,
+    guide: "azata#sudden-squall-evocation",
+    summary: "Enemies in the cone take 3d6 + caster level sonic and, if they fail, can't cast spells for 1d3 rounds.",
+    target: "All creatures within a 15' cone",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

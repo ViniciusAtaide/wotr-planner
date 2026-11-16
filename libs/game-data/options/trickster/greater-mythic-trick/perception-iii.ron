@@ -1,0 +1,1 @@
+(key: "trickster/greater-mythic-trick/perception-iii", blueprint: "c785d2718021449f895a960c7840b4d0", name: "Perception III", summary: "Gain two first-tier mythic tricks that you can swap each day.", guide: "trickster#perception-iii", prerequisite: SelectionOption("trickster/improved-mythic-trick/perception-ii"))

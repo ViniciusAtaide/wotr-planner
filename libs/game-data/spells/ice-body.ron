@@ -1,0 +1,14 @@
+(
+    key: "ice-body",
+    blueprint: "89778dc261fe6094bb2445cb389842d2",
+    name: "Ice Body",
+    school: Transmutation,
+    guide: "wizard-spells#ice-body-transmutation",
+    summary: "You gain cold immunity, DR 5/magic, fire vulnerability and immunity to critical hits, poison, stunning and more; unarmed hits deal club damage +1 cold.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Cold, Polymorph],
+    casting_time: Standard,
+)

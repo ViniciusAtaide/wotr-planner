@@ -1,0 +1,11 @@
+(
+    key: "oracle/maneuver-mastery/dirty-trick",
+    blueprint: "42f46ce3ecf00e549ad8a0bd0ef84919",
+    name: "Dirty Trick",
+    summary: "Dirty Trick uses your class level instead of BAB for CMB; its Improved feat at 7th level and Greater feat at 11th.",
+    guide: "oracle#maneuver-mastery",
+    levels: [
+        (level: 7, feats: ["dirty-trick"]),
+        (level: 11, feats: ["greater-dirty-trick"]),
+    ],
+)

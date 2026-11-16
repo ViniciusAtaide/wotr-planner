@@ -1,0 +1,14 @@
+(
+    key: "freezing-nothingness",
+    blueprint: "89bc94bd06dcf5847bb9e4d6ba1b9767",
+    name: "Freezing Nothingness",
+    school: Evocation,
+    guide: "aeon#freezing-nothingness-evocation",
+    summary: "On a failed save the target is frozen and paralysed, else entangled and can't cast; both take 2d6 cold + 2d6 divine a round (Strength DC 15 + CL breaks free).",
+    target: "One enemy creature within medium range",
+    duration: "1 minute / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [Cold],
+    casting_time: Standard,
+)

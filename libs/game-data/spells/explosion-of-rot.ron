@@ -1,0 +1,13 @@
+(
+    key: "explosion-of-rot",
+    blueprint: "98544596a01d4f7bbf7cc3ff98a1fb69",
+    name: "Explosion of Rot",
+    school: Necromancy,
+    guide: "druid-spells#explosion-of-rot-necromancy",
+    summary: "Creatures in the area take 1d6 per caster level (max 15d6) and are staggered 1d4 rounds (Reflex: half, not staggered); plants save at -2 and take +1 per die.",
+    target: "Target point within close range, 10' burst",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "shatter-defenses", blueprint: "61a17ccbbb3d79445b0926347ec07577", name: "Shatter Defenses", summary: "Shaken, frightened or panicked foes you hit count as flat-footed through your next turn.", category: Weapon, guide: "feats#shatter-defenses", prerequisite: All([Feat("dazzling-display"), Feat("weapon-focus"), BaseAttackBonus(6)]))

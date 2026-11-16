@@ -1,0 +1,1 @@
+(key: "guard", blueprint: "3a793809b0f11b74f8b79c252067bfe0", name: "Guard", group: Warrior, note: "Proficient with shortsword and light crossbow.", class_skills: ["perception"], feats: ["armor-proficiency-light-armor"], weapons: ["light-crossbow", "short-sword"])

@@ -1,0 +1,4 @@
+(
+    why: "An ability of Geomancy in the game, not a feature of its own.",
+    entry: (key: "sorcerer/geomancer/geomancy/geomancy-underground", name: "Geomancy: Underground", summary: "Enemies within 30 feet take 1d6 piercing per spell level and, failing Reflex, can't move for 1 round.", guide: "sorcerer#geomancy-underground"),
+)

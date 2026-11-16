@@ -1,0 +1,1 @@
+(key: "kineticist/kinetic-blast", blueprint: "30a5b8cf728bd4a4d8d90fc4953e322e", name: "Kinetic Blast", summary: "Standard-action blast to 30': physical 1d6+1+Con (+1d6+1 per odd level), energy 1d6+half Con vs touch AC (+1d6 per odd level); composites double.", guide: "kineticist#kinetic-blast")

@@ -1,0 +1,13 @@
+(
+    key: "armor-focus",
+    name: "Armor Focus",
+    category: ArmourAndShield,
+    guide: "feats#armor-focus",
+    parameter: ArmourType,
+    repeat: PerValue,
+    // Ticket 32: the proficiency of the armour type the pick names.
+    prerequisite: All([
+        FeatIfValue(value: ArmourType(Light), feat: "dodge"),
+        FeatIfValue(value: ArmourType(Heavy), feat: "toughness"),
+    ]),
+)

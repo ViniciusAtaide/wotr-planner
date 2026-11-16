@@ -1,0 +1,14 @@
+(
+    key: "rage",
+    blueprint: "97b991256e43bb140b263c326f690ce2",
+    name: "Rage",
+    school: Enchantment,
+    guide: "wizard-spells#rage-enchantment",
+    summary: "Allies in the area gain +2 morale Strength and Constitution and +1 on Will saves but -2 AC, can't cast spells, and aren't fatigued after.",
+    target: "Allies within 30' centred on a target creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "summon-natures-ally-v",
+    blueprint: "8f98a22f35ca6684a983363d32e51bfe",
+    name: "Summon Nature's Ally V",
+    school: Conjuration,
+    guide: "druid-spells#summon-natures-ally-v-conjuration",
+    summary: "You summon 1d4+1 leopards, 1d3 dire boars or one manticore.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

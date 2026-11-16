@@ -1,0 +1,1 @@
+(key: "diva-style", blueprint: "b46bf228d6b2427abd028e2fe7b84600", name: "Diva Style", summary: "Starting a bardic performance lets you feint for free with Persuasion (Bluff).", category: Class, guide: "feats#diva-style", prerequisite: All([Feat("feint"), ClassLevel(class: "bard", level: 1), AbilityScore(ability: Charisma, score: 13)]))

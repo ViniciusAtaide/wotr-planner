@@ -1,0 +1,1 @@
+(key: "leading-strike", blueprint: "dff1e0b0b0db0f442bb5c93997cf6a43", name: "Leading Strike", summary: "Your melee hits mark the target; the next ally to hit it deals +1d6 divine damage per mythic rank.", group: Melee, guide: "mythic-paths#leading-strike")

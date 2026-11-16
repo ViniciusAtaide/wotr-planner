@@ -1,0 +1,1 @@
+(key: "light-hammer", blueprint: "bbf7d0ea57e4c9349b65c82abc6787b4", name: "Light Hammer", proficiency: Martial, stats: (damage: (count: 1, sides: 4), threat: 20, multiplier: 2, handedness: Light, finesse: true))

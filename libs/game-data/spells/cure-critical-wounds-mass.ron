@@ -1,0 +1,13 @@
+(
+    key: "cure-critical-wounds-mass",
+    blueprint: "1f173a16120359e41a20fc75bb53d449",
+    name: "Cure Critical Wounds, Mass",
+    school: Conjuration,
+    guide: "cleric-spells#cure-critical-wounds-mass-conjuration",
+    summary: "Creatures in the area heal 4d8 + 1 per caster level; undead there take that much damage instead (Will half).",
+    target: "All creatures within 30' of target point within close range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [Cure],
+    casting_time: Standard,
+)

@@ -1,0 +1,15 @@
+(
+    key: "cavalier/order",
+    blueprint: "d710e30ea20240247ad87ad86bcd50f2",
+    name: "Order",
+    summary: "Joins one of five orders (Cockatrice, Lion, Shroud, Star or Sword), each adding to Challenge and granting abilities.",
+    guide: "cavalier#order",
+    option_levels: ["cavalier"],
+    options: [
+        "cavalier/order/order-of-the-cockatrice",
+        "cavalier/order/order-of-the-lion",
+        "cavalier/order/order-of-the-shroud",
+        "cavalier/order/order-of-the-star",
+        "cavalier/order/order-of-the-sword",
+    ],
+)

@@ -1,0 +1,13 @@
+(
+    key: "absolute-death",
+    blueprint: "7d721be6d74f07f4d952ee8d6f8f44a0",
+    name: "Absolute Death",
+    school: Necromancy,
+    guide: "lich#absolute-death-necromancy",
+    summary: "The target dies if it fails its save, or takes 10 damage per caster level if it succeeds.",
+    target: "One enemy creature within medium range",
+    saving_throw: "Will partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

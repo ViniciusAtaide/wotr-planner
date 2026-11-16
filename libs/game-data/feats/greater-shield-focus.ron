@@ -1,0 +1,1 @@
+(key: "greater-shield-focus", blueprint: "afd05ca5363036c44817c071189b67e1", name: "Greater Shield Focus", summary: "+1 more AC from your shield.", category: ArmourAndShield, guide: "feats#greater-shield-focus", prerequisite: All([Feat("shield-focus"), ClassLevel(class: "fighter", level: 8)]))

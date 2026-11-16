@@ -1,0 +1,1 @@
+(key: "shaman/hex/flame-curse", blueprint: "dec5607ab6ea68d4aac0772049e80be7", name: "Flame Curse", summary: "Flame: a creature within 30 feet is vulnerable to fire until the end of your next turn, 1 round longer at 8th and 16th.", guide: "shaman#flame-curse", prerequisite: SelectionOption("shaman/spirit/flame"))

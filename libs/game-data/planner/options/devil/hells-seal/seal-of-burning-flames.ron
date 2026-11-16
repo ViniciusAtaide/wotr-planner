@@ -1,0 +1,4 @@
+(
+    why: "An ability of the Devil's Hell's Decree or Hell's Seal feature in the game, not a feature of its own.",
+    entry: (key: "devil/hells-seal/seal-of-burning-flames", name: "Seal of Burning Flames", summary: "When the ally drops below 15x MR hit points, enemies take 1d8 per MR and, failing Reflex, burn for 2d6 a round.", guide: "other-mythic-paths#seal-of-burning-flames"),
+)

@@ -1,0 +1,1 @@
+(key: "monk/ac-bonus", blueprint: "2615c5f87b3d72b42ac0e73b56d895e0", name: "AC Bonus", summary: "With no armour or shield and a light load, add Wis to AC and CMD, plus +1 at 4th level and every four levels after (+5 at 20th).", guide: "monk#ac-bonus")

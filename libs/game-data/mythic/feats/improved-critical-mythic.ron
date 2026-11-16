@@ -1,0 +1,1 @@
+(key: "improved-critical-mythic", blueprint: "8bc0190a4ec04bd489eec290aeaa6d07", name: "Improved Critical (Mythic)", summary: "Your chosen weapon\'s critical multiplier rises by 1.", group: Melee, guide: "mythic-paths#improved-critical-mythic", parameter: Weapon, repeat: PerValue, prerequisite: FeatForSameValue("improved-critical"))

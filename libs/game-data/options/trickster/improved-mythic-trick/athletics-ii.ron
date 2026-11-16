@@ -1,0 +1,1 @@
+(key: "trickster/improved-mythic-trick/athletics-ii", blueprint: "198b6abf58a36404f8189787a082fa02", name: "Athletics II", summary: "After a failed save, an Athletics check against the save DC + 20 turns it into a success.", guide: "trickster#athletics-ii", prerequisite: SelectionOption("trickster/mythic-trick/athletics-i"))

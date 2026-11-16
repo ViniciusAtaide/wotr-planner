@@ -1,0 +1,17 @@
+(
+    key: "sorcerer/bloodline/draconic-bronze",
+    blueprint: "7e0f57d8d00464441974e303b84238ac",
+    name: "Draconic (Bronze)",
+    summary: "Bronze dragon bloodline (electricity): claws, electricity resistance from 3rd level, wings at 15th and Power of Wyrms at 20th; Perception is a class skill.",
+    guide: "sorcerer#draconic",
+    prerequisite: NoOtherOptionOfGroup(Draconic),
+    group: Draconic,
+    arcana: "sorcerer/bloodline/draconic/draconic-arcana",
+    levels: [
+        (level: 1, features: ["sorcerer/bloodline/draconic/draconic-arcana", "sorcerer/bloodline/draconic/grow-claws"], feat_list: "sorcerer/bloodline/draconic/feats", class_skills: ["perception"]),
+        (level: 3, features: ["sorcerer/bloodline/draconic/draconic-resistances"]),
+        (level: 9, features: ["sorcerer/bloodline/draconic/draconic-resistances"]),
+        (level: 15, features: ["sorcerer/bloodline/draconic/draconic-resistances"], feats: ["wings"]),
+        (level: 20, features: ["sorcerer/bloodline/draconic/power-of-wyrms"]),
+    ],
+)

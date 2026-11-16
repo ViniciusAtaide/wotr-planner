@@ -1,0 +1,13 @@
+(
+    key: "heroes-never-surrender",
+    blueprint: "a6a86db75c6af6d41aa480f05adae693",
+    name: "Heroes Never Surrender",
+    school: Enchantment,
+    guide: "azata#heroes-never-surrender-enchantment",
+    summary: "Your companions regain spells and abilities of up to 7th level and lose fatigue, exhaustion and negative levels.",
+    target: "All allies within a 60' burst centred on caster",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

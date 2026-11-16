@@ -1,0 +1,22 @@
+(
+    key: "witch/patron",
+    blueprint: "381cf4c890815d049a4420c6f31d063f",
+    name: "Patron",
+    summary: "A patron that adds bonus spells at even levels, by class level rather than caster level.",
+    guide: "witch#patron",
+    options: [
+        "witch/patron/agility",
+        "witch/patron/ancestors",
+        "witch/patron/deception",
+        "witch/patron/devotion",
+        "witch/patron/elements",
+        "witch/patron/endurance",
+        "witch/patron/healing",
+        "witch/patron/insanity",
+        "witch/patron/mercy",
+        "witch/patron/shadow",
+        "witch/patron/strength",
+        "witch/patron/transformation",
+        "witch/patron/winter",
+    ],
+)

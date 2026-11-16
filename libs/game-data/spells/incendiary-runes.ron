@@ -1,0 +1,13 @@
+(
+    key: "incendiary-runes",
+    blueprint: "1626dbd11c4143b2a5641da8f227b78c",
+    name: "Incendiary Runes",
+    school: Abjuration,
+    guide: "wizard-spells#incendiary-runes-abjuration",
+    summary: "Runes burst for 1d6 force damage within 10 ft; those failing a Reflex save burn for 1d6 fire a round for 1 minute, saving each round to douse it.",
+    target: "Target point within close range, 10' burst",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

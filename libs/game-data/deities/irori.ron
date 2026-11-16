@@ -1,0 +1,9 @@
+(
+    key: "irori",
+    blueprint: "23a77a5985de08349820429ce1b5a234",
+    name: "Irori",
+    guide: "character-creation#deities",
+    alignments: [LawfulGood, LawfulNeutral, TrueNeutral, LawfulEvil],
+    favoured_weapons: ["unarmed-strike"],
+    domains: ["cleric/domain/healing", "cleric/domain/knowledge", "cleric/domain/law", "cleric/domain/rune", "cleric/domain/strength"],
+)

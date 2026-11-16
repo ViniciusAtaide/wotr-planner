@@ -1,0 +1,13 @@
+(
+    key: "meteor-swarm",
+    blueprint: "5e36df08c71748f7936bce310181fb71",
+    name: "Meteor Swarm",
+    school: Evocation,
+    guide: "wizard-spells#meteor-swarm-evocation",
+    summary: "Deals 8d6 bludgeoning plus 24d6 fire damage to creatures in the area; a Reflex save halves it.",
+    target: "All enemies with 40' of target point within long range",
+    saving_throw: "Reflex half",
+    spell_resistance: false,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

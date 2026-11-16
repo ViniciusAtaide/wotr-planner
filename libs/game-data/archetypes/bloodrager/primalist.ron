@@ -1,0 +1,23 @@
+(
+    key: "bloodrager/primalist",
+    class: "bloodrager",
+    blueprint: "4d588290ed0736e4f8cd3f4c3beacd69",
+    name: "Primalist",
+    summary: "At 4th level and every four levels after, can take two rage powers instead of the bloodline ability.",
+    guide: "bloodrager#primalist",
+    levels: [
+        (level: 1, features: ["bloodrager/bloodrage", "bloodrager/primalist/fast-movement"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["bloodrager/bloodline"]),
+        (level: 2, features: ["bloodrager/primalist/uncanny-dodge"]),
+        (level: 4, features: ["bloodrager/primalist/primal-choices"], selections: ["bloodrager/primalist/primal-choices"]),
+        (level: 5, features: ["bloodrager/primalist/improved-uncanny-dodge"]),
+        (level: 7, features: ["bloodrager/primalist/bloodline-spell-1st", "bloodrager/primalist/damage-reduction"]),
+        (level: 8, selections: ["bloodrager/primalist/primal-choices"]),
+        (level: 10, features: ["bloodrager/primalist/bloodline-spell-2nd", "bloodrager/primalist/damage-reduction"]),
+        (level: 12, feat_slots: [OptionList(selection: "bloodrager/bloodline")], selections: ["bloodrager/primalist/primal-choices"]),
+        (level: 13, features: ["bloodrager/primalist/bloodline-spell-3rd", "bloodrager/primalist/damage-reduction"]),
+        (level: 14, features: ["bloodrager/primalist/indomitable-will"]),
+        (level: 16, features: ["bloodrager/primalist/bloodline-spell-4th", "bloodrager/primalist/damage-reduction"], selections: ["bloodrager/primalist/primal-choices"]),
+        (level: 19, features: ["bloodrager/primalist/damage-reduction"]),
+        (level: 20, features: ["bloodrager/mighty-bloodrage"], selections: ["bloodrager/primalist/primal-choices"]),
+    ],
+)

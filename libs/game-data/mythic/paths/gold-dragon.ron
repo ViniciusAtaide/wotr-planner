@@ -4,38 +4,6 @@ MythicPath(
     name: "Gold Dragon",
     guide: "gold-dragon",
     switch: (kept_through_rank: 7, path_kept_through_rank: 2, further_ascensions: true),
-    features: [
-        (key: "gold-dragon/gold-dragon-breath", blueprint: "63bb12d87f99c4748a890956e5f6b4c7", name: "Gold Dragon Breath", summary: "A 50 ft cone of holy d8s scaling with level and mythic rank, Reflex half, -1 attack (-2 on a failed save); every 1d4 rounds, 1d2 at 9, each round at 10.", guide: "gold-dragon#gold-dragon-breath"),
-        (key: "gold-dragon/gold-dragon-form", blueprint: "2ef40c078a0a4e829ce53781c4089299", name: "Gold Dragon Form", summary: "From rank 9, become a Gold Dragon: +10 Str, +8 Con, +8 natural armor, 60 ft blindsense, and bite, claw, wing and tail attacks.", guide: "gold-dragon#gold-dragon-form"),
-        (key: "gold-dragon/perfect-body", blueprint: "040bb87b39e4a7f4a8ddc011c5a50523", name: "Perfect Body", summary: "Immune to poison, disease, fear and more; energy resistance level + MR/2; saves at least 5 + MR; scores at least 14, +4 top; d12 HD; spell dice d6+; +5 weapons.", guide: "gold-dragon#perfect-body", ability_bonuses: [Highest(amount: 4), AtLeast(score: 14)]),
-        (key: "gold-dragon/perfect-mind", blueprint: "d1f01519ffbe9144dac703b579a0c073", name: "Perfect Mind", summary: "Rank 9: mind-affecting immunity, SR level + MR/2, BAB at least 15 + MR (the game's code; its text says 15), all skills class skills, totals counting ranks at least MR, scores at least 18, +2 top; spell dice d8+.", guide: "gold-dragon#perfect-mind", ability_bonuses: [Highest(amount: 2), AtLeast(score: 18)], bab_at_least_mythic_rank_plus: Some(15), skill_ranks_at_least_mythic_rank: true),
-        (key: "gold-dragon/perfect-soul", blueprint: "f1631a20b6f14e58924a32c81da95840", name: "Perfect Soul", summary: "Rank 10: immune to acid, cold, electricity, fire, energy drain, negative energy; all damage holy; spell dice at least d10 (else +1/die); +2 top score.", guide: "gold-dragon#perfect-soul", ability_bonuses: [Highest(amount: 2)]),
-        (key: "gold-dragon/wings", blueprint: "6929bac6c67ae194c8c8446e3d593953", name: "Wings", guide: "gold-dragon"),
-    ],
-    selections: [
-        (
-            key: "gold-dragon/improved-gold-dragon-breath",
-            blueprint: "81fe63677a4f4f7fb64e9be7cf075948",
-            name: "Improved Gold Dragon Breath",
-            summary: "Pick an extra breath effect at each mythic rank, and three at rank 10.",
-            guide: "gold-dragon#improved-gold-dragon-breath",
-            options: [
-                (key: "gold-dragon/improved-gold-dragon-breath/annihilating-breath", blueprint: "e8b9aad5295c49539f1bbf901d314964", name: "Annihilating Breath", summary: "Rank 9, Vow of Dahak: living foes in the breath take its damage again as negative energy, Fortitude half.", guide: "gold-dragon#annihilating-breath", prerequisite: All([MythicRank(9), Story(VowOfDahak)])),
-                (key: "gold-dragon/improved-gold-dragon-breath/decaying-breath", blueprint: "c606a6897125480ebde14b63bb8fb18e", name: "Decaying Breath", summary: "Rank 9, Vow of Dahak: the breath deals 1d4 + MR/2 Constitution damage to living foes, Fortitude half.", guide: "gold-dragon#decaying-breath", prerequisite: All([MythicRank(9), Story(VowOfDahak)])),
-                (key: "gold-dragon/improved-gold-dragon-breath/disrupting-breath", blueprint: "eb26e9df19a54ae2a634828f1cb7a708", name: "Disrupting Breath", summary: "Undead hit also take positive energy damage equal to the breath\'s damage, Fortitude half.", guide: "gold-dragon#disrupting-breath"),
-                (key: "gold-dragon/improved-gold-dragon-breath/empowered-breath", blueprint: "d6fa1c8aead34a2ba2c18fc7a41a649c", name: "Empowered Breath", summary: "The breath deals one more damage die per mythic rank.", guide: "gold-dragon#empowered-breath"),
-                (key: "gold-dragon/improved-gold-dragon-breath/enlightening-breath", blueprint: "0351c6c95adc48b3b39073167094cd19", name: "Enlightening Breath", summary: "Rank 9, uncorrupted: the breath removes negative levels and all ability damage from allies in the area.", guide: "gold-dragon#enlightening-breath", prerequisite: All([MythicRank(9), Story(Uncorrupted)])),
-                (key: "gold-dragon/improved-gold-dragon-breath/mind-clearing-breath", blueprint: "a9ce14a6601c4bd1aea5d29d41e9162d", name: "Mind-Clearing Breath", summary: "The breath ends enemies\' mind-affecting effects on allies in the area and all mind-affecting effects on enemies hit.", guide: "gold-dragon#mind-clearing-breath"),
-                (key: "gold-dragon/improved-gold-dragon-breath/overwhelming-breath", blueprint: "9266dd19a70f44068929107484dc1250", name: "Overwhelming Breath", summary: "+2x MR to the breath\'s save DC.", guide: "gold-dragon#overwhelming-breath"),
-                (key: "gold-dragon/improved-gold-dragon-breath/rejuvenating-breath", blueprint: "ef3690c36872422d9bfadeb276b5c3fe", name: "Rejuvenating Breath", summary: "Rank 9, uncorrupted: allies caught in the breath regain hit points equal to the damage it deals.", guide: "gold-dragon#rejuvenating-breath", prerequisite: All([MythicRank(9), Story(Uncorrupted)])),
-                (key: "gold-dragon/improved-gold-dragon-breath/scorching-breath", blueprint: "0cc6e15e961b4bb9b4328002cbc57388", name: "Scorching Breath", summary: "Enemies that fail the save catch fire, taking the breath\'s damage each round until they pass a Reflex save.", guide: "gold-dragon#scorching-breath"),
-                (key: "gold-dragon/improved-gold-dragon-breath/spellbane-breath", blueprint: "34b85b2c587545d383804455525c53b2", name: "Spellbane Breath", summary: "Enemies hit take -MR/2 to their spell save DCs for 1d4+1 rounds.", guide: "gold-dragon#spellbane-breath"),
-            ],
-        ),
-    ],
-    feat_lists: [
-        (key: "gold-dragon/dragon-feats", blueprint: "a21acdafc0169f5488a9bd3256e2e65b", name: "Dragon Feats", guide: "gold-dragon#dragon-feats", ignores_prerequisites: true, every_feat: true),
-    ],
     ranks: [
         (rank: 8, features: ["gold-dragon/gold-dragon-breath", "gold-dragon/perfect-body", "gold-dragon/wings"], selections: ["gold-dragon/improved-gold-dragon-breath"]),
         (rank: 9, features: ["gold-dragon/gold-dragon-form", "gold-dragon/perfect-mind"], feat_slots: [OneOf(list: "gold-dragon/dragon-feats"), OneOf(list: "gold-dragon/dragon-feats"), OneOf(list: "gold-dragon/dragon-feats")], selections: ["gold-dragon/improved-gold-dragon-breath"]),

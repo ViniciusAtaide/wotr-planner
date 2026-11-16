@@ -1,0 +1,13 @@
+(
+    key: "hold-monster",
+    name: "Hold Monster",
+    school: Enchantment,
+    guide: "wizard-spells#hold-monster-enchantment",
+    summary: "Paralyses one living creature, which may save again each round.",
+    target: "One enemy creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

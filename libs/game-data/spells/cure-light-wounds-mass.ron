@@ -1,0 +1,13 @@
+(
+    key: "cure-light-wounds-mass",
+    blueprint: "5d3d689392e4ff740a761ef346815074",
+    name: "Cure Light Wounds, Mass",
+    school: Conjuration,
+    guide: "cleric-spells#cure-light-wounds-mass-conjuration",
+    summary: "Creatures in the area heal 1d8 + 1 per caster level; undead there take that much damage instead (Will half).",
+    target: "All creatures within 30' of target point within close range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [Cure],
+    casting_time: Standard,
+)

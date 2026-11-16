@@ -1,0 +1,14 @@
+(
+    key: "eagles-splendor-mass",
+    blueprint: "2caa607eadda4ab44934c5c9875e01bc",
+    name: "Eagle's Splendor, Mass",
+    school: Transmutation,
+    guide: "wizard-spells#eagles-splendor-mass-transmutation",
+    summary: "Allies in the burst gain +4 enhancement to Charisma.",
+    target: "All allies within 30' burst, centred on target creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

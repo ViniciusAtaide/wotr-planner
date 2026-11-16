@@ -1,0 +1,1 @@
+(key: "mwangi-hunter", blueprint: "15b454c99494b8143ade4817fff816cc", name: "Mwangi Hunter", group: Regional, note: "Proficient with dart, throwing axe and javelin. +1 damage with throwing weapons.", class_skills: ["lore-nature", "stealth"], weapons: ["dart", "javelin", "throwing-axe"])

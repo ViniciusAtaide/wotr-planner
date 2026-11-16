@@ -1,0 +1,1 @@
+(key: "metamagic-completely-normal-spell", blueprint: "094b6278f7b570f42aeaa98379f07cf2", name: "Metamagic (Completely Normal Spell)", summary: "The spell's level drops by 1, so 1st-level spells can be cast as cantrips.", category: Magic, guide: "trickster#metamagic-completely-normal-spell", prerequisite: SelectionOption("trickster/improved-mythic-trick/perception-ii"))

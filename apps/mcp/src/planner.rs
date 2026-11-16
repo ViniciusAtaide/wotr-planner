@@ -38,16 +38,7 @@ impl Planner {
         let site_file = site_file(&data);
         let engine = Engine::new(checked);
         let index = SearchIndex::new(&data, &engine);
-        let classes = data.classes.iter().chain(&data.prestige_classes);
-        let feature_summaries = classes
-            .clone()
-            .flat_map(|class| &class.features)
-            .chain(
-                classes
-                    .flat_map(|class| &class.archetypes)
-                    .flat_map(|archetype| &archetype.features),
-            )
-            .chain(data.mythic_paths.iter().flat_map(|path| &path.features))
+        let feature_summaries = (data.features.iter())
             .filter(|feature| !feature.summary.is_empty())
             .map(|feature| (feature.key.clone(), feature.summary.clone()))
             .collect();
@@ -78,23 +69,10 @@ impl Planner {
             .and_then(|hit| hit.summary.clone())
     }
 
-    /// Every Feature selection, wherever it's defined: a class's, an archetype's, a prestige class's or a path's.
+    /// Every Feature selection: a class's, an archetype's, a prestige class's, an option's or a path's.
     pub(crate) fn selections(&self) -> impl Iterator<Item = &FeatureSelection> {
-        all_selections(&self.data)
+        self.data.selections.iter()
     }
-}
-
-pub(crate) fn all_selections(data: &GameData) -> impl Iterator<Item = &FeatureSelection> {
-    let classes = data.classes.iter().chain(&data.prestige_classes);
-    classes
-        .clone()
-        .flat_map(|class| &class.selections)
-        .chain(
-            classes
-                .flat_map(|class| &class.archetypes)
-                .flat_map(|archetype| &archetype.selections),
-        )
-        .chain(data.mythic_paths.iter().flat_map(|path| &path.selections))
 }
 
 /// `game-data/<hash>.json`, named as the server names the file it serves (`apps/backend/src/game_data.rs`): the

@@ -1,0 +1,1 @@
+(key: "cleric/domain/healing/rebuke-death", blueprint: "303cf1c933f343c4d91212f8f4953e3c", name: "Rebuke Death", summary: "Heal an ally at 0 HP or below for 1d4 + half your class level; 3 + Wisdom modifier uses a day.", guide: "character-creation#healing-domain")

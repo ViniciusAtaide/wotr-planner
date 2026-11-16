@@ -1,0 +1,14 @@
+// Ring.
+(
+    key: "colossus-ring",
+    blueprint: "6c7f785bab7bd1243a43e365dc2089bd",
+    name: "Colossus Ring",
+    slot: Ring,
+    guide: "items#rings",
+    bonuses: [
+        (target: Ability(Constitution), amount: 2, kind: Luck),
+    ],
+    other_effects: [
+        "Twice a day: Enlarge Person, at wizard caster level 1.",
+    ],
+)

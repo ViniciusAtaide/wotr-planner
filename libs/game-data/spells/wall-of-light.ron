@@ -1,0 +1,14 @@
+(
+    key: "wall-of-light",
+    blueprint: "edc7d27fb42b9a94bac0bee1f3286b49",
+    name: "Wall of Light",
+    school: Evocation,
+    guide: "angel#wall-of-light-evocation",
+    summary: "Evil creatures crossing the wall take 1d6 holy per caster level; non-evil ones add 2d6 holy to their next attack, or 1d6 per level if they charged through.",
+    target: "Target point within medium range",
+    duration: "?",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

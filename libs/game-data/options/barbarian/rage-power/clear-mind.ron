@@ -1,0 +1,1 @@
+(key: "barbarian/rage-power/clear-mind", blueprint: "4a236ae23d5a4f76b3616ddfa337e724", name: "Clear Mind", summary: "Once per rage, rerolls the first failed Will save and keeps the better roll.", guide: "barbarian#clear-mind", prerequisite: Any([ClassLevel(class: "barbarian", level: 8), ClassLevel(class: "skald", level: 8)]))

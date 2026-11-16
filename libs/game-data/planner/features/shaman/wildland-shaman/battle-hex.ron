@@ -1,0 +1,4 @@
+(
+    why: "The game's Wildland Shaman takes a hex from the class's hex selection here; the planner names the slot's grant.",
+    entry: (key: "shaman/wildland-shaman/battle-hex", name: "Battle Hex", summary: "At 6th and 14th level, a hex slot for a hex with no spirit requirement or with the Battle requirement.", guide: "shaman#battle-hex"),
+)

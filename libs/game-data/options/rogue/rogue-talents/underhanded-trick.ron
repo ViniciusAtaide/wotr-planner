@@ -1,0 +1,1 @@
+(key: "rogue/rogue-talents/underhanded-trick", blueprint: "3a0068c5f38cfa445a20efc5b05286bd", name: "Underhanded Trick", summary: "Gains Dirty Trick as a bonus feat.", guide: "rogue#underhanded-trick", feats: ["dirty-trick"])

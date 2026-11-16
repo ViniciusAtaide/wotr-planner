@@ -1,0 +1,11 @@
+(
+    key: "wizard/school/abjurer",
+    blueprint: "c451fde0aec46454091b70384ea91989",
+    name: "Abjurer",
+    summary: "Abjuration specialist: Resistance, Protective Ward and Energy Absorption.",
+    guide: "wizard#abjurer",
+    levels: [
+        (level: 1, features: ["wizard/school/abjurer/protective-ward", "wizard/school/abjurer/resistance"]),
+        (level: 6, features: ["wizard/school/abjurer/energy-absorption"]),
+    ],
+)

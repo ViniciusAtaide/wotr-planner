@@ -1,0 +1,14 @@
+(
+    key: "elemental-body-i",
+    blueprint: "690c90a82bf2e58449c6b541cb8ea004",
+    name: "Elemental Body I",
+    school: Transmutation,
+    guide: "wizard-spells#elemental-body-i-transmutation",
+    summary: "You turn into a Small elemental of your choice (air, earth, fire or water).",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

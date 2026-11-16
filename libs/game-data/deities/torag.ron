@@ -1,0 +1,9 @@
+(
+    key: "torag",
+    blueprint: "d2d5c5a58885a6b489727467e13c3337",
+    name: "Torag",
+    guide: "character-creation#deities",
+    alignments: [LawfulGood, NeutralGood, LawfulNeutral],
+    favoured_weapons: ["warhammer"],
+    domains: ["cleric/domain/artifice", "cleric/domain/earth", "cleric/domain/good", "cleric/domain/law", "cleric/domain/protection"],
+)

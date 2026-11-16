@@ -1,0 +1,16 @@
+(
+    why: "The game adds PowerlessProphecyCurseProgression with no selection; the planner grants it through a selection of one.",
+    entry: (
+        key: "oracle/possessed-oracle/curse",
+        name: "Curse (Possessed Oracle)",
+        summary: "The Possessed Oracle\'s curse is always Powerless Prophecy, which advances as an oracle\'s curse does.",
+        guide: "oracle#possessed-oracle",
+        option_levels: ["oracle", "witch"],
+        option_level_archetypes: ["witch/stigmatized-witch"],
+        half_other_classes: true,
+        options: [],
+        shared_options: [
+            "oracle/oracles-curse/powerless-prophecy",
+        ],
+    ),
+)

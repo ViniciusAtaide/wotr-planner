@@ -1,0 +1,14 @@
+(
+    key: "reduce-person",
+    blueprint: "4e0e9aba6447d514f88eff1464cc4763",
+    name: "Reduce Person",
+    school: Transmutation,
+    guide: "wizard-spells#reduce-person-transmutation",
+    summary: "The target shrinks one size: +2 size bonus to Dexterity and +1 on attacks and AC, but -2 to Strength.",
+    target: "One friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: FullRound,
+)

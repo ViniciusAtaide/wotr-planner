@@ -1,0 +1,9 @@
+(
+    key: "calistria",
+    blueprint: "c7531715a3f046d4da129619be63f44c",
+    name: "Calistria",
+    guide: "character-creation#deities",
+    alignments: [ChaoticGood, TrueNeutral, ChaoticNeutral, ChaoticEvil],
+    favoured_weapons: ["rapier"],
+    domains: ["cleric/domain/chaos", "cleric/domain/charm", "cleric/domain/knowledge", "cleric/domain/luck", "cleric/domain/trickery"],
+)

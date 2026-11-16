@@ -1,0 +1,13 @@
+(
+    key: "witch/ley-line-guardian",
+    class: "witch",
+    blueprint: "ee92a9813c04b1440a3af3c766b6b02d",
+    name: "Ley Line Guardian",
+    summary: "Witch who casts spontaneously like a Sorcerer, without a familiar.",
+    guide: "witch#ley-line-guardian",
+    casting_ability: Charisma,
+    levels: [
+        (level: 1, features: ["witch/ley-line-guardian/cantrips", "witch/ley-line-guardian/conduit-surge", "witch/ley-line-guardian/ley-line-powered"], feats: ["simple-weapon-proficiency"], selections: ["witch/patron"]),
+        (level: 8),
+    ],
+)

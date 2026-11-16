@@ -1,0 +1,13 @@
+(
+    key: "oracle/oracles-curse/blackened",
+    blueprint: "ca1e4627a1ad8fc4f83158f6497d5c54",
+    name: "Blackened",
+    summary: "-4 on weapon attacks (-2 from 10th) for fire spells known: Burning Hands, then Burning Arc, Scorching Ray, Fire Snake and Hellfire Ray.",
+    guide: "oracle#blackened",
+    levels: [
+        (level: 1, features: ["oracle/oracles-curse/blackened/level-1", "oracle/oracles-curse/blackened/weapon-penalty"]),
+        (level: 5, features: ["oracle/oracles-curse/blackened/level-5"]),
+        (level: 10, features: ["oracle/oracles-curse/blackened/level-10"]),
+        (level: 15, features: ["oracle/oracles-curse/blackened/level-15"]),
+    ],
+)

@@ -1,0 +1,21 @@
+(
+    key: "hunter/tandem-executioner/tandem-executioner-techniques",
+    blueprint: "d03312858cd5420e8bad2756ce4a72ba",
+    name: "Tandem Executioner Techniques",
+    summary: "A combat technique for you and your companion at 4th level and every 3 levels after.",
+    guide: "hunter#tandem-executioner-techniques",
+    options: [
+        "hunter/tandem-executioner/tandem-executioner-techniques/disrupted-focus",
+        "hunter/tandem-executioner/tandem-executioner-techniques/elusive-pair",
+        "hunter/tandem-executioner/tandem-executioner-techniques/make-it-bleed",
+        "hunter/tandem-executioner/tandem-executioner-techniques/new-favorite-toy",
+        "hunter/tandem-executioner/tandem-executioner-techniques/piercing-cascade",
+        "hunter/tandem-executioner/tandem-executioner-techniques/prey-of-choice",
+        "hunter/tandem-executioner/tandem-executioner-techniques/protective-duo",
+        "hunter/tandem-executioner/tandem-executioner-techniques/push-and-bite",
+        "hunter/tandem-executioner/tandem-executioner-techniques/spellbane",
+        "hunter/tandem-executioner/tandem-executioner-techniques/timely-warning",
+        "hunter/tandem-executioner/tandem-executioner-techniques/vigilant-partners",
+        "hunter/tandem-executioner/tandem-executioner-techniques/working-in-tandem",
+    ],
+)

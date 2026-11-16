@@ -1,0 +1,12 @@
+(
+    key: "student-of-war/know-your-enemy",
+    blueprint: "846c2094392076a4f9f3c84f0ecfe180",
+    name: "Know Your Enemy",
+    summary: "Move action: a Knowledge or Lore check on a foe gives a stance's insight bonus against it, +1, +2 at 4th and +3 at 7th; switch as a move action.",
+    guide: "prestige-classes#know-your-enemy",
+    options: [
+        "student-of-war/know-your-enemy/defensive-stance-student-of-war",
+        "student-of-war/know-your-enemy/martial-stance",
+        "student-of-war/know-your-enemy/tactical-stance",
+    ],
+)

@@ -1,0 +1,13 @@
+(
+    key: "eye-of-the-sun",
+    blueprint: "a948e10ecf1fa674dbae5eaae7f25a7f",
+    name: "Eye of the Sun",
+    school: Conjuration,
+    guide: "angel#eye-of-the-sun-conjuration",
+    summary: "Enemies in the burst take 12 per caster level, half fire and half holy, or 1d12 per caster level if they save.",
+    target: "All enemies with a 30' burst centred on the caster",
+    saving_throw: "Reflex half",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

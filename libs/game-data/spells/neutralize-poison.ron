@@ -1,0 +1,13 @@
+(
+    key: "neutralize-poison",
+    blueprint: "e7240516af4241b42b2cd819929ea9da",
+    name: "Neutralize Poison",
+    school: Conjuration,
+    guide: "cleric-spells#neutralize-poison-conjuration",
+    summary: "Removes every poison from the target, with a caster level check against each poison's DC.",
+    target: "One friendly creature within touch range",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

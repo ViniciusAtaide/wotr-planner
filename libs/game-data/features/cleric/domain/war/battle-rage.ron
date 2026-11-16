@@ -1,0 +1,1 @@
+(key: "cleric/domain/war/battle-rage", blueprint: "640c20da7d6fcbc43b0d30a0a762f122", name: "Battle Rage", summary: "Standard action: the target adds half your class level to damage next round; 3 + Wisdom modifier uses a day.", guide: "character-creation#war-domain")

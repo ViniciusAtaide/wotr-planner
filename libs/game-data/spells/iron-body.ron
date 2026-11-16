@@ -1,0 +1,14 @@
+(
+    key: "iron-body",
+    blueprint: "198fcc43490993f49899ed086fe723c1",
+    name: "Iron Body",
+    school: Transmutation,
+    guide: "wizard-spells#iron-body-transmutation",
+    summary: "You gain DR 15/adamantine, acid and fire resistance 30, many immunities and +6 Strength, but take -6 Dexterity, half speed and 35% arcane spell failure.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

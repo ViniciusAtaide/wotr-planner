@@ -1,0 +1,21 @@
+(
+    key: "oracle/second-curse",
+    blueprint: "cc6fda79e8c340b88c84689414a9abbe",
+    name: "Second Curse",
+    summary: "The Dual-Cursed Oracle\'s second curse, a different one: it gives its 1st-level stage and never advances, so Blackened\'s attack penalty stays -4 and Wolf-Scarred Face\'s bite 1d4.",
+    guide: "oracle#dual-cursed-oracle",
+    option_levels: ["oracle"],
+    skipped_levels: [5, 10, 15],
+    options: [],
+    shared_options: [
+        "oracle/oracles-curse/blackened",
+        "oracle/oracles-curse/demonic",
+        "oracle/oracles-curse/hellbound",
+        "oracle/oracles-curse/lame",
+        "oracle/oracles-curse/plagued",
+        "oracle/oracles-curse/powerless-prophecy",
+        "oracle/oracles-curse/pranked",
+        "oracle/oracles-curse/wasting",
+        "oracle/oracles-curse/wolf-scarred-face",
+    ],
+)

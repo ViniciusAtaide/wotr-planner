@@ -1,0 +1,14 @@
+(
+    key: "primal-regression",
+    blueprint: "07d577a74441a3a44890e3006efcf604",
+    name: "Primal Regression",
+    school: Enchantment,
+    guide: "druid-spells#primal-regression-enchantment",
+    summary: "Creatures drop to 1 Int and Cha, take -4 on Will and gain +6 Strength, +2 natural armour and 2d8 temporary HP; when it ends, Will or 1d4 Int and Cha damage.",
+    target: "Target creature within close range, 30' burst",
+    duration: "1 minute / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

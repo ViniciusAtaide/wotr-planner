@@ -1,0 +1,1 @@
+(key: "gladiator", blueprint: "1ea754d5573a0ed4e9fca4c30519f247", name: "Gladiator", group: Warrior, note: "Proficient with trident, shortsword and buckler.", class_skills: ["persuasion"], feats: ["armor-proficiency-light-armor"], weapons: ["short-sword", "trident"])

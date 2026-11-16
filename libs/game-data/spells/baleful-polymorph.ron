@@ -1,0 +1,14 @@
+(
+    key: "baleful-polymorph",
+    blueprint: "3105d6e9febdc3f41a08d2b7dda1fe74",
+    name: "Baleful Polymorph",
+    school: Transmutation,
+    guide: "wizard-spells#baleful-polymorph-transmutation",
+    summary: "Turns the target into a dog that can't attack or cast spells, with its mental scores dropping to 1.",
+    target: "One enemy creature within close range",
+    duration: "Permanent",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Curse, Polymorph],
+    casting_time: Standard,
+)

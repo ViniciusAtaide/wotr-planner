@@ -1,0 +1,14 @@
+(
+    key: "litany-of-entanglement",
+    blueprint: "16f7754287811724abe1e0ead88f74ca",
+    name: "Litany of Entanglement",
+    school: Conjuration,
+    guide: "inquisitor#litany-of-entanglement-conjuration",
+    summary: "The target is entangled for 1 round unless it saves.",
+    target: "One enemy creature within close range",
+    duration: "1 round",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Swift,
+)

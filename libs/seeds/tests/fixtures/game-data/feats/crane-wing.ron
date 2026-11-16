@@ -1,0 +1,7 @@
+(
+    key: "crane-wing",
+    name: "Crane Wing",
+    category: UnarmedCombat,
+    guide: "feats#crane-wing",
+    prerequisite: All([Feat("crane-style"), Feat("dodge")]),
+)

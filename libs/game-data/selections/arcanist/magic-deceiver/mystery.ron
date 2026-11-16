@@ -1,0 +1,20 @@
+(
+    key: "arcanist/magic-deceiver/mystery",
+    blueprint: "e9629fc4de4c4b3ea1c26e9c13c2402d",
+    name: "Mystery (Living Deity)",
+    summary: "Pick an oracle mystery; its revelations come at 1st, 4th, 12th and 20th level, plus the final revelation.",
+    guide: "arcanist#mysterious-gift-mystery",
+    option_levels: ["arcanist"],
+    options: [],
+    shared_options: [
+        "oracle/mystery/ancestor",
+        "oracle/mystery/battle",
+        "oracle/mystery/bones",
+        "oracle/mystery/flame",
+        "oracle/mystery/life",
+        "oracle/mystery/nature",
+        "oracle/mystery/stone",
+        "oracle/mystery/waves",
+        "oracle/mystery/wind",
+    ],
+)

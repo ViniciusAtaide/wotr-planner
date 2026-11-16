@@ -1,0 +1,12 @@
+(
+    key: "ranger/combat-style-feat/two-weapon-combat-feats",
+    blueprint: "019e68517c95c5447bff125b8a91c73f",
+    name: "Two-Weapon Combat Feats",
+    summary: "Double Slice, Shield Bash, Two-Weapon Fighting; Improved Two-Weapon Fighting from 6th and Greater Two-Weapon Fighting from 10th.",
+    guide: "ranger#two-weapon-combat-feats",
+    levels: [
+        (level: 2, feat_list: "ranger/combat-style-feat/two-weapon-combat-feats-2"),
+        (level: 6, feat_list: "ranger/combat-style-feat/two-weapon-combat-feats-6"),
+        (level: 10, feat_list: "ranger/combat-style-feat/two-weapon-combat-feats-10"),
+    ],
+)

@@ -1,0 +1,1 @@
+(key: "mercenary", blueprint: "43b7315eb58242943848750af3671a25", name: "Mercenary", group: Warrior, note: "Proficient with spear, longspear and javelin.", class_skills: ["knowledge-world"], feats: ["armor-proficiency-light-armor"], weapons: ["javelin", "longspear", "spear"])

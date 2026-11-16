@@ -1,0 +1,1 @@
+(key: "trickster/greater-mythic-trick/use-magic-device-iii", blueprint: "9d1446e4947544429a64e5fa20906ebf", name: "Use Magic Device III", summary: "A spellbook of your own: scroll spells can be scribed into it as by a wizard of your character level.", guide: "trickster#use-magic-device-iii", prerequisite: SelectionOption("trickster/improved-mythic-trick/reuse-magic-device"))

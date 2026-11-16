@@ -1,0 +1,19 @@
+(
+    key: "barbarian/pack-rager",
+    class: "barbarian",
+    blueprint: "3f0a548044dbad04b82535237584772b",
+    name: "Pack Rager",
+    summary: "You gain bonus teamwork feats and share them on raging, with fewer rage powers and no Damage Reduction.",
+    guide: "barbarian#pack-rager",
+    levels: [
+        (level: 2, features: ["barbarian/uncanny-dodge"], feat_slots: [OneOf(list: "barbarian/pack-rager/bonus-feats")]),
+        (level: 6, features: ["barbarian/danger-sense"], feat_slots: [OneOf(list: "barbarian/pack-rager/bonus-feats")]),
+        (level: 7, features: ["barbarian/pack-rager/raging-tactician"]),
+        (level: 10, feat_slots: [OneOf(list: "barbarian/pack-rager/bonus-feats")]),
+        (level: 13, features: ["barbarian/pack-rager/raging-tactician"]),
+        (level: 14, features: ["barbarian/indomitable-will"], feat_slots: [OneOf(list: "barbarian/pack-rager/bonus-feats")]),
+        (level: 16, selections: ["barbarian/rage-power"]),
+        (level: 18, features: ["barbarian/danger-sense"], feat_slots: [OneOf(list: "barbarian/pack-rager/bonus-feats")]),
+        (level: 19, features: ["barbarian/pack-rager/raging-tactician"]),
+    ],
+)

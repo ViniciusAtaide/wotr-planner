@@ -1,0 +1,14 @@
+(
+    key: "word-of-chaos",
+    blueprint: "69f2e7aff2d1cd148b8075ee476515b1",
+    name: "Word of Chaos",
+    school: Evocation,
+    guide: "cleric-spells#word-of-chaos-evocation",
+    summary: "Non-chaotic creatures within 40 ft are stunned, confused or killed as HD fall below your caster level (killed: over 10 below); Will negates.",
+    target: "All creatures within 40' of caster",
+    duration: "Varies",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [Chaos, Sonic],
+    casting_time: Standard,
+)

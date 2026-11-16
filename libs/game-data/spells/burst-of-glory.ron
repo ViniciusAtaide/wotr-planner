@@ -1,0 +1,14 @@
+(
+    key: "burst-of-glory",
+    blueprint: "1bc83efec9f8c4b42a46162d72cbf494",
+    name: "Burst of Glory",
+    school: Enchantment,
+    guide: "cleric-spells#burst-of-glory-enchantment",
+    summary: "Allies gain a +1 sacred bonus on attacks and on saves against fear, plus 1 temporary HP per caster level.",
+    target: "All allies within 10'",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

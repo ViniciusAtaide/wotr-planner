@@ -1,0 +1,1 @@
+(key: "missile-shield", blueprint: "5ffcd225924514348ac71730179b5b24", name: "Missile Shield", summary: "Once a round, your shield lets you deflect a ranged weapon attack, unless you're flat-footed.", category: ArmourAndShield, guide: "feats#missile-shield", prerequisite: All([Feat("shield-focus"), AbilityScore(ability: Dexterity, score: 13)]))

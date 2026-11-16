@@ -1,0 +1,13 @@
+(
+    key: "hammer-fists",
+    blueprint: "0237641b0c2de344d85821840419b4d2",
+    name: "Hammer Fists",
+    slot: Gloves,
+    guide: "items#gloves",
+    bonuses: [
+        (target: Ability(Strength), amount: 4, kind: Enhancement),
+    ],
+    always_on: [
+        "AC +2 morale",
+    ],
+)

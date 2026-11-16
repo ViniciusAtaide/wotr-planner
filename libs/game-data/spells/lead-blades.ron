@@ -1,0 +1,14 @@
+(
+    key: "lead-blades",
+    blueprint: "779179912e6c6fe458fa4cfb90d96e10",
+    name: "Lead Blades",
+    school: Transmutation,
+    guide: "ranger#lead-blades-transmutation",
+    summary: "Your melee weapons deal damage as if one size larger (a longsword's 1d8 becomes 1d10).",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "greater-elemental-focus", blueprint: "1c17446a3eb744f438488711b792ca4d", name: "Greater Elemental Focus", summary: "+1 more to the save DCs of your spells of an energy type you have Elemental Focus in.", category: Magic, guide: "feats#greater-elemental-focus", parameter: Energy, repeat: PerValue, prerequisite: FeatForSameValue("elemental-focus"))

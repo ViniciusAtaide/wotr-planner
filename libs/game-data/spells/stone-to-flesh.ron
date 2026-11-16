@@ -1,0 +1,13 @@
+(
+    key: "stone-to-flesh",
+    blueprint: "e243740dfdb17a246b116b334ed0b165",
+    name: "Stone to Flesh",
+    school: Transmutation,
+    guide: "wizard-spells#stone-to-flesh-transmutation",
+    summary: "Returns a petrified creature to normal.",
+    target: "One friendly creature within any range",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

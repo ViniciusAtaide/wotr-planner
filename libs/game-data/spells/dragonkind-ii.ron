@@ -1,0 +1,14 @@
+(
+    key: "dragonkind-ii",
+    blueprint: "666556ded3a32f34885e8c318c3a0ced",
+    name: "Dragonkind II",
+    school: Transmutation,
+    guide: "wizard-spells#dragonkind-ii-transmutation",
+    summary: "You become a Large dragon-like creature with +6 Strength, +4 Constitution, +6 natural armour, DR 5/magic, natural attacks and an 8d8 breath weapon twice a day.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

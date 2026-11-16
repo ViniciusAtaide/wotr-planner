@@ -1,0 +1,6 @@
+(
+    key: "sorcerer/bloodline/abyssal/strength-of-the-abyss",
+    name: "Strength of the Abyss",
+    guide: "character-creation#strength-of-the-abyss",
+    ability_bonuses: [Fixed(ability: Strength, amount: 2)],
+)

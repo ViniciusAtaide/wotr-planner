@@ -1,0 +1,9 @@
+(
+    key: "green-faith",
+    blueprint: "99a7a8f13c1300c42878558fa9471e2f",
+    name: "Green Faith",
+    guide: "character-creation#deities",
+    alignments: [NeutralGood, LawfulNeutral, TrueNeutral, ChaoticNeutral, NeutralEvil],
+    favoured_weapons: ["sickle"],
+    domains: ["cleric/domain/animal", "cleric/domain/earth", "cleric/domain/fire", "cleric/domain/plant", "cleric/domain/water"],
+)

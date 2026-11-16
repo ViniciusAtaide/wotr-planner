@@ -1,0 +1,15 @@
+(
+    key: "legendary-proportions",
+    blueprint: "da1b292d91ba37948893cdbe9ea89e28",
+    name: "Legendary Proportions",
+    school: Transmutation,
+    guide: "wizard-spells#legendary-proportions-transmutation",
+    summary: "The target grows two size categories and gains +6 Strength, +4 Constitution, +6 natural armour and DR 10/adamantine.",
+    components: "Dinosaur bone",
+    target: "One friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

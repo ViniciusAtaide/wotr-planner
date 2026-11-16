@@ -1,0 +1,14 @@
+(
+    key: "hideous-laughter",
+    blueprint: "fd4d9fd7f87575d47aafe2a64a6e2d8d",
+    name: "Hideous Laughter",
+    school: Enchantment,
+    guide: "wizard-spells#hideous-laughter-enchantment",
+    summary: "The target can't act until it succeeds on a Will save, retried each round.",
+    target: "One enemy creature within close range, 30' burst",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: FullRound,
+)

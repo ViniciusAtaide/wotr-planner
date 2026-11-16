@@ -1,0 +1,1 @@
+(key: "paladin/mercy/cursed", blueprint: "445c696bead5140459909ffbed14750e", name: "Cursed", summary: "From 9th level, Lay on Hands also removes curses.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 9))

@@ -1,0 +1,17 @@
+(
+    key: "kineticist/expanded-element",
+    blueprint: "4204bc10b3d5db440b1f52f0c375848b",
+    name: "Expanded Element",
+    summary: "At 7th level pick a second element or deepen your first, gaining its blasts and composites; at 15th pick a third or deepen again.",
+    guide: "kineticist#expanded-element",
+    option_levels: ["kineticist"],
+    feat_lists_only: true,
+    once_per_option: true,
+    options: [],
+    shared_options: [
+        "kineticist/element/air",
+        "kineticist/element/earth",
+        "kineticist/element/fire",
+        "kineticist/element/water",
+    ],
+)

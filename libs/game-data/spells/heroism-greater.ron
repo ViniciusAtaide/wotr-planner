@@ -1,0 +1,14 @@
+(
+    key: "heroism-greater",
+    blueprint: "e15e5e7045fda2244b98c8f010adfe31",
+    name: "Heroism, Greater",
+    school: Enchantment,
+    guide: "wizard-spells#heroism-greater-enchantment",
+    summary: "The target gains +4 morale to attacks, saves and skill checks, fear immunity, and your caster level in temporary HP.",
+    target: "One friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

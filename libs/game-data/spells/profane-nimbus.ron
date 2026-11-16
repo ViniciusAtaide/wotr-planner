@@ -1,0 +1,14 @@
+(
+    key: "profane-nimbus",
+    blueprint: "b56521d58f996cd4299dab3f38d5fe31",
+    name: "Profane Nimbus",
+    school: Evocation,
+    guide: "cleric-spells#profane-nimbus-evocation",
+    summary: "Good creatures hitting you in melee take 1d6 + 1 per caster level (max +15), and you take half (none on a save) from good-descriptor magical attacks.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Evil],
+    casting_time: Standard,
+)

@@ -1,0 +1,11 @@
+(
+    key: "wizard/school/necromancer",
+    blueprint: "e9450978cc9feeb468fb8ee3a90607e3",
+    name: "Necromancer",
+    summary: "Necromancy specialist: Power Over Undead, Grave Touch and Life Sight.",
+    guide: "wizard#necromancer",
+    levels: [
+        (level: 1, features: ["wizard/school/necromancer/grave-touch", "wizard/school/necromancer/power-over-undead"]),
+        (level: 8, features: ["wizard/school/necromancer/life-sight"]),
+    ],
+)

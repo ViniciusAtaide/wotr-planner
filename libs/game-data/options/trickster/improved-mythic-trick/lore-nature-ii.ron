@@ -1,0 +1,1 @@
+(key: "trickster/improved-mythic-trick/lore-nature-ii", blueprint: "9c437a5ba123619448322642ffbdc9e1", name: "Lore (Nature) II", summary: "Hunting also brings in gold, potions, scrolls and other loot.", guide: "trickster#lore-nature-ii", prerequisite: SelectionOption("trickster/mythic-trick/lore-nature-i"))

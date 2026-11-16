@@ -1,0 +1,16 @@
+(
+    key: "razmirs-ring",
+    blueprint: "1ef783f955584050972c13f9399eb9d8",
+    name: "Razmir's Ring",
+    slot: Ring,
+    guide: "items#rings",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 8, kind: Enhancement),
+        (target: Ability(Wisdom), amount: 8, kind: Enhancement),
+        (target: Ability(Charisma), amount: 8, kind: Enhancement),
+    ],
+    always_on: [
+        "All spells Intensified and Piercing",
+        "Powers of the Magic domain",
+    ],
+)

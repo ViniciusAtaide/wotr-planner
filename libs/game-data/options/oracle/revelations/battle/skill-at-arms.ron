@@ -1,0 +1,1 @@
+(key: "oracle/revelations/battle/skill-at-arms", blueprint: "ba63899cf42ba8a459742078a526e7ec", name: "Skill at Arms", summary: "Gives Martial Weapon Proficiency and Heavy Armor Proficiency.", guide: "oracle#skill-at-arms", feats: ["armor-proficiency-heavy-armor", "martial-weapons-proficiency"], prerequisite: SelectionOption("oracle/mystery/battle"))

@@ -1,0 +1,12 @@
+(
+    key: "oracle/wind-whisperer/mystery",
+    blueprint: "5531b975dcdf0e24c98f1ff7e017e741",
+    name: "Mystery (Wind Whisperer)",
+    summary: "The Wind Whisperer's mystery: Wind only.",
+    guide: "oracle#wind-whisperer",
+    option_levels: ["oracle"],
+    options: [],
+    shared_options: [
+        "oracle/mystery/wind",
+    ],
+)

@@ -1,0 +1,1 @@
+(key: "spell-penetration-mythic", blueprint: "51b6b22ff184eef46a675449e837365d", name: "Spell Penetration (Mythic)", summary: "Add MR/2 to caster level checks against spell resistance, or your full mythic rank with Greater Spell Penetration.", group: Magic, guide: "mythic-paths#spell-penetration-mythic", prerequisite: Feat("spell-penetration"))

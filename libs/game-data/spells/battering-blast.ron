@@ -1,0 +1,13 @@
+(
+    key: "battering-blast",
+    blueprint: "0a2f7c6aa81bc6548ac7780d8b70bcbc",
+    name: "Battering Blast",
+    school: Evocation,
+    guide: "wizard-spells#battering-blast-evocation",
+    summary: "Ranged touch force balls deal 1d6 per two caster levels (max 5d6), one more ball per 5 levels past 5th; hits bull rush, and a pushed foe saves or falls prone.",
+    target: "One enemy creature within close range",
+    saving_throw: "Reflex partial",
+    spell_resistance: true,
+    descriptors: [Force],
+    casting_time: Standard,
+)

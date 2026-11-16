@@ -1,0 +1,23 @@
+(
+    key: "druid/defender-of-the-true-world",
+    class: "druid",
+    blueprint: "782c46afacd88d448afba6178471a744",
+    name: "Defender of the True World",
+    summary: "Fey-hunting druid with bonuses against fey, losing poison immunity.",
+    guide: "druid#defender-of-the-true-world",
+    class_skills: ["athletics", "knowledge-world", "lore-nature", "perception", "persuasion"],
+    levels: [
+        (level: 1, features: ["druid/defender-of-the-true-world/enemy-of-the-fey", "druid/druid-proficiencies", "druid/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"], selections: ["druid/nature-bond"]),
+        (level: 3, features: ["druid/defender-of-the-true-world/fey-stalker"]),
+        (level: 4, features: ["druid/defender-of-the-true-world/feybane", "druid/defender-of-the-true-world/wild-shape-wolf"]),
+        (level: 6, features: ["druid/defender-of-the-true-world/wild-shape-leopard-small-elemental", "druid/defender-of-the-true-world/wild-shape-wolf"]),
+        (level: 8, features: ["druid/defender-of-the-true-world/fey-stalker", "druid/defender-of-the-true-world/wild-shape-bear-medium-elemental", "druid/defender-of-the-true-world/wild-shape-wolf"]),
+        (level: 9, features: ["druid/defender-of-the-true-world/beguiling-immunity"]),
+        (level: 10, features: ["druid/defender-of-the-true-world/wild-shape-smilodon-large-elemental-shambling-mound", "druid/defender-of-the-true-world/wild-shape-wolf"]),
+        (level: 12, features: ["druid/defender-of-the-true-world/wild-shape-huge-elemental", "druid/defender-of-the-true-world/wild-shape-wolf"]),
+        (level: 13, features: ["druid/defender-of-the-true-world/fey-stalker"]),
+        (level: 14, features: ["druid/defender-of-the-true-world/wild-shape-wolf"]),
+        (level: 16, features: ["druid/defender-of-the-true-world/wild-shape-wolf"]),
+        (level: 18, features: ["druid/defender-of-the-true-world/fey-stalker", "druid/defender-of-the-true-world/wild-shape-wolf"]),
+    ],
+)

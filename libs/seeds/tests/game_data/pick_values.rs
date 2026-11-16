@@ -259,8 +259,8 @@ fn every_item_whose_summary_chooses_has_its_pick_or_was_checked() {
         }
     }
     for option in DATA
-        .selections()
-        .flat_map(|selection| &selection.options)
+        .options
+        .iter()
         .filter(|option| chooses(&option.summary))
     {
         let picks = option.parameter.is_some()

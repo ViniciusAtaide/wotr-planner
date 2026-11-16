@@ -1,0 +1,14 @@
+(
+    key: "rogue/dark-lurker",
+    class: "rogue",
+    blueprint: "33eb002078e5437b8c25db4b80b4a4fe",
+    name: "Dark Lurker",
+    summary: "Lord of Nothing rogue who strikes from enemies' shadows, with Blind-Fight feats, no Evasion and fewer talents.",
+    guide: "rogue#dark-lurker",
+    levels: [
+        (level: 2, features: ["rogue/dark-lurker/blade-from-the-shadows"], feats: ["blind-fight"]),
+        (level: 8, features: ["rogue/improved-uncanny-dodge"], feats: ["improved-blind-fight"]),
+        (level: 14, features: ["rogue/dark-lurker/blade-from-the-shadows-full-attack"], feats: ["greater-blind-fight"]),
+        (level: 20, features: ["rogue/dark-lurker/instinctual-sense", "rogue/master-strike"]),
+    ],
+)

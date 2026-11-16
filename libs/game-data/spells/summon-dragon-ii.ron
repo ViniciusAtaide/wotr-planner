@@ -1,0 +1,14 @@
+(
+    key: "summon-dragon-ii",
+    blueprint: "51b498f1cacd42e08ed6852f53261f11",
+    name: "Summon Dragon II",
+    school: Conjuration,
+    guide: "gold-dragon#summon-dragon-ii-conjuration",
+    summary: "Summons 2 Large silver dragons (black dragons if you have sworn to serve Dahak).",
+    target: "Target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: Standard,
+)

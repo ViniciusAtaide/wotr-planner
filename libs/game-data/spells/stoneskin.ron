@@ -1,0 +1,15 @@
+(
+    key: "stoneskin",
+    blueprint: "c66e86905f7606c4eaa5c774f0357b2b",
+    name: "Stoneskin",
+    school: Abjuration,
+    guide: "wizard-spells#stoneskin-abjuration",
+    summary: "The target gains DR 10/adamantine until it has stopped 150 damage.",
+    components: "Diamond dust x 5",
+    target: "One friendly creature within touch range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

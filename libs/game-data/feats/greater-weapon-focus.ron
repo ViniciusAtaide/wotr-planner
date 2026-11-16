@@ -1,0 +1,1 @@
+(key: "greater-weapon-focus", blueprint: "09c9e82965fb4334b984a1e9df3bd088", name: "Greater Weapon Focus", summary: "+1 more to attack with a weapon you have Weapon Focus in.", category: Weapon, guide: "feats#greater-weapon-focus", parameter: Weapon, repeat: PerValue, prerequisite: All([FeatForSameValue("weapon-focus"), ClassLevel(class: "fighter", level: 8)]))

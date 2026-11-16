@@ -1,0 +1,13 @@
+(
+    key: "remove-curse",
+    blueprint: "b48674cef2bff5e478a007cf57d8345b",
+    name: "Remove Curse",
+    school: Abjuration,
+    guide: "wizard-spells#remove-curse-abjuration",
+    summary: "Makes a caster level check against each curse on the target to remove it, and lets an ally take off a cursed item.",
+    target: "One friendly creature within close range",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

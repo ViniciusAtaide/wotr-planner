@@ -1,0 +1,1 @@
+(key: "paladin/mercy/shaken", blueprint: "c4732ca5b0af7214a98f9b4dafe87da9", name: "Shaken", summary: "From 3rd level, Lay on Hands also removes the shaken condition.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 3))

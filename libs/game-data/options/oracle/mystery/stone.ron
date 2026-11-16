@@ -1,0 +1,11 @@
+(
+    key: "oracle/mystery/stone",
+    blueprint: "7bb4bb3e7fd26f34e8ca035a27e03e85",
+    name: "Stone",
+    summary: "Stone: Athletics as a class skill, acid and earth spells from Corrosive Touch to Clashing Rocks, and empowered acid spells at 20th.",
+    guide: "oracle#stone",
+    levels: [
+        (level: 1, class_skills: ["athletics"]),
+        (level: 20, features: ["oracle/mystery/stone/stone-final-revelation"]),
+    ],
+)

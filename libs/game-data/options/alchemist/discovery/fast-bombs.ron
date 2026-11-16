@@ -1,0 +1,1 @@
+(key: "alchemist/discovery/fast-bombs", blueprint: "128c5fccec5ca724281a4907b1f0ac83", name: "Fast Bombs", summary: "Throws several bombs a round, like a ranged full attack.", guide: "alchemist#fast-bombs", prerequisite: ClassLevel(class: "alchemist", level: 8))

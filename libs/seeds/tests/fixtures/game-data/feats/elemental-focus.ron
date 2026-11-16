@@ -1,0 +1,7 @@
+(
+    key: "elemental-focus",
+    name: "Elemental Focus",
+    category: Magic,
+    guide: "feats#elemental-focus",
+    parameter: Energy,
+)

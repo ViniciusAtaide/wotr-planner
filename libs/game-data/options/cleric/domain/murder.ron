@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/murder",
+    blueprint: "3b75b9afcb5a485aab990f12c1a22e64",
+    name: "Murder Subdomain",
+    summary: "Bleeding Touch and bleeding critical hits from 8th level; spells from Cause Fear to Wail of the Banshee.",
+    guide: "character-creation#murder-subdomain",
+    levels: [
+        (level: 1, features: ["cleric/domain/murder/bleeding-touch"]),
+        (level: 8, features: ["cleric/domain/murder/weapons-infused-with-death"]),
+    ],
+)

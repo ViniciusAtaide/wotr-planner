@@ -1,0 +1,1 @@
+(key: "oracle/revelations/waves/ice-armor", blueprint: "a1cd9835c6699534ca124fab239fdf1c", name: "Ice Armor", summary: "+4 armor bonus barrier for 1 hour per level, +2 at 7th and every 4 levels (+12 at 19th); DR 5/piercing from 13th.", guide: "oracle#ice-armor", prerequisite: SelectionOption("oracle/mystery/waves"))

@@ -1,0 +1,1 @@
+(key: "monk/unarmed-strike", blueprint: "c3fbeb2ffebaaa64aa38ce7a0bb18fb0", name: "Unarmed Strike", summary: "Unarmed damage grows with level for a Medium monk: 1d6, 1d8 at 4th, 1d10 at 8th, 2d6 at 12th, 2d8 at 16th, 2d10 at 20th.", guide: "monk#unarmed-strike")

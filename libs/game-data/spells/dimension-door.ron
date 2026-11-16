@@ -1,0 +1,13 @@
+(
+    key: "dimension-door",
+    blueprint: "4a648b57935a59547b7a2ee86fb4f26a",
+    name: "Dimension Door",
+    school: Conjuration,
+    guide: "wizard-spells#dimension-door-conjuration",
+    summary: "Teleports you and allies within 10 ft to the chosen point.",
+    target: "Target point within long range range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

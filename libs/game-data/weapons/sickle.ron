@@ -1,0 +1,1 @@
+(key: "sickle", blueprint: "ec2da496c7936e14c9a28ce616a6b4cd", name: "Sickle", proficiency: Simple, stats: (damage: (count: 1, sides: 6), threat: 20, multiplier: 2, handedness: Light, finesse: true))

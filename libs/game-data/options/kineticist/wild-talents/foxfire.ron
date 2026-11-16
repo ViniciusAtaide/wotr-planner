@@ -1,0 +1,1 @@
+(key: "kineticist/wild-talents/foxfire", blueprint: "14c699ccd0564e04a9587b1845d16014", name: "Foxfire", summary: "Outline a target with the effect of Faerie Fire (spell resistance applies).", guide: "kineticist#foxfire", prerequisite: All([ClassLevel(class: "kineticist", level: 4), SelectionOption("kineticist/element/fire")]))

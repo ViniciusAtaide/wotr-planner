@@ -19,8 +19,7 @@ fn only_the_human_and_the_human_raised_half_orc_are_skilled() {
         .iter()
         .flat_map(|race| {
             std::iter::once((race.key.as_str(), race.skill_points)).chain(
-                race.subraces
-                    .iter()
+                DATA.subraces_of(&race.key)
                     .map(|subrace| (subrace.key.as_str(), subrace.skill_points)),
             )
         })

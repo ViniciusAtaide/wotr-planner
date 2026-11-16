@@ -1,0 +1,1 @@
+(key: "warrior-of-the-linnorm-kings", blueprint: "494c972a8e7626749aeda25582e2e88f", name: "Warrior of the Linnorm Kings", group: Regional, note: "Proficient with handaxe, battleaxe and greataxe. Cold resistance 5.", class_skills: ["mobility"], weapons: ["battle-axe", "greataxe", "hand-axe"])

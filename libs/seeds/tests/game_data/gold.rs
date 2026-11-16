@@ -900,18 +900,8 @@ impl Planner {
     fn new() -> Self {
         let mut items: BTreeSet<String> = BTreeSet::new();
         items.extend(DATA.feats.iter().map(|feat| feat.name.clone()));
-        items.extend(DATA.class_features().map(|feature| feature.name.clone()));
-        items.extend(
-            DATA.mythic_paths
-                .iter()
-                .flat_map(|path| &path.features)
-                .map(|feature| feature.name.clone()),
-        );
-        items.extend(
-            DATA.selections()
-                .flat_map(|selection| &selection.options)
-                .map(|option| option.name.clone()),
-        );
+        items.extend(DATA.features.iter().map(|feature| feature.name.clone()));
+        items.extend(DATA.options.iter().map(|option| option.name.clone()));
         items.extend(DATA.mythic_abilities.iter().map(|a| a.name.clone()));
         items.extend(DATA.mythic_feats.iter().map(|f| f.name.clone()));
         items.extend(AbilityScores::ABILITIES.map(|ability| ability.increase_name()));
@@ -1649,8 +1639,9 @@ fn gold_builds_gain_what_the_write_ups_list() {
 /// bloodline's appear, compare them.
 #[test]
 fn the_second_bloodlines_spells_arent_in_the_data() {
-    let draconic: Vec<&str> = DATA
-        .class_features()
+    let draconic: Vec<&str> = support::all_class_grants()
+        .features
+        .into_iter()
         .filter(|feature| {
             feature
                 .key

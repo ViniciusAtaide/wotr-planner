@@ -1,0 +1,8 @@
+(
+    key: "aasimar",
+    blueprint: "b7f02ba92b363064fb873963bec275ee",
+    name: "Aasimar",
+    summary: "Resist acid, cold and electricity 5; +2 saves vs blinding and dazzling; +2 Persuasion (diplomacy) and Perception; Searing Light once a day.",
+    guide: "character-creation#aasimar",
+    ability_modifiers: [Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: 2)],
+)

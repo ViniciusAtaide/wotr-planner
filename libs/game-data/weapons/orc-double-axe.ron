@@ -1,0 +1,1 @@
+(key: "orc-double-axe", blueprint: "87d76c7534506a546a065731ee6a38cd", name: "Orc Double Axe", proficiency: Exotic, stats: (damage: (count: 1, sides: 8), threat: 20, multiplier: 3, handedness: TwoHanded))

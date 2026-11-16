@@ -1,0 +1,14 @@
+(
+    key: "bombers-eye",
+    blueprint: "9d504f8dff6e93b4ab6afc938ed6a23d",
+    name: "Bomber's Eye",
+    school: Transmutation,
+    guide: "alchemist#bombers-eye-transmutation",
+    summary: "You gain a +1 insight bonus on attacks with thrown weapons, and your bombs reach 10 ft farther.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

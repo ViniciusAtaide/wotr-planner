@@ -1,0 +1,14 @@
+(
+    key: "flames-of-the-abyss",
+    blueprint: "d0ed16b4f939c274e86ceb95c5f680ae",
+    name: "Flames of the Abyss",
+    school: Evocation,
+    guide: "demon#flames-of-the-abyss-evocation",
+    summary: "Your next two attacks (three at CL 12, four at CL 17) add 1d6 unholy per 2 caster levels; a charge can instead be spent on a ranged touch attack.",
+    target: "Personal",
+    duration: "Varies",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "army-of-heaven",
+    blueprint: "483157d358afd1a498c2a4762f4057ba",
+    name: "Army of Heaven",
+    school: Enchantment,
+    guide: "angel#army-of-heaven-enchantment",
+    summary: "Allies in the burst gain Avenger's Blessing, Holy Sword and Mind Blank.",
+    target: "All allies within a 30' burst centred on the caster",
+    duration: "1 hour",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

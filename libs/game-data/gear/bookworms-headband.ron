@@ -1,0 +1,15 @@
+(
+    key: "bookworms-headband",
+    blueprint: "866f59db467f8414cbd909df9b10361f",
+    name: "Bookworm's Headband",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 2, kind: Enhancement),
+        (target: Ability(Charisma), amount: -2),
+        (target: Skill("persuasion"), amount: -3),
+    ],
+    always_on: [
+        "Immune to compulsion effects",
+    ],
+)

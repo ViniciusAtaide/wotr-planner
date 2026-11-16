@@ -1,0 +1,11 @@
+(
+    key: "slayer/slayer-talents/combat-style-feat-6",
+    blueprint: "61f82ba786fe05643beb3cd3910233a8",
+    name: "Combat Style Feat (6th or 8th level)",
+    summary: "A Ranger combat style feat taken as a slayer talent at 6th or 8th level.",
+    guide: "slayer#slayer-talents",
+    prerequisite: All([Not(ClassLevel(class: "slayer", level: 10)), ClassLevel(class: "slayer", level: 6)]),
+    levels: [
+        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style", at_level: 6)], selections: ["slayer/combat-style"]),
+    ],
+)

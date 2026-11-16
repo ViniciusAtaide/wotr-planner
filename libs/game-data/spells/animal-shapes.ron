@@ -1,0 +1,14 @@
+(
+    key: "animal-shapes",
+    blueprint: "cf689244b2c7e904eb85f26fd6e81552",
+    name: "Animal Shapes",
+    school: Transmutation,
+    guide: "druid-spells#animal-shapes-transmutation",
+    summary: "Every ally in the area becomes a large bear, following Beast Shape III's rules.",
+    target: "All allies within 10' of target creature within close range",
+    duration: "1 hour / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: FullRound,
+)

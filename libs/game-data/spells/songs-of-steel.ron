@@ -1,0 +1,14 @@
+(
+    key: "songs-of-steel",
+    blueprint: "f7b476555f96afe4b9ba6e7d56d3272a",
+    name: "Songs of Steel",
+    school: Abjuration,
+    guide: "azata#songs-of-steel-abjuration",
+    summary: "The target gets +2 on concentration and to beat spell resistance, +2 to its DCs, and 2d6 + your caster level sonic on its first weapon hit each round.",
+    target: "Friendly creature within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

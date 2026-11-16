@@ -1,0 +1,1 @@
+(key: "kineticist/infusions/cyclone", blueprint: "f2fa7541f18b8af4896fbaf9f2a21dfe", name: "Cyclone", summary: "Form, 3 Burn, air blasts: everything in a 20' radius takes half blast damage (Reflex half).", guide: "kineticist#cyclone", prerequisite: All([ClassLevel(class: "kineticist", level: 8), SelectionOption("kineticist/element/air")]))

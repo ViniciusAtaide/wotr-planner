@@ -1,0 +1,13 @@
+(
+    key: "gale-of-life",
+    blueprint: "4de4a5f242ff5dd4eb5e351bebc4a1fa",
+    name: "Gale of Life",
+    school: Conjuration,
+    guide: "angel#gale-of-life-conjuration",
+    summary: "As Breath of Life, but on every ally in the burst.",
+    target: "All allies with a 20' burst centred on the caster",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,12 @@
+(
+    key: "cleric/domain/chaos",
+    blueprint: "5a5d19c246961484a97e1e5dded98ab2",
+    name: "Chaos Domain",
+    summary: "Touch of Chaos and Anarchic weapons from 8th level; spells from Protection from Law to Summon Monster IX.",
+    guide: "character-creation#chaos-domain",
+    prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("cleric/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)])]),
+    levels: [
+        (level: 1, features: ["cleric/domain/chaos/touch-of-chaos"]),
+        (level: 8, features: ["cleric/domain/chaos/chaos-blade"]),
+    ],
+)

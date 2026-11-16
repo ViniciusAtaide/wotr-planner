@@ -1,0 +1,1 @@
+(key: "alchemist/incense-synthesizer/incense-fog/incense-fog-rallying-incense", blueprint: "c5f14b5981ec3994c80def79b6f5a77a", name: "Incense Fog - Rallying Incense", summary: "Allies in the fog get +2 to saves against fear; can be taken three times.", guide: "alchemist#incense-fog-rallying-incense", repeat: Times(3))

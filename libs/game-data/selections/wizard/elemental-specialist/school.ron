@@ -1,0 +1,12 @@
+(
+    key: "wizard/elemental-specialist/school",
+    blueprint: "5f838049069f1ac4d804ce0862ab5110",
+    name: "School (Elemental Specialist)",
+    summary: "An Elemental Specialist is always an Invoker and takes three opposition schools.",
+    guide: "wizard#elemental-specialist",
+    option_levels: ["wizard"],
+    options: [],
+    shared_options: [
+        "wizard/school/invoker",
+    ],
+)

@@ -158,7 +158,7 @@ fn every_class_and_archetype_wields_some_weapon_at_level_1() {
     let mut empty = Vec::new();
     for class in &DATA.classes {
         let mut builds = vec![(class.key.as_str().to_owned(), build(class.key.as_str(), 1))];
-        for archetype in &class.archetypes {
+        for archetype in DATA.archetypes_of(&class.key) {
             builds.push((
                 archetype.key.as_str().to_owned(),
                 archetype_build(class.key.as_str(), archetype.key.as_str(), 1),

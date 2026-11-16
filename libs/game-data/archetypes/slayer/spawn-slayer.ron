@@ -1,0 +1,15 @@
+(
+    key: "slayer/spawn-slayer",
+    class: "slayer",
+    blueprint: "f6e304de008939d46960a2ebb075e150",
+    name: "Spawn Slayer",
+    summary: "Slayer dedicated to fighting large monsters.",
+    guide: "slayer#spawn-slayer",
+    levels: [
+        (level: 5, features: ["slayer/studied-target", "slayer/spawn-slayer/studied-spawn"]),
+        (level: 7, features: ["slayer/spawn-slayer/gain-leverage"]),
+        (level: 10, features: ["slayer/advanced-talents", "slayer/spawn-slayer/studied-spawn", "slayer/studied-target"], selections: ["slayer/slayer-talents"]),
+        (level: 15, features: ["slayer/sneak-attack", "slayer/spawn-slayer/studied-spawn", "slayer/studied-target"]),
+        (level: 20, features: ["slayer/master-slayer", "slayer/spawn-slayer/studied-spawn", "slayer/studied-target"], selections: ["slayer/slayer-talents"]),
+    ],
+)

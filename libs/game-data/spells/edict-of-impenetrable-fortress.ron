@@ -1,0 +1,14 @@
+(
+    key: "edict-of-impenetrable-fortress",
+    blueprint: "d7741c08ccf699e4a8a8f8ab2ed345f8",
+    name: "Edict of Impenetrable Fortress",
+    school: Abjuration,
+    guide: "aeon#edict-of-impenetrable-fortress-abjuration",
+    summary: "Physical damage can't harm the target.",
+    target: "One friendly creature within close range",
+    duration: "1 round / 5 caster levels",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Swift,
+)

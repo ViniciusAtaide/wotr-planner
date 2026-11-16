@@ -1,0 +1,14 @@
+(
+    key: "align-weapon",
+    blueprint: "d026d5c80dbb9224f9a97fec83f5644a",
+    name: "Align Weapon",
+    school: Transmutation,
+    guide: "cleric-spells#align-weapon-transmutation",
+    summary: "The target's weapon becomes good, lawful, evil or chaotic, so it overcomes damage reduction of that alignment.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

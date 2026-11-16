@@ -1,0 +1,14 @@
+(
+    key: "acid-maw",
+    blueprint: "75de4ded3e731dc4f84d978fe947dc67",
+    name: "Acid Maw",
+    school: Transmutation,
+    guide: "druid-spells#acid-maw-transmutation",
+    summary: "Your animal companion's bite adds 1d4 acid damage, plus 1d4 more next round and 1 more round per 4 caster levels; a new bite resets it rather than stacking.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [Acid],
+    casting_time: Standard,
+)

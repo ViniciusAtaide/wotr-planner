@@ -1,0 +1,13 @@
+(
+    key: "belt-of-lesser-shadowform",
+    blueprint: "2609206f8cd941f2af8901d609702393",
+    name: "Belt of Lesser Shadowform",
+    slot: Belt,
+    guide: "items-lord-of-nothing#belts",
+    bonuses: [
+        (target: Ability(Dexterity), amount: 2, kind: Enhancement),
+    ],
+    other_effects: [
+        "5 rounds a day: becomes incorporeal.",
+    ],
+)

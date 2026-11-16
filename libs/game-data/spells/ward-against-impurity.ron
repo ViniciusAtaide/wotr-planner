@@ -1,0 +1,14 @@
+(
+    key: "ward-against-impurity",
+    blueprint: "728071812567e814886ff1fc84fe066a",
+    name: "Ward Against Impurity",
+    school: Abjuration,
+    guide: "angel#ward-against-impurity-abjuration",
+    summary: "Makes the target immune to disease, poison, sickened and nauseated.",
+    target: "One friendly creature within touch range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

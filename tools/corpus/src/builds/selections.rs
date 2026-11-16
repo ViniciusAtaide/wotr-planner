@@ -45,13 +45,12 @@ fn one_class(
     build
 }
 
-/// The options of a class's selection, by key, from the game data.
-fn options_of(data: &GameData, class: &str, selection: &str) -> Vec<String> {
-    data.classes
+/// The options a class's selection defines, by key, from the game data.
+fn options_of(data: &GameData, selection: &str) -> Vec<String> {
+    data.selections
         .iter()
-        .find(|c| c.key.as_str() == class)
-        .and_then(|c| c.selections.iter().find(|s| s.key.as_str() == selection))
-        .map(|s| s.options.iter().map(|o| o.key.to_string()).collect())
+        .find(|s| s.key.as_str() == selection)
+        .map(|s| s.options.iter().map(ToString::to_string).collect())
         .unwrap_or_default()
 }
 
@@ -204,7 +203,7 @@ pub(super) fn options(data: &GameData) -> Vec<Named> {
         ("kineticist", "kineticist/element"),
         ("cavalier", "cavalier/order"),
     ] {
-        for option in options_of(data, class, sel) {
+        for option in options_of(data, sel) {
             out.push((
                 format!("option {class} {option}"),
                 with(class, None, 3, &[(selection(1, 0), option.as_str())]),
@@ -313,7 +312,7 @@ pub(super) fn options(data: &GameData) -> Vec<Named> {
 /// domain through a cleric (both slots), a Separatist's second domain, a druid's Nature Bond, a Blight Druid and an
 /// inquisitor (`cleanup …`).
 pub(super) fn cleanup(data: &GameData) -> Vec<Named> {
-    let bloodlines = options_of(data, "sorcerer", "sorcerer/bloodline");
+    let bloodlines = options_of(data, "sorcerer/bloodline");
     let mut out = Vec::new();
     for archetype in ["sorcerer/overwhelming-mage", "sorcerer/seeker-sorcerer"] {
         for bloodline in &bloodlines {

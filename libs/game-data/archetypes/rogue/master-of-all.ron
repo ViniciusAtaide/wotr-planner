@@ -1,0 +1,22 @@
+(
+    key: "rogue/master-of-all",
+    class: "rogue",
+    blueprint: "bd4e70bfb89a452b876713d61b9b8eb2",
+    name: "Master of All",
+    summary: "Half-elf rogue with every skill as a class skill and Skill Focus feats, but less sneak attack.",
+    guide: "rogue#master-of-all",
+    prerequisite: Race("half-elf"),
+    class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
+    levels: [
+        (level: 1, features: ["rogue/master-of-all/bardic-knowledge", "rogue/master-of-all/sneak-attack-master-of-all", "rogue/rogue-proficiencies", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
+        (level: 3, features: ["rogue/danger-sense"], feat_slots: [OneOf(list: "rogue/master-of-all/skill-focus")], selections: ["rogue/finesse-training"]),
+        (level: 5, features: ["rogue/master-of-all/sneak-attack-master-of-all"]),
+        (level: 7, features: ["rogue/master-of-all/sneak-attack-master-of-all"]),
+        (level: 9, features: ["rogue/danger-sense"], feat_slots: [OneOf(list: "rogue/master-of-all/skill-focus")]),
+        (level: 11, features: ["rogue/master-of-all/sneak-attack-master-of-all"], selections: ["rogue/finesse-training"]),
+        (level: 13, features: ["rogue/master-of-all/sneak-attack-master-of-all"]),
+        (level: 15, features: ["rogue/danger-sense"], feat_slots: [OneOf(list: "rogue/master-of-all/skill-focus")]),
+        (level: 17, features: ["rogue/master-of-all/sneak-attack-master-of-all"]),
+        (level: 19, features: ["rogue/master-of-all/sneak-attack-master-of-all"], selections: ["rogue/finesse-training"]),
+    ],
+)

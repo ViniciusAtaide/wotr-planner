@@ -1,0 +1,13 @@
+(
+    key: "zero-state",
+    blueprint: "c6195ff24255d3f46a26323de9f1187a",
+    name: "Zero State",
+    school: Abjuration,
+    guide: "aeon#zero-state-abjuration",
+    summary: "You try to dispel every effect on creatures in the burst, with +10 on the dispel check.",
+    target: "All creatures within a 30' burst centred on caster",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

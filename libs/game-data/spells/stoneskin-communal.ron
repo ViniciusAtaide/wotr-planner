@@ -1,0 +1,15 @@
+(
+    key: "stoneskin-communal",
+    blueprint: "7c5d556b9a5883048bf030e20daebe31",
+    name: "Stoneskin, Communal",
+    school: Abjuration,
+    guide: "wizard-spells#stoneskin-communal-abjuration",
+    summary: "All allies gain DR 10/adamantine until the spell has stopped 150 damage.",
+    components: "Diamond dust x10",
+    target: "All allies within 30'",
+    duration: "10 minutes",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

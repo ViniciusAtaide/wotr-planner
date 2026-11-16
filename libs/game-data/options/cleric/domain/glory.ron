@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/glory",
+    blueprint: "f0a61a043bcdf0f4c8efc59962afafb8",
+    name: "Glory Domain",
+    summary: "Touch of Glory, +2 channel DC against undead, Aura of Heroism from 8th; spells from Shield of Faith to Overwhelming Presence.",
+    guide: "character-creation#glory-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/glory/touch-of-glory"]),
+        (level: 8, features: ["cleric/domain/glory/aura-of-heroism"]),
+    ],
+)

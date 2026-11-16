@@ -1,0 +1,14 @@
+(
+    key: "haste",
+    blueprint: "486eaff58293f6441a5c2759c4872f98",
+    name: "Haste",
+    school: Transmutation,
+    guide: "wizard-spells#haste-transmutation",
+    summary: "Allies in the area get an extra attack at full attack bonus, +1 on attack rolls, +1 dodge AC and Reflex, and +30 ft speed.",
+    target: "Allies within 30' centred on a target creature within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

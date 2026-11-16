@@ -1,0 +1,7 @@
+(
+    key: "armiger-drill",
+    name: "Armiger Drill",
+    category: Class,
+    guide: "feats#armiger-drill",
+    prerequisite: Archetype("fighter/armiger"),
+)

@@ -1,0 +1,1 @@
+(key: "rogue/rogue-talents/familiar", blueprint: "363cab72f77c47745bf3a8807074d183", name: "Familiar", summary: "Gains a familiar, as a Wizard's arcane bond.", guide: "rogue#familiar", prerequisite: Any([Feature(feature: "bard/archaeologist/advanced-talents", count: 1), Feature(feature: "rogue/advanced-talents", count: 1), Feature(feature: "slayer/advanced-talents", count: 1)]))

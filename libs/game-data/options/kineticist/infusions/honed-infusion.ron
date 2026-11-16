@@ -1,0 +1,1 @@
+(key: "kineticist/infusions/honed-infusion", blueprint: "cf531860c9fb44c09bda9d8904657314", name: "Honed Infusion", summary: "Sharpshooter substance, 3 Burn: the blast ignores damage reduction.", guide: "kineticist#honed-infusion", prerequisite: All([ClassLevel(class: "kineticist", level: 12), Archetype("kineticist/kinetic-sharpshooter")]))

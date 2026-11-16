@@ -1,0 +1,13 @@
+(
+    key: "death-clutch",
+    blueprint: "c3d2294a6740bc147870fff652f3ced5",
+    name: "Death Clutch",
+    school: Necromancy,
+    guide: "wizard-spells#death-clutch-necromancy",
+    summary: "A target of 200 HP or less that fails the save dies; one with more takes 1d4 Con damage and 1d4 Con bleed instead; on a save it is only staggered 1 round.",
+    target: "One enemy creature within close range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Evil, Death],
+    casting_time: Standard,
+)

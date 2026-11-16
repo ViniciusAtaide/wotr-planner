@@ -1,0 +1,4 @@
+(
+    why: "The game has one blueprint per dragon colour, element, energy, form or bloodline, none of them primary; the planner holds one entry for whichever is held.",
+    entry: (key: "druid/elemental-rampager/elemental-ability", name: "Elemental Ability", summary: "At 11th and 20th level, a rampage power for your element, such as sickening acid, entangling cold, chained electricity or burning.", guide: "druid#elemental-rampager"),
+)

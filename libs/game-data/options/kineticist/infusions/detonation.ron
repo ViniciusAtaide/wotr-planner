@@ -1,0 +1,1 @@
+(key: "kineticist/infusions/detonation", blueprint: "77c24cc95ce319c44a0e5fc6ff466d5b", name: "Detonation", summary: "Form, 3 Burn, fire blasts: every creature in a 20' radius takes full blast damage (Reflex half).", guide: "kineticist#detonation", prerequisite: All([ClassLevel(class: "kineticist", level: 8), SelectionOption("kineticist/element/fire")]))

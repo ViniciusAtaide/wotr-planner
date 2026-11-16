@@ -1,0 +1,20 @@
+(
+    key: "shaman/shadow-shaman",
+    class: "shaman",
+    blueprint: "5086aef2b76c433584160f7b49aef95b",
+    name: "Shadow Shaman",
+    summary: "Gains sneak attack, Shadows and Stealth as a class skill, losing three hexes and the wandering spirit.",
+    guide: "shaman#shadow-shaman",
+    levels: [
+        (level: 1, features: ["shaman/shadow-shaman/orisons", "shaman/spirit-animal"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
+        (level: 3, features: ["shaman/shadow-shaman/sneak-attack"]),
+        (level: 4, features: ["shaman/shadow-shaman/shadows"]),
+        (level: 6, features: ["shaman/shadow-shaman/sneak-attack"]),
+        (level: 9, features: ["shaman/shadow-shaman/shadows", "shaman/shadow-shaman/sneak-attack"]),
+        (level: 12, features: ["shaman/shadow-shaman/sneak-attack"], selections: ["shaman/hex"]),
+        (level: 14, features: ["shaman/shadow-shaman/shadows"]),
+        (level: 15, features: ["shaman/shadow-shaman/sneak-attack"]),
+        (level: 18, features: ["shaman/shadow-shaman/sneak-attack"], selections: ["shaman/hex"]),
+        (level: 20, selections: ["shaman/hex"]),
+    ],
+)

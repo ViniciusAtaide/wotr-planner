@@ -1,0 +1,1 @@
+(key: "wizard/school/diviner/forewarned", blueprint: "f8ee4f0f4cf741fa9b561ba4eef9ebef", name: "Forewarned", summary: "Add half your level to initiative; at 20th, initiative is always a natural 20.", guide: "wizard#forewarned")

@@ -1,0 +1,13 @@
+(
+    key: "prismatic-spray",
+    blueprint: "b22fd434bdb60fb4ba1068206402c4cf",
+    name: "Prismatic Spray",
+    school: Evocation,
+    guide: "wizard-spells#prismatic-spray-evocation",
+    summary: "Creatures under 8 HD are blinded 2d4 rounds; random beams hit each: 20 fire, 40 acid or 80 electricity (Reflex half), poison, polymorph, insanity or banishment.",
+    target: "All creatures within a 60' cone",
+    saving_throw: "Varies",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

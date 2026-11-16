@@ -1,0 +1,13 @@
+(
+    key: "dismissal",
+    blueprint: "95f7cdcec94e293489a85afdf5af1fd7",
+    name: "Dismissal",
+    school: Abjuration,
+    guide: "wizard-spells#dismissal-abjuration",
+    summary: "An extraplanar creature that fails is banished to its own plane.",
+    target: "One enemy creature within close range",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "pummeling-charge", blueprint: "c5a39c8f1a2d6824ca565e6c1e4075a5", name: "Pummeling Charge", summary: "End a charge with a full attack or a Flurry of Blows.", category: UnarmedCombat, guide: "feats#pummeling-charge", prerequisite: All([Any([ClassLevel(class: "monk", level: 8), BaseAttackBonus(12)]), Feat("pummeling-style")]))

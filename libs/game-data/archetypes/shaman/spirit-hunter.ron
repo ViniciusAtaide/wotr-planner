@@ -1,0 +1,20 @@
+(
+    key: "shaman/spirit-hunter",
+    class: "shaman",
+    blueprint: "39b2fd5000e5eb142bfde2afa6c83f76",
+    name: "Spirit Hunter",
+    summary: "Enchants its weapon and has an object bond instead of a familiar, losing the wandering spirit.",
+    guide: "shaman#spirit-hunter",
+    levels: [
+        (level: 1, features: ["shaman/spirit-hunter/object-bond", "shaman/spirit-hunter/orisons", "shaman/spirit-hunter/spirit-weapon-enchantment"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
+        (level: 4, selections: ["shaman/hex"]),
+        (level: 5, features: ["shaman/spirit-hunter/spirit-weapon-enchantment"]),
+        (level: 6),
+        (level: 9, features: ["shaman/spirit-hunter/spirit-weapon-enchantment"]),
+        (level: 12, selections: ["shaman/hex"]),
+        (level: 13, features: ["shaman/spirit-hunter/spirit-weapon-enchantment"]),
+        (level: 14),
+        (level: 17, features: ["shaman/spirit-hunter/spirit-weapon-enchantment"]),
+        (level: 20, selections: ["shaman/hex"]),
+    ],
+)

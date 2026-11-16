@@ -1,0 +1,14 @@
+(
+    key: "greater-magic-weapon",
+    blueprint: "0f92caa35619f234298d95a4b6dda90d",
+    name: "Greater Magic Weapon",
+    school: Transmutation,
+    guide: "wizard-spells#greater-magic-weapon-transmutation",
+    summary: "A weapon gains +1 enhancement on attack and damage per 4 caster levels (max +5), but bypasses no DR except magic.",
+    target: "One friendly creature within touch range",
+    duration: "1 hour / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

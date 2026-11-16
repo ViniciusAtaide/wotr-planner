@@ -1,0 +1,14 @@
+(
+    key: "grace",
+    blueprint: "464a7193519429f48b4d190acb753cf0",
+    name: "Grace",
+    school: Abjuration,
+    guide: "cleric-spells#grace-abjuration",
+    summary: "Your movement provokes no attacks of opportunity until the round ends.",
+    target: "Personal",
+    duration: "1 round",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Swift,
+)

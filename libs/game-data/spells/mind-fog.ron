@@ -1,0 +1,14 @@
+(
+    key: "mind-fog",
+    blueprint: "eabf94e4edc6e714cabd96aa69f8b207",
+    name: "Mind Fog",
+    school: Enchantment,
+    guide: "wizard-spells#mind-fog-enchantment",
+    summary: "Creatures that fail take -10 on Wisdom checks and later Will saves.",
+    target: "Target point within medium range, 20' burst",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

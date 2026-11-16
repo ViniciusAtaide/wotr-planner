@@ -1,0 +1,14 @@
+(
+    key: "cave-fangs",
+    blueprint: "bacba2ff48d498b46b86384053945e83",
+    name: "Cave Fangs",
+    school: Conjuration,
+    guide: "druid-spells#cave-fangs-conjuration",
+    summary: "Each round a free-action trap costs 10 minutes of duration: stalactites (3d8, may entangle) or stalagmites (3d8, may knock prone, then Spike Stones).",
+    target: "Personal",
+    duration: "10 minutes / level",
+    saving_throw: "Reflex half",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

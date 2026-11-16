@@ -1,0 +1,13 @@
+(
+    key: "inflict-critical-wounds-mass",
+    blueprint: "5ee395a2423808c4baf342a4f8395b19",
+    name: "Inflict Critical Wounds, Mass",
+    school: Necromancy,
+    guide: "cleric-spells#inflict-critical-wounds-mass-necromancy",
+    summary: "Creatures in the area take 4d8 + 1 per caster level (Will half); undead are healed that much instead.",
+    target: "All creatures within 30' of target point within close range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

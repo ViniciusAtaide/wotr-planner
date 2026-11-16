@@ -1,0 +1,13 @@
+(
+    key: "fireball",
+    blueprint: "2d81362af43aeac4387a3d4fced489c3",
+    name: "Fireball",
+    school: Evocation,
+    guide: "wizard-spells#fireball-evocation",
+    summary: "Creatures in the area take 1d6 fire damage per caster level (max 10d6), halved on a Reflex save.",
+    target: "Target point within long range, 20' burst",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

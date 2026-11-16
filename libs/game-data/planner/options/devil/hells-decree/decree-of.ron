@@ -1,0 +1,4 @@
+(
+    why: "An ability of the Devil's Hell's Decree or Hell's Seal feature in the game, not a feature of its own.",
+    entry: (key: "devil/hells-decree/decree-of", name: "Decree of <SCHOOL>", summary: "An ally may cast spells of only one school, and their DCs rise by your mythic rank.", guide: "other-mythic-paths#decree-of"),
+)

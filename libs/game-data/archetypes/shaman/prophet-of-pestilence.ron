@@ -1,0 +1,22 @@
+(
+    key: "shaman/prophet-of-pestilence",
+    class: "shaman",
+    blueprint: "bcd758a75fb54651a7f668fe2661a307",
+    name: "Prophet of Pestilence",
+    summary: "Lord of Nothing DLC disease shaman with the fixed Pestilence spirit, no familiar and fewer hexes; neutral, neutral evil or chaotic evil only.",
+    guide: "shaman#prophet-of-pestilence",
+    prerequisite: Any([Alignment(TrueNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
+    levels: [
+        (level: 1, features: ["shaman/prophet-of-pestilence/orisons", "shaman/prophet-of-pestilence/pestilence-spirit", "shaman/prophet-of-pestilence/plagues-caress"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"]),
+        (level: 2, features: ["shaman/prophet-of-pestilence/plague-of-abaddon"], selections: ["shaman/prophet-of-pestilence/carrier-of-disease"]),
+        (level: 4, features: ["shaman/prophet-of-pestilence/mutating-spirit"], selections: ["shaman/hex"]),
+        (level: 6, selections: ["shaman/prophet-of-pestilence/carrier-of-disease"]),
+        (level: 8, features: ["shaman/prophet-of-pestilence/rapid-spread"], selections: ["shaman/hex"]),
+        (level: 10, selections: ["shaman/prophet-of-pestilence/carrier-of-disease"]),
+        (level: 12, features: ["shaman/prophet-of-pestilence/mutating-spirit"], selections: ["shaman/hex"]),
+        (level: 14, selections: ["shaman/prophet-of-pestilence/carrier-of-disease"]),
+        (level: 16, features: ["shaman/prophet-of-pestilence/fatal-disease"], selections: ["shaman/hex"]),
+        (level: 18, selections: ["shaman/prophet-of-pestilence/carrier-of-disease"]),
+        (level: 20, features: ["shaman/prophet-of-pestilence/a-thousand-diseases"], selections: ["shaman/hex"]),
+    ],
+)

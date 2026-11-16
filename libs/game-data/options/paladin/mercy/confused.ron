@@ -1,0 +1,1 @@
+(key: "paladin/mercy/confused", blueprint: "d306e052d2f85b24cb5082951459045e", name: "Confused", summary: "From 9th level, Lay on Hands also removes confusion.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 9))

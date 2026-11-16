@@ -1,0 +1,9 @@
+(
+    key: "achaekek",
+    blueprint: "a3189d5b7c4d4d91beaa8bfffac3e38e",
+    name: "Achaekek",
+    guide: "character-creation#deities",
+    alignments: [LawfulNeutral, LawfulEvil, NeutralEvil],
+    favoured_weapons: ["sawtooth-saber"],
+    domains: ["cleric/domain/death", "cleric/domain/evil", "cleric/domain/law", "cleric/domain/murder", "cleric/domain/trickery", "cleric/domain/war"],
+)

@@ -1,0 +1,13 @@
+(
+    key: "rainbow-arrows",
+    blueprint: "88bb6f877c8185543850656a5f14e802",
+    name: "Rainbow Arrows",
+    school: Evocation,
+    guide: "azata#rainbow-arrows-evocation",
+    summary: "An arrow deals 1d12 of a random energy type per 2 caster levels, leaping to a new target once per 4 caster levels.",
+    target: "Enemy creature within long range",
+    saving_throw: "Reflex half",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

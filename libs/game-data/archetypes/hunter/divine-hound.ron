@@ -1,0 +1,19 @@
+(
+    key: "hunter/divine-hound",
+    class: "hunter",
+    blueprint: "339659f6b09b4136bf8c2b2c3df87c65",
+    name: "Divine Hound",
+    summary: "Hunter with a dog or wolf and the Inquisitor's judgments instead of Animal Focus and a capstone.",
+    guide: "hunter#divine-hound",
+    levels: [
+        (level: 1, features: ["hunter/divine-hound/animal-companion-divine-hound", "hunter/divine-hound/companion-judgment", "hunter/divine-hound/judgment", "hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 4, features: ["hunter/divine-hound/judgment"]),
+        (level: 7, features: ["hunter/divine-hound/judgment"]),
+        (level: 8, features: ["hunter/divine-hound/second-judgment"]),
+        (level: 10, features: ["hunter/divine-hound/judgment", "hunter/raise-animal-companion"]),
+        (level: 13, features: ["hunter/divine-hound/judgment"]),
+        (level: 16, features: ["hunter/divine-hound/judgment", "hunter/divine-hound/third-judgment"]),
+        (level: 19, features: ["hunter/divine-hound/judgment"]),
+        (level: 20),
+    ],
+)

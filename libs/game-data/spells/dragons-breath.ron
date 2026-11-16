@@ -1,0 +1,13 @@
+(
+    key: "dragons-breath",
+    blueprint: "5e826bcdfde7f82468776b55315b2403",
+    name: "Dragon's Breath",
+    school: Evocation,
+    guide: "wizard-spells#dragons-breath-evocation",
+    summary: "You breathe 1d6 energy per caster level (max 12d6), its type and shape set by dragon colour: acid or electricity 60 ft line, or acid, fire or cold 30 ft cone.",
+    target: "Target point within long range range",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

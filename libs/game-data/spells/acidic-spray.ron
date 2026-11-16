@@ -1,0 +1,13 @@
+(
+    key: "acidic-spray",
+    blueprint: "c543eef6d725b184ea8669dd09b3894c",
+    name: "Acidic Spray",
+    school: Conjuration,
+    guide: "wizard-spells#acidic-spray-conjuration",
+    summary: "Deals 1d6 acid per caster level (max 15d6), halved by a save; a creature that fails needs a second Reflex save next round or takes 1d6 per two levels (max 7d6).",
+    target: "All creatures along a 50' line",
+    saving_throw: "Reflex partial",
+    spell_resistance: true,
+    descriptors: [Acid],
+    casting_time: Standard,
+)

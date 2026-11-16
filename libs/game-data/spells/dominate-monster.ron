@@ -1,0 +1,14 @@
+(
+    key: "dominate-monster",
+    blueprint: "3c17035ec4717674cae2e841a190e757",
+    name: "Dominate Monster",
+    school: Enchantment,
+    guide: "wizard-spells#dominate-monster-enchantment",
+    summary: "The target fights for you unless it makes its Will save, and it gets a new save each round.",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: FullRound,
+)

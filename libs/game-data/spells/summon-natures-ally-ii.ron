@@ -1,0 +1,14 @@
+(
+    key: "summon-natures-ally-ii",
+    blueprint: "298148133cdc3fd42889b99c82711986",
+    name: "Summon Nature's Ally II",
+    school: Conjuration,
+    guide: "druid-spells#summon-natures-ally-ii-conjuration",
+    summary: "You summon 1d3 mites or one giant frog.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

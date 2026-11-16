@@ -1,0 +1,18 @@
+(
+    key: "wizard/thassilonian-specialist/school",
+    blueprint: "f431178ec0e2b4946a34ab504bb46285",
+    name: "School (Thassilonian Specialist)",
+    summary: "Spellbooks: Envy (Abjurer), Gluttony (Necromancer), Greed (Transmuter), Lust (Enchanter), Pride (Illusionist), Sloth (Conjurer), Wrath (Invoker).",
+    guide: "wizard#thassilonian-specialist",
+    option_levels: ["wizard"],
+    options: [],
+    shared_options: [
+        "wizard/school/abjurer",
+        "wizard/school/conjurer",
+        "wizard/school/enchanter",
+        "wizard/school/illusionist",
+        "wizard/school/invoker",
+        "wizard/school/necromancer",
+        "wizard/school/transmuter",
+    ],
+)

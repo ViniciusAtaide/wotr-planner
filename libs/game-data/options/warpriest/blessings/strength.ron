@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/strength",
+    blueprint: "44f9162736a5c2040ae8ede853bc6639",
+    name: "Strength",
+    summary: "Minor: half your level as a bonus on Strength-based rolls for 1 round. Major (10th): ignore armour speed penalties and add Str to some saves.",
+    guide: "warpriest#strength",
+    domain: "cleric/domain/strength",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/strength/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/strength/major-blessing"]),
+    ],
+)

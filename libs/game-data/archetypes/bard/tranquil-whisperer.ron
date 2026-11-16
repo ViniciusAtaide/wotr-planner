@@ -1,0 +1,19 @@
+(
+    key: "bard/tranquil-whisperer",
+    class: "bard",
+    blueprint: "bed077eaa12834b4495cf481ee721810",
+    name: "Tranquil Whisperer",
+    summary: "Bard whose performance calms and protects allies.",
+    guide: "bard#tranquil-whisperer",
+    levels: [
+        (level: 1, features: ["bard/bard-proficiencies", "bard/bardic-knowledge", "bard/tranquil-whisperer/inspire-tranquility"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 2, selections: ["rogue/rogue-talents"]),
+        (level: 3),
+        (level: 5, features: ["bard/lore-master", "bard/tranquil-whisperer/inspire-tranquility"]),
+        (level: 7, features: ["bard/bardic-performance-move-action", "bard/tranquil-whisperer/saving-tranquility"]),
+        (level: 11, features: ["bard/tranquil-whisperer/inspire-tranquility"]),
+        (level: 13, features: ["bard/bardic-performance-swift-action", "bard/tranquil-whisperer/tranquil-senses"]),
+        (level: 17, features: ["bard/tranquil-whisperer/inspire-tranquility"]),
+        (level: 20, features: ["bard/tranquil-whisperer/tranquil-apotheosis"]),
+    ],
+)

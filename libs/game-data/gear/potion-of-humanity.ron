@@ -1,0 +1,15 @@
+(
+    key: "potion-of-humanity",
+    blueprint: "d13cdbccd89d4e7c8396d076a73d731e",
+    name: "Potion of Humanity",
+    slot: Usable,
+    guide: "items#equipable-and-consumable",
+    bonuses: [
+        (target: Ability(Strength), amount: 1, kind: Inherent),
+        (target: Ability(Dexterity), amount: 1, kind: Inherent),
+        (target: Ability(Constitution), amount: 1, kind: Inherent),
+        (target: Ability(Intelligence), amount: 1, kind: Inherent),
+        (target: Ability(Wisdom), amount: 1, kind: Inherent),
+        (target: Ability(Charisma), amount: 1, kind: Inherent),
+    ],
+)

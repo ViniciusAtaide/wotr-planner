@@ -1,0 +1,1 @@
+(key: "short-bow", blueprint: "99ce02fb54639b5439d07c99c55b8542", name: "Short Bow", proficiency: Martial, stats: (damage: (count: 1, sides: 6), threat: 20, multiplier: 3, handedness: TwoHanded, ranged: Projectile))

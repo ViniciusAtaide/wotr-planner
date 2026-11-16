@@ -1,0 +1,1 @@
+(key: "boar-style", blueprint: "0641368c74334671aaaf32a2730587be", name: "Boar Style", summary: "Two or more unarmed hits on one foe in a round add +2d6 once; your unarmed strikes also slash as well as bludgeon.", category: UnarmedCombat, guide: "feats#boar-style", prerequisite: All([Feat("improved-unarmed-strike"), SkillRanks(skill: "persuasion", ranks: 3)]))

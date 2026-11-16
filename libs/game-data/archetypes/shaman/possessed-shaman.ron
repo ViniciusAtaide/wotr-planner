@@ -1,0 +1,15 @@
+(
+    key: "shaman/possessed-shaman",
+    class: "shaman",
+    blueprint: "7939ff57cc2ce104693ea2f5afa595b6",
+    name: "Possessed Shaman",
+    summary: "Gets skills from its spirit instead of spirit spells, resists charm and compulsion, but has fewer hexes.",
+    guide: "shaman#possessed-shaman",
+    levels: [
+        (level: 1, features: ["shaman/possessed-shaman/orisons", "shaman/possessed-shaman/shared-skills", "shaman/spirit-animal"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
+        (level: 2, features: ["shaman/possessed-shaman/crowded-vessel"]),
+        (level: 6, features: ["shaman/possessed-shaman/wandering-skills"]),
+        (level: 12, features: ["shaman/possessed-shaman/wandering-spirit-greater-ability"], selections: ["shaman/hex"]),
+        (level: 20, features: ["shaman/possessed-shaman/wandering-spirit-true-ability"], selections: ["shaman/hex"]),
+    ],
+)

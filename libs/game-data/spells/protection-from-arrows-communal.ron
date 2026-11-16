@@ -1,0 +1,14 @@
+(
+    key: "protection-from-arrows-communal",
+    blueprint: "96c9d98b6a9a7c249b6c4572e4977157",
+    name: "Protection from Arrows, Communal",
+    school: Abjuration,
+    guide: "wizard-spells#protection-from-arrows-communal-abjuration",
+    summary: "Allies in the area gain DR 10/magic against ranged weapons, until it has stopped 10 damage per caster level (max 100).",
+    target: "30' burst centred on creature within touch range",
+    duration: "1 hour",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

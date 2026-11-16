@@ -1,0 +1,7 @@
+(
+    key: "outflank",
+    name: "Outflank",
+    category: Teamwork,
+    guide: "feats#outflank",
+    prerequisite: All([BaseAttackBonus(4), CasterLevel(1), Alignment(LawfulGood)]),
+)

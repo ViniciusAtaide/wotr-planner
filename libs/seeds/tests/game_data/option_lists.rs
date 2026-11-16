@@ -81,7 +81,8 @@ fn options_of_any(children: &[Prerequisite]) -> BTreeSet<String> {
 }
 
 fn selection(key: &str) -> &'static FeatureSelection {
-    DATA.selections()
+    DATA.selections
+        .iter()
         .find(|selection| selection.key.as_str() == key)
         .unwrap_or_else(|| panic!("no selection {key}"))
 }
@@ -180,9 +181,9 @@ fn every_exception_covers_an_option_the_prerequisite_leaves_out() {
 #[test]
 fn an_any_of_a_selections_options_names_all_of_them() {
     let mut owner: BTreeMap<String, &FeatureSelection> = BTreeMap::new();
-    for selection in DATA.selections() {
+    for selection in &DATA.selections {
         for option in &selection.options {
-            owner.insert(option.key.to_string(), selection);
+            owner.insert(option.to_string(), selection);
         }
     }
     let prerequisites = DATA
@@ -221,7 +222,7 @@ fn an_any_of_a_selections_options_names_all_of_them() {
                 let missing: Vec<String> = selection(selection_key)
                     .options
                     .iter()
-                    .map(|o| o.key.to_string())
+                    .map(|o| o.to_string())
                     .filter(|o| !named.contains(o))
                     .collect();
                 if !missing.is_empty() {
@@ -250,8 +251,8 @@ fn the_sneak_attack_feats_name_every_sneak_attack_feature() {
         last == "sneak-attack" || last.starts_with("sneak-attack-")
     };
     let features: BTreeSet<String> = DATA
-        .class_features()
-        .chain(DATA.mythic_paths.iter().flat_map(|path| &path.features))
+        .features
+        .iter()
         .map(|feature| feature.key.to_string())
         .filter(|key| is_sneak_attack(key))
         .collect();

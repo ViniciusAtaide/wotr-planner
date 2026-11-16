@@ -1,0 +1,23 @@
+(
+    key: "druid/winter-child",
+    class: "druid",
+    blueprint: "9f835c539f6e4a96a7b64461f4267d06",
+    name: "Winter Child",
+    summary: "Cold druid (Lord of Nothing DLC) with a Blizzard Servant companion and the Ice subdomain; no wild shape or spontaneous summoning.",
+    guide: "druid#winter-child",
+    levels: [
+        (level: 1, features: ["druid/druid-proficiencies", "druid/nature-sense", "druid/winter-child/call-a-feast", "druid/winter-child/ice-in-the-blood"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"], selections: ["druid/winter-child/domain"]),
+        (level: 4, features: ["druid/winter-child/arctic-native", "druid/winter-child/blizzard-servant"]),
+        (level: 6, features: ["druid/winter-child/blizzard-servant-winters-advance"]),
+        (level: 8, features: ["druid/winter-child/arctic-native"]),
+        (level: 9, features: ["druid/winter-child/snowcaster"]),
+        (level: 10, features: ["druid/winter-child/call-a-feast-cover-of-snow"]),
+        (level: 11, features: ["druid/winter-child/blizzard-servant-crystallized-affinity"]),
+        (level: 12, features: ["druid/winter-child/arctic-native"]),
+        (level: 14),
+        (level: 15, features: ["druid/winter-child/call-a-feast-biting-frost"]),
+        (level: 16, features: ["druid/winter-child/arctic-native", "druid/winter-child/blizzard-servant-bound-souls"]),
+        (level: 18),
+        (level: 20, features: ["druid/winter-child/arctic-native", "druid/winter-child/flurry-form"]),
+    ],
+)

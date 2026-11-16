@@ -1,0 +1,13 @@
+(
+    key: "voice-of-renewal",
+    blueprint: "584a2f29a8f50044fa2b6d9c2a6fb82a",
+    name: "Voice of Renewal",
+    school: Conjuration,
+    guide: "azata#voice-of-renewal-conjuration",
+    summary: "Enemies in the burst take 1d6 + 1 per caster level in sonic damage; allies there regain 1d6 + 1 per caster level HP.",
+    target: "All creatures within a 30' burst centred on caster",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

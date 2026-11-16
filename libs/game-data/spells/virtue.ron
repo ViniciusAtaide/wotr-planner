@@ -1,0 +1,14 @@
+(
+    key: "virtue",
+    blueprint: "d3a852385ba4cd740992d1970170301a",
+    name: "Virtue",
+    school: Transmutation,
+    guide: "cleric-spells#virtue-transmutation",
+    summary: "The target gains 1 bonus hit point.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

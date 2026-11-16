@@ -1,0 +1,10 @@
+// Generic stat belts and headbands, from the user (no guide reference).
+(
+    key: "belt-of-giant-strength-2",
+    blueprint: "c354de364a714ee4dbe2cfee628df267",
+    name: "Belt of Giant Strength +2",
+    slot: Belt,
+    bonuses: [
+        (target: Ability(Strength), amount: 2, kind: Enhancement),
+    ],
+)

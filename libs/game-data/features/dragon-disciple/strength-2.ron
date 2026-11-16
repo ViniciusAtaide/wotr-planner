@@ -1,0 +1,1 @@
+(key: "dragon-disciple/strength-2", blueprint: "270259f59c6ae6040babd5797feef2e2", name: "Strength +2", summary: "+2 Strength.", guide: "prestige-classes#dragon-disciple", ability_bonuses: [Fixed(ability: Strength, amount: 2)])

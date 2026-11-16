@@ -1,0 +1,11 @@
+(
+    key: "oracle/maneuver-mastery/trip",
+    blueprint: "86f1c6ea242b6c74e81e370e4ffad4d1",
+    name: "Trip",
+    summary: "Trip uses your class level instead of BAB for CMB; its Improved feat at 7th level and Greater feat at 11th.",
+    guide: "oracle#maneuver-mastery",
+    levels: [
+        (level: 7, feats: ["trip"]),
+        (level: 11, feats: ["greater-trip"]),
+    ],
+)

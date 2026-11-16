@@ -1,0 +1,8 @@
+(
+    key: "tiefling",
+    blueprint: "5c4e42124dc2b4647af6e36cf2590500",
+    name: "Tiefling",
+    summary: "Resist cold, electricity and fire 5; +2 Persuasion (bluff) and Stealth; Resist Energy once a day.",
+    guide: "character-creation#tiefling",
+    ability_modifiers: [Fixed(ability: Dexterity, amount: 2), Fixed(ability: Intelligence, amount: 2), Fixed(ability: Charisma, amount: -2)],
+)

@@ -1,0 +1,1 @@
+(key: "mythic-light-shield-deflection", blueprint: "baae60e30c1f45cd889ea41459205a84", name: "Mythic Light Shield - Deflection", summary: "Carrying a light shield adds its AC to your Reflex saves as a shield bonus.", group: ArmourAndShield, guide: "mythic-paths#mythic-light-shield-deflection", prerequisite: Feat("shield-focus"))

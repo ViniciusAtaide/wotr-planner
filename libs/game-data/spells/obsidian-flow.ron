@@ -1,0 +1,14 @@
+(
+    key: "obsidian-flow",
+    blueprint: "e48638596c955a74c8a32dbc90b518c1",
+    name: "Obsidian Flow",
+    school: Transmutation,
+    guide: "wizard-spells#obsidian-flow-transmutation",
+    summary: "Molten glass deals 1d6 fire per two caster levels and entangles (Strength, Athletics or Mobility check resists); a Reflex save halves it and avoids entangling.",
+    target: "All creatures within 20' burst, centred on target point within close range",
+    duration: "1 hour",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

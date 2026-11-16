@@ -1,0 +1,6 @@
+(
+    key: "trickster/tricks",
+    name: "Trickster Tricks",
+    guide: "trickster#trickster-tricks",
+    options: ["trickster/tricks/perception-1", "trickster/tricks/perception-2"],
+)

@@ -1,0 +1,1 @@
+(key: "piranha-strike", blueprint: "6a556375036ac8b4ebd80e74d308d108", name: "Piranha Strike", summary: "With a finesse weapon, take -1 to attack for +2 damage (+1 off-hand); both grow at BAB 4 and every 4 after.", category: Weapon, guide: "feats#piranha-strike", prerequisite: All([Feat("weapon-finesse"), AbilityScore(ability: Dexterity, score: 13)]))

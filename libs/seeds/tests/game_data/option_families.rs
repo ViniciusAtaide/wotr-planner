@@ -448,10 +448,8 @@ fn domain_zealot_isnt_open_to_a_druids_domain() {
 #[test]
 fn a_hellknight_picks_an_order_unless_held_and_pentamic_faith_gives_a_domain() {
     let hellknight = class("hellknight");
-    let order = hellknight
-        .selections
-        .iter()
-        .find(|s| s.key.as_str() == "hellknight/order")
+    let order = DATA
+        .selection(&rules::FeatureSelectionKey::new("hellknight/order"))
         .expect("the Hellknight's order");
     // Game: HellKnightOrderSelection e31d849e4eb2578458419c9df622270f, seven orders, with PrerequisiteNoFeature of
     // itself; HellknightDisciplinePentamicFaith b9750875e9d7454e85347d739a1bc894 offers eleven domains, levelled by
@@ -461,23 +459,21 @@ fn a_hellknight_picks_an_order_unless_held_and_pentamic_faith_gives_a_domain() {
     assert!(order.only_without_option);
     assert_eq!(order.offered().len(), 7);
     assert!(hellknight.levels[0].selections.contains(&order.key));
-    let faith = hellknight
-        .selections
-        .iter()
-        .find(|s| s.key.as_str() == "hellknight/disciplines")
-        .unwrap()
-        .options
-        .iter()
+    let disciplines = DATA
+        .selection(&rules::FeatureSelectionKey::new("hellknight/disciplines"))
+        .unwrap();
+    let faith = DATA
+        .options_of(disciplines)
         .find(|o| o.key.as_str() == "hellknight/disciplines/pentamic-faith")
         .unwrap();
     assert_eq!(
         faith.levels[0].selections,
         [rules::FeatureSelectionKey::new("hellknight/pentamic-faith")]
     );
-    let domains = hellknight
-        .selections
-        .iter()
-        .find(|s| s.key.as_str() == "hellknight/pentamic-faith")
+    let domains = DATA
+        .selection(&rules::FeatureSelectionKey::new(
+            "hellknight/pentamic-faith",
+        ))
         .unwrap();
     assert_eq!(domains.offered().len(), 11);
     assert_eq!(
@@ -578,9 +574,8 @@ fn the_dual_cursed_oracles_second_curse_is_a_slot_of_its_own() {
             row.selections.iter().filter(|s| **s == key).count()
         })
     };
-    let dual = oracle
-        .archetypes
-        .iter()
+    let dual = DATA
+        .archetypes_of(&oracle.key)
         .find(|a| a.key.as_str() == DUAL_CURSED)
         .expect("the Dual-Cursed Oracle");
     assert_eq!(count(CURSES, Some(dual), 1), 1);
@@ -589,9 +584,8 @@ fn the_dual_cursed_oracles_second_curse_is_a_slot_of_its_own() {
         + count(SECOND_CURSES, Some(dual), level)
         == 0));
     assert_eq!(count(SECOND_CURSES, None, 1), 0);
-    for archetype in oracle
-        .archetypes
-        .iter()
+    for archetype in DATA
+        .archetypes_of(&oracle.key)
         .filter(|a| a.key.as_str() != DUAL_CURSED)
     {
         assert_eq!(

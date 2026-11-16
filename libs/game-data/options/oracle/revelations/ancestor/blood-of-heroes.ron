@@ -1,0 +1,1 @@
+(key: "oracle/revelations/ancestor/blood-of-heroes", blueprint: "1b9eebdfa2ad9d44eb60446d465b0cfd", name: "Blood of Heroes", summary: "Move action: +1 attack, damage and saves vs fear for Charisma modifier rounds (+2 at 7th, +3 at 14th); 1/day, +1 use per 5 levels.", guide: "oracle#blood-of-heroes", prerequisite: SelectionOption("oracle/mystery/ancestor"))

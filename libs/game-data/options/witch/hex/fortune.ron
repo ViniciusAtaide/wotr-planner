@@ -1,0 +1,1 @@
+(key: "witch/hex/fortune", blueprint: "0e4ebaf16c5958f4bbe6a8f50fe3afcd", name: "Fortune", summary: "For 1 round a creature rolls ability checks, attacks, saves and skill checks twice and keeps the better; +1 round at 8th and 16th.", guide: "witch#fortune")

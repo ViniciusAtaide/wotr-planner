@@ -1,0 +1,14 @@
+(
+    key: "protection-of-nature",
+    blueprint: "76a031aeeb69f51409c6f9dbaa7cb989",
+    name: "Protection of Nature",
+    school: Abjuration,
+    guide: "azata#protection-of-nature-abjuration",
+    summary: "Foes attacking you or your companions have a 50% miss chance, you gain cold immunity, and an enemy casting a spell at you takes 1d6 sonic per 5 caster levels.",
+    target: "All allies within a 60' burst centred on caster",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

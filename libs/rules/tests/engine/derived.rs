@@ -80,12 +80,7 @@ fn armiger_saves(
     fort: Option<SaveProgression>,
     will: Option<SaveProgression>,
 ) {
-    let fighter = data
-        .classes
-        .iter_mut()
-        .find(|c| c.key == class("fighter"))
-        .unwrap();
-    let armiger = &mut fighter.archetypes[0];
+    let armiger = first_archetype_mut(data, "fighter");
     armiger.fort = fort;
     armiger.will = will;
 }

@@ -1,0 +1,14 @@
+(
+    key: "starlight",
+    blueprint: "99343a2490f699b4198868a58fa0416d",
+    name: "Starlight",
+    school: Abjuration,
+    guide: "aeon#starlight-abjuration",
+    summary: "Enemies' invisibility is suppressed, and attacks against your allies have a 20% miss chance.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/plant",
+    blueprint: "467d2a1d2107da64395b591393baad17",
+    name: "Plant Domain",
+    summary: "Enlarge Person rounds and Bramble Armor from 6th level; spells from Entangle to Communal Mind Blank.",
+    guide: "character-creation#plant-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/plant/enlarge"]),
+        (level: 6, features: ["cleric/domain/plant/bramble-armor"]),
+    ],
+)

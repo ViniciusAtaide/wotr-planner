@@ -1,0 +1,7 @@
+(
+    key: "extra-rage",
+    name: "Extra Rage",
+    category: Class,
+    guide: "feats#extra-rage",
+    repeat: Times(3),
+)

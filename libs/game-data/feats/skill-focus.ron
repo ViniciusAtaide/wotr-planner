@@ -1,0 +1,1 @@
+(key: "skill-focus", blueprint: "c9629ef9eebb88b479b2fbc5e836656a", name: "Skill Focus", summary: "+3 to one skill, or +6 with 10 or more ranks in it.", category: Skill, guide: "feats#skill-focus", parameter: Skill, repeat: PerValue)

@@ -1,0 +1,14 @@
+(
+    key: "stone-fist",
+    blueprint: "85067a04a97416949b5d1dbf986d93f3",
+    name: "Stone Fist",
+    school: Transmutation,
+    guide: "wizard-spells#stone-fist-transmutation",
+    summary: "Your unarmed strikes deal 1d6 damage (1d4 if you are Small) and don't provoke attacks of opportunity.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

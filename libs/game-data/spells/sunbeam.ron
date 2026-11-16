@@ -1,0 +1,14 @@
+(
+    key: "sunbeam",
+    blueprint: "1fca0ba2fdfe2994a8c8bc1f0f2fc5b1",
+    name: "Sunbeam",
+    school: Evocation,
+    guide: "druid-spells#sunbeam-evocation",
+    summary: "Each round, as a standard action costing 3 rounds, a beam deals 4d6 and blinds (Reflex: half, no blindness); undead take 1d6 per caster level (max 20d6).",
+    target: "All creatures along a 60' line",
+    duration: "1 round / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,13 @@
+(
+    key: "oracle/oracles-curse/lame",
+    blueprint: "3d319da9614c76a41a095a4467c3233f",
+    name: "Lame",
+    summary: "-10 feet speed but never slowed by encumbrance; immune to fatigue at 5th, not slowed by armor at 10th, immune to exhaustion at 15th.",
+    guide: "oracle#lame",
+    levels: [
+        (level: 1, features: ["oracle/oracles-curse/lame/level-1"]),
+        (level: 5, features: ["oracle/oracles-curse/lame/level-5"]),
+        (level: 10, features: ["oracle/oracles-curse/lame/level-10"]),
+        (level: 15, features: ["oracle/oracles-curse/lame/level-15"]),
+    ],
+)

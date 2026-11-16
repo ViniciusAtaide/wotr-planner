@@ -1,0 +1,17 @@
+(
+    key: "wizard/spell-master",
+    class: "wizard",
+    blueprint: "bb571f1b6cea462e99db7893685a0982",
+    name: "Spell Master",
+    summary: "Universalist who must take a bonded object, gains more uses of it and loses two bonus feats.",
+    guide: "wizard#spell-master",
+    levels: [
+        (level: 1, features: ["wizard/spell-master/cantrips", "wizard/spell-master/focused-spells", "wizard/spell-master/object-bond", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/spell-master/school"]),
+        (level: 5, features: ["wizard/spell-master/item-bond-specialization"]),
+        (level: 8, features: ["wizard/spell-master/focused-spells"]),
+        (level: 10, features: ["wizard/spell-master/item-bond-specialization"], feat_slots: [Category(Magic)]),
+        (level: 15, features: ["wizard/spell-master/item-bond-specialization"]),
+        (level: 16, features: ["wizard/spell-master/focused-spells"]),
+        (level: 20, features: ["wizard/spell-master/item-bond-specialization"], feat_slots: [Category(Magic)]),
+    ],
+)

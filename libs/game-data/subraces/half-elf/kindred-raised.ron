@@ -1,0 +1,1 @@
+(key: "half-elf/kindred-raised", race: "half-elf", blueprint: "5609d6e6cbd5422c8d6a1e7ee0b31a87", name: "Half-Elf (Kindred Raised)", summary: "A +2 racial bonus to Charisma on top of the +2 to any ability.", guide: "character-creation#half-elf-kindred-raised", ability_modifiers: [Chosen(amount: 2)])

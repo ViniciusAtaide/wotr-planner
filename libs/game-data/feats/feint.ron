@@ -1,0 +1,1 @@
+(key: "feint", blueprint: "c610310d31414edabcedf0c8a6fe32c4", name: "Feint", summary: "Persuasion (Bluff) vs 10 + the foe's BAB + Wis (or its Perception if trained and higher): your next melee attack ignores its Dex bonus to AC.", category: Weapon, guide: "feats#feint", prerequisite: All([Feat("combat-expertise"), AbilityScore(ability: Intelligence, score: 13)]))

@@ -1,0 +1,14 @@
+(
+    key: "polymorph",
+    blueprint: "93d9d74dac46b9b458d4d2ea7f4b1911",
+    name: "Polymorph",
+    school: Transmutation,
+    guide: "wizard-spells#polymorph-transmutation",
+    summary: "Turns the target into a leopard or Small elemental; it can end the spell by changing back as a full-round action.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

@@ -1,0 +1,13 @@
+(
+    key: "belt-of-thunderous-charging",
+    blueprint: "b59c3948cc32e3c43b519ecd7e618155",
+    name: "Belt of Thunderous Charging",
+    slot: Belt,
+    guide: "items#belts",
+    bonuses: [
+        (target: Ability(Strength), amount: 6, kind: Enhancement),
+    ],
+    other_effects: [
+        "Charging: the target's AC drops by 2 versus ranged attacks, lasting 4 rounds.",
+    ],
+)

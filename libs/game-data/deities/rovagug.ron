@@ -1,0 +1,9 @@
+(
+    key: "rovagug",
+    blueprint: "04bc2b62273ab744092d992ed72bff41",
+    name: "Rovagug",
+    guide: "character-creation#deities",
+    alignments: [ChaoticNeutral, NeutralEvil, ChaoticEvil],
+    favoured_weapons: ["greataxe"],
+    domains: ["cleric/domain/chaos", "cleric/domain/destruction", "cleric/domain/evil", "cleric/domain/war", "cleric/domain/weather"],
+)

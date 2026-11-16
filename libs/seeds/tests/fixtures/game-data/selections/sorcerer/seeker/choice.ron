@@ -1,0 +1,7 @@
+(
+    key: "sorcerer/seeker/choice",
+    name: "Choice",
+    guide: "sorcerer#seeker-sorcerer",
+    option_levels: ["sorcerer"],
+    options: ["sorcerer/seeker/choice/talents", "sorcerer/seeker/choice/power"],
+)

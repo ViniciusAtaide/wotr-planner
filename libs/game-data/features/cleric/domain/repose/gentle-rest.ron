@@ -1,0 +1,1 @@
+(key: "cleric/domain/repose/gentle-rest", blueprint: "8526bc808c303034cb2b7832bccf1482", name: "Gentle Rest", summary: "Melee touch staggers for 1 round, or puts a staggered target to sleep; undead staggered for Wis rounds; 3 + Wis uses a day.", guide: "character-creation#repose-domain")

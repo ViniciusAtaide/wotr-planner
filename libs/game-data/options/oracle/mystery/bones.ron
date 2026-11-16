@@ -1,0 +1,11 @@
+(
+    key: "oracle/mystery/bones",
+    blueprint: "067b175d3df0d1a408efd7eee2b36b9b",
+    name: "Bones",
+    summary: "Bones: Stealth as a class skill, necromancy from Cause Fear to Wail of the Banshee, and Power Word Kill at 20th.",
+    guide: "oracle#bones",
+    levels: [
+        (level: 1, class_skills: ["stealth"]),
+        (level: 20, features: ["oracle/mystery/bones/bones-final-revelation"]),
+    ],
+)

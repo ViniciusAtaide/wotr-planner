@@ -14,7 +14,8 @@ fn option_name<'a>(data: &'a GameData, key: &str) -> Option<&'a str> {
         .map(|option| option.name.as_str())
 }
 
-/// The class selections of the test world: each class's own, then its archetypes', base classes then prestige.
+/// The class selections of the test world as it writes them: each class's own, then its archetypes', base classes
+/// then prestige.
 const CLASS_SELECTIONS: [&str; 34] = [
     "fighter/armiger/order",
     "rogue/rogue-talents",
@@ -109,20 +110,11 @@ fn a_class_is_found_by_key_whether_base_or_prestige() {
 }
 
 #[test]
-fn class_selections_are_each_classs_own_then_its_archetypes_with_no_paths() {
+fn the_selections_are_one_catalog_the_class_selections_then_each_paths() {
     let data = world();
     let keys: Vec<&str> = data
-        .class_selections()
-        .map(|selection| selection.key.as_str())
-        .collect();
-    assert_eq!(keys, CLASS_SELECTIONS);
-}
-
-#[test]
-fn every_selection_is_the_class_selections_then_each_paths() {
-    let data = world();
-    let keys: Vec<&str> = data
-        .selections()
+        .selections
+        .iter()
         .map(|selection| selection.key.as_str())
         .collect();
     let paths = [
@@ -134,11 +126,13 @@ fn every_selection_is_the_class_selections_then_each_paths() {
 }
 
 #[test]
-fn class_features_are_each_classs_own_then_its_archetypes_with_no_paths() {
+fn the_features_are_one_catalog_the_classes_then_the_paths() {
     let data = world();
     let keys: Vec<&str> = data
-        .class_features()
+        .features
+        .iter()
         .map(|feature| feature.key.as_str())
+        .take_while(|key| !key.starts_with("trickster/"))
         .collect();
     assert_eq!(
         keys,

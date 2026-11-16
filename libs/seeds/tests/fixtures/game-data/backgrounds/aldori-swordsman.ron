@@ -1,0 +1,1 @@
+(key: "aldori-swordsman", name: "Aldori Swordsman", group: Regional, note: "buckler", class_skills: ["persuasion"], feats_for: [(feat: "exotic-weapon-proficiency", value: Weapon("dueling-sword"))])

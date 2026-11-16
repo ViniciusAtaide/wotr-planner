@@ -1,0 +1,1 @@
+(key: "wizard/school/invoker/intense-spells", blueprint: "c46512b796216b64899f26301241e4e6", name: "Intense Spells", summary: "Damaging evocation spells add half your level to damage once (not empowered); at 20th, roll twice against spell resistance.", guide: "wizard#intense-spells")

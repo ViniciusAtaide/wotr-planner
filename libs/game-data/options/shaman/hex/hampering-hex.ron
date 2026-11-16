@@ -1,0 +1,1 @@
+(key: "shaman/hex/hampering-hex", blueprint: "36f07f59f983cd042ae0c8c91e4dcea6", name: "Hampering Hex", summary: "Battle: a creature within 30 feet takes -2 AC and CMD (-4 from 8th) for class level rounds; Will cuts it to 1 round.", guide: "shaman#hampering-hex", prerequisite: Any([Archetype("shaman/wildland-shaman"), SelectionOption("shaman/spirit/battle")]))

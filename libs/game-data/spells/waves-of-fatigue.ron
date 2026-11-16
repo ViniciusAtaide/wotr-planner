@@ -1,0 +1,13 @@
+(
+    key: "waves-of-fatigue",
+    blueprint: "8878d0c46dfbd564e9d5756349d5e439",
+    name: "Waves of Fatigue",
+    school: Necromancy,
+    guide: "wizard-spells#waves-of-fatigue-necromancy",
+    summary: "Living creatures in the cone become fatigued, with no save.",
+    target: "All creatures within a 40' cone",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

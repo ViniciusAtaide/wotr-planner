@@ -1,0 +1,1 @@
+(key: "lumberjack", blueprint: "2fc1ee0a5b240b5468efed9fffe416aa", name: "Lumberjack", group: Craftsman, note: "Proficient with handaxe, battleaxe and greataxe. +1 Fortitude.", class_skills: ["athletics"], weapons: ["battle-axe", "greataxe", "hand-axe"])

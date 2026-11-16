@@ -1,0 +1,14 @@
+(
+    key: "unbreakable-bond",
+    blueprint: "947a929f3347d3e458a524424fbceccb",
+    name: "Unbreakable Bond",
+    school: Abjuration,
+    guide: "azata#unbreakable-bond-abjuration",
+    summary: "Companions are immune to mind-affecting effects (charm, compulsion, confusion, emotion, fear, shaken) and gain +3 luck on saves and DR 5/- within 10 ft of you.",
+    target: "All allies within a 60' burst centred on caster",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,9 @@
+(
+    key: "iomedae",
+    blueprint: "88d5da04361b16746bf5b65795e0c38c",
+    name: "Iomedae",
+    guide: "character-creation#deities",
+    alignments: [LawfulGood, NeutralGood, LawfulNeutral],
+    favoured_weapons: ["longsword"],
+    domains: ["cleric/domain/glory", "cleric/domain/good", "cleric/domain/law", "cleric/domain/sun", "cleric/domain/war"],
+)

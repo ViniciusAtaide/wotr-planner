@@ -1,0 +1,14 @@
+(
+    key: "tar-pool",
+    blueprint: "7d700cdf260d36e48bb7af3a8ca5031f",
+    name: "Tar Pool",
+    school: Transmutation,
+    guide: "wizard-spells#tar-pool-transmutation",
+    summary: "Hot tar deals 1d6 fire per two caster levels and entangles on a failed Reflex save; it's difficult terrain (-5 Mobility) and deals 2d6 fire each round inside.",
+    target: "All creatures within 20' burst, centred on target point within close range",
+    duration: "1 round / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

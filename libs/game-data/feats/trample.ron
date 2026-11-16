@@ -1,0 +1,1 @@
+(key: "trample", blueprint: "92db263bfb7445d4aa592a5d15128fc5", name: "Trample", summary: "Trample foes while mounted; a trampled foe is knocked prone and takes damage as from one of your mount's natural attacks.", category: MountedCombat, guide: "feats#trample", prerequisite: Feat("mounted-combat"))

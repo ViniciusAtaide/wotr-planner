@@ -56,7 +56,7 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
         }
         out.compared(AREA, mark);
 
-        for archetype in &class.archetypes {
+        for archetype in ctx.planner.data.archetypes_of(&class.key) {
             archetype_tables(
                 ctx,
                 out,

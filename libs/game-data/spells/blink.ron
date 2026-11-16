@@ -1,0 +1,14 @@
+(
+    key: "blink",
+    blueprint: "045351f1421ee3f449a9143db701d192",
+    name: "Blink",
+    school: Transmutation,
+    guide: "wizard-spells#blink-transmutation",
+    summary: "Attacks on you have a 50% miss chance (less against foes that reach the ethereal); you take half area damage, and your attacks get +2 but miss 20% of the time.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

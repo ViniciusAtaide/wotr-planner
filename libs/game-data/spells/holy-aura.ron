@@ -1,0 +1,14 @@
+(
+    key: "holy-aura",
+    blueprint: "808ab74c12df8784ab4eeaf6a107dbea",
+    name: "Holy Aura",
+    school: Abjuration,
+    guide: "cleric-spells#holy-aura-abjuration",
+    summary: "Allies gain +4 deflection AC, +4 resistance on saves, mind-affecting protection and SR 25 vs evil; evil melee hitters are blinded (Fortitude negates).",
+    target: "All allies within 20'",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [Good],
+    casting_time: Standard,
+)

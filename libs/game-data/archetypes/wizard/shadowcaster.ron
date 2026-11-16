@@ -1,0 +1,20 @@
+(
+    key: "wizard/shadowcaster",
+    class: "wizard",
+    blueprint: "9e1211f2c3db4d0c8313013df72d7187",
+    name: "Shadowcaster",
+    summary: "Shadow-magic wizard (Lord of Nothing DLC) who learns illusion spells automatically; no arcane bond and fewer bonus feats.",
+    guide: "wizard#shadowcaster",
+    levels: [
+        (level: 1, features: ["wizard/shadowcaster/cantrips", "wizard/shadowcaster/shadow-spells", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/school"]),
+        (level: 5, features: ["wizard/shadowcaster/shadowsight"]),
+        (level: 7, features: ["wizard/shadowcaster/summon-shadow"]),
+        (level: 10, features: ["wizard/shadowcaster/umbral-mind"]),
+        (level: 12, features: ["wizard/shadowcaster/umbral-mind"]),
+        (level: 14, features: ["wizard/shadowcaster/umbral-mind"]),
+        (level: 15),
+        (level: 16, features: ["wizard/shadowcaster/umbral-mind"]),
+        (level: 18, features: ["wizard/shadowcaster/umbral-mind"]),
+        (level: 20, features: ["wizard/shadowcaster/shadowform"]),
+    ],
+)

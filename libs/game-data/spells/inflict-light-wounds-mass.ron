@@ -1,0 +1,13 @@
+(
+    key: "inflict-light-wounds-mass",
+    blueprint: "9da37873d79ef0a468f969e4e5116ad2",
+    name: "Inflict Light Wounds, Mass",
+    school: Necromancy,
+    guide: "cleric-spells#inflict-light-wounds-mass-necromancy",
+    summary: "Creatures in the area take 1d8 + 1 per caster level (Will half); undead are healed that much instead.",
+    target: "All creatures within 30' of target point within close range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

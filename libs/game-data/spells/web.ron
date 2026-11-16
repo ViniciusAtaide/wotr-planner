@@ -1,0 +1,14 @@
+(
+    key: "web",
+    blueprint: "134cb6d492269aa4f8662700ef57449f",
+    name: "Web",
+    school: Transmutation,
+    guide: "wizard-spells#web-transmutation",
+    summary: "Webs a 10 ft radius (its table: 20' burst) of difficult terrain; those inside save (Reflex) each round or are grappled, escaping by CMB, Athletics or Mobility.",
+    target: "Target within long range, 20' burst",
+    duration: "1 minute / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

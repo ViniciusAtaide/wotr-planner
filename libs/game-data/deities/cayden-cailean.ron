@@ -1,0 +1,9 @@
+(
+    key: "cayden-cailean",
+    blueprint: "300e212868bca984687c92bcb66d381b",
+    name: "Cayden Cailean",
+    guide: "character-creation#deities",
+    alignments: [NeutralGood, ChaoticGood, ChaoticNeutral],
+    favoured_weapons: ["rapier"],
+    domains: ["cleric/domain/chaos", "cleric/domain/charm", "cleric/domain/good", "cleric/domain/strength", "cleric/domain/travel"],
+)

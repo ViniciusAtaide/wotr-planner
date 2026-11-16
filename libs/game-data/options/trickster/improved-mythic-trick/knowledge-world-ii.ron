@@ -1,0 +1,1 @@
+(key: "trickster/improved-mythic-trick/knowledge-world-ii", blueprint: "8b6fe337865492645892cc8db5dd0e01", name: "Knowledge (World) II", summary: "A natural 1 on a d20 by you or an ally counts as a 20.", guide: "trickster#knowledge-world-ii", prerequisite: SelectionOption("trickster/mythic-trick/knowledge-world-i"))

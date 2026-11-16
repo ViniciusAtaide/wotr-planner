@@ -147,16 +147,7 @@ fn a_selection_refuses_an_option_it_neither_defines_nor_shares() {
 #[test]
 fn a_shared_options_any_over_each_classs_level_lets_either_class_qualify() {
     let mut data = world();
-    let rogue = data
-        .classes
-        .iter_mut()
-        .find(|c| c.key == class("rogue"))
-        .unwrap();
-    let crippling_strike = rogue.selections[0]
-        .options
-        .iter_mut()
-        .find(|o| o.key == option("rogue/rogue-talents/crippling-strike"))
-        .unwrap();
+    let crippling_strike = option_mut(&mut data, "rogue/rogue-talents/crippling-strike");
     crippling_strike.prerequisite = Some(Prerequisite::Any(vec![
         Prerequisite::ClassLevel {
             class: class("rogue"),

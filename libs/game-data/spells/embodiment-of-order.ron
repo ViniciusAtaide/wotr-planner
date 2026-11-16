@@ -1,0 +1,14 @@
+(
+    key: "embodiment-of-order",
+    blueprint: "5ab2e32dd25724a488878c2a52c65ace",
+    name: "Embodiment of Order",
+    school: Abjuration,
+    guide: "aeon#embodiment-of-law-abjuration",
+    summary: "Casts Dictum on the target, which also gains Shield of Law and resistance to acid, cold, electricity and fire.",
+    target: "One friendly creature within close range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "spell-resistance",
+    blueprint: "0a5ddfbcfb3989543ac7c936fc256889",
+    name: "Spell Resistance",
+    school: Abjuration,
+    guide: "cleric-spells#spell-resistance-abjuration",
+    summary: "The target gains spell resistance of 12 + your caster level.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

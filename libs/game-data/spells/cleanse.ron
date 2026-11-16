@@ -1,0 +1,13 @@
+(
+    key: "cleanse",
+    blueprint: "be2062d6d85f4634ea4f26e9e858c3b8",
+    name: "Cleanse",
+    school: Evocation,
+    guide: "cleric-spells#cleanse-evocation",
+    summary: "You heal 4d8 + 1 per caster level and end ability damage, blindness, confusion, dazzle, disease, exhaustion, fatigue, nausea, poison and sickness.",
+    target: "Personal",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

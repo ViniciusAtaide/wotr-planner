@@ -1,0 +1,14 @@
+(
+    key: "dragon-pride",
+    blueprint: "f7bc6e97e7d44ed8ba5c4d9f76a5a3d3",
+    name: "Dragon Pride",
+    school: Abjuration,
+    guide: "gold-dragon#dragon-pride-abjuration",
+    summary: "You gain 10 charges: each time you take damage it is halved and a charge is spent; once all are used, you can't cast it again for 1 minute.",
+    target: "Self",
+    duration: "10 minutes",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

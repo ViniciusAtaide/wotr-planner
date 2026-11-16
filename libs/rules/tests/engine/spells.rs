@@ -179,8 +179,9 @@ fn every_spell_is_on_a_list() {
     );
 }
 
+/// A key says nothing of its owner (ticket 244): a list names its owner in `owner`.
 #[test]
-fn a_list_is_keyed_by_its_owner_or_under_it() {
+fn a_lists_key_needs_not_start_with_its_owners() {
     let mut data = world_with_spells();
     data.spell_lists.push(list(
         "aeon/merged",
@@ -192,10 +193,7 @@ fn a_list_is_keyed_by_its_owner_or_under_it() {
         class("wizard"),
         vec![entry(3, "hold-monster")],
     ));
-    assert_eq!(
-        issues(&data),
-        [(at_list("arcane"), DataIssue::KeyOutsideItsOwner)]
-    );
+    assert_eq!(issues(&data), []);
 }
 
 #[test]

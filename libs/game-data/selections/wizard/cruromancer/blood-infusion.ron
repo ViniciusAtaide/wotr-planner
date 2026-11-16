@@ -1,0 +1,12 @@
+(
+    key: "wizard/cruromancer/blood-infusion",
+    blueprint: "9677fd6917ce46ae9fbd34a97af0849d",
+    name: "Blood Infusion",
+    summary: "Sacrifice 1d4 HP + half your caster level to power up a necromancy spell with an infusion.",
+    guide: "wizard#blood-infusion",
+    options: [
+        "wizard/cruromancer/blood-infusion/commanding-infusion",
+        "wizard/cruromancer/blood-infusion/focused-infusion",
+        "wizard/cruromancer/blood-infusion/sickening-infusion",
+    ],
+)

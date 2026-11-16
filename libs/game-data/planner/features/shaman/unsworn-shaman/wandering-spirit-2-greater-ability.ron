@@ -1,0 +1,4 @@
+(
+    why: "Each spirit's own wandering progression grants it in the game; the planner holds one entry for whichever spirit is chosen.",
+    entry: (key: "shaman/unsworn-shaman/wandering-spirit-2-greater-ability", name: "Wandering Spirit 2 - Greater Ability", summary: "From 14th level, you also gain your second wandering spirit's greater ability.", guide: "shaman#unsworn-shaman"),
+)

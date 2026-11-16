@@ -1,0 +1,1 @@
+(key: "paladin/alignment-restriction", blueprint: "f8c91c0135d5fc3458fcc131c4b77e96", name: "Alignment Restriction", summary: "Loses all class powers while not Lawful Good, until the alignment returns.", guide: "paladin#alignment-restriction")

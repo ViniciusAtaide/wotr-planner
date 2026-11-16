@@ -1,0 +1,19 @@
+(
+    key: "bloodrager/spelleater",
+    class: "bloodrager",
+    blueprint: "afe79636228fdd64ea8d9bf3644838a3",
+    name: "Spelleater",
+    summary: "Heals itself: fast healing while raging and spell slots spent on healing, losing Uncanny Dodge and DR.",
+    guide: "bloodrager#spelleater",
+    levels: [
+        (level: 1, features: ["bloodrager/bloodrage", "bloodrager/spelleater/fast-movement"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["bloodrager/bloodline"]),
+        (level: 2, features: ["bloodrager/spelleater/blood-of-life"]),
+        (level: 5, features: ["bloodrager/spelleater/spell-eating"]),
+        (level: 7, features: ["bloodrager/spelleater/blood-of-life", "bloodrager/spelleater/bloodline-spell-1st"]),
+        (level: 10, features: ["bloodrager/spelleater/blood-of-life", "bloodrager/spelleater/bloodline-spell-2nd"]),
+        (level: 13, features: ["bloodrager/spelleater/blood-of-life", "bloodrager/spelleater/bloodline-spell-3rd"]),
+        (level: 14, features: ["bloodrager/spelleater/indomitable-will"]),
+        (level: 16, features: ["bloodrager/spelleater/blood-of-life", "bloodrager/spelleater/bloodline-spell-4th"]),
+        (level: 19, features: ["bloodrager/spelleater/blood-of-life"]),
+    ],
+)

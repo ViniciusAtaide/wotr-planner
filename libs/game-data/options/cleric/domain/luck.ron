@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/luck",
+    blueprint: "8bd8cfad69085654b9118534e4aa215e",
+    name: "Luck Domain",
+    summary: "Bit of Luck rerolls and Divine Fortune from 6th level; spells from True Strike to Mass Heal.",
+    guide: "character-creation#luck-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/luck/bit-of-luck"]),
+        (level: 6, features: ["cleric/domain/luck/divine-fortune"]),
+    ],
+)

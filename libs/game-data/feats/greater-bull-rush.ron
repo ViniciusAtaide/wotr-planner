@@ -1,0 +1,1 @@
+(key: "greater-bull-rush", blueprint: "72ba6ad46d94ecd41bad8e64739ea392", name: "Greater Bull Rush", summary: "Foes you bull rush provoke attacks of opportunity as they're pushed; +2 more to the check.", category: CombatManoeuvres, guide: "feats#greater-bull-rush", prerequisite: All([Feat("bull-rush"), BaseAttackBonus(6)]))

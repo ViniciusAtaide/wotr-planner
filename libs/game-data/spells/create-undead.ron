@@ -1,0 +1,14 @@
+(
+    key: "create-undead",
+    blueprint: "76a11b460be25e44ca85904d6806e5a3",
+    name: "Create Undead",
+    school: Necromancy,
+    guide: "wizard-spells#create-undead-necromancy",
+    summary: "Raises a Graveknight (bardiche, DR 10/magic) or a Guardian Armor (light pick, DR 15/adamantine) to fight for you.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning, Evil],
+    casting_time: FullRound,
+)

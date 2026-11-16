@@ -1,0 +1,13 @@
+(
+    key: "mastery-of-flesh",
+    blueprint: "921ed6a6751d71140b4e75ab7bcb9890",
+    name: "Mastery of Flesh",
+    school: Necromancy,
+    guide: "lich#mastery-of-flesh-necromancy",
+    summary: "Damages an enemy for 4d8 + caster level if living or 2d8 + caster level if undead; heals an ally 4d8 + caster level if undead or 2d8 + caster level if living.",
+    target: "One creature within medium range",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

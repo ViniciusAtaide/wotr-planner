@@ -1,0 +1,1 @@
+(key: "metamagic-extend-spell", blueprint: "f180e72e4a9cbaa4da8be9bc958132ef", name: "Metamagic (Extend Spell)", summary: "+1 spell level: doubles the spell's duration (not instant, permanent or concentration spells).", category: Magic, guide: "feats#metamagic-extend-spell")

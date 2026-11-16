@@ -1,0 +1,14 @@
+(
+    key: "stinking-cloud",
+    blueprint: "68a9e6d7256f1354289a39003a46d826",
+    name: "Stinking Cloud",
+    school: Conjuration,
+    guide: "wizard-spells#stinking-cloud-conjuration",
+    summary: "Living creatures in the cloud are nauseated unless they pass a Fortitude save each round, staying so 2-5 rounds after leaving.",
+    target: "Target point within medium range, 20' burst",
+    duration: "1 round / level",
+    saving_throw: "Fortitude negates",
+    spell_resistance: false,
+    descriptors: [Poison],
+    casting_time: Standard,
+)

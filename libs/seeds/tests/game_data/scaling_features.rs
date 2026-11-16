@@ -47,7 +47,7 @@ fn every_slayer_archetype_that_keeps_studied_target_steps_it_too() {
     // archetypes only ImitatorArchetype 5947427f10bc497dbc24f66129b43e5d removes SlayerStudyTargetFeature
     // 09bdd9445ac38044389476689ae8d5a1.
     let mut kept = Vec::new();
-    for archetype in &class("slayer").archetypes {
+    for archetype in DATA.archetypes_of(&class("slayer").key) {
         let plain = human(archetype_build("slayer", archetype.key.as_str(), 20));
         let build = if engine().is_possible(&plain) {
             plain
@@ -304,10 +304,11 @@ fn the_sorcerer_and_bloodrager_archetypes_hold_the_steps_their_bloodline_gives()
     ] {
         let option = format!("{archetype}/bloodline");
         let draconic = DATA
-            .selections()
+            .selections
+            .iter()
             .filter(|selection| selection.key.as_str() == option)
             .flat_map(|selection| &selection.options)
-            .any(|option| option.key.as_str().contains("draconic"));
+            .any(|option| option.as_str().contains("draconic"));
         assert!(!draconic, "{archetype}");
     }
     // The bloodrager's archetypes keep the bloodline's rows; the Primalist's rage-power choice is a known
@@ -516,16 +517,12 @@ fn every_sharer_of_a_stepped_bloodline_holds_the_steps_its_rows_give() {
     );
     // Bloodline Ascendance grants a bloodline's 20th-level row, which carries no step of any bloodline.
     let ascendance = DATA
-        .class_features()
-        .find(|feature| feature.key.as_str() == "sorcerer/bloodline-ascendance")
+        .feature(&FeatureKey::new("sorcerer/bloodline-ascendance"))
         .and_then(|feature| feature.option_row.as_ref())
         .unwrap();
     assert_eq!(ascendance.level, 20);
-    let bloodlines = DATA
-        .selections()
-        .find(|selection| selection.key == ascendance.selection)
-        .unwrap();
-    for option in &bloodlines.options {
+    let bloodlines = DATA.selection(&ascendance.selection).unwrap();
+    for option in DATA.options_of(bloodlines) {
         let earlier: Vec<_> = option
             .levels
             .iter()
@@ -609,7 +606,7 @@ fn a_seeker_holds_the_bloodline_steps_its_own_progressions_give() {
 #[test]
 fn no_selection_gains_a_step_of_a_feature_whose_first_row_it_skips() {
     let mut leaks = Vec::new();
-    for selection in DATA.selections() {
+    for selection in &DATA.selections {
         if selection.skipped_levels.is_empty() || selection.feat_lists_only {
             continue;
         }
@@ -710,7 +707,8 @@ fn with_own_or_base(
     let own = archetype
         .map(|archetype| format!("{archetype}/{own}"))
         .filter(|key| {
-            DATA.selections()
+            DATA.selections
+                .iter()
                 .any(|selection| selection.key.as_str() == key)
         });
     let key = own.as_deref().unwrap_or(base);
@@ -735,9 +733,7 @@ fn with_own_or_base(
 fn offers(class_key: &str, archetype: Option<&str>, option: &str) -> bool {
     let class = class(class_key);
     let own = archetype.and_then(|key| {
-        class
-            .archetypes
-            .iter()
+        DATA.archetypes_of(&class.key)
             .find(|archetype| archetype.key.as_str() == key)
             .and_then(|archetype| archetype.levels.iter().find(|row| row.level == 1))
             .map(|row| &row.selections)
@@ -751,14 +747,12 @@ fn offers(class_key: &str, archetype: Option<&str>, option: &str) -> bool {
             .selections
     });
     selections.iter().any(|key| {
-        DATA.selections()
-            .find(|selection| selection.key == *key)
-            .is_some_and(|selection| {
-                selection
-                    .offered()
-                    .iter()
-                    .any(|offered| offered.as_str() == option)
-            })
+        DATA.selection(key).is_some_and(|selection| {
+            selection
+                .offered()
+                .iter()
+                .any(|offered| offered.as_str() == option)
+        })
     })
 }
 
@@ -779,15 +773,12 @@ fn assert_gains_of_option(
     default: &[u8],
     exceptions: &[(&str, Option<&[u8]>)],
 ) {
-    let archetypes = class(class_key)
-        .archetypes
-        .iter()
+    let archetypes = DATA
+        .archetypes_of(&class(class_key).key)
         .map(|a| Some(a.key.as_str()));
     for (key, _) in exceptions {
         assert!(
-            class(class_key)
-                .archetypes
-                .iter()
+            DATA.archetypes_of(&class(class_key).key)
                 .any(|a| a.key.as_str() == *key),
             "{class_key}: {key}"
         );
@@ -3023,9 +3014,8 @@ fn the_druids_wild_shape_wolf_steps_every_two_levels() {
         "druid/wild-shape-wolf",
         &|_, build| build,
         &[4, 6, 8, 10, 12, 14, 16, 18],
-        &class
-            .archetypes
-            .iter()
+        &DATA
+            .archetypes_of(&class.key)
             .map(|archetype| {
                 let key = archetype.key.as_str();
                 (

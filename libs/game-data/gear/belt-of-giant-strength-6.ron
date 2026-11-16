@@ -1,0 +1,9 @@
+(
+    key: "belt-of-giant-strength-6",
+    blueprint: "d8062d43606e89e4bb3f0483ed3aba5d",
+    name: "Belt of Giant Strength +6",
+    slot: Belt,
+    bonuses: [
+        (target: Ability(Strength), amount: 6, kind: Enhancement),
+    ],
+)

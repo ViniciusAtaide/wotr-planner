@@ -1,0 +1,13 @@
+(
+    key: "explosive-runes",
+    blueprint: "ff652882623d43f184eb6abef741e20e",
+    name: "Explosive Runes",
+    school: Abjuration,
+    guide: "wizard-spells#explosive-runes-abjuration",
+    summary: "Runes explode for 6d6 force damage to every creature within 10 ft.",
+    target: "Target point within close range, 10' burst",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

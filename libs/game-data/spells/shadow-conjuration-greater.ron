@@ -1,0 +1,14 @@
+(
+    key: "shadow-conjuration-greater",
+    blueprint: "08255ea4cdd812341af93f9cd113acb9",
+    name: "Shadow Conjuration, Greater",
+    school: Illusion,
+    guide: "wizard-spells#shadow-conjuration-greater-illusion",
+    summary: "Mimics a conjuration spell of 6th level or lower; a creature that disbelieves (Will save) takes only 60% damage, and summons have 20% of normal hit points.",
+    target: "Target point within close range",
+    duration: "?",
+    saving_throw: "?",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

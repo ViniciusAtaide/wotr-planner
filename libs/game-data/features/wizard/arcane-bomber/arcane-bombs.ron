@@ -1,0 +1,1 @@
+(key: "wizard/arcane-bomber/arcane-bombs", blueprint: "0c7a9899e27cae6449ee1fb3049f128d", name: "Arcane Bombs", summary: "Level + Int bombs a day of a chosen energy: 1d6 + Int, +1d6 every odd level, with splash damage (Reflex half).", guide: "wizard#arcane-bombs")

@@ -1,0 +1,19 @@
+(
+    key: "oracle/dual-cursed-oracle",
+    class: "oracle",
+    blueprint: "4a6eb63858244f7ea4ed950a7e798a70",
+    name: "Dual-Cursed Oracle",
+    summary: "Lord of Nothing DLC: takes two curses, one never improving, for extra revelations at 5th and 13th and bonus curse spells.",
+    guide: "oracle#dual-cursed-oracle",
+    levels: [
+        (level: 1, features: ["oracle/additional-spells"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/dual-cursed-oracle/revelation", "oracle/mystery", "oracle/oracles-curse", "oracle/second-curse"]),
+        (level: 2, features: ["oracle/dual-cursed-oracle/dual-cursed-oracle-bonus-spells"]),
+        (level: 3, selections: ["oracle/dual-cursed-oracle/revelation"]),
+        (level: 5, selections: ["oracle/dual-cursed-oracle/revelation"]),
+        (level: 7, selections: ["oracle/dual-cursed-oracle/revelation"]),
+        (level: 11, selections: ["oracle/dual-cursed-oracle/revelation"]),
+        (level: 13, selections: ["oracle/dual-cursed-oracle/revelation"]),
+        (level: 15, selections: ["oracle/dual-cursed-oracle/revelation"]),
+        (level: 19, selections: ["oracle/dual-cursed-oracle/revelation"]),
+    ],
+)

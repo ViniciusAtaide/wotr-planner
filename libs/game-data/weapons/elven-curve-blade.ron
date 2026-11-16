@@ -1,0 +1,1 @@
+(key: "elven-curve-blade", blueprint: "b5e6838ad2a62b146b49619bcf9f42aa", name: "Elven Curve Blade", proficiency: Exotic, stats: (damage: (count: 1, sides: 10), threat: 18, multiplier: 2, handedness: TwoHanded, finesse: true))

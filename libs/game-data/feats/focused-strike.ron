@@ -1,0 +1,1 @@
+(key: "focused-strike", blueprint: "f09b89812cc94b89a09069671002b899", name: "Focused Strike", summary: "With a two-handed grip, your first attack each turn takes no Power Attack penalty to hit.", category: Weapon, guide: "feats#focused-strike", prerequisite: All([Feat("power-attack"), AbilityScore(ability: Strength, score: 13), BaseAttackBonus(1)]))

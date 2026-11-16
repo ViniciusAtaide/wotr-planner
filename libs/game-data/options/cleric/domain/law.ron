@@ -1,0 +1,12 @@
+(
+    key: "cleric/domain/law",
+    blueprint: "a723d11a5ae5df0488775e31fac9117d",
+    name: "Law Domain",
+    summary: "Touch of Law and Axiomatic weapons from 8th level; spells from Protection from Chaos to Dominate Monster.",
+    guide: "character-creation#law-domain",
+    prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil)]), Any([Not(PickedThrough("cleric/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)])]),
+    levels: [
+        (level: 1, features: ["cleric/domain/law/touch-of-law"]),
+        (level: 8, features: ["cleric/domain/law/staff-of-order"]),
+    ],
+)

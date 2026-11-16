@@ -1,0 +1,14 @@
+(
+    why: "The archetype adds SpecialisationSchoolUniversalistProgression directly; the planner grants it through a selection of one.",
+    entry: (
+        key: "wizard/spell-master/school",
+        name: "School (Spell Master)",
+        summary: "A Spell Master is always a Universalist.",
+        guide: "wizard#spell-master",
+        option_levels: ["wizard"],
+        options: [],
+        shared_options: [
+            "wizard/school/universalist",
+        ],
+    ),
+)

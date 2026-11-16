@@ -1,0 +1,1 @@
+(key: "wizard/school/transmuter/telekinetic-fist", blueprint: "e015d05ca18b5c24183cd062486fd46b", name: "Telekinetic Fist", summary: "Standard action, 3 + Int times a day: a 30' ranged touch for 1d4 bludgeoning + 1 per two levels.", guide: "wizard#telekinetic-fist")

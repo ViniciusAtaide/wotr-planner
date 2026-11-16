@@ -1,0 +1,14 @@
+(
+    key: "freedom-of-movement",
+    blueprint: "0087fc2d64b6095478bc7b8d7d512caf",
+    name: "Freedom of Movement",
+    school: Abjuration,
+    guide: "cleric-spells#freedom-of-movement-abjuration",
+    summary: "The target is immune to magic that hampers movement, such as paralysis, Slow, Web and Acid Fog, and attempts to grapple it fail.",
+    target: "One friendly creature within touch range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

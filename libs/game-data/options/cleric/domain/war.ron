@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/war",
+    blueprint: "8d454cbb7f25070419a1c8eaf89b5be5",
+    name: "War Domain",
+    summary: "Battle Rage damage bonus and a bonus combat feat at 8th level; spells from Bless to Power Word Kill.",
+    guide: "character-creation#war-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/war/battle-rage"]),
+        (level: 8, feat_slots: [CombatFeat]),
+    ],
+)

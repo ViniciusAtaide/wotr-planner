@@ -1,0 +1,14 @@
+(
+    key: "shadow-evocation",
+    blueprint: "237427308e48c3341b3d532b9d3a001f",
+    name: "Shadow Evocation",
+    school: Illusion,
+    guide: "wizard-spells#shadow-evocation-illusion",
+    summary: "Casts a partly real Fireball, Lightning Bolt, Ice Storm, Volcanic Storm or Shout at level 5 DCs; creatures that pass a Will save take a fifth of the damage.",
+    target: "Target point within any range",
+    duration: "?",
+    saving_throw: "?",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

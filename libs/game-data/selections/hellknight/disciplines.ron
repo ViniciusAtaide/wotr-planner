@@ -1,0 +1,18 @@
+(
+    key: "hellknight/disciplines",
+    blueprint: "a0ea93d320e3da24aae270093e629305",
+    name: "Disciplines",
+    summary: "A Discipline at 3rd, 6th and 9th level, each usable 1, 2 then 3 times a day; their save DCs are 10 + class level + Cha.",
+    guide: "prestige-classes#disciplines",
+    option_levels: ["hellknight"],
+    options: [
+        "hellknight/disciplines/censor",
+        "hellknight/disciplines/command",
+        "hellknight/disciplines/fearsomeness",
+        "hellknight/disciplines/onslaught",
+        "hellknight/disciplines/pentamic-faith",
+        "hellknight/disciplines/shackle",
+        "hellknight/disciplines/tracker",
+        "hellknight/disciplines/wrack",
+    ],
+)

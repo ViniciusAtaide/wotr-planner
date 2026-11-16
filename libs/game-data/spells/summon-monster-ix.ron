@@ -1,0 +1,14 @@
+(
+    key: "summon-monster-ix",
+    blueprint: "52b5df2a97df18242aec67610616ded0",
+    name: "Summon Monster IX",
+    school: Conjuration,
+    guide: "wizard-spells#summon-monster-ix-conjuration",
+    summary: "Summons a Ghaele (if you aren't evil) or Thanadaemon, 1d3 Movanic Devas or Frost Giants, or 1d4+1 Bogeymen.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

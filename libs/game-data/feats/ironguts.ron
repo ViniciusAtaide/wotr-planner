@@ -1,0 +1,1 @@
+(key: "ironguts", blueprint: "90f7164ce17840c68c1ceadcf5d10297", name: "Ironguts", summary: "+2 to saves against poison and against sickening and nauseating attacks.", category: Racial, guide: "feats#ironguts", prerequisite: Race("half-orc"))

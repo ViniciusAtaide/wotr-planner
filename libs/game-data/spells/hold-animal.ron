@@ -1,0 +1,14 @@
+(
+    key: "hold-animal",
+    blueprint: "41bab342089c0254ca222eb918e98cd4",
+    name: "Hold Animal",
+    school: Enchantment,
+    guide: "druid-spells#hold-animal-enchantment",
+    summary: "Holds an animal the way Hold Person holds a humanoid; the target can save again each round to break free.",
+    target: "One enemy creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

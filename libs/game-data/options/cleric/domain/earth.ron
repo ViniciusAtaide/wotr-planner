@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/earth",
+    blueprint: "08bbcbfe5eb84604481f384c517ac800",
+    name: "Earth Domain",
+    summary: "Acid Dart, acid resistance from 6th level and immunity at 20th; spells from Stone Fist to Elemental Swarm.",
+    guide: "character-creation#earth-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/earth/acid-dart"]),
+        (level: 6, features: ["cleric/domain/earth/acid-resistance"]),
+    ],
+)

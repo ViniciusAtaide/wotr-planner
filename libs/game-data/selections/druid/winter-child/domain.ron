@@ -1,0 +1,12 @@
+(
+    key: "druid/winter-child/domain",
+    blueprint: "79922e274bf4444b93ea77ae0f876bd2",
+    name: "Domain (Winter Child)",
+    summary: "A Winter Child must take the Ice subdomain.",
+    guide: "druid#winter-child",
+    option_levels: ["druid"],
+    options: [],
+    shared_options: [
+        "cleric/domain/ice",
+    ],
+)

@@ -1,0 +1,1 @@
+(key: "cleric/domain/luck/bit-of-luck", blueprint: "2b3818bf4656c1a41b93467755662c78", name: "Bit of Luck", summary: "Standard action: the target rolls everything twice next round, taking the better; 3 + Wisdom modifier uses a day.", guide: "character-creation#luck-domain")

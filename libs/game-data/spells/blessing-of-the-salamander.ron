@@ -1,0 +1,14 @@
+(
+    key: "blessing-of-the-salamander",
+    blueprint: "9256a86aec14ad14e9497f6b60e26f3f",
+    name: "Blessing of the Salamander",
+    school: Transmutation,
+    guide: "druid-spells#blessing-of-the-salamander-transmutation",
+    summary: "Grants the target fast healing 5, resistance 20 to fire and +2 competence to CMD.",
+    target: "One friendly creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

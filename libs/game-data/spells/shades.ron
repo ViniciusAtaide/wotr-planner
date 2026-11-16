@@ -1,0 +1,14 @@
+(
+    key: "shades",
+    blueprint: "70e12191790f69a439ea0132c75f83aa",
+    name: "Shades",
+    school: Illusion,
+    guide: "wizard-spells#shades-illusion",
+    summary: "Mimics a conjuration spell of 8th level or lower; a creature that disbelieves (Will save) takes only 80% damage, and summons have 20% of normal hit points.",
+    target: "Target point within close range",
+    duration: "?",
+    saving_throw: "?",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

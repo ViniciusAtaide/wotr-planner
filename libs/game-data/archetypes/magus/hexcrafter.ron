@@ -1,0 +1,23 @@
+(
+    key: "magus/hexcrafter",
+    class: "magus",
+    blueprint: "79ccf7a306a5d5547bebd97299f6fc89",
+    name: "Hexcrafter",
+    summary: "Magus who learns witch hexes and curse spells; loses Spell Recall and one arcana.",
+    guide: "magus#hexcrafter",
+    levels: [
+        (level: 1, features: ["magus/arcane-pool", "magus/hexcrafter/spells-hexcrafter", "magus/magus-proficiencies", "magus/spell-combat"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
+        (level: 3),
+        (level: 4, selections: ["witch/hex"]),
+        (level: 5, features: ["magus/hexcrafter/arcane-weapon-2"], feat_slots: [General]),
+        (level: 6, selections: ["magus/hexcrafter/hex-arcana"]),
+        (level: 7, features: ["magus/hexcrafter/arcane-medium-armor"], feats: ["armor-proficiency-medium-armor"]),
+        (level: 9, features: ["magus/hexcrafter/arcane-weapon-3"], selections: ["magus/hexcrafter/hex-arcana"]),
+        (level: 11, feat_slots: [General]),
+        (level: 12, selections: ["magus/hexcrafter/hex-arcana"]),
+        (level: 13, features: ["magus/hexcrafter/arcane-heavy-armor", "magus/hexcrafter/arcane-weapon-4"], feats: ["armor-proficiency-heavy-armor"]),
+        (level: 15, selections: ["magus/hexcrafter/hex-arcana"]),
+        (level: 17, features: ["magus/hexcrafter/arcane-weapon-5"], feat_slots: [General]),
+        (level: 18, selections: ["magus/hexcrafter/hex-arcana"]),
+    ],
+)

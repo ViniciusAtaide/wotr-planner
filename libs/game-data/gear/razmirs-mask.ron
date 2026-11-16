@@ -1,0 +1,19 @@
+(
+    key: "razmirs-mask",
+    blueprint: "9338510a8d5c4b43b1284470b706128d",
+    name: "Razmir's Mask",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 8, kind: Enhancement),
+        (target: Ability(Wisdom), amount: 8, kind: Enhancement),
+        (target: Ability(Charisma), amount: 8, kind: Enhancement),
+    ],
+    always_on: [
+        "Immune to divination magic",
+        "Spell Turning",
+    ],
+    other_effects: [
+        "Each round, the wearer may cast a single spell as a free action.",
+    ],
+)

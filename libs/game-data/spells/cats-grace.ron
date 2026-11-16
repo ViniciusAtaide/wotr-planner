@@ -1,0 +1,14 @@
+(
+    key: "cats-grace",
+    blueprint: "de7a025d48ad5da4991e7d3c682cf69d",
+    name: "Cat's Grace",
+    school: Transmutation,
+    guide: "wizard-spells#cats-grace-transmutation",
+    summary: "+4 enhancement bonus to the target's Dexterity.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,13 @@
+(
+    key: "break-enchantment",
+    blueprint: "7792da00c85b9e042a0fdfc2b66ec9a8",
+    name: "Break Enchantment",
+    school: Abjuration,
+    guide: "wizard-spells#break-enchantment-abjuration",
+    summary: "Frees allies from enchantments, transmutations and curses of level 5 or lower: a caster level check (max 15) against 11 + the effect's caster level for each.",
+    target: "All allies within 30'",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: FullRound,
+)

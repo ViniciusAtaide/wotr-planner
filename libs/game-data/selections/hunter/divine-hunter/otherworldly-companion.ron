@@ -1,0 +1,11 @@
+(
+    key: "hunter/divine-hunter/otherworldly-companion",
+    blueprint: "b1c0bcb356a496e4487b7dd8e7521043",
+    name: "Otherworldly Companion",
+    summary: "From 3rd level, your companion becomes Celestial or Fiendish, by alignment.",
+    guide: "hunter#otherworldly-companion",
+    options: [
+        "hunter/divine-hunter/otherworldly-companion/otherworldly-companion-celestial",
+        "hunter/divine-hunter/otherworldly-companion/otherworldly-companion-fiendish",
+    ],
+)

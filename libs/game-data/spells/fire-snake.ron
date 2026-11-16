@@ -1,0 +1,13 @@
+(
+    key: "fire-snake",
+    blueprint: "ebade19998e1f8542a1b55bd4da766b3",
+    name: "Fire Snake",
+    school: Evocation,
+    guide: "wizard-spells#fire-snake-evocation",
+    summary: "Deals 1d6 fire per caster level (max 15d6) to each creature along the line.",
+    target: "All creatures along a 50' line",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

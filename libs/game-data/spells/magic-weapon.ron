@@ -1,0 +1,14 @@
+(
+    key: "magic-weapon",
+    blueprint: "d7fdd79f0f6b6a2418298e936bb68e40",
+    name: "Magic Weapon",
+    school: Transmutation,
+    guide: "wizard-spells#magic-weapon-transmutation",
+    summary: "A weapon gains a +1 enhancement bonus on attack and damage rolls; the attack bonus doesn't stack with masterwork's +1.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

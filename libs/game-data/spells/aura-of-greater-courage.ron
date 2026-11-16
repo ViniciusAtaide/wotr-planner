@@ -1,0 +1,14 @@
+(
+    key: "aura-of-greater-courage",
+    blueprint: "acb787cf9f76e924a9a93bbd011af040",
+    name: "Aura of Greater Courage",
+    school: Abjuration,
+    guide: "paladin#aura-of-greater-courage-abjuration",
+    summary: "Boosts your Aura of Courage so all allies are immune to fear.",
+    target: "Personal",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Emotion],
+    casting_time: Standard,
+)

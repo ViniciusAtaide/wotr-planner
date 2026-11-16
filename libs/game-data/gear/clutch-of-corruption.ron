@@ -1,0 +1,14 @@
+(
+    key: "clutch-of-corruption",
+    blueprint: "637c4de135be4d59a84fba1da9135b9b",
+    name: "Clutch of Corruption",
+    slot: Belt,
+    guide: "items#belts",
+    bonuses: [
+        (target: Ability(Strength), amount: 4, kind: Enhancement),
+        (target: Ability(Constitution), amount: 8, kind: Enhancement),
+    ],
+    other_effects: [
+        "Crit with a natural weapon: for 2 rounds the target is weak to unholy and negative-energy damage.",
+    ],
+)

@@ -1,0 +1,9 @@
+(
+    key: "erastil",
+    blueprint: "afc775188deb7a44aa4cbde03512c671",
+    name: "Erastil",
+    guide: "character-creation#deities",
+    alignments: [LawfulGood, NeutralGood, LawfulNeutral],
+    favoured_weapons: ["long-bow"],
+    domains: ["cleric/domain/animal", "cleric/domain/community", "cleric/domain/good", "cleric/domain/law", "cleric/domain/plant"],
+)

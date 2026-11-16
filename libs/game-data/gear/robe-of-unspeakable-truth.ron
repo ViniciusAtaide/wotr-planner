@@ -1,0 +1,13 @@
+(
+    key: "robe-of-unspeakable-truth",
+    blueprint: "9d7e7dbc35ea4298bd51790644caa8c6",
+    name: "Robe of Unspeakable Truth",
+    slot: Robe,
+    guide: "items#robes",
+    bonuses: [
+        (target: Ability(Wisdom), amount: 2, kind: Circumstance),
+    ],
+    other_effects: [
+        "Together with Glasses of Undeniable Truth: radiates fear 10 feet around, save DC 25 + Cha modifier.",
+    ],
+)

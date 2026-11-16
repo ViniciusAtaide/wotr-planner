@@ -1,0 +1,1 @@
+(key: "oracle/revelations/wind/lightning-breath", blueprint: "b7b19ce8776f81547ad3bfb6ac859045", name: "Lightning Breath", summary: "Standard action: 30-foot line of 1d4 electricity per class level (Reflex halves); 1/day, +1 use at 5th and every 5 levels.", guide: "oracle#lightning-breath", prerequisite: SelectionOption("oracle/mystery/wind"))

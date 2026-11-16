@@ -1,0 +1,14 @@
+(
+    key: "aspect-of-the-falcon",
+    blueprint: "7bdb6a9fb6b37614e96f155748ae50c6",
+    name: "Aspect of the Falcon",
+    school: Transmutation,
+    guide: "druid-spells#aspect-of-the-falcon-transmutation",
+    summary: "You gain +3 competence on Perception and +1 competence on ranged attacks, and bows and crossbows crit at 19-20/x3 (not stacking with keen or Improved Critical).",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

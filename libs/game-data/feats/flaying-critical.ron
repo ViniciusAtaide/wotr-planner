@@ -1,0 +1,1 @@
+(key: "flaying-critical", blueprint: "a0e95a17fed549bcbf85a977811f6094", name: "Flaying Critical", summary: "Each of your critical hits gives the target a stacking -1 to its natural armour bonus.", category: Weapon, guide: "feats#flaying-critical", prerequisite: All([Feat("critical-focus"), BaseAttackBonus(11)]))

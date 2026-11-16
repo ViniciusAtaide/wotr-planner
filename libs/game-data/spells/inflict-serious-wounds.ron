@@ -1,0 +1,13 @@
+(
+    key: "inflict-serious-wounds",
+    blueprint: "bd5da98859cf2b3418f6d68ea66cabbe",
+    name: "Inflict Serious Wounds",
+    school: Necromancy,
+    guide: "cleric-spells#inflict-serious-wounds-necromancy",
+    summary: "Deals 3d8 + 1 per caster level (max +15) to the target, Will for half; heals undead by the same amount.",
+    target: "One creature within touch range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "kineticist/infusions/rare-metal-infusion", blueprint: "6700ce7f56ddc30488e45b049f4ee475", name: "Rare-Metal Infusion", summary: "Substance, 2 Burn, metal blasts: the blast bypasses DR as adamantine, cold iron or silver.", guide: "kineticist#rare-metal-infusion", prerequisite: All([ClassLevel(class: "kineticist", level: 6), SelectionOption("kineticist/element/earth")]))

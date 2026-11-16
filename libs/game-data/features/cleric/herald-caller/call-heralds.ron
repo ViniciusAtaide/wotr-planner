@@ -1,0 +1,1 @@
+(key: "cleric/herald-caller/call-heralds", blueprint: "f6c112a579a81c0439c597f9ee222243", name: "Call Heralds", summary: "Swap a prepared spell for a Summon Monster spell of the same level, always summoning its strongest creature.", guide: "cleric#call-heralds")

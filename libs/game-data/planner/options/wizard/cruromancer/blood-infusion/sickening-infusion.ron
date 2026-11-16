@@ -1,0 +1,4 @@
+(
+    why: "An ability of BloodInfusionFeature in the game, not a feature of its own.",
+    entry: (key: "wizard/cruromancer/blood-infusion/sickening-infusion", name: "Sickening Infusion", summary: "Creatures damaged by the infused spell are sickened for 1 round.", guide: "wizard#sickening-infusion"),
+)

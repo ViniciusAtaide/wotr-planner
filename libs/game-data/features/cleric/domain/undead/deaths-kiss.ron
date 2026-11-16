@@ -1,0 +1,1 @@
+(key: "cleric/domain/undead/deaths-kiss", blueprint: "665fabebb632402d948fbe45e03a0b86", name: "Death\'s Kiss", summary: "Makes a creature count as undead for positive and negative energy for half your class level in rounds; 3 + Wisdom modifier uses a day.", guide: "character-creation#undead-subdomain")

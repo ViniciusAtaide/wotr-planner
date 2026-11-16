@@ -2,7 +2,7 @@
 //! `effective_row` is the one place they meet the base class's rows.
 
 use rules::{
-    ArchetypeKey, ArchetypeLevelRow, Build, ClassChoice, FeatSlot, GameData, SpellLevels,
+    ArchetypeKey, ArchetypeLevelRow, Build, ClassChoice, ClassKey, FeatSlot, GameData, SpellLevels,
     effective_row,
 };
 
@@ -72,11 +72,9 @@ fn an_archetype_row_replaces_the_base_rows_grants_in_full() {
 #[test]
 fn an_archetype_row_keeps_the_base_spell_levels_unless_it_sets_its_own() {
     let mut data = world();
-    let cleric = class_mut(&mut data, "cleric");
-    let mut archetype = class_in(&world(), "fighter").archetypes[0].clone();
+    let mut archetype = first_archetype_mut(&mut world(), "fighter").clone();
     archetype.key = ArchetypeKey::new("cleric/herald");
-    archetype.selections.clear();
-    archetype.feat_lists.clear();
+    archetype.class = ClassKey::new("cleric");
     archetype.levels = vec![
         // Grants something but leaves the spell levels alone.
         ArchetypeLevelRow {
@@ -99,7 +97,7 @@ fn an_archetype_row_keeps_the_base_spell_levels_unless_it_sets_its_own() {
             selections: vec![],
         },
     ];
-    cleric.archetypes.push(archetype);
+    data.archetypes.push(archetype);
     let build = as_archetype(build("elf", &times("cleric", 5)), "cleric", "cleric/herald");
     let sheet = engine_on(data).evaluate(&build);
 
@@ -113,7 +111,7 @@ fn an_archetype_row_keeps_the_base_spell_levels_unless_it_sets_its_own() {
 fn effective_row_is_the_archetypes_row_where_it_has_one_and_the_base_row_elsewhere() {
     let data = world();
     let fighter = class_in(&data, "fighter");
-    let armiger = &fighter.archetypes[0];
+    let armiger = data.archetypes_of(&fighter.key).next().unwrap();
 
     let at_1 = effective_row(fighter, Some(armiger), 1).unwrap();
     assert_eq!(at_1.feat_slots, []);

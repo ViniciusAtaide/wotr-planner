@@ -1,0 +1,14 @@
+(
+    key: "see-invisibility",
+    blueprint: "30e5dc243f937fc4b95d2f8f4e1b7ff3",
+    name: "See Invisibility",
+    school: Divination,
+    guide: "wizard-spells#see-invisibility-divination",
+    summary: "You see invisible creatures.",
+    target: "Personal",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

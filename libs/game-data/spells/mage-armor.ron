@@ -1,0 +1,14 @@
+(
+    key: "mage-armor",
+    blueprint: "9e1ad5d6f87d19e4d8883d63a6e35568",
+    name: "Mage Armor",
+    school: Conjuration,
+    guide: "wizard-spells#mage-armor-conjuration",
+    summary: "A field of force gives the target a +4 armour bonus to AC.",
+    target: "One friendly creature within touch range",
+    duration: "1 hour / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

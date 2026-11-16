@@ -1,0 +1,14 @@
+(
+    key: "feather-step",
+    blueprint: "f3c0b267dd17a2a45a40805e31fe3cd1",
+    name: "Feather Step",
+    school: Transmutation,
+    guide: "druid-spells#feather-step-transmutation",
+    summary: "The target ignores the movement penalties of difficult terrain.",
+    target: "One friendly creature within close range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

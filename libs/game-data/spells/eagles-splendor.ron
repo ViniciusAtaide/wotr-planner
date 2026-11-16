@@ -1,0 +1,14 @@
+(
+    key: "eagles-splendor",
+    blueprint: "446f7bf201dc1934f96ac0a26e324803",
+    name: "Eagle's Splendor",
+    school: Transmutation,
+    guide: "wizard-spells#eagles-splendor-transmutation",
+    summary: "+4 enhancement bonus to the target's Charisma.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "oracle/revelations/battle/battlefield-clarity", blueprint: "c0c2b21d83dd2514c98ae8d3684ad981", name: "Battlefield Clarity", summary: "Swift action: reroll the next save against blinding, fear, paralysis, stun and similar with +4 insight; 1/day, 2 at 7th, 3 at 15th.", guide: "oracle#battlefield-clarity", prerequisite: SelectionOption("oracle/mystery/battle"))

@@ -1,0 +1,14 @@
+(
+    key: "unholy-aura",
+    blueprint: "47f9cb1c367a5e4489cfa32fce290f86",
+    name: "Unholy Aura",
+    school: Abjuration,
+    guide: "cleric-spells#unholy-aura-abjuration",
+    summary: "Allies gain +4 deflection AC, +4 resistance on saves, mind-affecting protection and SR 25 vs good; good melee hitters lose 1d6 Strength (Fortitude negates).",
+    target: "All allies within 20'",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [Evil],
+    casting_time: Standard,
+)

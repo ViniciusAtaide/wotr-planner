@@ -1,0 +1,23 @@
+(
+    key: "monk/quarterstaff-master",
+    class: "monk",
+    blueprint: "dde7724382ae4f63aa9786cb9b3b64b2",
+    name: "Quarterstaff Master",
+    summary: "Monk devoted to the quarterstaff, losing most unarmed bonuses and gaining extra staff damage and fixed style strikes.",
+    guide: "monk#quarterstaff-master",
+    levels: [
+        (level: 1, features: ["monk/ac-bonus", "monk/monk-proficiencies", "monk/quarterstaff-master/flurry-of-blows-quarterstaff-master"], feats: ["improved-unarmed-strike", "perfect-strike"], feat_slots: [OneOf(list: "monk/bonus-feats-1")]),
+        (level: 3, features: ["monk/fast-movement", "monk/ki-pool", "monk/ki-power-extra-attack"]),
+        (level: 4, features: ["monk/quarterstaff-master/quarterstaff-damage", "monk/still-mind"], selections: ["monk/ki-power"]),
+        (level: 5, features: ["monk/purity-of-body", "monk/quarterstaff-master/style-strike-trip"]),
+        (level: 7),
+        (level: 8, selections: ["monk/ki-power"]),
+        (level: 9, features: ["monk/improved-evasion", "monk/quarterstaff-master/style-strike-sunder"]),
+        (level: 10, feat_slots: [OneOf(list: "monk/bonus-feats-10")], selections: ["monk/ki-power"]),
+        (level: 12, features: ["monk/quarterstaff-master/quarterstaff-damage"], selections: ["monk/ki-power"]),
+        (level: 13, features: ["monk/quarterstaff-master/style-strike-disarm"]),
+        (level: 16, selections: ["monk/ki-power"]),
+        (level: 17),
+        (level: 20, features: ["monk/ki-power-perfect-self", "monk/quarterstaff-master/quarterstaff-damage"], selections: ["monk/ki-power"]),
+    ],
+)

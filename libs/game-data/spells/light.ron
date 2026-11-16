@@ -1,0 +1,14 @@
+(
+    key: "light",
+    blueprint: "95f206566c5261c42aa5b3e7e0d1e36c",
+    name: "Light",
+    school: Evocation,
+    guide: "wizard-spells#light-evocation",
+    summary: "The target sheds light in a 20 ft radius.",
+    target: "One friendly creature within touch range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

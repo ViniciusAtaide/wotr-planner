@@ -121,10 +121,7 @@ fn rage_option(name: &str) -> String {
 }
 
 fn rage_power_selection() -> &'static rules::FeatureSelection {
-    class("barbarian")
-        .selections
-        .iter()
-        .find(|selection| selection.key.as_str() == RAGE_POWER)
+    DATA.selection(&rules::FeatureSelectionKey::new(RAGE_POWER))
         .expect("the rage power selection")
 }
 
@@ -173,21 +170,13 @@ fn the_skald_and_each_archetype_have_a_rage_power_slot_at_their_tables_levels() 
 fn the_skald_rage_powers_feature_is_gone() {
     let skald = class("skald");
     let feature = "skald/rage-powers";
-    assert!(
-        !skald
-            .features
-            .iter()
-            .chain(skald.archetypes.iter().flat_map(|a| &a.features))
-            .any(|f| f.key.as_str() == feature)
-    );
+    assert!(!DATA.features.iter().any(|f| f.key.as_str() == feature));
     let on_a_row = skald
         .levels
         .iter()
         .map(|row| &row.features)
         .chain(
-            skald
-                .archetypes
-                .iter()
+            DATA.archetypes_of(&skald.key)
                 .flat_map(|a| a.levels.iter().map(|row| &row.features)),
         )
         .flatten()
@@ -202,9 +191,8 @@ fn the_skald_rage_powers_feature_is_gone() {
 fn the_battle_scions_battle_prowess_feature_is_on_row_3_only() {
     // Game: BattleScionArchetype 71d41dd6309ea994886908c34c87ccd9 adds BattleProwessFeature
     // 225940b509289224e83cd900f15b852e at 3 only.
-    let prowess = class("skald")
-        .archetypes
-        .iter()
+    let prowess = DATA
+        .archetypes_of(&class("skald").key)
         .find(|a| a.key.as_str() == BATTLE_SCION)
         .unwrap()
         .levels
@@ -283,9 +271,8 @@ fn a_rage_powers_level_gate_reads_barbarian_skald_primalist_and_shifter_levels()
             );
         }
     }
-    let gated = rage_power_selection()
-        .options
-        .iter()
+    let gated = DATA
+        .options_of(rage_power_selection())
         .filter(|option| format!("{:?}", option.prerequisite).contains("\"skald\""))
         .count();
     assert_eq!(gated, 21);
@@ -488,7 +475,7 @@ fn the_battle_scions_selection_shares_every_rage_power_and_adds_a_teamwork_feat(
     // The shared rage powers are `the_battle_scions_selection_offers_21_rage_powers`'s.
     // Game: BattleProwessSelection 29b480a26a88f9e47a10d8c9fab84ee6 lists the 12 teamwork feats of TeamworkFeat
     // d87e2f6a9278ac04caeb0f93eff95fcb, each once (equivalent model: a repeatable option giving a teamwork feat slot).
-    let [option] = selection.options.as_slice() else {
+    let [option] = DATA.options_of(selection).collect::<Vec<_>>()[..] else {
         panic!("the Battle Scion's selection has one option of its own");
     };
     assert_eq!(option.key.as_str(), TEAMWORK_FEAT);
@@ -584,7 +571,8 @@ fn extra_rage_power_is_closed_to_a_battle_scion_with_no_other_rage_power_selecti
 }
 
 fn any_selection(key: &str) -> &'static rules::FeatureSelection {
-    DATA.selections()
+    DATA.selections
+        .iter()
         .find(|selection| selection.key.as_str() == key)
         .unwrap_or_else(|| panic!("no selection {key}"))
 }

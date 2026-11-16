@@ -1,0 +1,11 @@
+(
+    key: "oracle/mystery/waves",
+    blueprint: "e2f8bd7c45dfb954c8c42b168505c783",
+    name: "Waves",
+    summary: "Waves: Athletics and Mobility as class skills, cold spells from Snowball to Tsunami, and empowered cold spells at 20th.",
+    guide: "oracle#waves",
+    levels: [
+        (level: 1, class_skills: ["athletics", "mobility"]),
+        (level: 20, features: ["oracle/mystery/waves/waves-final-revelation"]),
+    ],
+)

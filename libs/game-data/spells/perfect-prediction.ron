@@ -1,0 +1,14 @@
+(
+    key: "perfect-prediction",
+    blueprint: "45094504ee3041f98ebf97ab1791e3d9",
+    name: "Perfect Prediction",
+    school: Divination,
+    guide: "aeon#perfect-prediction-divination",
+    summary: "The target gains a +2 insight bonus to AC, plus 1 more per six caster levels.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "caustic-eruption",
+    blueprint: "8c29e953190cc67429dc9c701b16b7c2",
+    name: "Caustic Eruption",
+    school: Conjuration,
+    guide: "wizard-spells#caustic-eruption-conjuration",
+    summary: "Deals 1d6 acid damage per caster level to everyone in the area; those who failed the save take 1d6 per two caster levels again on each of the next 2 rounds.",
+    target: "All creatures within 30' burst, centred on caster",
+    duration: "2 rounds",
+    saving_throw: "Reflex half",
+    spell_resistance: false,
+    descriptors: [Acid],
+    casting_time: Standard,
+)

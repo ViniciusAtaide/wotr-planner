@@ -1,0 +1,22 @@
+(
+    key: "sorcerer/empyreal-sorcerer",
+    class: "sorcerer",
+    blueprint: "aa00d945f7cf6c34c909a29a25f2df38",
+    name: "Empyreal Sorcerer",
+    summary: "Wisdom-based sorcerer with the Celestial bloodline's powers, Channel Positive Energy at 9th level and Lore (Religion) as a class skill.",
+    guide: "sorcerer#empyreal-sorcerer",
+    casting_ability: Wisdom,
+    class_skills: ["knowledge-arcana", "lore-religion", "persuasion", "use-magic-device"],
+    levels: [
+        (level: 1, features: ["sorcerer/empyreal-sorcerer/cantrips", "sorcerer/empyreal-sorcerer/empyreal-arcana", "sorcerer/empyreal-sorcerer/heavenly-fire", "sorcerer/empyreal-sorcerer/sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/empyreal-sorcerer/bloodline"]),
+        (level: 3, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-bless"]),
+        (level: 5, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-resist-energy"]),
+        (level: 7, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-protection-from-energy"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 9, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-remove-curse", "sorcerer/empyreal-sorcerer/channel-positive-energy"]),
+        (level: 11, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-flame-strike"]),
+        (level: 13, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-dispel-magic-greater"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 15, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-banishment"]),
+        (level: 17, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-sunburst"]),
+        (level: 19, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-summon-monster-ix"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+    ],
+)

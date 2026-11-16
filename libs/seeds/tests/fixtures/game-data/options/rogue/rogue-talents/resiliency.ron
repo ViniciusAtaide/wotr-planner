@@ -1,0 +1,6 @@
+(
+    key: "rogue/rogue-talents/resiliency",
+    name: "Resiliency",
+    guide: "rogue#resiliency",
+    repeat: Times(2),
+)

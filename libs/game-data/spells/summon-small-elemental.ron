@@ -1,0 +1,14 @@
+(
+    key: "summon-small-elemental",
+    blueprint: "970c6db48ff0c6f43afc9dbb48780d03",
+    name: "Summon Small Elemental",
+    school: Conjuration,
+    guide: "wizard-spells#summon-small-elemental-conjuration",
+    summary: "Calls a Small elemental: air, earth, fire or water.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

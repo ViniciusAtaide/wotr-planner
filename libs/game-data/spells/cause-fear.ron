@@ -1,0 +1,14 @@
+(
+    key: "cause-fear",
+    blueprint: "bd81a3931aa285a4f9844585b5d97e51",
+    name: "Cause Fear",
+    school: Necromancy,
+    guide: "wizard-spells#cause-fear-necromancy",
+    summary: "Frightens the target, or leaves it merely shaken for 1 round if it passes a Will save; creatures of 6 HD or more are immune.",
+    target: "One enemy creature within close range",
+    duration: "1d4 rounds",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

@@ -1,0 +1,12 @@
+(
+    key: "alchemist/grand-discovery",
+    blueprint: "2729af328ab46274394cedc3582d6e98",
+    name: "Grand Discovery",
+    summary: "At 20th level, two normal discoveries plus one grand discovery.",
+    guide: "alchemist#grand-discovery",
+    options: [
+        "alchemist/grand-discovery/awakened-intellect",
+        "alchemist/grand-discovery/fast-healing",
+        "alchemist/grand-discovery/true-mutagen",
+    ],
+)

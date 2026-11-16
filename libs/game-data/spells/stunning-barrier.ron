@@ -1,0 +1,14 @@
+(
+    key: "stunning-barrier",
+    blueprint: "a5ec7892fb1c2f74598b3a82f3fd679f",
+    name: "Stunning Barrier",
+    school: Abjuration,
+    guide: "wizard-spells#stunning-barrier-abjuration",
+    summary: "You get +1 deflection AC and +1 on saves; a melee attacker must pass a Will save or be stunned 1 round, which discharges the field.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "Will negates stun",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

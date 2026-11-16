@@ -1,0 +1,14 @@
+(
+    key: "summon-natures-ally-iii",
+    blueprint: "fdcf7e57ec44f704591f11b45f4acf61",
+    name: "Summon Nature's Ally III",
+    school: Conjuration,
+    guide: "druid-spells#summon-natures-ally-iii-conjuration",
+    summary: "You summon 1d4+1 mites, 1d3 giant frogs or one leopard.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

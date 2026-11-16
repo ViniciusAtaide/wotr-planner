@@ -1,0 +1,11 @@
+(
+    key: "oracle/mystery/wind",
+    blueprint: "7c1fdd831af747b47bb2cce0051f309b",
+    name: "Wind",
+    summary: "Wind: Mobility and Stealth as class skills, spells from Feather Step to Winds of Vengeance, and empowered electricity spells at 20th.",
+    guide: "oracle#wind",
+    levels: [
+        (level: 1, class_skills: ["mobility", "stealth"]),
+        (level: 20, features: ["oracle/mystery/wind/wind-final-revelation"]),
+    ],
+)

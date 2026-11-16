@@ -1,0 +1,14 @@
+(
+    key: "microscopic-proportions",
+    blueprint: "d6042abe75df262498b6021eb8cc07a5",
+    name: "Microscopic Proportions",
+    school: Transmutation,
+    guide: "trickster#microscopic-proportions-transmutation",
+    summary: "The target shrinks two size categories and gains a +6 size bonus to Dexterity.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

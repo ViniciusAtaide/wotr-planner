@@ -1,0 +1,14 @@
+(
+    key: "summon-natures-ally-vi",
+    blueprint: "55bbce9b3e76d4a4a8c8e0698d29002c",
+    name: "Summon Nature's Ally VI",
+    school: Conjuration,
+    guide: "druid-spells#summon-natures-ally-vi-conjuration",
+    summary: "You summon 1d4+1 dire boars, 1d3 manticores or one smilodon.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

@@ -1,0 +1,14 @@
+(
+    key: "dragon-demand",
+    blueprint: "8af93e330e1642298c88ec6080e5de12",
+    name: "Dragon Demand",
+    school: Enchantment,
+    guide: "gold-dragon#dragon-demand-enchantment",
+    summary: "As Dominate Person, but it works on any creature type and is a fear effect instead of mind-affecting.",
+    target: "Enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: false,
+    descriptors: [Fear],
+    casting_time: Standard,
+)

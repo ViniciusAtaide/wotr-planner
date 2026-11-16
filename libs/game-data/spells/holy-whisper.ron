@@ -1,0 +1,14 @@
+(
+    key: "holy-whisper",
+    blueprint: "5f1ca17be3ba44949be427f18e696d9b",
+    name: "Holy Whisper",
+    school: Evocation,
+    guide: "paladin#holy-whisper-evocation",
+    summary: "Good creatures in the cone get +2 sacred on attacks and saves for 1 round; evil ones are sickened unless they save; evil outsiders, dragons and undead take 2d8.",
+    target: "30' cone",
+    duration: "1 round / level",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Good],
+    casting_time: Standard,
+)

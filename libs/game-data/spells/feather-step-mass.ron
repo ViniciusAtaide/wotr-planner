@@ -1,0 +1,14 @@
+(
+    key: "feather-step-mass",
+    blueprint: "d219494150ac1f24f9ce14a3d4f66d26",
+    name: "Feather Step, Mass",
+    school: Transmutation,
+    guide: "druid-spells#feather-step-mass-transmutation",
+    summary: "Allies in the area ignore the movement penalties of difficult terrain.",
+    target: "All allies within 15' of target point within close range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

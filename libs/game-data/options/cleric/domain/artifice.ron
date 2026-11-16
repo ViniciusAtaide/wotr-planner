@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/artifice",
+    blueprint: "6454b37f50e10ae41bca83aaaa81ffc2",
+    name: "Artifice Domain",
+    summary: "An aura against fatigue that adds DR/- from 8th level; spells from Lead Blades to Clashing Rocks.",
+    guide: "character-creation#artifice-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/artifice/aura-of-efficiency"]),
+        (level: 8, features: ["cleric/domain/artifice/aura-of-efficiency-damage-resistance"]),
+    ],
+)

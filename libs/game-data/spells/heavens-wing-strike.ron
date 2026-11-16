@@ -1,0 +1,14 @@
+(
+    key: "heavens-wing-strike",
+    blueprint: "c6c516e59ca34f34aefb82a850287b97",
+    name: "Heaven's Wing Strike",
+    school: Evocation,
+    guide: "wizard-spells#heavens-wing-strike-evocation",
+    summary: "Creatures in the cone that fail the save are paralysed for 1d4 rounds.",
+    target: "All creatures within a 30' cone",
+    duration: "1d4 rounds",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Good, Sonic],
+    casting_time: Standard,
+)

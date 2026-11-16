@@ -1,0 +1,14 @@
+(
+    key: "solar-chains",
+    blueprint: "52ddf5357c9c67a47b3f324bbb3a979d",
+    name: "Solar Chains",
+    school: Conjuration,
+    guide: "angel#solar-chains-conjuration",
+    summary: "Paralyses the target for the duration unless it saves.",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Reflex negates",
+    spell_resistance: false,
+    descriptors: [Good],
+    casting_time: Standard,
+)

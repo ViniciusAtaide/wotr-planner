@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/liberation",
+    blueprint: "61061faf477d67b43b6dedb3e8f205d7",
+    name: "Liberation",
+    summary: "Minor: Freedom of Movement on yourself for 1 round. Major (10th): Freedom of Movement on all allies within 30' for 1 round.",
+    guide: "warpriest#liberation",
+    domain: "cleric/domain/liberation",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/liberation/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/liberation/major-blessing"]),
+    ],
+)

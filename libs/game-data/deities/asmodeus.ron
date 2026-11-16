@@ -1,0 +1,9 @@
+(
+    key: "asmodeus",
+    blueprint: "a3a5ccc9c670e6f4ca4a686d23b89900",
+    name: "Asmodeus",
+    guide: "character-creation#deities",
+    alignments: [LawfulNeutral, LawfulEvil, NeutralEvil],
+    favoured_weapons: ["heavy-mace"], // the guide says "Mace": the weapons have a light and a heavy one (ticket 86, question 9)
+    domains: ["cleric/domain/evil", "cleric/domain/fire", "cleric/domain/law", "cleric/domain/magic", "cleric/domain/trickery"],
+)

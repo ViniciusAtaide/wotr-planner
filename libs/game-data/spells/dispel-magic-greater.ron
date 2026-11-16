@@ -1,0 +1,13 @@
+(
+    key: "dispel-magic-greater",
+    blueprint: "f0f761b808dc4b149b08eaf44b99f633",
+    name: "Dispel Magic, Greater",
+    school: Abjuration,
+    guide: "wizard-spells#dispel-magic-greater-abjuration",
+    summary: "Removes one spell effect from everything in a 20 ft burst, or several effects from one creature.",
+    target: "One creature within medium range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,19 @@
+(
+    key: "monk/traditional-monk",
+    class: "monk",
+    blueprint: "8f3242d209994884bbb6c0999660f4df",
+    name: "Traditional Monk",
+    summary: "Monk with good saves in all three and a fixed set of ki powers.",
+    guide: "monk#traditional-monk",
+    levels: [
+        (level: 4, features: ["monk/still-mind", "monk/stunning-fist-fatigue"]),
+        (level: 6, features: ["monk/traditional-monk/ki-power-wholeness-of-body"], feat_slots: [OneOf(list: "monk/bonus-feats-6")]),
+        (level: 8, features: ["monk/stunning-fist-sicken", "monk/traditional-monk/ki-power-abundant-step"]),
+        (level: 10, features: ["monk/ki-strike-lawful", "monk/traditional-monk/ki-power-diamond-body"], feat_slots: [OneOf(list: "monk/bonus-feats-10")]),
+        (level: 12, features: ["monk/traditional-monk/ki-power-diamond-soul"]),
+        (level: 14, features: ["monk/traditional-monk/ki-power-quivering-palm"], feat_slots: [OneOf(list: "monk/bonus-feats-10")]),
+        (level: 16, features: ["monk/ki-strike-adamantine"]),
+        (level: 18, feat_slots: [OneOf(list: "monk/bonus-feats-10")]),
+        (level: 20, features: ["monk/ki-power-perfect-self"]),
+    ],
+)

@@ -1,0 +1,7 @@
+(
+    key: "aldori-dueling-mastery",
+    name: "Aldori Dueling Mastery",
+    category: Weapon,
+    guide: "feats#aldori-dueling-mastery",
+    prerequisite: FeatFor(feat: "weapon-focus", value: Weapon("dueling-sword")),
+)

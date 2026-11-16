@@ -1,0 +1,13 @@
+(
+    key: "lich/skeletal-champion",
+    blueprint: "a9b91b7f3fd9bbd49a942a4b2e98cb11",
+    name: "Skeletal Champion",
+    summary: "From rank 3, a Skeletal Champion companion in one of four fighting styles.",
+    guide: "lich#skeletal-champion",
+    options: [
+        "lich/skeletal-champion/skeletal-assassin",
+        "lich/skeletal-champion/skeletal-executioner",
+        "lich/skeletal-champion/skeletal-marksman",
+        "lich/skeletal-champion/skeletal-vanguard",
+    ],
+)

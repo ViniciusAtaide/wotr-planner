@@ -1,0 +1,14 @@
+(
+    key: "greater-command",
+    blueprint: "cb15cc8d7a5480648855a23b3ba3f93d",
+    name: "Greater Command",
+    school: Enchantment,
+    guide: "cleric-spells#greater-command-enchantment",
+    summary: "Works like Command on up to one creature per caster level for 1d4 rounds, with a new save each round.",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

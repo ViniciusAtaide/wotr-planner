@@ -1,0 +1,19 @@
+(
+    key: "druid/domain",
+    blueprint: "5edfe84c93823d04f8c40ca2b4e0f039",
+    name: "Domain",
+    summary: "Choose a domain and gain its domain abilities.",
+    guide: "druid",
+    option_levels: ["druid"],
+    options: [],
+    shared_options: [
+        "cleric/domain/air",
+        "cleric/domain/animal",
+        "cleric/domain/earth",
+        "cleric/domain/fire",
+        "cleric/domain/ice",
+        "cleric/domain/plant",
+        "cleric/domain/water",
+        "cleric/domain/weather",
+    ],
+)

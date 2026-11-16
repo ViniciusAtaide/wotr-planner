@@ -1,0 +1,15 @@
+(
+    key: "inquisitor/faith-hunter",
+    class: "inquisitor",
+    blueprint: "ac87f40932cfd324c90b441f93857c40",
+    name: "Faith Hunter",
+    summary: "Inquisitor who smites a hated alignment instead of having a domain.",
+    guide: "inquisitor#faith-hunter",
+    levels: [
+        (level: 1, features: ["inquisitor/faith-hunter/orisons", "inquisitor/faith-hunter/sworn-enemy", "inquisitor/inquisitor-proficiencies", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/judgment"]),
+        (level: 6, features: ["inquisitor/faith-hunter/sworn-enemy-smite"], feat_slots: [Category(Teamwork)]),
+        (level: 10, features: ["inquisitor/faith-hunter/sworn-enemy-smite"]),
+        (level: 14, features: ["inquisitor/exploit-weakness", "inquisitor/faith-hunter/sworn-enemy-smite"]),
+        (level: 18, features: ["inquisitor/faith-hunter/sworn-enemy-smite"], feat_slots: [Category(Teamwork)]),
+    ],
+)

@@ -1,0 +1,14 @@
+(
+    key: "perfect-form",
+    blueprint: "91d04f9180e94065ac768959323d2002",
+    name: "Perfect Form",
+    school: Transmutation,
+    guide: "aeon#perfect-form-transmutation",
+    summary: "Each of the target's ability scores rises to match its highest one; an interface bug shows the spell without a name, but it can still be picked.",
+    target: "One friendly creature within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

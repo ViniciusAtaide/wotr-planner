@@ -1,0 +1,4 @@
+(
+    why: "A placeholder for the held bloodline's spell at this spell level: the game has one blueprint per bloodline and grants the held one's.",
+    entry: (key: "bloodrager/reformed-fiend/bloodline-spell-4th", name: "Bloodline Spell (4th)", summary: "At 16th level, adds your bloodline's 4th-level spell to your spells known.", guide: "bloodrager#reformed-fiend"),
+)

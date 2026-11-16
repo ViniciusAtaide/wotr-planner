@@ -1,0 +1,11 @@
+(
+    key: "wizard/school/diviner",
+    blueprint: "d7d18ce5c24bd324d96173fdc3309646",
+    name: "Diviner",
+    summary: "Divination specialist: Forewarned, Diviner's Fortune and Foretell.",
+    guide: "wizard#diviner",
+    levels: [
+        (level: 1, features: ["wizard/school/diviner/diviners-fortune", "wizard/school/diviner/forewarned"]),
+        (level: 8, features: ["wizard/school/diviner/foretell"]),
+    ],
+)

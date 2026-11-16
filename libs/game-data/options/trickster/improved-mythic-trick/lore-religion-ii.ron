@@ -1,0 +1,1 @@
+(key: "trickster/improved-mythic-trick/lore-religion-ii", blueprint: "fd158d5f035346288776f18e76f6721e", name: "Lore (Religion) II", summary: "Choose two domains: gain their powers and cast their spells of levels below your mythic rank once a day each.", guide: "trickster#lore-religion-ii", prerequisite: SelectionOption("trickster/mythic-trick/lore-religion-i"))

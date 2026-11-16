@@ -1,0 +1,14 @@
+(
+    key: "fire-storm",
+    blueprint: "e3d0dfe1c8527934294f241e0ae96a8d",
+    name: "Fire Storm",
+    school: Evocation,
+    guide: "cleric-spells#fire-storm-evocation",
+    summary: "Enemies in the area take 1d6 fire per level (max 20d6); those failing the first Reflex save catch fire for 4d6 a round until they make the save.",
+    target: "All enemies within 40' of target point within medium range",
+    duration: "1+ rounds",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

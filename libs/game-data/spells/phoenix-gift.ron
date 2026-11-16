@@ -1,0 +1,14 @@
+(
+    key: "phoenix-gift",
+    blueprint: "af92783492851f445abb2c01d346c376",
+    name: "Phoenix Gift",
+    school: Abjuration,
+    guide: "angel#phoenix-gift-abjuration",
+    summary: "If the target would drop below 0 HP, it heals to full instead and deals 1d6 fire per caster level to enemies within 20 ft.",
+    target: "One friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

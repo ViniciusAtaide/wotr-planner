@@ -1,0 +1,1 @@
+(key: "paladin/mercy/exhausted", blueprint: "25641bda25467224e930e8c70eaf9a83", name: "Exhausted", summary: "From 9th level, needs the Fatigued mercy: Lay on Hands also removes exhaustion.", guide: "paladin#mercy", prerequisite: All([ClassLevel(class: "paladin", level: 9), SelectionOption("paladin/mercy/fatigued")]))

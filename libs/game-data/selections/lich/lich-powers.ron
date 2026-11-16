@@ -1,0 +1,22 @@
+(
+    key: "lich/lich-powers",
+    blueprint: "1f646b820a37d3d4a8ab116a24ee0022",
+    name: "Lich Powers",
+    summary: "At ranks 3, 6 and 9, choose a Lich power.",
+    guide: "lich#lich-powers",
+    options: [
+        "lich/lich-powers/deadly-magic",
+        "lich/lich-powers/death-of-elements",
+        "lich/lich-powers/death-rush",
+        "lich/lich-powers/decaying-touch",
+        "lich/lich-powers/eclipse-chill",
+        "lich/lich-powers/fear-control",
+        "lich/lich-powers/indestructible-bones",
+        "lich/lich-powers/magic-devourer",
+        "lich/lich-powers/negative-energy-mastery",
+        "lich/lich-powers/tainted-sneak-attack",
+        "lich/lich-powers/undead-mount",
+        "lich/lich-powers/weapon-of-death",
+        "lich/lich-powers/withering-life",
+    ],
+)

@@ -1,0 +1,23 @@
+(
+    key: "paladin/divine-scion",
+    class: "paladin",
+    blueprint: "5ce3a2f8eae64cf2ba83865711e53e27",
+    name: "Divine Scion",
+    summary: "Paladin with Studied Target and sneak attack instead of Smite Evil and Divine Bond; Perception and 3 skill points per level.",
+    guide: "paladin#divine-scion",
+    skill_points: 3,
+    class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "perception", "persuasion"],
+    levels: [
+        (level: 1, features: ["paladin/alignment-restriction", "paladin/divine-scion/studied-target"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 4, features: ["paladin/channel-positive-energy"]),
+        (level: 5, features: ["paladin/divine-scion/divine-insight", "paladin/divine-scion/sneak-attack", "paladin/divine-scion/studied-target"]),
+        (level: 7, features: ["paladin/divine-scion/studied-target-swift"]),
+        (level: 10, features: ["paladin/divine-scion/sneak-attack", "paladin/divine-scion/studied-target"]),
+        (level: 11),
+        (level: 13),
+        (level: 15, features: ["paladin/divine-scion/sneak-attack", "paladin/divine-scion/studied-target"], selections: ["paladin/mercy"]),
+        (level: 16),
+        (level: 19),
+        (level: 20, features: ["paladin/divine-scion/sneak-attack", "paladin/divine-scion/studied-target", "paladin/holy-champion"]),
+    ],
+)

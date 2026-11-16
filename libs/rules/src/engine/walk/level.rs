@@ -348,7 +348,9 @@ impl<'a> Walker<'a> {
             .start
             .subrace
             .as_ref()
-            .and_then(|key| race.subraces.iter().find(|subrace| &subrace.key == key));
+            .and_then(|key| self.engine.catalog.subrace(key))
+            .filter(|(owner, _)| owner.key == race.key)
+            .map(|(_, subrace)| subrace);
         match subrace {
             Some(subrace) => &subrace.feat_slots,
             None => &race.feat_slots,
@@ -392,7 +394,6 @@ impl<'a> Walker<'a> {
             && defined
                 .options
                 .iter()
-                .map(|option| &option.key)
                 .chain(&defined.shared_options)
                 .any(|option| self.state.option_count(option) > 0)
         {

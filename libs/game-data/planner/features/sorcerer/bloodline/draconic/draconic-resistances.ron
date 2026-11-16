@@ -1,0 +1,4 @@
+(
+    why: "The game has one blueprint per dragon colour, element, energy, form or bloodline, none of them primary; the planner holds one entry for whichever is held.",
+    entry: (key: "sorcerer/bloodline/draconic/draconic-resistances", name: "Draconic Resistances", summary: "Resistance 5 to your dragon's element and +1 natural armor at 3rd level, 10 and +2 at 9th, and +4 natural armor at 15th.", guide: "sorcerer#draconic"),
+)

@@ -1,0 +1,1 @@
+(key: "paladin/mercy/poisoned", blueprint: "19f936eb38c3d224988e2a02cbe12878", name: "Poisoned", summary: "From 9th level, Lay on Hands also removes poison.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 9))

@@ -25,10 +25,8 @@ impl Engine {
         let lean = lean.as_ref();
         let mut options = Vec::new();
         for race in self.races() {
-            let subraces = race
-                .subraces
-                .iter()
-                .map(|subrace| Some(subrace.key.clone()));
+            let subraces =
+                (self.catalog.subraces_of(&race.key)).map(|subrace| Some(subrace.key.clone()));
             for subrace in std::iter::once(None).chain(subraces) {
                 let mut start = BuildStart {
                     race: Some(race.key.clone()),

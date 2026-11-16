@@ -16,8 +16,8 @@ use crate::bonus::{BonusAmount, BonusItem, BonusTarget, BonusType, SpellScope};
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
     AbilityBonus, Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION,
-    Feat, FeatList, FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom,
-    MythicPath, Save, SpellLevels, StepLevel, WeaponProficiency,
+    Feat, FeatList, FeatSlot, FeatValue, Feature, GameData, LevelFrom, MythicPath, Save,
+    SpellLevels, StepLevel, WeaponProficiency,
 };
 use crate::gear::GearTarget;
 use crate::keys::{
@@ -162,8 +162,9 @@ pub enum DataIssue {
         n: u8,
         children: usize,
     },
-    /// A selection option whose key doesn't start with its selection's key and a `/`.
-    OptionOutsideItsSelection,
+    /// A selection option that no selection defines ([`FeatureSelection::options`]), or that more than one does: the
+    /// count of selections defining it.
+    OptionNotDefinedOnce(usize),
     /// A Character level outside 1..=40.
     LevelOutOfRange(u8),
     /// A Mythic rank outside 1..=10, or a kept rank at or after the switch rank.
@@ -200,9 +201,6 @@ pub enum DataIssue {
     /// another owner's list. Class and archetype level rows may name any bonus list; a race only its own (the
     /// half-elf's Adaptability), a path's rank rows only the path's own (Gold Dragon's Dragon Feats).
     MisplacedBonusList,
-    /// A feature, selection or feat list whose key doesn't start with its owner's key (the class, archetype or
-    /// path that defines it) and a `/`.
-    KeyOutsideItsOwner,
     /// A feat list of fewer than two feats: a lone feat is granted, not picked.
     FeatListTooShort,
     /// A list of every feat that also names feats of its own.
@@ -338,7 +336,8 @@ pub enum DataIssue {
     MalformedBlueprint,
     /// A filtered pool filtered by itself.
     FilteredByItself,
-    /// A selection levelled by the Mythic ranks reached ([`LevelFrom::MythicRanks`]) that isn't a path's.
+    /// A selection levelled by the Mythic ranks reached ([`LevelFrom::MythicRanks`]) that no path's rank row grants,
+    /// directly or through the rows of an option it offers.
     MythicRanksOffAPath,
     /// A feature with two ability bonuses of one kind (and, for a fixed one, one ability).
     AbilityBonusTwice,
@@ -369,9 +368,10 @@ impl fmt::Display for DataProblem {
             DataIssue::AtLeastOutOfRange { n, children } => {
                 write!(f, "\"at least {n}\" of {children} prerequisites")
             }
-            DataIssue::OptionOutsideItsSelection => {
-                f.write_str("the option's key doesn't start with its selection's key")
-            }
+            DataIssue::OptionNotDefinedOnce(count) => write!(
+                f,
+                "{count} selections define the option among their own options; one must"
+            ),
             DataIssue::LevelOutOfRange(level) => {
                 write!(f, "level {level} is outside 1..={MAX_CHARACTER_LEVEL}")
             }
@@ -413,9 +413,6 @@ impl fmt::Display for DataProblem {
                 "a feat slot that ignores prerequisites is granted outside a class's level rows from a list \
                  that isn't the grantor's own",
             ),
-            DataIssue::KeyOutsideItsOwner => {
-                f.write_str("the key doesn't start with its owner's key")
-            }
             DataIssue::FeatListTooShort => {
                 f.write_str("a list of fewer than two feats; grant a lone feat instead")
             }
@@ -579,10 +576,7 @@ impl fmt::Display for DataProblem {
             }
             DataIssue::EmptyText(what) => write!(f, "the {what} is empty"),
             DataIssue::SharesOwnOption(option) => {
-                write!(
-                    f,
-                    "shares {option}, which is keyed under the selection itself"
-                )
+                write!(f, "shares {option}, which is one of its own options")
             }
         }
     }
@@ -593,7 +587,8 @@ impl GameData {
     pub fn check(&self) -> Vec<DataProblem> {
         let mut check = Checker {
             lists: self
-                .feat_lists()
+                .feat_lists
+                .iter()
                 .map(|list| (list.key.clone(), list.ignores_prerequisites))
                 .collect(),
             parameters: self
@@ -607,10 +602,15 @@ impl GameData {
                 .map(|weapon| (weapon.key.clone(), weapon.proficiency))
                 .collect(),
             domains: self
-                .selections()
+                .selections
+                .iter()
                 .filter(|selection| selection.key.as_str() == DOMAIN_SELECTION)
-                .flat_map(|selection| &selection.options)
-                .map(|option| option.key.clone())
+                .flat_map(|selection| selection.options.iter().cloned())
+                .collect(),
+            archetype_classes: self
+                .archetypes
+                .iter()
+                .map(|archetype| (archetype.key.clone(), archetype.class.clone()))
                 .collect(),
             ..Checker::default()
         };
@@ -618,18 +618,18 @@ impl GameData {
         for race in &self.races {
             let at = DataAt::Race(race.key.clone());
             check.key(&at);
-            check.owned(race.key.as_str(), false, &[], &[], &race.feat_lists);
             check.no_bonus_list(&at, &race.feat_slots, Some(race.key.as_str()));
             check.names_each(&at, &race.weapons, DataAt::Weapon);
             check.names_each(&at, &race.weapons_as_martial, DataAt::Weapon);
-            for subrace in &race.subraces {
-                let at = DataAt::Subrace(subrace.key.clone());
-                check.key(&at);
-                check.names_each(&at, &subrace.weapons, DataAt::Weapon);
-                check.names_each(&at, &subrace.weapons_as_martial, DataAt::Weapon);
-                // A subrace's slots replace the race's, so they may name the race's own lists.
-                check.no_bonus_list(&at, &subrace.feat_slots, Some(race.key.as_str()));
-            }
+        }
+        for subrace in &self.subraces {
+            let at = DataAt::Subrace(subrace.key.clone());
+            check.key(&at);
+            check.names(&at, DataAt::Race(subrace.race.clone()));
+            check.names_each(&at, &subrace.weapons, DataAt::Weapon);
+            check.names_each(&at, &subrace.weapons_as_martial, DataAt::Weapon);
+            // A subrace's slots replace the race's, so they may name the race's own lists.
+            check.no_bonus_list(&at, &subrace.feat_slots, Some(subrace.race.as_str()));
         }
         for skill in &self.skills {
             check.key(&DataAt::Skill(skill.key.clone()));
@@ -658,11 +658,21 @@ impl GameData {
             check.prerequisite(&at, feat.prerequisite.as_ref(), feat.parameter);
         }
         for class in &self.classes {
-            check.class(class, false);
+            check.class(self, class, false);
         }
         for class in &self.prestige_classes {
-            check.class(class, true);
+            check.class(self, class, true);
         }
+        for archetype in &self.archetypes {
+            check.archetype(self, archetype);
+        }
+        for feature in &self.features {
+            check.feature(feature);
+        }
+        for list in &self.feat_lists {
+            check.feat_list(list);
+        }
+        check.selections(self);
         for ability in &self.mythic_abilities {
             let at = DataAt::MythicAbility(ability.key.clone());
             check.key(&at);
@@ -726,7 +736,7 @@ impl GameData {
         check.option_levels(self);
         check.unknown_keys(self);
         check.blueprints(self);
-        for list in self.feat_lists() {
+        for list in &self.feat_lists {
             if !check.named_lists.contains(&list.key) {
                 check.problem(
                     &DataAt::FeatList(list.key.clone()),
@@ -752,24 +762,15 @@ impl GameData {
             };
         }
         each!(&self.races, DataAt::Race);
-        each!(
-            self.races.iter().flat_map(|race| &race.subraces),
-            DataAt::Subrace
-        );
+        each!(&self.subraces, DataAt::Subrace);
         each!(&self.weapons, DataAt::Weapon);
         each!(&self.feats, DataAt::Feat);
         each!(self.all_classes(), DataAt::Class);
-        each!(
-            self.all_classes().flat_map(|class| &class.archetypes),
-            DataAt::Archetype
-        );
-        each!(self.features(), DataAt::Feature);
-        each!(self.selections(), DataAt::FeatureSelection);
-        each!(
-            self.selections().flat_map(|selection| &selection.options),
-            DataAt::SelectionOption
-        );
-        each!(self.feat_lists(), DataAt::FeatList);
+        each!(&self.archetypes, DataAt::Archetype);
+        each!(&self.features, DataAt::Feature);
+        each!(&self.selections, DataAt::FeatureSelection);
+        each!(&self.options, DataAt::SelectionOption);
+        each!(&self.feat_lists, DataAt::FeatList);
         each!(&self.mythic_abilities, DataAt::MythicAbility);
         each!(&self.mythic_feats, DataAt::MythicFeat);
         each!(&self.mythic_paths, DataAt::MythicPath);
@@ -830,6 +831,8 @@ struct Checker {
     weapons: HashMap<WeaponKey, Option<WeaponProficiency>>,
     /// The domains: the options of the domain selection.
     domains: HashSet<SelectionOptionKey>,
+    /// Every archetype, with its class.
+    archetype_classes: HashMap<ArchetypeKey, ClassKey>,
     /// The options' old keys, which only the link decoder reads: checked once the walk has seen every key.
     aliases: Vec<SelectionOptionKey>,
     /// Every key an entity names, with the entity: checked against [`keys`](Self::keys) once the walk has seen them
@@ -1010,82 +1013,59 @@ impl Checker {
         }
     }
 
-    /// What `owner` defines: features, selections (and their options) and feat lists, each keyed under it. `path`:
-    /// whether the owner is a Mythic path.
-    fn owned(
-        &mut self,
-        owner: &str,
-        path: bool,
-        features: &[Feature],
-        selections: &[FeatureSelection],
-        lists: &[FeatList],
-    ) {
-        for feature in features {
-            let at = DataAt::Feature(feature.key.clone());
-            self.key(&at);
-            if !owned_by(feature.key.as_str(), owner) {
-                self.problem(&at, DataIssue::KeyOutsideItsOwner);
-            }
-            self.names_each(&at, &feature.weapons, DataAt::Weapon);
-            if let Some(row) = &feature.option_row {
-                self.level(&at, row.level);
-                self.names(&at, DataAt::FeatureSelection(row.selection.clone()));
-            }
-            if let Some(steps) = &feature.steps {
-                let no_class = match &steps.on {
-                    StepLevel::Classes(classes) => {
-                        self.names_each(&at, classes, DataAt::Class);
-                        classes.is_empty()
-                    }
-                    StepLevel::CharacterLevel => false,
-                };
-                if no_class || steps.at.is_empty() {
-                    self.problem(&at, DataIssue::StepsWithoutLevels);
+    /// A feature: the weapons and selection it names, its steps and its ability bonuses.
+    fn feature(&mut self, feature: &Feature) {
+        let at = DataAt::Feature(feature.key.clone());
+        self.key(&at);
+        self.names_each(&at, &feature.weapons, DataAt::Weapon);
+        if let Some(row) = &feature.option_row {
+            self.level(&at, row.level);
+            self.names(&at, DataAt::FeatureSelection(row.selection.clone()));
+        }
+        if let Some(steps) = &feature.steps {
+            let no_class = match &steps.on {
+                StepLevel::Classes(classes) => {
+                    self.names_each(&at, classes, DataAt::Class);
+                    classes.is_empty()
                 }
-                for &level in &steps.at {
-                    self.level(&at, level);
-                }
+                StepLevel::CharacterLevel => false,
+            };
+            if no_class || steps.at.is_empty() {
+                self.problem(&at, DataIssue::StepsWithoutLevels);
             }
-            let mut bonuses = HashSet::new();
-            for bonus in &feature.ability_bonuses {
-                let ability = match bonus {
-                    AbilityBonus::Fixed { ability, .. } => Some(*ability),
-                    _ => None,
-                };
-                if !bonuses.insert((std::mem::discriminant(bonus), ability)) {
-                    self.problem(&at, DataIssue::AbilityBonusTwice);
-                }
+            for &level in &steps.at {
+                self.level(&at, level);
             }
         }
-        for selection in selections {
-            if !owned_by(selection.key.as_str(), owner) {
-                self.problem(
-                    &DataAt::FeatureSelection(selection.key.clone()),
-                    DataIssue::KeyOutsideItsOwner,
-                );
+        let mut bonuses = HashSet::new();
+        for bonus in &feature.ability_bonuses {
+            let ability = match bonus {
+                AbilityBonus::Fixed { ability, .. } => Some(*ability),
+                _ => None,
+            };
+            if !bonuses.insert((std::mem::discriminant(bonus), ability)) {
+                self.problem(&at, DataIssue::AbilityBonusTwice);
             }
         }
-        self.selections(selections, path);
-        for list in lists {
-            let at = DataAt::FeatList(list.key.clone());
-            self.key(&at);
-            if !owned_by(list.key.as_str(), owner) {
-                self.problem(&at, DataIssue::KeyOutsideItsOwner);
+    }
+
+    /// A feat list: the feats it names, and enough of them to pick from.
+    fn feat_list(&mut self, list: &FeatList) {
+        let at = DataAt::FeatList(list.key.clone());
+        self.key(&at);
+        self.names_each(&at, &list.feats, DataAt::Feat);
+        // A list of one parameterised feat is a bonus feat of the player's choosing: the pick names the value.
+        let one_choice = list.feats.len() == 1
+            && list
+                .feats
+                .iter()
+                .all(|feat| self.parameters.get(feat).is_some_and(Option::is_some));
+        if list.every_feat {
+            if !list.feats.is_empty() {
+                self.problem(&at, DataIssue::EveryFeatListWithFeats);
             }
-            self.names_each(&at, &list.feats, DataAt::Feat);
-            // A list of one parameterised feat is a bonus feat of the player's choosing: the pick names the value.
-            let one_choice = list.feats.len() == 1
-                && list
-                    .feats
-                    .iter()
-                    .all(|feat| self.parameters.get(feat).is_some_and(Option::is_some));
-            if list.every_feat {
-                if !list.feats.is_empty() {
-                    self.problem(&at, DataIssue::EveryFeatListWithFeats);
-                }
-            } else if list.feats.len() < 2 && !one_choice {
-                self.problem(&at, DataIssue::FeatListTooShort);
-            }
+        } else if list.feats.len() < 2 && !one_choice {
+            self.problem(&at, DataIssue::FeatListTooShort);
         }
     }
 
@@ -1279,21 +1259,28 @@ impl Checker {
         }
     }
 
-    fn selections(&mut self, selections: &[FeatureSelection], path: bool) {
-        for selection in selections {
+    /// The selections and the options they offer.
+    fn selections(&mut self, data: &GameData) {
+        let of_paths = selections_of_paths(data);
+        let mut defined: HashMap<&SelectionOptionKey, usize> = HashMap::new();
+        for selection in &data.selections {
             let selection_at = DataAt::FeatureSelection(selection.key.clone());
             self.key(&selection_at);
             if selection.filtered_by.as_ref() == Some(&selection.key) {
                 self.problem(&selection_at, DataIssue::FilteredByItself);
             }
-            if selection.level_from == Some(LevelFrom::MythicRanks) && !path {
+            if selection.level_from == Some(LevelFrom::MythicRanks)
+                && !of_paths.contains(&selection.key)
+            {
                 self.problem(&selection_at, DataIssue::MythicRanksOffAPath);
             }
-            for shared in &selection.shared_options {
-                if owned_by(shared.as_str(), selection.key.as_str()) {
-                    self.problem(&selection_at, DataIssue::SharesOwnOption(shared.clone()));
-                }
+            for shared in selection.shared_options.intersection(&selection.options) {
+                self.problem(&selection_at, DataIssue::SharesOwnOption(shared.clone()));
             }
+            for option in &selection.options {
+                *defined.entry(option).or_default() += 1;
+            }
+            self.names_each(&selection_at, &selection.options, DataAt::SelectionOption);
             self.names_each(
                 &selection_at,
                 &selection.shared_options,
@@ -1315,90 +1302,6 @@ impl Checker {
                 &selection.level_also_from,
                 DataAt::SelectionOption,
             );
-            for option in &selection.options {
-                let at = DataAt::SelectionOption(option.key.clone());
-                self.key(&at);
-                self.aliases.extend(option.aliases.iter().cloned());
-                // `rogue/rogue-talents/fast-stealth` extends `rogue/rogue-talents`.
-                if !owned_by(option.key.as_str(), selection.key.as_str()) {
-                    self.problem(&at, DataIssue::OptionOutsideItsSelection);
-                }
-                self.names_each(&at, &option.feats, DataAt::Feat);
-                self.names_each(&at, &option.chosen_feat, DataAt::Feat);
-                for value in &option.values {
-                    self.names_value(&at, value);
-                }
-                self.names_each(&at, &option.replaces_row_of, DataAt::FeatureSelection);
-                self.names_each(&at, &option.arcana, DataAt::Feature);
-                self.names_each(
-                    &at,
-                    option.bab_from_ranks.as_ref().map(|bab| &bab.skill),
-                    DataAt::Skill,
-                );
-                // An option takes a value for its chosen feat, which must take one, or of its own kind.
-                let takes = option.chosen_feat.as_ref().and_then(|feat| {
-                    let kind = self.parameters.get(feat).copied();
-                    if kind == Some(None) {
-                        self.problem(&at, DataIssue::ChosenFeatNotParameterised);
-                    }
-                    kind.flatten()
-                });
-                if option.chosen_feat.is_some() && option.parameter.is_some() {
-                    self.problem(&at, DataIssue::ParameterBesideChosenFeat);
-                }
-                let takes = takes.or(option.parameter);
-                if !option.values.is_empty()
-                    && !takes.is_some_and(|takes| {
-                        option.values.iter().all(|value| self.fits(takes, value))
-                    })
-                {
-                    self.problem(&at, DataIssue::OptionValueOfWrongKind);
-                }
-                // Once per value counts the values its chosen feat is held for (the Skill Focus talents), or those
-                // its own value is (Finesse Training).
-                if option.repeat == Repeat::PerValue {
-                    if option.chosen_feat.is_none() && option.parameter.is_none() {
-                        self.problem(&at, DataIssue::PerValueOptionWithoutValue);
-                    }
-                } else {
-                    self.repeat(&at, option.repeat, false);
-                }
-                self.prerequisite(&at, option.prerequisite.as_ref(), takes);
-                if let Some(domain) = &option.domain {
-                    self.domain(&at, domain);
-                }
-                if let Some(arcana) = &option.arcana
-                    && !option
-                        .levels
-                        .iter()
-                        .any(|row| row.features.contains(arcana))
-                {
-                    self.problem(&at, DataIssue::ArcanaNotInRows(arcana.clone()));
-                }
-                let mut levels = HashSet::new();
-                for row in &option.levels {
-                    self.level(&at, row.level);
-                    if !levels.insert(row.level) {
-                        self.problem(&at, DataIssue::DuplicateOptionRow(row.level));
-                    }
-                    if let Some(list) = &row.feat_list {
-                        self.named_lists.insert(list.clone());
-                        self.names(&at, DataAt::FeatList(list.clone()));
-                    }
-                    self.grants(&at, &row.features, &row.feats, &row.selections);
-                    self.names_each(&at, &row.chosen_feats, DataAt::Feat);
-                    self.names_each(&at, &row.class_skills, DataAt::Skill);
-                    self.slots(&at, &row.feat_slots);
-                    for feat in &row.chosen_feats {
-                        let kind = self.parameters.get(feat).copied().flatten();
-                        if !kind
-                            .is_some_and(|kind| takes.is_some_and(|takes| same_values(kind, takes)))
-                        {
-                            self.problem(&at, DataIssue::RowChosenFeatOfOtherKind(feat.clone()));
-                        }
-                    }
-                }
-            }
             for level in &selection.skipped_levels {
                 self.level(&selection_at, *level);
             }
@@ -1420,17 +1323,99 @@ impl Checker {
                 self.problem(&selection_at, DataIssue::LevelAlsoFromWithoutOtherOptions);
             }
         }
+        for option in &data.options {
+            let at = DataAt::SelectionOption(option.key.clone());
+            self.key(&at);
+            self.aliases.extend(option.aliases.iter().cloned());
+            let count = defined.get(&option.key).copied().unwrap_or(0);
+            if count != 1 {
+                self.problem(&at, DataIssue::OptionNotDefinedOnce(count));
+            }
+            self.names_each(&at, &option.feats, DataAt::Feat);
+            self.names_each(&at, &option.chosen_feat, DataAt::Feat);
+            for value in &option.values {
+                self.names_value(&at, value);
+            }
+            self.names_each(&at, &option.replaces_row_of, DataAt::FeatureSelection);
+            self.names_each(&at, &option.arcana, DataAt::Feature);
+            self.names_each(
+                &at,
+                option.bab_from_ranks.as_ref().map(|bab| &bab.skill),
+                DataAt::Skill,
+            );
+            // An option takes a value for its chosen feat, which must take one, or of its own kind.
+            let takes = option.chosen_feat.as_ref().and_then(|feat| {
+                let kind = self.parameters.get(feat).copied();
+                if kind == Some(None) {
+                    self.problem(&at, DataIssue::ChosenFeatNotParameterised);
+                }
+                kind.flatten()
+            });
+            if option.chosen_feat.is_some() && option.parameter.is_some() {
+                self.problem(&at, DataIssue::ParameterBesideChosenFeat);
+            }
+            let takes = takes.or(option.parameter);
+            if !option.values.is_empty()
+                && !takes
+                    .is_some_and(|takes| option.values.iter().all(|value| self.fits(takes, value)))
+            {
+                self.problem(&at, DataIssue::OptionValueOfWrongKind);
+            }
+            // Once per value counts the values its chosen feat is held for (the Skill Focus talents), or those
+            // its own value is (Finesse Training).
+            if option.repeat == Repeat::PerValue {
+                if option.chosen_feat.is_none() && option.parameter.is_none() {
+                    self.problem(&at, DataIssue::PerValueOptionWithoutValue);
+                }
+            } else {
+                self.repeat(&at, option.repeat, false);
+            }
+            self.prerequisite(&at, option.prerequisite.as_ref(), takes);
+            if let Some(domain) = &option.domain {
+                self.domain(&at, domain);
+            }
+            if let Some(arcana) = &option.arcana
+                && !option
+                    .levels
+                    .iter()
+                    .any(|row| row.features.contains(arcana))
+            {
+                self.problem(&at, DataIssue::ArcanaNotInRows(arcana.clone()));
+            }
+            let mut levels = HashSet::new();
+            for row in &option.levels {
+                self.level(&at, row.level);
+                if !levels.insert(row.level) {
+                    self.problem(&at, DataIssue::DuplicateOptionRow(row.level));
+                }
+                if let Some(list) = &row.feat_list {
+                    self.named_lists.insert(list.clone());
+                    self.names(&at, DataAt::FeatList(list.clone()));
+                }
+                self.grants(&at, &row.features, &row.feats, &row.selections);
+                self.names_each(&at, &row.chosen_feats, DataAt::Feat);
+                self.names_each(&at, &row.class_skills, DataAt::Skill);
+                self.slots(&at, &row.feat_slots);
+                for feat in &row.chosen_feats {
+                    let kind = self.parameters.get(feat).copied().flatten();
+                    if !kind.is_some_and(|kind| takes.is_some_and(|takes| same_values(kind, takes)))
+                    {
+                        self.problem(&at, DataIssue::RowChosenFeatOfOtherKind(feat.clone()));
+                    }
+                }
+            }
+        }
     }
 
     /// A selection offering an option with rows names the classes whose levels make its option level.
     fn option_levels(&mut self, data: &GameData) {
         let with_rows: HashSet<&SelectionOptionKey> = data
-            .selections()
-            .flat_map(|selection| &selection.options)
+            .options
+            .iter()
             .filter(|option| !option.levels.is_empty())
             .map(|option| &option.key)
             .collect();
-        for selection in data.selections() {
+        for selection in &data.selections {
             if selection.levels_by_class() || selection.level_from.is_some() {
                 continue;
             }
@@ -1486,14 +1471,16 @@ impl Checker {
         }
     }
 
-    /// A selection's replacement feature is on no row of the table it belongs to: the class's rows, or the
-    /// archetype's merged over them (`rows`: the features of every row that can apply).
+    /// The replacement feature of a selection a table's rows name (`named`) is on no row of that table: the class's
+    /// rows, or the archetype's merged over them (`rows`: the features of every row that can apply).
     fn replacements_off_the_rows<'r>(
         &mut self,
-        selections: &[FeatureSelection],
+        data: &GameData,
+        named: impl Iterator<Item = &'r FeatureSelectionKey>,
         rows: impl Iterator<Item = &'r Vec<FeatureKey>> + Clone,
     ) {
-        for selection in selections {
+        let named: BTreeSet<&FeatureSelectionKey> = named.collect();
+        for selection in named.into_iter().filter_map(|key| data.selection(key)) {
             for feature in selection.replaced_by.values() {
                 if rows.clone().any(|features| features.contains(feature)) {
                     let at = DataAt::FeatureSelection(selection.key.clone());
@@ -1504,9 +1491,23 @@ impl Checker {
     }
 
     /// An archetype stores only the levels where it differs from its base class, each once.
-    fn archetype_rows(&mut self, at: &DataAt, class: &Class, archetype: &Archetype) {
+    fn archetype_rows(
+        &mut self,
+        data: &GameData,
+        at: &DataAt,
+        class: &Class,
+        archetype: &Archetype,
+    ) {
+        // The selections the class's rows name are checked with the class.
+        let class_selections: HashSet<&FeatureSelectionKey> = class
+            .levels
+            .iter()
+            .flat_map(|row| &row.selections)
+            .collect();
         self.replacements_off_the_rows(
-            &archetype.selections,
+            data,
+            (archetype.levels.iter().flat_map(|row| &row.selections))
+                .filter(|selection| !class_selections.contains(selection)),
             class
                 .levels
                 .iter()
@@ -1566,7 +1567,7 @@ impl Checker {
 
     /// A class or archetype that casts has a casting ability (its own, or its class's), and one that doesn't has
     /// none.
-    fn casting_ability(&mut self, class: &Class, prestige: bool) {
+    fn casting_ability(&mut self, data: &GameData, class: &Class, prestige: bool) {
         let at = DataAt::Class(class.key.clone());
         let own = class.levels.iter().any(|row| row.spell_levels().any());
         let archetype_casts = |archetype: &Archetype| {
@@ -1579,11 +1580,11 @@ impl Checker {
             self.problem(&at, DataIssue::NoCastingAbility);
         }
         if class.casting_ability.is_some()
-            && (prestige || !(own || class.archetypes.iter().any(archetype_casts)))
+            && (prestige || !(own || data.archetypes_of(&class.key).any(archetype_casts)))
         {
             self.problem(&at, DataIssue::CastingAbilityWithoutSpells);
         }
-        for archetype in &class.archetypes {
+        for archetype in data.archetypes_of(&class.key) {
             if archetype_casts(archetype)
                 && archetype
                     .casting_ability
@@ -1698,7 +1699,7 @@ impl Checker {
         }
     }
 
-    fn class(&mut self, class: &Class, prestige: bool) {
+    fn class(&mut self, data: &GameData, class: &Class, prestige: bool) {
         let at = DataAt::Class(class.key.clone());
         self.key(&at);
         self.names_each(&at, &class.class_skills, DataAt::Skill);
@@ -1710,16 +1711,10 @@ impl Checker {
         }
         self.prerequisite(&at, class.prerequisite.as_ref(), None);
         self.alignment_on_its_own(&at, class.prerequisite.as_ref());
-        self.owned(
-            class.key.as_str(),
-            false,
-            &class.features,
-            &class.selections,
-            &class.feat_lists,
-        );
         self.rows(&at, &class.levels, prestige);
         self.replacements_off_the_rows(
-            &class.selections,
+            data,
+            class.levels.iter().flat_map(|row| &row.selections),
             class.levels.iter().map(|row| &row.features),
         );
         self.save_exceptions(&at, class, prestige);
@@ -1736,28 +1731,38 @@ impl Checker {
         {
             self.problem(&at, DataIssue::CountsAsItself);
         }
-        if prestige && !class.archetypes.is_empty() {
+        if prestige && data.archetypes_of(&class.key).next().is_some() {
             self.problem(&at, DataIssue::ArchetypeOnPrestigeClass);
         }
-        self.casting_ability(class, prestige);
-        for archetype in &class.archetypes {
-            let at = DataAt::Archetype(archetype.key.clone());
-            self.key(&at);
-            self.names_each(&at, archetype.class_skills.iter().flatten(), DataAt::Skill);
-            self.prerequisite(&at, archetype.prerequisite.as_ref(), None);
-            self.alignment_on_its_own(&at, archetype.prerequisite.as_ref());
-            self.owned(
-                archetype.key.as_str(),
-                false,
-                &archetype.features,
-                &archetype.selections,
-                &archetype.feat_lists,
-            );
-            self.archetype_rows(&at, class, archetype);
-            for save in Save::ALL {
-                if archetype.save_progression(save) == Some(class.save_progression(save)) {
-                    self.problem(&at, DataIssue::SaveProgressionSameAsClass(save));
-                }
+        self.casting_ability(data, class, prestige);
+    }
+
+    /// An archetype: what it names, and its rows and saves against its base class's.
+    fn archetype(&mut self, data: &GameData, archetype: &Archetype) {
+        let at = DataAt::Archetype(archetype.key.clone());
+        self.key(&at);
+        self.names(&at, DataAt::Class(archetype.class.clone()));
+        self.names_each(&at, archetype.class_skills.iter().flatten(), DataAt::Skill);
+        self.prerequisite(&at, archetype.prerequisite.as_ref(), None);
+        self.alignment_on_its_own(&at, archetype.prerequisite.as_ref());
+        // An archetype of a prestige class is the class's problem; one of no class, an unknown key, whose rows are
+        // checked on their own.
+        let Some(class) = data
+            .classes
+            .iter()
+            .find(|class| class.key == archetype.class)
+        else {
+            for row in &archetype.levels {
+                self.grants(&at, &row.features, &row.feats, &row.selections);
+                self.slots(&at, &row.feat_slots);
+                self.feats_for(&at, &row.feats_for);
+            }
+            return;
+        };
+        self.archetype_rows(data, &at, class, archetype);
+        for save in Save::ALL {
+            if archetype.save_progression(save) == Some(class.save_progression(save)) {
+                self.problem(&at, DataIssue::SaveProgressionSameAsClass(save));
             }
         }
     }
@@ -1784,10 +1789,6 @@ impl Checker {
     fn spell_list(&mut self, list: &SpellList) {
         let at = DataAt::SpellList(list.key.clone());
         self.key(&at);
-        let owner = list.owner.key();
-        if list.key.as_str() != owner && !owned_by(list.key.as_str(), owner) {
-            self.problem(&at, DataIssue::KeyOutsideItsOwner);
-        }
         let caster_at = |caster: &SpellCaster| match caster {
             SpellCaster::Class(key) => DataAt::Class(key.clone()),
             SpellCaster::Archetype(key) => DataAt::Archetype(key.clone()),
@@ -1822,7 +1823,7 @@ impl Checker {
                         .chain(&list.used_by)
                         .any(|caster| match caster {
                             SpellCaster::Class(class) => {
-                                owned_by(archetype.as_str(), class.as_str())
+                                self.archetype_classes.get(archetype) == Some(class)
                             }
                             SpellCaster::Archetype(_) | SpellCaster::Path(_) => false,
                         })
@@ -1855,11 +1856,11 @@ impl Checker {
     /// the domain they stand for. An unknown shared key is an unknown key of its own.
     fn deity_limits(&mut self, data: &GameData) {
         let named: HashMap<&SelectionOptionKey, bool> = data
-            .selections()
-            .flat_map(|selection| &selection.options)
+            .options
+            .iter()
             .map(|option| (&option.key, option.domain.is_some()))
             .collect();
-        for selection in data.selections() {
+        for selection in &data.selections {
             if selection.deity_domains.is_none() {
                 continue;
             }
@@ -1880,18 +1881,17 @@ impl Checker {
     fn favoured_weapon_features(&mut self, data: &GameData) {
         let granted: HashSet<&FeatureKey> = data
             .all_classes()
-            .flat_map(|class| {
-                class.levels.iter().flat_map(|row| &row.features).chain(
-                    class
-                        .archetypes
-                        .iter()
-                        .flat_map(|archetype| &archetype.levels)
-                        .flat_map(|row| &row.features),
-                )
-            })
+            .flat_map(|class| class.levels.iter().flat_map(|row| &row.features))
+            .chain(
+                data.archetypes
+                    .iter()
+                    .flat_map(|archetype| &archetype.levels)
+                    .flat_map(|row| &row.features),
+            )
             .collect();
         let favoured = data
-            .features()
+            .features
+            .iter()
             .filter(|feature| feature.favoured_weapon_proficiency);
         for feature in favoured {
             if !granted.contains(&feature.key) {
@@ -1918,7 +1918,7 @@ impl Checker {
                     .levels
                     .iter()
                     .any(|row| row.features.contains(feature))
-                    || other.archetypes.iter().any(|archetype| {
+                    || data.archetypes_of(&other.key).any(|archetype| {
                         archetype
                             .levels
                             .iter()
@@ -1937,13 +1937,6 @@ impl Checker {
     fn path(&mut self, path: &MythicPath, switches: &HashSet<&MythicPathKey>) {
         let at = DataAt::MythicPath(path.key.clone());
         self.key(&at);
-        self.owned(
-            path.key.as_str(),
-            true,
-            &path.features,
-            &path.selections,
-            &path.feat_lists,
-        );
         let mut ranks = HashSet::new();
         for row in &path.ranks {
             self.rank(&at, row.rank);
@@ -1985,6 +1978,34 @@ impl Checker {
             }
         }
     }
+}
+
+/// The selections a Mythic path's rank rows grant, and the selections the rows of the options they offer grant, and
+/// so on.
+fn selections_of_paths(data: &GameData) -> HashSet<FeatureSelectionKey> {
+    let mut found: HashSet<FeatureSelectionKey> = HashSet::new();
+    let mut next: Vec<&FeatureSelectionKey> = data
+        .mythic_paths
+        .iter()
+        .flat_map(|path| &path.ranks)
+        .flat_map(|row| &row.selections)
+        .collect();
+    while let Some(key) = next.pop() {
+        if !found.insert(key.clone()) {
+            continue;
+        }
+        let Some(selection) = data.selection(key) else {
+            continue;
+        };
+        for option in selection.offered() {
+            let rows = data
+                .selection_option(option)
+                .into_iter()
+                .flat_map(|o| &o.levels);
+            next.extend(rows.flat_map(|row| &row.selections));
+        }
+    }
+    found
 }
 
 /// Whether two kinds take the same sort of value: a weapon is a weapon whether the feat takes any or only exotic

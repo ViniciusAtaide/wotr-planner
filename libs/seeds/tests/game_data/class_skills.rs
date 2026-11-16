@@ -197,8 +197,8 @@ fn a_sorcerer_holds_its_bloodlines_class_skill() {
 /// Every option row's class skills, as `option level: skills`.
 fn option_row_class_skills() -> Vec<(String, u8, Vec<String>)> {
     let mut rows = Vec::new();
-    for selection in DATA.class_selections() {
-        for option in &selection.options {
+    for selection in all_class_grants().selections {
+        for option in DATA.options_of(selection) {
             for row in &option.levels {
                 if !row.class_skills.is_empty() {
                     rows.push((
@@ -327,8 +327,9 @@ fn the_animal_domains_class_skill_is_on_its_first_row() {
 
 #[test]
 fn no_feature_stands_for_a_fixed_class_skill() {
-    let features: Vec<(&str, &str)> = DATA
-        .class_features()
+    let features: Vec<(&str, &str)> = all_class_grants()
+        .features
+        .into_iter()
         .map(|feature| (feature.key.as_str(), feature.name.as_str()))
         .filter(|(_, name)| name.starts_with("Class Skill") || *name == "Skills")
         .collect();
@@ -446,10 +447,8 @@ fn an_overwhelming_mage_and_a_seeker_hold_their_bloodlines_class_skill_and_no_cl
             );
         }
         let defined = DATA
-            .classes
+            .features
             .iter()
-            .flat_map(|class| class.archetypes.iter())
-            .flat_map(|a| &a.features)
             .any(|feature| feature.key.as_str() == format!("{archetype}/class-skill"));
         assert!(!defined, "{archetype}/class-skill is still defined");
     }

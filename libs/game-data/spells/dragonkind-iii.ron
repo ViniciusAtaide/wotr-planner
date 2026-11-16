@@ -1,0 +1,14 @@
+(
+    key: "dragonkind-iii",
+    blueprint: "1cdc4ad4c208246419b98a35539eafa6",
+    name: "Dragonkind III",
+    school: Transmutation,
+    guide: "wizard-spells#dragonkind-iii-transmutation",
+    summary: "You become a Huge dragon-like creature: +10 Strength, +8 Constitution, +8 natural armour, DR 10/magic, energy immunity and a 12d8 breath twice a day.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

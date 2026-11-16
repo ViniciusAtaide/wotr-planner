@@ -1,0 +1,7 @@
+(
+    key: "combat-expertise",
+    name: "Combat Expertise",
+    category: CombatManoeuvres,
+    guide: "feats#combat-expertise",
+    prerequisite: AbilityScore(ability: Intelligence, score: 13),
+)

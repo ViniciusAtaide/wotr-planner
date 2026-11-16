@@ -1,0 +1,1 @@
+(key: "inquisitor/living-grimoire/spellbook", blueprint: "852a5e27a83445769d9928371537e700", name: "Spellbook", summary: "Prepares known spells with Warpriest slots, learning 3 + Int spells at 1st level and 2 per level; Int sets domain DCs and uses.", guide: "inquisitor#spellbook")

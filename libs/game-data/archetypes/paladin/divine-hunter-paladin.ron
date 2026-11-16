@@ -1,0 +1,18 @@
+(
+    key: "paladin/divine-hunter-paladin",
+    class: "paladin",
+    blueprint: "fec08c1a3187da549abd6b85f27e4432",
+    name: "Divine Hunter (Paladin)",
+    summary: "Ranged Dexterity and Charisma paladin with no heavy armour or mount.",
+    guide: "paladin#divine-hunter-paladin",
+    levels: [
+        (level: 1, features: ["paladin/alignment-restriction", "paladin/smite-evil"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "precise-shot", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 3, features: ["paladin/divine-health", "paladin/divine-hunter-paladin/shared-precision"], selections: ["paladin/mercy"]),
+        (level: 5, features: ["paladin/divine-hunter-paladin/divine-hunter-bond"]),
+        (level: 6, features: ["paladin/divine-hunter-paladin/distant-mercy"]),
+        (level: 8, features: ["paladin/divine-hunter-paladin/aura-of-clear-sight"]),
+        (level: 11, features: ["paladin/divine-hunter-paladin/hunters-blessing"]),
+        (level: 14, features: ["paladin/divine-hunter-paladin/righteous-hunter"]),
+        (level: 18),
+    ],
+)

@@ -1,0 +1,16 @@
+(
+    why: "No blueprint by name or display name in the game.",
+    entry: (
+        key: "robe-of-angelic-presence",
+        name: "Robe of Angelic Presence",
+        slot: Robe,
+        guide: "items#robes",
+        bonuses: [
+            (target: Ability(Charisma), amount: 4, kind: Enhancement),
+            (target: Ability(Wisdom), amount: 4, kind: Enhancement),
+        ],
+        other_effects: [
+            "Greater Angelic Aspect can be used at will.",
+        ],
+    ),
+)

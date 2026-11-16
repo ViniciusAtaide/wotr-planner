@@ -1,0 +1,4 @@
+(
+    why: "An ability of the Devil's Hell's Decree or Hell's Seal feature in the game, not a feature of its own.",
+    entry: (key: "devil/hells-seal/seal-of-devouring-flames", name: "Seal of Devouring Flames", summary: "When the ally drops below 5x MR hit points, they die and deal 2d10 per MR to enemies within 30 ft.", guide: "other-mythic-paths#seal-of-devouring-flames"),
+)

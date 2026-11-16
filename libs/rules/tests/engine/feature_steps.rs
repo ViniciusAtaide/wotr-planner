@@ -17,11 +17,7 @@ const STRENGTH: &str = "sorcerer/bloodline/abyssal/strength-of-the-abyss";
 /// `on`.
 fn stepping(on: StepLevel, at: &[u8]) -> GameData {
     let mut data = world();
-    let feature = class_mut(&mut data, "sorcerer")
-        .features
-        .iter_mut()
-        .find(|feature| feature.key.as_str() == RESISTANCES)
-        .unwrap();
+    let feature = feature_mut(&mut data, RESISTANCES);
     feature.steps = Some(FeatureSteps {
         on,
         at: at.iter().copied().collect(),

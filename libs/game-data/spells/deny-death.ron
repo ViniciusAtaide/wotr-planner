@@ -1,0 +1,14 @@
+(
+    key: "deny-death",
+    blueprint: "1098095d7a88c6747aee67f8d449fa06",
+    name: "Deny Death",
+    school: Necromancy,
+    guide: "lich#deny-death-necromancy",
+    summary: "If the target would die, it is instead paralysed until the battle ends.",
+    target: "Friendly creature within medium range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

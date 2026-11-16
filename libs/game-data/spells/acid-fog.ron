@@ -1,0 +1,14 @@
+(
+    key: "acid-fog",
+    blueprint: "dbf99b00cd35d0a4491c6cc9e771b487",
+    name: "Acid Fog",
+    school: Conjuration,
+    guide: "wizard-spells#acid-fog-conjuration",
+    summary: "Enemies in the fog move at half speed, take -2 on attack and damage rolls and take 2d6 acid each round.",
+    target: "All enemies within 20' of target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Acid],
+    casting_time: Standard,
+)

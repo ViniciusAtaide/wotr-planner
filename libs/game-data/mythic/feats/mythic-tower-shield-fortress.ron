@@ -1,0 +1,1 @@
+(key: "mythic-tower-shield-fortress", blueprint: "f69f36e4a9bc410c8219094b18856e53", name: "Mythic Tower Shield - Fortress", summary: "A tower shield in hand grants DR/- equal to its AC, stacking with other DR.", group: ArmourAndShield, guide: "mythic-paths#mythic-tower-shield-fortress", prerequisite: Feat("shield-focus"))

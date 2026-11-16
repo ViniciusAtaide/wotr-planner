@@ -1,0 +1,13 @@
+(
+    key: "dragon-storm",
+    blueprint: "cff9e3bf5ccf40c489023bf368c2c802",
+    name: "Dragon Storm",
+    school: Evocation,
+    guide: "gold-dragon#dragon-storm-evocation",
+    summary: "Enemies take 2d12 per caster level, half bludgeoning, half holy (Reflex half; table: no save); allies get +mythic rank on attacks, damage, saves for 1 minute.",
+    target: "All enemies within 40'",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

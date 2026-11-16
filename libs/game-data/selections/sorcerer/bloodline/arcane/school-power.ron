@@ -1,0 +1,17 @@
+(
+    key: "sorcerer/bloodline/arcane/school-power",
+    blueprint: "3524a71d57d99bb4b835ad20582cf613",
+    name: "School Power",
+    summary: "At 15th level, pick a school of magic: its spells get +2 DC, stacking with Spell Focus.",
+    guide: "character-creation#school-power",
+    options: [
+        "sorcerer/bloodline/arcane/school-power/abjuration",
+        "sorcerer/bloodline/arcane/school-power/conjuration",
+        "sorcerer/bloodline/arcane/school-power/divination",
+        "sorcerer/bloodline/arcane/school-power/enchantment",
+        "sorcerer/bloodline/arcane/school-power/evocation",
+        "sorcerer/bloodline/arcane/school-power/illusion",
+        "sorcerer/bloodline/arcane/school-power/necromancy",
+        "sorcerer/bloodline/arcane/school-power/transmutation",
+    ],
+)

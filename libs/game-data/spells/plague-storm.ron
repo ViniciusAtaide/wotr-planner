@@ -1,0 +1,14 @@
+(
+    key: "plague-storm",
+    blueprint: "82a5b848c05e3f342b893dedb1f9b446",
+    name: "Plague Storm",
+    school: Necromancy,
+    guide: "wizard-spells#plague-storm-necromancy",
+    summary: "Enemies in the area who fail the save catch a disease, as from Contagion.",
+    target: "All enemies within 20' of target point within medium range",
+    duration: "1 minute / level",
+    saving_throw: "Fortitude negates",
+    spell_resistance: false,
+    descriptors: [Evil, Disease],
+    casting_time: Standard,
+)

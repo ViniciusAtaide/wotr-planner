@@ -1,0 +1,14 @@
+(
+    key: "vanish",
+    blueprint: "f001c73999fb5a543a199f890108d936",
+    name: "Vanish",
+    school: Illusion,
+    guide: "wizard-spells#vanish-illusion",
+    summary: "The target turns invisible for up to five rounds.",
+    target: "One friendly creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

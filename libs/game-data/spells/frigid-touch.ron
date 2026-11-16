@@ -1,0 +1,13 @@
+(
+    key: "frigid-touch",
+    blueprint: "b6010dda6333bcf4093ce20f0063cd41",
+    name: "Frigid Touch",
+    school: Evocation,
+    guide: "wizard-spells#frigid-touch-evocation",
+    summary: "A melee touch attack deals 4d6 cold damage and staggers the target for 1 round, or 1 minute on a critical hit.",
+    target: "One enemy creature within touch range",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Cold],
+    casting_time: Standard,
+)

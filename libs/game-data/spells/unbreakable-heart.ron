@@ -1,0 +1,14 @@
+(
+    key: "unbreakable-heart",
+    blueprint: "dd38f33c56ad00a4da386c1afaa49967",
+    name: "Unbreakable Heart",
+    school: Enchantment,
+    guide: "cleric-spells#unbreakable-heart-enchantment",
+    summary: "The target gains +4 morale on saves against negative emotion effects or ones that would make it harm allies; any such effect on it is suppressed.",
+    target: "One friendly creature within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

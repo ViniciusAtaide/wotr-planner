@@ -1,0 +1,19 @@
+(
+    key: "skald/battle-singer",
+    class: "skald",
+    blueprint: "db942e7040084ea289c6be2bfeb3d0a8",
+    name: "Battle Singer",
+    summary: "Skald whose song becomes three sonic damage verses, with fewer rage powers.",
+    guide: "skald#battle-singer",
+    levels: [
+        (level: 1, features: ["skald/battle-singer/bardic-knowledge", "skald/inspired-rage", "skald/raging-song", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
+        (level: 2, features: ["skald/battle-singer/well-versed"], selections: ["rogue/rogue-talents"]),
+        (level: 3, features: ["skald/battle-singer/battle-song-first-verse"]),
+        (level: 4, features: ["skald/battle-singer/uncanny-dodge"]),
+        (level: 7, features: ["skald/battle-singer/lore-master", "skald/raging-song-move-action"], selections: ["rogue/rogue-talents"]),
+        (level: 8, features: ["skald/battle-singer/improved-uncanny-dodge"]),
+        (level: 9, features: ["skald/battle-singer/battle-song-second-verse", "skald/damage-reduction"]),
+        (level: 10, features: ["skald/battle-singer/dirge-of-doom"]),
+        (level: 15, features: ["skald/battle-singer/battle-song-final-verse"]),
+    ],
+)

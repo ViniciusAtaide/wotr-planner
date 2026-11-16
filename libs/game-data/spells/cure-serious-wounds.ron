@@ -1,0 +1,13 @@
+(
+    key: "cure-serious-wounds",
+    blueprint: "3361c5df793b4c8448756146a88026ad",
+    name: "Cure Serious Wounds",
+    school: Conjuration,
+    guide: "cleric-spells#cure-serious-wounds-conjuration",
+    summary: "Heals the target 3d8 + 1 per caster level (max +15), or deals that much damage to undead, who can save for half.",
+    target: "One friendly creature within touch range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [Cure],
+    casting_time: Standard,
+)

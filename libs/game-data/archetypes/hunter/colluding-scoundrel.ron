@@ -1,0 +1,14 @@
+(
+    key: "hunter/colluding-scoundrel",
+    class: "hunter",
+    blueprint: "34963fc6d87354c4fa85eb76f122c41c",
+    name: "Colluding Scoundrel",
+    summary: "Hunter who makes an ally the target of enemies' attacks and stabs those enemies.",
+    guide: "hunter#colluding-scoundrel",
+    levels: [
+        (level: 1, features: ["hunter/animal-companion", "hunter/colluding-scoundrel/scapegoat", "hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 8, features: ["hunter/colluding-scoundrel/backstabber", "hunter/colluding-scoundrel/scapegoat"]),
+        (level: 15, features: ["hunter/colluding-scoundrel/backstabber", "hunter/colluding-scoundrel/scapegoat"], feat_slots: [OneOf(list: "hunter/bonus-feats-3")]),
+        (level: 20, features: ["hunter/colluding-scoundrel/master-backstabber"]),
+    ],
+)

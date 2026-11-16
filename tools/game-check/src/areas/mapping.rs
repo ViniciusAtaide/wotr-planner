@@ -87,12 +87,10 @@ fn entry(ctx: &Ctx, out: &mut Out, at: &DataAt, guid: &BlueprintGuid) {
             }
         }
         DataAt::Archetype(key) => {
-            let class = ctx.planner.data.all_classes().find(|class| {
-                class
-                    .archetypes
-                    .iter()
-                    .any(|archetype| archetype.key == *key)
-            });
+            let data = ctx.planner.data;
+            let class = (data.archetypes.iter())
+                .find(|archetype| archetype.key == *key)
+                .and_then(|archetype| data.class(&archetype.class));
             let Some(class) = class else { return };
             let Some(class_guid) = ctx.planner.guid(DataAt::Class(class.key.clone())) else {
                 return;

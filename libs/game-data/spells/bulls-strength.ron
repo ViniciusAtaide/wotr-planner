@@ -1,0 +1,14 @@
+(
+    key: "bulls-strength",
+    blueprint: "4c3d08935262b6544ae97599b3a9556d",
+    name: "Bull's Strength",
+    school: Transmutation,
+    guide: "wizard-spells#bulls-strength-transmutation",
+    summary: "+4 enhancement bonus to the target's Strength.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

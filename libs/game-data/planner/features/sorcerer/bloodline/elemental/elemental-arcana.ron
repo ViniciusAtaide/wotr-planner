@@ -1,0 +1,4 @@
+(
+    why: "The game has one blueprint per dragon colour, element, energy, form or bloodline, none of them primary; the planner holds one entry for whichever is held.",
+    entry: (key: "sorcerer/bloodline/elemental/elemental-arcana", name: "Elemental Arcana", summary: "Your energy-damage spells deal your bloodline's element instead, and change their type to match.", guide: "character-creation#elemental-bloodline-arcana"),
+)

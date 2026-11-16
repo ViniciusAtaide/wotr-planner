@@ -1,0 +1,1 @@
+(key: "hand-axe", blueprint: "54e7473ff73910c47812fd39c897dc1a", name: "Hand Axe", proficiency: Martial, stats: (damage: (count: 1, sides: 6), threat: 20, multiplier: 3, handedness: Light, finesse: true))

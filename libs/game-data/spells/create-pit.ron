@@ -1,0 +1,14 @@
+(
+    key: "create-pit",
+    blueprint: "29ccc62632178d344ad0be0865fd3113",
+    name: "Create Pit",
+    school: Conjuration,
+    guide: "wizard-spells#create-pit-conjuration",
+    summary: "Opens a pit 10 ft deep per two caster levels (max 30 ft); a fall deals 1d6 bludgeoning per 10 ft, and climbing out takes a DC 25 Athletics or Mobility check.",
+    target: "Target point within medium range, 10' burst",
+    duration: "1 round + 1 round / level",
+    saving_throw: "Reflex negates",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "enlarge-person",
+    blueprint: "c60969e7f264e6d4b84a1499fdcf9039",
+    name: "Enlarge Person",
+    school: Transmutation,
+    guide: "wizard-spells#enlarge-person-transmutation",
+    summary: "The target grows one size: +2 size bonus to Strength, -2 to Dexterity and -1 on attacks and AC.",
+    target: "One friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: FullRound,
+)

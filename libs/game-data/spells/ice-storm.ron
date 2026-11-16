@@ -1,0 +1,14 @@
+(
+    key: "ice-storm",
+    blueprint: "fcb028205a71ee64d98175ff39a0abf9",
+    name: "Ice Storm",
+    school: Evocation,
+    guide: "wizard-spells#ice-storm-evocation",
+    summary: "Hail deals 3d6 bludgeoning and 2d6 cold, and the area becomes difficult terrain with -4 on Perception for the duration.",
+    target: "All creatures within 40' burst, centred on target point within long range",
+    duration: "1 round / level",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Cold],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "headband-of-confidence",
+    blueprint: "ee29287b36269ec468c2b38b1fde7551",
+    name: "Headband of Confidence",
+    slot: Headwear,
+    guide: "items-inevitable-excess#headwear",
+    bonuses: [
+        (target: Ability(Wisdom), amount: 4, kind: Enhancement),
+        (target: Ability(Charisma), amount: 4, kind: Enhancement),
+    ],
+    always_on: [
+        "Saves +4 vs mind-affecting",
+    ],
+)

@@ -512,12 +512,11 @@ fn a_separatist_of_erastils_second_domain_is_any_but_his() {
         Alignment::LawfulGood,
     );
     let every: BTreeSet<String> = DATA
-        .selections()
-        .find(|s| s.key.as_str() == "cleric/domain")
+        .selection(&rules::FeatureSelectionKey::new("cleric/domain"))
         .unwrap()
         .options
         .iter()
-        .map(|o| o.key.as_str().rsplit('/').next().unwrap().to_owned())
+        .map(|o| o.as_str().rsplit('/').next().unwrap().to_owned())
         .collect();
     // Erastil's five off; Chaos and Evil conflict with a lawful good Separatist, as before.
     let expected: BTreeSet<String> = every
@@ -824,7 +823,8 @@ fn the_druids_domain_impossible_domain_and_pentamic_faith_ignore_the_deity() {
     // 4146f0ff2c5e461488b0ace718020670 goes by alignment; the Sacred Huntsmaster uses the inquisitor's DomainsSelection
     // 48525e5da45c9c243a343fc6545dbdb9 (AnimalDomainProgression 23d2f87aa54c89f418e68e790dba11e0 bars it)
     let limited: BTreeSet<&str> = DATA
-        .selections()
+        .selections
+        .iter()
         .filter(|s| s.deity_domains.is_some())
         .map(|s| s.key.as_str())
         .collect();

@@ -1,0 +1,4 @@
+(
+    why: "An ability of Geomancy in the game, not a feature of its own.",
+    entry: (key: "sorcerer/geomancer/geomancy/geomancy-abyss", name: "Geomancy: Abyss", summary: "Enemies within 30 feet take 1d6 per spell level and, failing Fortitude, are cursed with -2 to attack, damage and save DCs.", guide: "sorcerer#geomancy-abyss"),
+)

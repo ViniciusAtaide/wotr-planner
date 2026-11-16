@@ -1,0 +1,8 @@
+(
+    key: "bloodline-ascendance",
+    name: "Bloodline Ascendance",
+    group: Class,
+    guide: "mythic-paths#bloodline-ascendance",
+    prerequisite: ClassLevel(class: "sorcerer", level: 1),
+    features: ["sorcerer/bloodline-ascendance"],
+)

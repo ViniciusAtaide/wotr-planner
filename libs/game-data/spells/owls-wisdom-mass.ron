@@ -1,0 +1,14 @@
+(
+    key: "owls-wisdom-mass",
+    blueprint: "9f5ada581af3db4419b54db77f44e430",
+    name: "Owl's Wisdom, Mass",
+    school: Transmutation,
+    guide: "wizard-spells#owls-wisdom-mass-transmutation",
+    summary: "Allies in the burst gain +4 enhancement to Wisdom.",
+    target: "All allies within 30' burst, centred on target creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

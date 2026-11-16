@@ -1,0 +1,14 @@
+(
+    key: "protection-from-energy",
+    blueprint: "d2f116cfe05fcdd4a94e80143b67046f",
+    name: "Protection from Energy",
+    school: Abjuration,
+    guide: "wizard-spells#protection-from-energy-abjuration",
+    summary: "The target is immune to one chosen energy type until the spell has absorbed 12 damage per caster level (max 120).",
+    target: "One friendly creature within touch range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

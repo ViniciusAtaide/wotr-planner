@@ -90,9 +90,9 @@ fn world_with_bonus_items() -> GameData {
         feats_for: BTreeSet::new(),
         weapons: BTreeSet::new(),
     });
-    let half_elf = data.races.iter_mut().find(|r| r.key.as_str() == "half-elf");
-    half_elf.unwrap().subraces.push(Subrace {
+    data.subraces.push(Subrace {
         key: SubraceKey::new("half-elf/kindred"),
+        race: RaceKey::new("half-elf"),
         blueprint: None,
         name: "half-elf/kindred".into(),
         summary: String::new(),

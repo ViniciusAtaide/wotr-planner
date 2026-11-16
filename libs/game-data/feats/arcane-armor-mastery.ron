@@ -1,0 +1,1 @@
+(key: "arcane-armor-mastery", blueprint: "453f5181a5ed3a445abfa3bcd3f4ac0c", name: "Arcane Armor Mastery", summary: "Cuts arcane spell failure from armour by another 10% (20% with Arcane Armor Training).", category: Magic, guide: "feats#arcane-armor-mastery", prerequisite: Feat("arcane-armor-training"))

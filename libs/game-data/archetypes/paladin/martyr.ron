@@ -1,0 +1,20 @@
+(
+    key: "paladin/martyr",
+    class: "paladin",
+    blueprint: "4d9a864eae278744aafa7ff23f2a6466",
+    name: "Martyr",
+    summary: "You gain bardic performances and wider auras but lose your own save bonuses and immunities.",
+    guide: "paladin#martyr",
+    levels: [
+        (level: 1, features: ["paladin/alignment-restriction", "paladin/martyr/inspire-courage", "paladin/martyr/stigmata"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 2, features: ["paladin/lay-on-hands", "paladin/martyr/see-no-evil-hear-no-evil"]),
+        (level: 3, features: ["paladin/martyr/aura-mastery", "paladin/martyr/aura-of-courage-martyr", "paladin/martyr/aura-of-health", "paladin/martyr/martyrs-mercy"], selections: ["paladin/mercy"]),
+        (level: 4, features: ["paladin/channel-positive-energy"]),
+        (level: 7, features: ["paladin/martyr/stigmata-move-action"]),
+        (level: 10, features: ["paladin/martyr/inspire-greatness"]),
+        (level: 11),
+        (level: 13, features: ["paladin/martyr/stigmata-swift-action"]),
+        (level: 16, features: ["paladin/martyr/inspire-heroics"]),
+        (level: 19),
+    ],
+)

@@ -1,0 +1,13 @@
+(
+    key: "slayer/vanguard",
+    class: "slayer",
+    blueprint: "67bbc0dcd471ea0428a362f6e94f3a51",
+    name: "Vanguard",
+    summary: "Slayer commander who shares teamwork feats and studied target bonuses with allies.",
+    guide: "slayer#vanguard",
+    levels: [
+        (level: 2, features: ["slayer/vanguard/vanguard-tactician"], feat_slots: [Category(Teamwork)]),
+        (level: 4, features: ["slayer/vanguard/vanguards-bond"]),
+        (level: 7, features: ["slayer/studied-target-swift", "slayer/vanguard/uncanny-dodge"]),
+    ],
+)

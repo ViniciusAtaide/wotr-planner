@@ -1,0 +1,13 @@
+(
+    key: "ray-of-frost",
+    blueprint: "9af2ab69df6538f4793b2f9c3cc85603",
+    name: "Ray of Frost",
+    school: Evocation,
+    guide: "wizard-spells#ray-of-frost-evocation",
+    summary: "Hit with a ranged touch attack to deal 1d3 cold damage.",
+    target: "One enemy creature within close range",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Cold],
+    casting_time: Standard,
+)

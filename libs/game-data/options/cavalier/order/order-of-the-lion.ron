@@ -1,0 +1,13 @@
+(
+    key: "cavalier/order/order-of-the-lion",
+    blueprint: "0066e5b8e6883794aab1451f4c182982",
+    name: "Order of the Lion",
+    summary: "Order serving a lord: +1 dodge AC (+1 per 4 levels) against your challenged foe; Knowledge (World) becomes a class skill.",
+    guide: "cavalier#order-of-the-lion",
+    levels: [
+        (level: 1, class_skills: ["knowledge-world"]),
+        (level: 2, features: ["cavalier/order/order-of-the-lion/lions-call"]),
+        (level: 8, features: ["cavalier/order/order-of-the-lion/for-the-king"]),
+        (level: 15, features: ["cavalier/order/order-of-the-lion/shield-of-the-liege"]),
+    ],
+)

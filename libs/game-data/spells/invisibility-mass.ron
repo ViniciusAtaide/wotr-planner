@@ -1,0 +1,14 @@
+(
+    key: "invisibility-mass",
+    blueprint: "98310a099009bbd4dbdf66bcef58b4cd",
+    name: "Invisibility, Mass",
+    school: Illusion,
+    guide: "wizard-spells#invisibility-mass-illusion",
+    summary: "Your whole party turns invisible; anyone who attacks an enemy becomes visible again.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

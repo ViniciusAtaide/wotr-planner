@@ -1,0 +1,1 @@
+(key: "barbarian/rage-power/inspire-ferocity", blueprint: "32c4d277007aed74c905779cd04a6fed", name: "Inspire Ferocity", summary: "In Reckless Stance, allies within 30 feet also get its attack bonus and AC penalty.", guide: "barbarian#inspire-ferocity", prerequisite: SelectionOption("barbarian/rage-power/reckless-stance"))

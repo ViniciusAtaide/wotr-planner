@@ -1,0 +1,14 @@
+(
+    key: "sirocco",
+    blueprint: "093ed1d67a539ad4c939d9d05cfe192c",
+    name: "Sirocco",
+    school: Evocation,
+    guide: "wizard-spells#sirocco-evocation",
+    summary: "Enemies take 4d6 fire + 1 per caster level and fall prone (a save halves it and keeps them standing); any hurt are fatigued, or exhausted if already fatigued.",
+    target: "All enemies within 20' burst, centred on target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

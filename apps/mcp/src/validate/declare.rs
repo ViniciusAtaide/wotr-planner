@@ -141,12 +141,9 @@ impl Declared {
             (Address::Race, ChoiceValue::Key(key)) => {
                 let key = key_text(key);
                 // A subrace's key names its race too.
-                let subrace = data.races.iter().find_map(|race| {
-                    race.subraces
-                        .iter()
-                        .find(|subrace| subrace.key.as_str() == key)
-                        .map(|subrace| (race.key.clone(), subrace.key.clone()))
-                });
+                let subrace = (data.subraces.iter())
+                    .find(|subrace| subrace.key.as_str() == key)
+                    .map(|subrace| (subrace.race.clone(), subrace.key.clone()));
                 let start = &mut self.build.start;
                 match subrace {
                     Some((race, subrace)) => {
@@ -170,11 +167,9 @@ impl Declared {
                     _ => {
                         let start = &mut self.build.start;
                         if start.race.is_none() {
-                            start.race = data
-                                .races
-                                .iter()
-                                .find(|race| race.subraces.iter().any(|s| s.key == key))
-                                .map(|race| race.key.clone());
+                            start.race = (data.subraces.iter())
+                                .find(|s| s.key == key)
+                                .map(|subrace| subrace.race.clone());
                         }
                         start.subrace = Some(key);
                     }

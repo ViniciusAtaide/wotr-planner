@@ -2,6 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
+use crate::test_world::world::nested::{FeatureSelection, MythicPath};
 use crate::*;
 
 use crate::test_world::builds::{feat, feat_list, feature, option, path, skill};

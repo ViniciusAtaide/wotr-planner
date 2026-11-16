@@ -1,0 +1,14 @@
+(
+    key: "scintillating-pattern",
+    blueprint: "4dc60d08c6c4d3c47b413904e4de5ff0",
+    name: "Scintillating Pattern",
+    school: Illusion,
+    guide: "wizard-spells#scintillating-pattern-illusion",
+    summary: "Hits 1 HD per caster level (max 20): 6 HD or less are knocked out, stunned, then confused; 7-12 HD stunned then confused; 13+ confused; each for 1d4 rounds.",
+    target: "All creatures within 20' burst, centred on target point within close range",
+    duration: "Varies",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

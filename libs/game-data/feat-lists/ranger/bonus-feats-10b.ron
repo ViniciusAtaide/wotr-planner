@@ -1,0 +1,1 @@
+(key: "ranger/bonus-feats-10b", blueprint: "7ef950ca681955d47bc4efbe77073e2c", name: "Archery Feats (from level 10)", guide: "ranger#archery-feats", ignores_prerequisites: true, feats: ["improved-critical", "improved-precise-shot", "manyshot", "point-blank-master", "point-blank-shot", "precise-shot", "rapid-shot"])

@@ -1,0 +1,14 @@
+(
+    // "Combat Expertise or Kinetic Warrior + Intelligence 13", read as A or (B and C).
+    key: "dirty-trick",
+    name: "Dirty Trick",
+    category: CombatManoeuvres,
+    guide: "feats#dirty-trick",
+    prerequisite: Any([
+        Feat("combat-expertise"),
+        All([
+            Feature(feature: "rogue/sneak-attack", count: 1),
+            AbilityScore(ability: Intelligence, score: 13),
+        ]),
+    ]),
+)

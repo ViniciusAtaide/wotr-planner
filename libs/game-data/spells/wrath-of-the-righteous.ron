@@ -1,0 +1,13 @@
+(
+    key: "wrath-of-the-righteous",
+    blueprint: "ae13b1831a5c79c468584e57ea94d07d",
+    name: "Wrath of the Righteous",
+    school: Conjuration,
+    guide: "angel#wrath-of-the-righteous-conjuration",
+    summary: "Demons in the burst take 10 damage per caster level, or 1d6 per caster level if they save.",
+    target: "All enemies within a 40' burst centred on target point within Long range",
+    saving_throw: "Will partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "rainbow-pattern",
+    blueprint: "4b8265132f9c8174f87ce7fa6d0fe47b",
+    name: "Rainbow Pattern",
+    school: Illusion,
+    guide: "wizard-spells#rainbow-pattern-illusion",
+    summary: "Dazes up to 24 HD of creatures in the area that fail their save, for the duration.",
+    target: "All creatures within 20' burst, centred on target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Sight],
+    casting_time: Standard,
+)

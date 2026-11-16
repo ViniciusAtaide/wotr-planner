@@ -1,0 +1,1 @@
+(key: "paladin/mercy/sickened", blueprint: "7ee2ef06226a4884f80b7647a2aa2dee", name: "Sickened", summary: "From 3rd level, Lay on Hands also removes the sickened condition.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 3))

@@ -1,0 +1,14 @@
+(
+    key: "peer-into-reflexes",
+    blueprint: "768b18138fb44b70b686c23119e66e02",
+    name: "Peer Into Reflexes",
+    school: Divination,
+    guide: "arcanist#peer-into-reflexes-divination",
+    summary: "The target takes -1 on Reflex saves per three caster levels (max -6).",
+    target: "One enemy creature within close range",
+    duration: "1 round",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [MindAffecting],
+    casting_time: Standard,
+)

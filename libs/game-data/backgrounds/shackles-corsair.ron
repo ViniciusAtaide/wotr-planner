@@ -1,0 +1,1 @@
+(key: "shackles-corsair", blueprint: "25fa74e08bcc43c47816fa364f1d48b6", name: "Shackles Corsair", group: Regional, note: "Proficient with scimitar. +2 CMD against trip.", class_skills: ["athletics", "mobility"], weapons: ["scimitar"])

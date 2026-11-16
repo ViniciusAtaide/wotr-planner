@@ -1,0 +1,1 @@
+(key: "kineticist/kinetic-sharpshooter/charged-ammunition", blueprint: "b6092295c3164f848256302280668189", name: "Charged Ammunition", summary: "Deliver one blast a turn through a ranged weapon, using the weapon's attack and damage bonuses; energy blasts still target touch AC.", guide: "kineticist#charged-ammunition")

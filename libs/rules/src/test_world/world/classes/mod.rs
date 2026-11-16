@@ -20,6 +20,7 @@ pub(super) use self::{
 
 use std::collections::BTreeSet;
 
+use crate::test_world::world::nested::Archetype;
 use crate::*;
 
 use crate::test_world::world::guide;

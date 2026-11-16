@@ -1,0 +1,13 @@
+(
+    key: "rain-of-halberds",
+    blueprint: "a759d339d98572a42a0c6e1dcc33453d",
+    name: "Rain of Halberds",
+    school: Conjuration,
+    guide: "trickster#rain-of-halberds-conjuration",
+    summary: "You make an attack roll against each creature in the burst, dealing 1d10 slashing and piercing damage per caster level on a hit; the halberds can crit.",
+    target: "All creatures within a 20' burst centred on target point within medium range",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

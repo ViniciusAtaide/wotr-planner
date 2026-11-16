@@ -1,0 +1,13 @@
+(
+    key: "cavalier/order/order-of-the-shroud",
+    blueprint: "14db025afc38fe44b9c4d6f355c032e6",
+    name: "Order of the Shroud",
+    summary: "Undead-hunting order: +1 morale to attack (+1 per 4 levels) against your challenged foe; Lore (Religion) becomes a class skill.",
+    guide: "cavalier#order-of-the-shroud",
+    levels: [
+        (level: 1, class_skills: ["lore-religion"]),
+        (level: 2, features: ["cavalier/order/order-of-the-shroud/spiritual-shield"]),
+        (level: 8, features: ["cavalier/order/order-of-the-shroud/destroyer-of-the-undead"]),
+        (level: 15, features: ["cavalier/order/order-of-the-shroud/stand-against-darkness"]),
+    ],
+)

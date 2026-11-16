@@ -1,0 +1,14 @@
+(
+    key: "divine-favor",
+    blueprint: "9d5d2d3ffdd73c648af3eb3e585b1113",
+    name: "Divine Favor",
+    school: Evocation,
+    guide: "cleric-spells#divine-favor-evocation",
+    summary: "You gain a +1 luck bonus on attack and damage rolls per 3 caster levels (max +3).",
+    target: "Personal",
+    duration: "1 minute",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

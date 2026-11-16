@@ -1,0 +1,1 @@
+(key: "kineticist/wild-talents/heat-adaptation", blueprint: "2825e3a53c76ad944a47c5c44fb6109f", name: "Heat Adaptation", summary: "Fire resistance equal to twice your current Burn.", guide: "kineticist#heat-adaptation", prerequisite: All([Any([SelectionOption("kineticist/element/fire"), SelectionOption("kineticist/element/water")]), ClassLevel(class: "kineticist", level: 2)]))

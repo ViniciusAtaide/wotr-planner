@@ -1,0 +1,7 @@
+(
+    key: "mythic-armor-focus-light-armor-assault",
+    name: "Mythic Armor Focus (Light Armor) - Assault",
+    group: ArmourAndShield,
+    guide: "mythic-paths#mythic-armor-focus-light-armor-assault",
+    prerequisite: FeatFor(feat: "armor-focus", value: ArmourType(Light)),
+)

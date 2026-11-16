@@ -1,0 +1,4 @@
+(
+    why: "An ability of the Devil's Hell's Decree or Hell's Seal feature in the game, not a feature of its own.",
+    entry: (key: "devil/hells-decree/decree-of-hunt", name: "Decree of Hunt", summary: "Mark an ally as hunter and an enemy as quarry: the hunter gains +MR attack and damage but leaves your control.", guide: "other-mythic-paths#decree-of-hunt"),
+)

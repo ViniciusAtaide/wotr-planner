@@ -1,0 +1,1 @@
+(key: "inquisitor/monster-tactician/summon-monster", blueprint: "60c8882ac8b79f64d8f26dbc21113f69", name: "Summon Monster", summary: "Casts Summon Monster spells 3 + Wis times a day; summons last 1 minute per level and a new casting ends the previous one.", guide: "inquisitor#summon-monster")

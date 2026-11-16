@@ -1,0 +1,14 @@
+(
+    key: "ward-against-weakness-communal",
+    blueprint: "19e5803dbaf54de4eb02c5f50655fba9",
+    name: "Ward Against Weakness, Communal",
+    school: Abjuration,
+    guide: "angel#ward-against-weakness-communal-abjuration",
+    summary: "Makes allies in the burst immune to disease, poison, ability damage and drain, fatigued, exhausted, sickened and nauseated.",
+    target: "All allies with a 20' burst centred on the caster",
+    duration: "10 minutes",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

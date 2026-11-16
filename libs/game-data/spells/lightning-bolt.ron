@@ -1,0 +1,13 @@
+(
+    key: "lightning-bolt",
+    blueprint: "d2cff9243a7ee804cb6d5be47af30c73",
+    name: "Lightning Bolt",
+    school: Evocation,
+    guide: "wizard-spells#lightning-bolt-evocation",
+    summary: "Creatures along the line take 1d6 electricity damage per caster level (max 10d6), halved on a Reflex save.",
+    target: "All creatures along a 120' line",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Electricity],
+    casting_time: Standard,
+)

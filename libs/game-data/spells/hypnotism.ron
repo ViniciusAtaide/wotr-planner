@@ -1,0 +1,14 @@
+(
+    key: "hypnotism",
+    blueprint: "88367310478c10b47903463c5d0152b0",
+    name: "Hypnotism",
+    school: Enchantment,
+    guide: "wizard-spells#hypnotism-enchantment",
+    summary: "Living creatures in the area, up to 2d4 HD in total, are mesmerised and take no actions.",
+    target: "One enemy creature within close range, 30' burst",
+    duration: "2d4 rounds",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: FullRound,
+)

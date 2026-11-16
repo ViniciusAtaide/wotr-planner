@@ -1,0 +1,1 @@
+(key: "ustalavic-peasant", blueprint: "e633b595bfb776d48858c0c51a6414ff", name: "Ustalavic Peasant", group: Regional, note: "Proficient with scythe. +1 AC and damage under fear effects.", class_skills: ["athletics"], weapons: ["scythe"])

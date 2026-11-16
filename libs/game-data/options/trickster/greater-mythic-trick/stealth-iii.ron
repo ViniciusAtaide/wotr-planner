@@ -1,0 +1,1 @@
+(key: "trickster/greater-mythic-trick/stealth-iii", blueprint: "74d23b6698554e36974711eacc386290", name: "Stealth III", summary: "SR of Stealth bonus - 10.", guide: "trickster#stealth-iii", prerequisite: SelectionOption("trickster/improved-mythic-trick/stealth-ii"))

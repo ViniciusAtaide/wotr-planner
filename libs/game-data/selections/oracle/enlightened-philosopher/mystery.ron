@@ -1,0 +1,21 @@
+(
+    key: "oracle/enlightened-philosopher/mystery",
+    blueprint: "9d5fdd3b4a6cd4f40beddbc72b2c07a0",
+    name: "Mystery (Enlightened Philosopher)",
+    summary: "Mystery with fixed bonus spells from 2nd level: Owl's Wisdom, Remove Blindness, Confusion, True Seeing up to Communal Mind Blank.",
+    guide: "oracle#enlightened-philosopher",
+    option_levels: ["oracle"],
+    skipped_levels: [20],
+    options: [],
+    shared_options: [
+        "oracle/mystery/ancestor",
+        "oracle/mystery/battle",
+        "oracle/mystery/bones",
+        "oracle/mystery/flame",
+        "oracle/mystery/life",
+        "oracle/mystery/nature",
+        "oracle/mystery/stone",
+        "oracle/mystery/waves",
+        "oracle/mystery/wind",
+    ],
+)

@@ -1,0 +1,14 @@
+(
+    key: "dominate-animal",
+    blueprint: "754c478a2aa9bb54d809e648c3f7ac0e",
+    name: "Dominate Animal",
+    school: Enchantment,
+    guide: "druid-spells#dominate-animal-enchantment",
+    summary: "Takes control of an animal as Dominate Person does, so it fights for you; it can save again each round to break free.",
+    target: "One enemy creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

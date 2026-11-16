@@ -1,0 +1,15 @@
+(
+    key: "flawless-headband-of-mental-perfection-8",
+    blueprint: "1c851e5a5b25428fa4eed948f982a44a",
+    name: "Flawless Headband of Mental Perfection +8",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 8, kind: Enhancement),
+        (target: Ability(Wisdom), amount: 8, kind: Enhancement),
+        (target: Ability(Charisma), amount: 8, kind: Enhancement),
+    ],
+    always_on: [
+        "Immune to mind-affecting effects",
+    ],
+)

@@ -1,0 +1,19 @@
+(
+    key: "shaman/spirit",
+    blueprint: "00c8c566d1825dd4a871250f35285982",
+    name: "Spirit",
+    summary: "Your guiding spirit gives abilities at 1st, 8th and 16th level, a Manifestation at 20th, and bonus spells.",
+    guide: "shaman#spirit",
+    option_levels: ["shaman"],
+    options: [
+        "shaman/spirit/battle",
+        "shaman/spirit/bones",
+        "shaman/spirit/flame",
+        "shaman/spirit/frost",
+        "shaman/spirit/life",
+        "shaman/spirit/nature",
+        "shaman/spirit/stone",
+        "shaman/spirit/waves",
+        "shaman/spirit/wind",
+    ],
+)

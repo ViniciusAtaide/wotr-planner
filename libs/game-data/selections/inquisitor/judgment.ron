@@ -1,0 +1,18 @@
+(
+    key: "inquisitor/judgment",
+    blueprint: "981def910b98200499c0c8f85a78bde8",
+    name: "Judgment",
+    summary: "Swift action: a judgment's bonus lasts until combat ends; once a day at 1st, twice at 4th, 3 times at 7th, up to 7 at 19th.",
+    guide: "inquisitor#judgment",
+    options: [
+        "inquisitor/judgment/judgement-resiliency",
+        "inquisitor/judgment/judgement-resistance",
+        "inquisitor/judgment/judgment-destruction",
+        "inquisitor/judgment/judgment-healing",
+        "inquisitor/judgment/judgment-justice",
+        "inquisitor/judgment/judgment-piercing",
+        "inquisitor/judgment/judgment-protection",
+        "inquisitor/judgment/judgment-purity",
+        "inquisitor/judgment/judgment-smiting",
+    ],
+)

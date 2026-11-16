@@ -1,0 +1,14 @@
+(
+    key: "phantasmal-putrefaction",
+    blueprint: "1f2e6019ece86d64baa5effa15e81ecc",
+    name: "Phantasmal Putrefaction",
+    school: Illusion,
+    guide: "wizard-spells#phantasmal-putrefaction-illusion",
+    summary: "Enemies failing a Will save take 1d4 Wisdom damage; on each later failed Will save they must pass a Fortitude save or faint (as asleep) for 1 round.",
+    target: "All enemies within 30' burst, centred on target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will, then Fortitude partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear],
+    casting_time: Standard,
+)

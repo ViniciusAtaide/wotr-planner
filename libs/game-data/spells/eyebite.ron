@@ -1,0 +1,14 @@
+(
+    key: "eyebite",
+    blueprint: "3167d30dd3c622c46b0c0cb242061642",
+    name: "Eyebite",
+    school: Necromancy,
+    guide: "wizard-spells#eyebite-necromancy",
+    summary: "Each round, as a swift action, you target a living creature: 10+ HD are sickened, 5-9 HD frightened and sickened, 4 or less also paralysed.",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

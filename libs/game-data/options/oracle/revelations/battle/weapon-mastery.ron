@@ -1,0 +1,13 @@
+(
+    key: "oracle/revelations/battle/weapon-mastery",
+    blueprint: "0a4c3556355747241b2d3dcc0a88ec10",
+    name: "Weapon Mastery",
+    summary: "Weapon Focus as a bonus feat, Improved Critical at 8th level and Greater Weapon Focus at 12th.",
+    prerequisite: SelectionOption("oracle/mystery/battle"),
+    guide: "oracle#weapon-mastery",
+    chosen_feat: "weapon-focus",
+    levels: [
+        (level: 8, chosen_feats: ["improved-critical"]),
+        (level: 12, chosen_feats: ["greater-weapon-focus"]),
+    ],
+)

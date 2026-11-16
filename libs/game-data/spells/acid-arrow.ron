@@ -1,0 +1,14 @@
+(
+    key: "acid-arrow",
+    blueprint: "9a46dfd390f943647ab4395fc997936d",
+    name: "Acid Arrow",
+    school: Conjuration,
+    guide: "wizard-spells#acid-arrow-conjuration",
+    summary: "A ranged touch attack deals 2d4 acid damage, and the acid keeps burning an extra round per three caster levels (6 rounds at level 18).",
+    target: "One enemy creature within close range",
+    duration: "1 round + 1 round per three levels",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [Acid],
+    casting_time: Standard,
+)

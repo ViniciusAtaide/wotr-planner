@@ -1,0 +1,20 @@
+(
+    key: "hunter/urban-hunter",
+    class: "hunter",
+    blueprint: "f1341c61c77092643ae63d7cb52f83f8",
+    name: "Urban Hunter",
+    summary: "Hunter with a dog or horse and bonus feats instead of teamwork feats.",
+    guide: "hunter#urban-hunter",
+    class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "perception", "persuasion", "stealth"],
+    levels: [
+        (level: 1, features: ["hunter/animal-focus", "hunter/nature-sense", "hunter/urban-hunter/animal-companion-urban-hunter"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 3),
+        (level: 5, features: ["hunter/urban-hunter/animal-insight", "hunter/woodland-stride"]),
+        (level: 6, feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-6")]),
+        (level: 9, feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-6")]),
+        (level: 12, feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-12")]),
+        (level: 15, feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-12")]),
+        (level: 17, features: ["hunter/urban-hunter/frightful-ferocity"]),
+        (level: 18, feat_slots: [OneOf(list: "hunter/urban-hunter/bonus-feats-12")]),
+    ],
+)

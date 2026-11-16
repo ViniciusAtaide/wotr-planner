@@ -1,0 +1,4 @@
+(
+    why: "An ability of JudgmentFeature in the game, not a feature of its own.",
+    entry: (key: "inquisitor/judgment/judgement-resiliency", name: "Judgement - Resiliency", summary: "DR 1/magic, +1 per 5 levels; from 10th level it is overcome by the alignment opposite yours instead of by magic.", guide: "inquisitor#judgement-resiliency"),
+)

@@ -38,14 +38,8 @@ const STORMWALKER_ARCHERY: [&str; 3] = [
 
 /// Every feat list of the data, by key.
 fn any_feat_list(key: &str) -> &'static rules::FeatList {
-    DATA.classes
+    DATA.feat_lists
         .iter()
-        .flat_map(|class| {
-            class
-                .feat_lists
-                .iter()
-                .chain(class.archetypes.iter().flat_map(|a| &a.feat_lists))
-        })
         .find(|list| list.key.as_str() == key)
         .unwrap_or_else(|| panic!("no feat list {key}"))
 }
@@ -66,9 +60,7 @@ fn feat_set(keys: &[&str]) -> BTreeSet<String> {
 fn one_of_lists(class_key: &str, archetype: Option<&str>) -> Vec<(u8, String)> {
     let class = class(class_key);
     let archetype = archetype.map(|key| {
-        class
-            .archetypes
-            .iter()
+        DATA.archetypes_of(&class.key)
             .find(|a| a.key.as_str() == key)
             .unwrap_or_else(|| panic!("no {key}"))
     });
@@ -110,20 +102,14 @@ fn the_bonus_feat_choices_replace_their_features() {
     // 3cf94df3f1cf9a443a880bc1ae9be3c6 (their keys and the absence of a feature are the data's shape)
     for (class_key, feature) in BONUS_FEAT_FEATURES {
         let class = class(class_key);
-        let defined = class
-            .features
-            .iter()
-            .chain(class.archetypes.iter().flat_map(|a| &a.features))
-            .any(|f| f.key.as_str() == feature);
+        let defined = DATA.features.iter().any(|f| f.key.as_str() == feature);
         assert!(!defined, "{feature} is still a feature");
         let on_a_row = class
             .levels
             .iter()
             .map(|row| &row.features)
             .chain(
-                class
-                    .archetypes
-                    .iter()
+                DATA.archetypes_of(&class.key)
                     .flat_map(|a| a.levels.iter().map(|row| &row.features)),
             )
             .flatten()
@@ -155,7 +141,9 @@ fn each_bonus_feat_choice_is_a_slot_at_its_tables_levels() {
     );
     let titan_combat: Vec<u8> = {
         let class = class("fighter");
-        let titan = class.archetypes.iter().find(|a| a.key.as_str() == TITAN);
+        let titan = DATA
+            .archetypes_of(&class.key)
+            .find(|a| a.key.as_str() == TITAN);
         (1..=20)
             .filter(|level| {
                 rules::effective_row(class, titan, *level)
@@ -166,7 +154,7 @@ fn each_bonus_feat_choice_is_a_slot_at_its_tables_levels() {
     assert_eq!(titan_combat, [1, 4, 8, 12, 16, 20]);
 
     holds_lists("hunter", None, &[(2, PRECISE_COMPANION)]);
-    for archetype in &class("hunter").archetypes {
+    for archetype in DATA.archetypes_of(&class("hunter").key) {
         let expected: &[(u8, &str)] = if archetype.key.as_str() == "hunter/forester" {
             &[]
         } else {
@@ -198,9 +186,7 @@ fn each_bonus_feat_choice_is_a_slot_at_its_tables_levels() {
     );
     // Massive Attacks is the Titan Fighter's alone.
     for (class_key, archetype) in std::iter::once(("fighter", None)).chain(
-        class("fighter")
-            .archetypes
-            .iter()
+        DATA.archetypes_of(&class("fighter").key)
             .filter(|a| a.key.as_str() != TITAN)
             .map(|a| ("fighter", Some(a.key.as_str()))),
     ) {
@@ -346,16 +332,18 @@ fn the_stormwalkers_lists_are_the_rangers_archery_lists() {
     }
 }
 
-/// The keys of the feat lists `archetype` defines.
+/// The keys of the feat lists `archetype`'s rows name in their `OneOf` slots.
 fn archetype_feat_lists(class_key: &str, archetype: &str) -> BTreeSet<String> {
-    class(class_key)
-        .archetypes
-        .iter()
+    DATA.archetypes_of(&class(class_key).key)
         .find(|a| a.key.as_str() == archetype)
         .unwrap_or_else(|| panic!("no {archetype}"))
-        .feat_lists
+        .levels
         .iter()
-        .map(|l| l.key.to_string())
+        .flat_map(|row| &row.feat_slots)
+        .filter_map(|slot| match slot {
+            FeatSlot::OneOf { list } => Some(list.to_string()),
+            _ => None,
+        })
         .collect()
 }
 

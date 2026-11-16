@@ -1,0 +1,14 @@
+(
+    key: "curse-of-magic-negation",
+    blueprint: "c0c2ef5955cb415ca482597f1bfc4eca",
+    name: "Curse of Magic Negation",
+    school: Abjuration,
+    guide: "wizard-spells#curse-of-magic-negation-abjuration",
+    summary: "The target gains spell resistance 10 + your caster level and must pass a caster level check to cast each spell, which otherwise fails without using the slot.",
+    target: "One enemy creature within touch range",
+    duration: "10 minutes / level",
+    saving_throw: "Will negates",
+    spell_resistance: false,
+    descriptors: [Curse],
+    casting_time: FullRound,
+)

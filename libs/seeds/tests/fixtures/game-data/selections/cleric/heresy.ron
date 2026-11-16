@@ -1,0 +1,8 @@
+(
+    key: "cleric/heresy",
+    name: "Heresy",
+    guide: "cleric#forbidden-rites",
+    deity_domains: NotOffered,
+    options: [],
+    shared_options: ["cleric/domain/good", "cleric/domain/law"],
+)

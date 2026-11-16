@@ -1,0 +1,19 @@
+(
+    key: "shifter/dragonblood-shifter/greater-wyrmshifter",
+    blueprint: "c676ba5eb744492583d989244c81f127",
+    name: "Greater Wyrmshifter",
+    summary: "At 20th level, become a dragon at will: +10 Str, +8 Con, +8 natural armour, DR 10/magic, strong natural attacks and a 16d8 breath.",
+    guide: "shifter#greater-wyrmshifter",
+    options: [
+        "shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-black-dragon",
+        "shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-brass-dragon",
+        "shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-bronze-dragon",
+        "shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-buse-dragon",
+        "shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-copper-dragon",
+        "shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-gold-dragon",
+        "shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-green-dragon",
+        "shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-red-dragon",
+        "shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-silver-dragon",
+        "shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-white-dragon",
+    ],
+)

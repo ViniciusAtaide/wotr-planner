@@ -1,0 +1,4 @@
+(
+    why: "Each spirit's own wandering progression grants it in the game; the planner holds one entry for whichever spirit is chosen.",
+    entry: (key: "shaman/possessed-shaman/wandering-spirit-greater-ability", name: "Wandering Spirit - Greater Ability", summary: "From 12th level, you also gain your wandering spirit's greater ability.", guide: "shaman#possessed-shaman"),
+)

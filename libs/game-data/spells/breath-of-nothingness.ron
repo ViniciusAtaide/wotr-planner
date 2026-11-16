@@ -1,0 +1,13 @@
+(
+    key: "breath-of-nothingness",
+    blueprint: "4912cf545d1e48ba8f786dc67d5abb4b",
+    name: "Breath of Nothingness",
+    school: Conjuration,
+    guide: "cleric-spells#breath-of-nothingness-conjuration",
+    summary: "Enemies within 30 ft take 1d6 per caster level (bludgeoning and negative energy) and 1-4 negative levels (Fortitude: half and 1 level), then a pull and trip.",
+    target: "All creatures within 30' of caster",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,9 @@
+(
+    key: "pharasma",
+    blueprint: "458750bc214ab2e44abdeae404ab22e9",
+    name: "Pharasma",
+    guide: "character-creation#deities",
+    alignments: [NeutralGood, LawfulNeutral, TrueNeutral, ChaoticNeutral, NeutralEvil],
+    favoured_weapons: ["dagger"],
+    domains: ["cleric/domain/death", "cleric/domain/healing", "cleric/domain/ice", "cleric/domain/knowledge", "cleric/domain/repose", "cleric/domain/water"],
+)

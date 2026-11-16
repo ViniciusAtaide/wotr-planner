@@ -1,0 +1,13 @@
+(
+    key: "remove-blindness",
+    blueprint: "c927a8b0cd3f5174f8c0b67cdbfde539",
+    name: "Remove Blindness",
+    school: Conjuration,
+    guide: "cleric-spells#remove-blindness-conjuration",
+    summary: "Cures the target's blindness.",
+    target: "One friendly creature within close range",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

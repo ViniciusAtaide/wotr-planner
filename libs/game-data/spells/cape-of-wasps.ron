@@ -1,0 +1,14 @@
+(
+    key: "cape-of-wasps",
+    blueprint: "e418c20c8ce362943a8025d82c865c1c",
+    name: "Cape of Wasps",
+    school: Conjuration,
+    guide: "druid-spells#cape-of-wasps-conjuration",
+    summary: "You have partial concealment against ranged attacks, and creatures that hit you in melee take 2d6 damage.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

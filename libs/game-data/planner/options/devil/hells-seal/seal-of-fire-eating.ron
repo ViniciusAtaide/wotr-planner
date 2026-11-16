@@ -1,0 +1,4 @@
+(
+    why: "An ability of the Devil's Hell's Decree or Hell's Seal feature in the game, not a feature of its own.",
+    entry: (key: "devil/hells-seal/seal-of-fire-eating", name: "Seal of Fire Eating", summary: "Fire damage heals the ally 3d6 per MR, and their attacks deal +2d6 unholy damage for MR rounds.", guide: "other-mythic-paths#seal-of-fire-eating"),
+)

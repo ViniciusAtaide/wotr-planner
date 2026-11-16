@@ -1,0 +1,22 @@
+(
+    key: "hellknight/pentamic-faith",
+    blueprint: "b9750875e9d7454e85347d739a1bc894",
+    name: "Pentamic Faith",
+    summary: "Godclaw only: one domain (Artifice, Glory, Knowledge, Law, Magic, Nobility, Protection, Rune, Strength, Travel or War), powered by Hellknight level.",
+    guide: "prestige-classes#pentamic-faith",
+    option_levels: ["hellknight"],
+    options: [],
+    shared_options: [
+        "cleric/domain/artifice",
+        "cleric/domain/glory",
+        "cleric/domain/knowledge",
+        "cleric/domain/law",
+        "cleric/domain/magic",
+        "cleric/domain/nobility",
+        "cleric/domain/protection",
+        "cleric/domain/rune",
+        "cleric/domain/strength",
+        "cleric/domain/travel",
+        "cleric/domain/war",
+    ],
+)

@@ -1,0 +1,1 @@
+(key: "shaman/witch-doctor/channel-energy", blueprint: "eb388d17f07e0b44d9f83ada0148cc69", name: "Channel Energy", summary: "From 4th level, channel positive energy as a cleric of class level -3, 3 + Cha modifier times a day; doesn't stack with the Life spirit's.", guide: "shaman#channel-energy")

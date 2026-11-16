@@ -1,0 +1,1 @@
+(key: "longspear", blueprint: "fa2dd17cbde7d3f4aa918d467c30516e", name: "Longspear", proficiency: Simple, stats: (damage: (count: 1, sides: 8), threat: 20, multiplier: 3, handedness: TwoHanded))

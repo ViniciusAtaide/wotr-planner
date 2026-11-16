@@ -1,0 +1,1 @@
+(key: "dodge", blueprint: "97e216dbb46ae3c4faef90cf6bbe6fd5", name: "Dodge", summary: "+1 dodge AC, lost without your Dex bonus.", category: Miscellaneous, guide: "feats#dodge", prerequisite: AbilityScore(ability: Dexterity, score: 13))

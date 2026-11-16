@@ -1,0 +1,21 @@
+(
+    key: "sorcerer/sylvan-sorcerer",
+    class: "sorcerer",
+    blueprint: "711d5024ecc75f346b9cda609c3a1f83",
+    name: "Sylvan Sorcerer",
+    summary: "Gets an animal companion at 1st level and the Fey bloodline's later powers; Lore (Nature) is a class skill.",
+    guide: "sorcerer#sylvan-sorcerer",
+    class_skills: ["knowledge-arcana", "lore-nature", "persuasion", "use-magic-device"],
+    levels: [
+        (level: 1, features: ["sorcerer/sylvan-sorcerer/animal-companion", "sorcerer/sylvan-sorcerer/cantrips", "sorcerer/sylvan-sorcerer/sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/sylvan-sorcerer/bloodline"]),
+        (level: 3, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-entangle"]),
+        (level: 5, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-hideous-laughter"]),
+        (level: 7, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-deep-slumber"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 9, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-poison"]),
+        (level: 11, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-vinetrap"]),
+        (level: 13, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-dispel-magic-greater"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 15, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-changestaff"]),
+        (level: 17, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-summon-nereid"]),
+        (level: 19, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-summon-hamadryad"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+    ],
+)

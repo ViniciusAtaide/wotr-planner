@@ -1,0 +1,1 @@
+(key: "ranger/combat-style-feat/two-weapon-combat-feats-2", blueprint: "019e68517c95c5447bff125b8a91c73f", name: "Two-Weapon Combat Feats (from level 2)", guide: "ranger#two-weapon-combat-feats", ignores_prerequisites: true, feats: ["dodge", "double-slice", "great-fortitude", "iron-will", "lightning-reflexes", "shield-bash", "toughness", "two-weapon-fighting"])

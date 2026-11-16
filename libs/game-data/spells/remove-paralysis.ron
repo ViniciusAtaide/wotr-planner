@@ -1,0 +1,13 @@
+(
+    key: "remove-paralysis",
+    blueprint: "f8bce986adfc88544a42bf4ab7ae75b2",
+    name: "Remove Paralysis",
+    school: Conjuration,
+    guide: "cleric-spells#remove-paralysis-conjuration",
+    summary: "Ends paralysis on the target.",
+    target: "One friendly creature within close range",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

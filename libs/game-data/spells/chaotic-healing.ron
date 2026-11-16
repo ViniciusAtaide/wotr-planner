@@ -1,0 +1,13 @@
+(
+    key: "chaotic-healing",
+    blueprint: "2c08fcbf3b796b3459aef2488b2cef01",
+    name: "Chaotic Healing",
+    school: Conjuration,
+    guide: "azata#chaotic-healing-conjuration",
+    summary: "Allies in the burst heal 2d8 + 1 per caster level and get one of Believe in Yourself, Optimistic Smile or Rejuvenating Poem.",
+    target: "All allies within a 30' burst centred on caster",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

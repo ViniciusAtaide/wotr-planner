@@ -1,0 +1,14 @@
+(
+    key: "circle-of-clarity",
+    blueprint: "f333185ae986b2a45823cce86535a122",
+    name: "Circle of Clarity",
+    school: Abjuration,
+    guide: "wizard-spells#circle-of-clarity-abjuration",
+    summary: "In the area: +4 on saves against illusions, concealment short of total is negated, and Perception rises by half your caster level (max +10).",
+    target: "Target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: FullRound,
+)

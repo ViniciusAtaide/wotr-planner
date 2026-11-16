@@ -1,0 +1,13 @@
+(
+    key: "consume-undead",
+    blueprint: "0e633cc133207a849915e4d15dec8410",
+    name: "Consume Undead",
+    school: Necromancy,
+    guide: "lich#consume-undead-necromancy",
+    summary: "Drains an undead target: an enemy takes 1d8 per caster level and you heal that much; an ally takes the maximum.",
+    target: "One creature within medium range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

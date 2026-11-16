@@ -1,0 +1,14 @@
+(
+    key: "owls-wisdom",
+    blueprint: "f0455c9295b53904f9e02fc571dd2ce1",
+    name: "Owl's Wisdom",
+    school: Transmutation,
+    guide: "wizard-spells#owls-wisdom-transmutation",
+    summary: "+4 enhancement bonus to the target's Wisdom.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

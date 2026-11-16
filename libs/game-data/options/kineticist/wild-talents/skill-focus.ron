@@ -1,0 +1,1 @@
+(key: "kineticist/wild-talents/skill-focus", blueprint: "c9629ef9eebb88b479b2fbc5e836656a", name: "Skill Focus", summary: "Works like the Skill Focus feat.", guide: "kineticist#skill-focus", chosen_feat: "skill-focus", repeat: PerValue, prerequisite: ClassLevel(class: "kineticist", level: 2))

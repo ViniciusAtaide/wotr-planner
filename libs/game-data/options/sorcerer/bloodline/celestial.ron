@@ -1,0 +1,15 @@
+(
+    key: "sorcerer/bloodline/celestial",
+    blueprint: "aa79c65fa0e11464d9d100b038c50796",
+    name: "Celestial",
+    summary: "Angelic bloodline: Heavenly Fire, acid and cold resistance, Aura of Heaven at 9th, wings and Conviction at 15th; Lore (Religion) is a class skill.",
+    guide: "sorcerer#celestial",
+    arcana: "sorcerer/bloodline/celestial/angelic-arcana",
+    levels: [
+        (level: 1, features: ["sorcerer/bloodline/celestial/angelic-arcana", "sorcerer/bloodline/celestial/heavenly-fire"], feat_list: "sorcerer/bloodline/celestial/feats", class_skills: ["lore-religion"]),
+        (level: 3, features: ["sorcerer/bloodline/celestial/celestial-resistances"]),
+        (level: 9, features: ["sorcerer/bloodline/celestial/aura-of-heaven", "sorcerer/bloodline/celestial/celestial-resistances"]),
+        (level: 15, features: ["sorcerer/bloodline/celestial/conviction"], feats: ["wings"]),
+        (level: 20, features: ["sorcerer/bloodline/celestial/ascension"]),
+    ],
+)

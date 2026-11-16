@@ -1,0 +1,14 @@
+(
+    key: "winds-of-vengeance",
+    blueprint: "5d8f1da2fdc0b9242af9f326f9e507be",
+    name: "Winds of Vengeance",
+    school: Evocation,
+    guide: "wizard-spells#winds-of-vengeance-evocation",
+    summary: "You fly at 60 ft and have total concealment against ranged attacks; a creature that hits you in melee must save or take 5d8 bludgeoning and fall prone.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

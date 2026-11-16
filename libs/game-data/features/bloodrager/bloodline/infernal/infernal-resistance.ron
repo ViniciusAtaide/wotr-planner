@@ -1,0 +1,1 @@
+(key: "bloodrager/bloodline/infernal/infernal-resistance", blueprint: "ac77b22f74aed034ca2b16ba6a4bfde9", name: "Infernal Resistance", summary: "Fire resistance 5 and +2 on saves against poison at 4th level, rising to 10 and +4 at 8th.", guide: "bloodrager#infernal-resistance", steps: (on: Classes(["bloodrager"]), at: [5, 8]))

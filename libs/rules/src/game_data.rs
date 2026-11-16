@@ -42,19 +42,34 @@ impl GuideRef {
     }
 }
 
-/// Everything the planner knows about the game.
+/// Everything the planner knows about the game: one flat catalog per kind, each entry keyed by its key (ticket
+/// 244). Classes, archetypes, paths, options and rows name the features, selections and feat lists they grant by key;
+/// no entry holds another.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GameData {
     pub progression: Progression,
     pub races: Vec<Race>,
+    /// Every race's subraces ([`Subrace::race`] names the race).
+    pub subraces: Vec<Subrace>,
     pub skills: Vec<Skill>,
     /// The weapons a parameterised feat can be taken for.
     pub weapons: Vec<Weapon>,
     pub feats: Vec<Feat>,
-    /// Base classes, each with its archetypes.
+    /// The named feat lists fixed-list feat slots pick from: races', classes', archetypes', options' and paths'.
+    pub feat_lists: Vec<FeatList>,
+    /// Base classes.
     pub classes: Vec<Class>,
     /// Prestige classes. They share [`Class`]'s shape but have no archetypes.
     pub prestige_classes: Vec<Class>,
+    /// Every base class's archetypes ([`Archetype::class`] names the class).
+    pub archetypes: Vec<Archetype>,
+    /// The features that classes, archetypes, options and paths grant.
+    pub features: Vec<Feature>,
+    /// The Feature selections: classes', archetypes', options' and paths' picks.
+    pub selections: Vec<FeatureSelection>,
+    /// The Selection options the selections offer ([`FeatureSelection::options`] and
+    /// [`shared_options`](FeatureSelection::shared_options)).
+    pub options: Vec<SelectionOption>,
     pub mythic_abilities: Vec<MythicAbility>,
     pub mythic_feats: Vec<MythicFeat>,
     /// The flat bonuses items give while held (`bonuses.ron`, tickets 119 and 120): spell DCs, caster level against
@@ -65,22 +80,22 @@ pub struct GameData {
     /// note per item.
     #[serde(default)]
     pub interactions: Vec<ItemInteractions>,
-    /// The named items a character wears or wields, with their always-on bonuses (`gear.ron`, ticket 165). A
-    /// Build holds them in its gear ([`Build::gear`](crate::Build::gear), ticket 166).
+    /// The named items a character wears or wields, with their always-on bonuses (`gear/`, ticket 165). A Build
+    /// holds them in its gear ([`Build::gear`](crate::Build::gear), ticket 166).
     #[serde(default)]
     pub gear: Vec<GearItem>,
     pub mythic_paths: Vec<MythicPath>,
-    /// The backgrounds chosen at Build start (`backgrounds.ron`, the user's list).
+    /// The backgrounds chosen at Build start (`backgrounds/`, the user's list).
     pub backgrounds: Vec<Background>,
-    /// The deities a Build start may follow (`deities.ron`, the guide's table).
+    /// The deities a Build start may follow (`deities/`, the guide's table).
     pub deities: Vec<Deity>,
-    /// The spell catalogue (`spells/<page>/level-<n>.ron`, ticket 121): reference data no Build choice names.
-    /// Left out of the JSON the browser gets, which has no use for it (see [`GameData::spell_lists`]).
+    /// The spell catalogue (`spells/`, ticket 121): reference data no Build choice names. Left out of the JSON the
+    /// browser gets, which has no use for it (see [`GameData::spell_lists`]).
     #[serde(skip_serializing, default)]
     pub spells: Vec<Spell>,
-    /// The spell lists (`spells/lists.ron`): which spells each class, archetype and Mythic path casts, at which
-    /// level. Like [`spells`](Self::spells), never serialised: the browser's rules don't read them, and the MCP
-    /// server reads the data files.
+    /// The spell lists (`spell-lists/`): which spells each class, archetype and Mythic path casts, at which level.
+    /// Like [`spells`](Self::spells), never serialised: the browser's rules don't read them, and the MCP server
+    /// reads the data files.
     #[serde(skip_serializing, default)]
     pub spell_lists: Vec<SpellList>,
 }
@@ -101,72 +116,46 @@ impl GameData {
         self.all_classes().find(|class| class.key == *key)
     }
 
-    /// Every class's Feature selections: each class's own, then its archetypes', for every class in
-    /// [`all_classes`](Self::all_classes) order.
-    pub fn class_selections(&self) -> impl Iterator<Item = &FeatureSelection> {
-        self.all_classes().flat_map(|class| {
-            class.selections.iter().chain(
-                class
-                    .archetypes
-                    .iter()
-                    .flat_map(|archetype| &archetype.selections),
-            )
-        })
+    /// A class's archetypes, in key order once canonical. A walk of the list.
+    pub fn archetypes_of<'a>(&'a self, class: &'a ClassKey) -> impl Iterator<Item = &'a Archetype> {
+        self.archetypes
+            .iter()
+            .filter(move |archetype| archetype.class == *class)
     }
 
-    /// Every Feature selection: the [`class_selections`](Self::class_selections), then each path's.
-    pub fn selections(&self) -> impl Iterator<Item = &FeatureSelection> {
-        self.class_selections()
-            .chain(self.mythic_paths.iter().flat_map(|path| &path.selections))
+    /// A race's subraces, in key order once canonical. A walk of the list.
+    pub fn subraces_of<'a>(&'a self, race: &'a RaceKey) -> impl Iterator<Item = &'a Subrace> {
+        self.subraces
+            .iter()
+            .filter(move |subrace| subrace.race == *race)
     }
 
-    /// Every class's features: each class's own, then its archetypes', for every class in
-    /// [`all_classes`](Self::all_classes) order.
-    pub fn class_features(&self) -> impl Iterator<Item = &Feature> {
-        self.all_classes().flat_map(|class| {
-            class.features.iter().chain(
-                class
-                    .archetypes
-                    .iter()
-                    .flat_map(|archetype| &archetype.features),
-            )
-        })
+    /// A Feature selection by key. A walk of the list: the engine finds selections through its index instead.
+    pub fn selection(&self, key: &FeatureSelectionKey) -> Option<&FeatureSelection> {
+        self.selections
+            .iter()
+            .find(|selection| selection.key == *key)
     }
 
-    /// Every feature: the [`class_features`](Self::class_features), then each path's.
-    pub fn features(&self) -> impl Iterator<Item = &Feature> {
-        self.class_features()
-            .chain(self.mythic_paths.iter().flat_map(|path| &path.features))
+    /// A feature by key. A walk of the list: the engine finds features through its index instead.
+    pub fn feature(&self, key: &FeatureKey) -> Option<&Feature> {
+        self.features.iter().find(|feature| feature.key == *key)
     }
 
-    /// A Selection option by key, from any selection's own options (the first, in
-    /// [`selections`](Self::selections) order). A walk of the lists: the engine finds options through its index
-    /// instead.
+    /// A Selection option by key. A walk of the list: the engine finds options through its index instead.
     pub fn selection_option(&self, key: &SelectionOptionKey) -> Option<&SelectionOption> {
-        self.selections()
-            .flat_map(|selection| &selection.options)
-            .find(|option| option.key == *key)
+        self.options.iter().find(|option| option.key == *key)
     }
 
-    /// Every archetype of every base class.
-    pub fn archetypes(&self) -> impl Iterator<Item = &Archetype> {
-        self.classes.iter().flat_map(|class| &class.archetypes)
-    }
-
-    /// Every feat list: each race's, each class's (base, then prestige), each of its archetypes', then each path's.
-    pub fn feat_lists(&self) -> impl Iterator<Item = &FeatList> {
-        let races = self.races.iter().flat_map(|race| &race.feat_lists);
-        let classes = self.all_classes().flat_map(|class| {
-            class.feat_lists.iter().chain(
-                class
-                    .archetypes
-                    .iter()
-                    .flat_map(|archetype| &archetype.feat_lists),
-            )
-        });
-        races
-            .chain(classes)
-            .chain(self.mythic_paths.iter().flat_map(|path| &path.feat_lists))
+    /// A Feature selection's own options ([`FeatureSelection::options`]), the ones the data has.
+    pub fn options_of<'a>(
+        &'a self,
+        selection: &'a FeatureSelection,
+    ) -> impl Iterator<Item = &'a SelectionOption> {
+        selection
+            .options
+            .iter()
+            .filter_map(|key| self.selection_option(key))
     }
 
     /// How much of each kind of thing the data holds, labelled, as a quick check that reading the files worked.
@@ -177,7 +166,7 @@ impl GameData {
             ("Weapons", self.weapons.len()),
             ("Feats", self.feats.len()),
             ("Classes", self.classes.len()),
-            ("Archetypes", self.archetypes().count()),
+            ("Archetypes", self.archetypes.len()),
             ("Prestige classes", self.prestige_classes.len()),
             ("Mythic abilities", self.mythic_abilities.len()),
             ("Mythic feats", self.mythic_feats.len()),
@@ -190,21 +179,20 @@ impl GameData {
         ]
     }
 
-    /// Sorts every list into its one canonical order: catalogs (feat lists included) by key, class level rows by
-    /// level, mythic rank rows and ascensions by rank, and multisets (granted features and selections, feat slots,
-    /// ability modifiers, prerequisite children) by value.
+    /// Sorts every list into its one canonical order: catalogs by key, class level rows by level, mythic rank rows
+    /// and ascensions by rank, and multisets (granted features and selections, feat slots, ability modifiers,
+    /// prerequisite children) by value.
     pub fn canonicalize(&mut self) {
         self.progression.mythic_ascensions.sort_by_key(|a| a.rank);
         sort_by_key(&mut self.races, |r| r.key.clone());
         for race in &mut self.races {
             race.ability_modifiers.sort();
             race.feat_slots.sort();
-            sort_by_key(&mut race.feat_lists, |l| l.key.clone());
-            sort_by_key(&mut race.subraces, |s| s.key.clone());
-            for subrace in &mut race.subraces {
-                subrace.ability_modifiers.sort();
-                subrace.feat_slots.sort();
-            }
+        }
+        sort_by_key(&mut self.subraces, |s| s.key.clone());
+        for subrace in &mut self.subraces {
+            subrace.ability_modifiers.sort();
+            subrace.feat_slots.sort();
         }
         sort_by_key(&mut self.skills, |s| s.key.clone());
         sort_by_key(&mut self.weapons, |w| w.key.clone());
@@ -212,11 +200,34 @@ impl GameData {
         for feat in &mut self.feats {
             canonicalize_prerequisite(&mut feat.prerequisite);
         }
+        sort_by_key(&mut self.feat_lists, |l| l.key.clone());
         for class in self.all_classes_mut() {
-            class.canonicalize();
+            canonicalize_prerequisite(&mut class.prerequisite);
+            class.save_exceptions.sort();
+            canonicalize_rows(&mut class.levels);
         }
         sort_by_key(&mut self.classes, |c| c.key.clone());
         sort_by_key(&mut self.prestige_classes, |c| c.key.clone());
+        sort_by_key(&mut self.archetypes, |a| a.key.clone());
+        for archetype in &mut self.archetypes {
+            canonicalize_prerequisite(&mut archetype.prerequisite);
+            canonicalize_archetype_rows(&mut archetype.levels);
+        }
+        sort_by_key(&mut self.features, |f| f.key.clone());
+        for feature in &mut self.features {
+            feature.ability_bonuses.sort();
+        }
+        sort_by_key(&mut self.selections, |s| s.key.clone());
+        sort_by_key(&mut self.options, |o| o.key.clone());
+        for option in &mut self.options {
+            canonicalize_prerequisite(&mut option.prerequisite);
+            option.levels.sort_by_key(|row| row.level);
+            for row in &mut option.levels {
+                row.features.sort();
+                row.feat_slots.sort();
+                row.selections.sort();
+            }
+        }
         sort_by_key(&mut self.mythic_abilities, |a| a.key.clone());
         for ability in &mut self.mythic_abilities {
             canonicalize_prerequisite(&mut ability.prerequisite);
@@ -246,9 +257,6 @@ impl GameData {
         }
         sort_by_key(&mut self.mythic_paths, |p| p.key.clone());
         for path in &mut self.mythic_paths {
-            canonicalize_features(&mut path.features);
-            canonicalize_selections(&mut path.selections);
-            sort_by_key(&mut path.feat_lists, |l| l.key.clone());
             path.ranks.sort_by_key(|r| r.rank);
             for row in &mut path.ranks {
                 sort_grants(&mut row.features, &mut row.feat_slots, &mut row.selections);
@@ -277,30 +285,6 @@ fn canonicalize_prerequisite(prerequisite: &mut Option<Prerequisite>) {
     }
 }
 
-/// Features by key, each one's ability bonuses (a set in all but type) by value.
-fn canonicalize_features(features: &mut [Feature]) {
-    sort_by_key(features, |f| f.key.clone());
-    for feature in features {
-        feature.ability_bonuses.sort();
-    }
-}
-
-fn canonicalize_selections(selections: &mut [FeatureSelection]) {
-    sort_by_key(selections, |s| s.key.clone());
-    for selection in selections {
-        sort_by_key(&mut selection.options, |o| o.key.clone());
-        for option in &mut selection.options {
-            canonicalize_prerequisite(&mut option.prerequisite);
-            option.levels.sort_by_key(|row| row.level);
-            for row in &mut option.levels {
-                row.features.sort();
-                row.feat_slots.sort();
-                row.selections.sort();
-            }
-        }
-    }
-}
-
 fn canonicalize_rows(rows: &mut [ClassLevelRow]) {
     rows.sort_by_key(|r| r.level);
     for row in rows {
@@ -324,25 +308,6 @@ fn sort_grants(
     features.sort();
     feat_slots.sort();
     selections.sort();
-}
-
-impl Class {
-    fn canonicalize(&mut self) {
-        canonicalize_prerequisite(&mut self.prerequisite);
-        canonicalize_features(&mut self.features);
-        canonicalize_selections(&mut self.selections);
-        sort_by_key(&mut self.feat_lists, |l| l.key.clone());
-        self.save_exceptions.sort();
-        canonicalize_rows(&mut self.levels);
-        sort_by_key(&mut self.archetypes, |a| a.key.clone());
-        for archetype in &mut self.archetypes {
-            canonicalize_prerequisite(&mut archetype.prerequisite);
-            canonicalize_features(&mut archetype.features);
-            canonicalize_selections(&mut archetype.selections);
-            sort_by_key(&mut archetype.feat_lists, |l| l.key.clone());
-            canonicalize_archetype_rows(&mut archetype.levels);
-        }
-    }
 }
 
 /// The progression table that applies to every Build (`progression.ron`): when each Mythic rank is reached. The
@@ -436,10 +401,6 @@ pub struct Race {
     /// Extra Feat slots at character level 1 (a human's bonus feat is a `General` slot).
     #[serde(default)]
     pub feat_slots: Vec<FeatSlot>,
-    /// The race's own feat lists, which its slots may name (a half-elf's Adaptability: Skill Focus as a bonus
-    /// feat).
-    #[serde(default)]
-    pub feat_lists: Vec<FeatList>,
     /// Skill points it adds at every level, on top of the class's and Intelligence's (a human's Skilled: 1).
     #[serde(default)]
     pub skill_points: u8,
@@ -450,8 +411,6 @@ pub struct Race {
     /// dwarf's Dwarven Waraxe), ticket 198.
     #[serde(default)]
     pub weapons_as_martial: BTreeSet<WeaponKey>,
-    #[serde(default)]
-    pub subraces: Vec<Subrace>,
 }
 
 /// A subrace. The guide lists each subrace's own racial traits, so its ability modifiers and feat slots replace the
@@ -460,6 +419,8 @@ pub struct Race {
 #[serde(deny_unknown_fields)]
 pub struct Subrace {
     pub key: SubraceKey,
+    /// The race it is a subrace of.
+    pub race: RaceKey,
     /// The game blueprint behind it, if any ([`BlueprintGuid`]).
     #[serde(default, skip_serializing)]
     pub blueprint: Option<BlueprintGuid>,
@@ -851,17 +812,9 @@ pub struct Class {
     /// prerequisites).
     #[serde(default)]
     pub counts_as: BTreeSet<CountsAs>,
-    #[serde(default)]
-    pub features: Vec<Feature>,
-    #[serde(default)]
-    pub selections: Vec<FeatureSelection>,
-    #[serde(default)]
-    pub feat_lists: Vec<FeatList>,
     /// One row per Class level, 1 up to the class's last level with none missing. The number of rows is the
     /// class level cap. What taking the class grants is in row 1.
     pub levels: Vec<ClassLevelRow>,
-    #[serde(default)]
-    pub archetypes: Vec<Archetype>,
 }
 
 /// How many classes a prestige class's spellcasting advancement serves. Its rows say which spell types a level
@@ -905,6 +858,8 @@ pub enum CountsToward {
 #[serde(deny_unknown_fields)]
 pub struct Archetype {
     pub key: ArchetypeKey,
+    /// The base class it is an archetype of.
+    pub class: ClassKey,
     /// The game blueprint behind it, if any ([`BlueprintGuid`]).
     #[serde(default, skip_serializing)]
     pub blueprint: Option<BlueprintGuid>,
@@ -938,15 +893,8 @@ pub struct Archetype {
     /// Enforcer: good).
     #[serde(default)]
     pub will: Option<SaveProgression>,
-    /// Features this archetype adds (it can also grant the base class's).
-    #[serde(default)]
-    pub features: Vec<Feature>,
-    #[serde(default)]
-    pub selections: Vec<FeatureSelection>,
-    #[serde(default)]
-    pub feat_lists: Vec<FeatList>,
     /// The levels where the archetype differs from its base class, each at most once. A level left out is the
-    /// base class's row.
+    /// base class's row. Its rows name features by key, its own and the class's alike.
     #[serde(default)]
     pub levels: Vec<ArchetypeLevelRow>,
 }
@@ -1263,8 +1211,8 @@ pub struct FeatureSelection {
     pub summary: String,
     #[serde(default)]
     pub guide: Option<GuideRef>,
-    /// The options this selection defines, each keyed under it.
-    pub options: Vec<SelectionOption>,
+    /// The options this selection defines ([`GameData::options`]), each keyed under it.
+    pub options: BTreeSet<SelectionOptionKey>,
     /// Other selections' options this one offers too. A shared option keeps its one key, so holding it through
     /// either selection holds it once, and its prerequisite is the same in both (where a class's own feature
     /// gates it, the data accepts each sharing class's with an `Any`).
@@ -1385,7 +1333,7 @@ impl FeatureSelection {
     /// Whether a pick of `option` may fill this selection's slot: one of its own options, or one it shares. (A
     /// filtered pool's offer depends on what's held as well: see `Engine`.)
     pub fn offers(&self, option: &SelectionOptionKey) -> bool {
-        self.shared_options.contains(option) || self.options.iter().any(|own| &own.key == option)
+        self.shared_options.contains(option) || self.options.contains(option)
     }
 
     /// Whether class levels make the option level of an option held through it: classes or archetypes it names, or
@@ -1398,11 +1346,7 @@ impl FeatureSelection {
 
     /// Every option it offers, own and shared, in key order.
     pub fn offered(&self) -> BTreeSet<&SelectionOptionKey> {
-        self.options
-            .iter()
-            .map(|option| &option.key)
-            .chain(&self.shared_options)
-            .collect()
+        self.options.iter().chain(&self.shared_options).collect()
     }
 }
 
@@ -1669,13 +1613,6 @@ pub struct MythicPath {
     pub summary: String,
     #[serde(default)]
     pub guide: Option<GuideRef>,
-    #[serde(default)]
-    pub features: Vec<Feature>,
-    /// The path's own picks.
-    #[serde(default)]
-    pub selections: Vec<FeatureSelection>,
-    #[serde(default)]
-    pub feat_lists: Vec<FeatList>,
     /// The path's rank table: its own picks on top of the general ones in [`MythicAscension`].
     #[serde(default)]
     pub ranks: Vec<MythicRankRow>,

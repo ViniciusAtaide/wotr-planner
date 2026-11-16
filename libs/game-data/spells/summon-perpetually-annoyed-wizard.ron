@@ -1,0 +1,14 @@
+(
+    key: "summon-perpetually-annoyed-wizard",
+    blueprint: "dd679ef3aa4a71a4da192aeb0040d84b",
+    name: "Summon Perpetually Annoyed Wizard",
+    school: Conjuration,
+    guide: "trickster#summon-perpetually-annoyed-wizard-conjuration",
+    summary: "Summons a wizard hostile to everyone, friend and foe.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: Standard,
+)

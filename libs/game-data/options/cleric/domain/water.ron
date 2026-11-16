@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/water",
+    blueprint: "e63d9133cebf2cf4788e61432a939084",
+    name: "Water Domain",
+    summary: "Icicle, cold resistance from 6th level and immunity at 20th; spells from Ray of Sickening to Tsunami.",
+    guide: "character-creation#water-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/water/icicle"]),
+        (level: 6, features: ["cleric/domain/water/cold-resistance"]),
+    ],
+)

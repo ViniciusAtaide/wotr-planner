@@ -1,0 +1,15 @@
+(
+    key: "demon/demon-lord-aspect",
+    blueprint: "fc93daa527ec58c40afbe874c157bc91",
+    name: "Demon Lord Aspect",
+    summary: "From rank 9, while raging you can take on the aspect of a demon lord.",
+    guide: "demon#demon-lord-aspect",
+    options: [
+        "demon/demon-lord-aspect/aspect-of-areshkagal",
+        "demon/demon-lord-aspect/aspect-of-deskari",
+        "demon/demon-lord-aspect/aspect-of-kabriri",
+        "demon/demon-lord-aspect/aspect-of-nocticula",
+        "demon/demon-lord-aspect/aspect-of-pazuzu",
+        "demon/demon-lord-aspect/aspect-of-socothbenoth",
+    ],
+)

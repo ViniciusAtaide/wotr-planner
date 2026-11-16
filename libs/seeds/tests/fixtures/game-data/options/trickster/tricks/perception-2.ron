@@ -1,0 +1,6 @@
+(
+    key: "trickster/tricks/perception-2",
+    name: "Perception II",
+    guide: "trickster#perception-ii",
+    prerequisite: SelectionOption("trickster/tricks/perception-1"),
+)

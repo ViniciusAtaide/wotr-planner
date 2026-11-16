@@ -1,0 +1,23 @@
+(
+    key: "warpriest/proclaimer",
+    class: "warpriest",
+    blueprint: "aaf7ace9642192d4389eab95e6cd04fd",
+    name: "Proclaimer",
+    summary: "Warpriest with powers against evil outsiders, losing Sacred Armor.",
+    guide: "warpriest#proclaimer",
+    levels: [
+        (level: 2, features: ["warpriest/fervor", "warpriest/proclaimer/cleanser-of-evil"]),
+        (level: 4, features: ["warpriest/proclaimer/zone-of-sanctification", "warpriest/sacred-weapon"]),
+        (level: 5, features: ["warpriest/fervor", "warpriest/proclaimer/cleanser-of-evil"]),
+        (level: 7, features: ["warpriest/proclaimer/cleanser-of-evil"]),
+        (level: 8, features: ["warpriest/fervor", "warpriest/proclaimer/cleanser-of-evil", "warpriest/sacred-weapon"]),
+        (level: 10),
+        (level: 11, features: ["warpriest/fervor", "warpriest/proclaimer/cleanser-of-evil"]),
+        (level: 13, features: ["warpriest/proclaimer/cleanser-of-evil"]),
+        (level: 14, features: ["warpriest/fervor", "warpriest/proclaimer/cleanser-of-evil"]),
+        (level: 16, features: ["warpriest/sacred-weapon"]),
+        (level: 17, features: ["warpriest/fervor", "warpriest/proclaimer/cleanser-of-evil"]),
+        (level: 19, features: ["warpriest/proclaimer/cleanser-of-evil"]),
+        (level: 20, features: ["warpriest/aspect-of-war", "warpriest/fervor", "warpriest/proclaimer/cleanser-of-evil", "warpriest/sacred-weapon"]),
+    ],
+)

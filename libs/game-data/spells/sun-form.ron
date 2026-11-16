@@ -1,0 +1,14 @@
+(
+    key: "sun-form",
+    blueprint: "568084843e133374bb03fb5e6cb6f22f",
+    name: "Sun Form",
+    school: Abjuration,
+    guide: "angel#sun-form-abjuration",
+    summary: "You become incorporeal and, as a swift action, can blast a foe for 1d6 per caster level, half of it fire and half holy.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

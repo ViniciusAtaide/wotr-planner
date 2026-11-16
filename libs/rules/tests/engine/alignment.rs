@@ -3,7 +3,7 @@
 //! keeps the class's.
 
 use rules::{
-    Ability, Alignment, Archetype, ArchetypeKey, Build, ClassChoice, ClassOption, DataAt,
+    Ability, Alignment, Archetype, ArchetypeKey, Build, ClassChoice, ClassKey, ClassOption, DataAt,
     DataIssue, DataProblem, Edit, Engine, GameData, GuideRef, Issue, Prerequisite, Unmet,
 };
 
@@ -55,6 +55,7 @@ fn archetype(key: &str, prerequisite: Prerequisite) -> Archetype {
     Archetype {
         casting_ability: None,
         key: ArchetypeKey::new(key),
+        class: ClassKey::new("monk"),
         blueprint: None,
         name: key.into(),
         summary: String::new(),
@@ -66,9 +67,6 @@ fn archetype(key: &str, prerequisite: Prerequisite) -> Archetype {
         fort: None,
         reflex: None,
         will: None,
-        features: vec![],
-        selections: vec![],
-        feat_lists: vec![],
         levels: vec![],
     }
 }
@@ -84,9 +82,9 @@ fn world_with_lawful_monk() -> GameData {
         .find(|c| c.key.as_str() == "monk")
         .unwrap();
     monk.prerequisite = Some(Prerequisite::All(vec![any_of(&LAWFUL), wisdom_12()]));
-    monk.archetypes
+    data.archetypes
         .push(archetype("monk/drunken-master", any_of(&NOT_LAWFUL)));
-    monk.archetypes.push(archetype(
+    data.archetypes.push(archetype(
         "monk/lawful-good",
         Prerequisite::All(vec![
             Prerequisite::Alignment(LawfulGood),
@@ -252,8 +250,9 @@ fn an_alignment_inside_another_condition_of_a_class_or_archetype_is_a_data_probl
         .find(|c| c.key.as_str() == "monk")
         .unwrap();
     monk.prerequisite = Some(Prerequisite::All(vec![mixed.clone(), wisdom_12()]));
-    monk.archetypes[0].prerequisite = Some(Prerequisite::Not(Box::new(mixed.clone())));
-    let zen_archer = monk.archetypes[0].key.clone();
+    let zen_archer = first_archetype_mut(&mut data, "monk");
+    zen_archer.prerequisite = Some(Prerequisite::Not(Box::new(mixed.clone())));
+    let zen_archer = zen_archer.key.clone();
     // A feat or an option may mix them (the Champion's blessings).
     data.feats[0].prerequisite = Some(mixed);
     let mut found: Vec<(DataAt, DataIssue)> = data

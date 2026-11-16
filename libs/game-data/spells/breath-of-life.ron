@@ -1,0 +1,13 @@
+(
+    key: "breath-of-life",
+    blueprint: "d5847cad0b0e54c4d82d6c59a3cda6b0",
+    name: "Breath of Life",
+    school: Conjuration,
+    guide: "cleric-spells#breath-of-life-conjuration",
+    summary: "Heals the target 5d8 + 1 per caster level and revives allies slain in the last 2 rounds with a negative level for a day; harms undead alike (Will half).",
+    target: "One friendly creature within touch range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [Cure],
+    casting_time: Standard,
+)

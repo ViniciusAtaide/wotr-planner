@@ -1,0 +1,1 @@
+(key: "monk/ki-power/quivering-palm", blueprint: "25d1247bb1a66b74081095085e169eb1", name: "Quivering Palm", summary: "From 16th level, 4 ki: a target that fails a Fortitude save (DC 10 + half level + Wis) dies.", guide: "monk#quivering-palm", prerequisite: ClassLevel(class: "monk", level: 16))

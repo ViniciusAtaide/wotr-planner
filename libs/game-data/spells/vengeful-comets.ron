@@ -1,0 +1,14 @@
+(
+    key: "vengeful-comets",
+    blueprint: "0e1272506f9f4480b7c3e7e1e53b6439",
+    name: "Vengeful Comets",
+    school: Evocation,
+    guide: "wizard-spells#vengeful-comets-evocation",
+    summary: "A comet per four caster levels orbits you (+1 per comet on saves vs fire); an enemy spell on you fires one: 1d6 bludgeoning, 3d6 cold +1 per 2 levels (max +10).",
+    target: "Personal",
+    duration: "1 round / level (or until discharged)",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Cold],
+    casting_time: Standard,
+)

@@ -1,0 +1,9 @@
+(
+    key: "urgathoa",
+    blueprint: "812f6c07148088e41a9ac94b56ac2fc8",
+    name: "Urgathoa",
+    guide: "character-creation#deities",
+    alignments: [TrueNeutral, LawfulEvil, NeutralEvil, ChaoticEvil],
+    favoured_weapons: ["scythe"],
+    domains: ["cleric/domain/death", "cleric/domain/evil", "cleric/domain/magic", "cleric/domain/strength", "cleric/domain/undead", "cleric/domain/war"],
+)

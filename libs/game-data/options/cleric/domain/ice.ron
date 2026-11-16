@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/ice",
+    blueprint: "2108d8e7019e4c1faa094d2d6725e936",
+    name: "Ice Subdomain",
+    summary: "Icicle, and Body of Ice from 8th level (DR/- and cold immunity, but double fire damage); spells from Snowball to Mass Icy Prison.",
+    guide: "character-creation#ice-subdomain",
+    levels: [
+        (level: 1, features: ["cleric/domain/ice/icicle"]),
+        (level: 8, features: ["cleric/domain/ice/body-of-ice"]),
+    ],
+)

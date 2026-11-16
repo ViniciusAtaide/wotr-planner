@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/fire",
+    blueprint: "2368212fa3856d74589e924d3e2074d8",
+    name: "Fire",
+    summary: "Minor: a weapon deals +1d4 acid for 1 minute. Major (10th): an ally gains cold resistance equal to your level for 1 minute.",
+    guide: "warpriest#fire",
+    domain: "cleric/domain/fire",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/fire/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/fire/major-blessing"]),
+    ],
+)

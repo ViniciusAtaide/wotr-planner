@@ -1,0 +1,10 @@
+(
+    // Taken for a weapon, once per weapon.
+    key: "weapon-focus",
+    name: "Weapon Focus",
+    category: Weapon,
+    guide: "feats#weapon-focus",
+    parameter: Weapon,
+    repeat: PerValue,
+    prerequisite: BaseAttackBonus(1),
+)

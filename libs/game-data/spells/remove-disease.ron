@@ -1,0 +1,13 @@
+(
+    key: "remove-disease",
+    blueprint: "4093d5a0eb5cae94e909eb1e0e1a6b36",
+    name: "Remove Disease",
+    school: Conjuration,
+    guide: "cleric-spells#remove-disease-conjuration",
+    summary: "Tries to cure every disease on the target, with a caster level check against each disease's DC.",
+    target: "One friendly creature within close range",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

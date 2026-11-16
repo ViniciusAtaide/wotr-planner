@@ -1,0 +1,1 @@
+(key: "flail", blueprint: "bf1e53f7442ed0c43bf52d3abe55e16a", name: "Flail", proficiency: Martial, stats: (damage: (count: 1, sides: 8), threat: 20, multiplier: 2, handedness: OneHanded))

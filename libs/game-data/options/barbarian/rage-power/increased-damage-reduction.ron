@@ -1,0 +1,1 @@
+(key: "barbarian/rage-power/increased-damage-reduction", blueprint: "ddaee203ee4dcb24c880d633fbd77db6", name: "Increased Damage Reduction", summary: "DR/- increases by 2; can be taken up to three times.", guide: "barbarian#increased-damage-reduction", repeat: Times(3), prerequisite: Any([ClassLevel(class: "barbarian", level: 8), ClassLevel(class: "skald", level: 8)]))

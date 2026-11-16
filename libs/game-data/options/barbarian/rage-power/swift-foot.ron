@@ -1,0 +1,1 @@
+(key: "barbarian/rage-power/swift-foot", blueprint: "7df32d4e9bd2cdc48b0f69b03a57754a", name: "Swift Foot", summary: "+10 feet speed; can be taken up to three times.", guide: "barbarian#swift-foot", repeat: Times(3))

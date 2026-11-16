@@ -1,0 +1,14 @@
+(
+    key: "holy-hymn",
+    blueprint: "de8a737580c4cb94f9b21c290d4af17d",
+    name: "Holy Hymn",
+    school: Abjuration,
+    guide: "angel#holy-hymn-abjuration",
+    summary: "Allies in the burst gain +2 luck on attacks, damage, saves and skill checks, and enemies take -2 on the same rolls.",
+    target: "All creatures with a 40' burst centred on the caster",
+    duration: "1 round / level",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

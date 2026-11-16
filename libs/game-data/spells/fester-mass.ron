@@ -1,0 +1,14 @@
+(
+    key: "fester-mass",
+    blueprint: "52b8b14360a87104482b2735c7fc8606",
+    name: "Fester, Mass",
+    school: Necromancy,
+    guide: "inquisitor#fester-mass-necromancy",
+    summary: "Enemies in the burst gain SR 12 against healing effects; any that saves is affected for only 1 round.",
+    target: "Target point within close range, 30' burst",
+    duration: "1 round / level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

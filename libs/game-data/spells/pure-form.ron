@@ -1,0 +1,13 @@
+(
+    key: "pure-form",
+    blueprint: "33e53b74891b4c34ba6ee3baa322beeb",
+    name: "Pure Form",
+    school: Conjuration,
+    guide: "angel#pure-form-conjuration",
+    summary: "You heal 1d8 per caster level and are cleared of all negative effects.",
+    target: "Personal",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,13 @@
+(
+    key: "jolt",
+    blueprint: "16e23c7a8ae53cc42a93066d19766404",
+    name: "Jolt",
+    school: Transmutation,
+    guide: "wizard-spells#jolt-transmutation",
+    summary: "Hit with a ranged touch attack to deal 1d3 electricity damage.",
+    target: "One enemy creature within close range",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Electricity],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "shield-of-faith",
+    blueprint: "183d5bb91dea3a1489a6db6c9cb64445",
+    name: "Shield of Faith",
+    school: Abjuration,
+    guide: "cleric-spells#shield-of-faith-abjuration",
+    summary: "The target gains a +2 deflection bonus to AC, +1 more per six caster levels (max +5).",
+    target: "One friendly creature within close range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "alchemist/discovery/feral-wings", blueprint: "78197196e096c6e4eaed5c62fa108b52", name: "Feral Wings", summary: "With a feral mutagen, wings give +3 dodge AC against melee attacks and immunity to difficult terrain.", guide: "alchemist#feral-wings", prerequisite: All([ClassLevel(class: "alchemist", level: 6), SelectionOption("alchemist/discovery/feral-mutagen")]))

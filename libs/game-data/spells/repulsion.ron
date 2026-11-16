@@ -1,0 +1,14 @@
+(
+    key: "repulsion",
+    blueprint: "cb55ae9517a444548d3457f91f829679",
+    name: "Repulsion",
+    school: Abjuration,
+    guide: "wizard-spells#repulsion-abjuration",
+    summary: "Creatures entering a 40 ft field around you must save or be unable to move while in it, though they can still attack and cast.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

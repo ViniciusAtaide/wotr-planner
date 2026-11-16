@@ -1,0 +1,14 @@
+(
+    key: "animate-dead",
+    blueprint: "4b76d32feb089ad4499c3a1ce8e1ac27",
+    name: "Animate Dead",
+    school: Necromancy,
+    guide: "wizard-spells#animate-dead-necromancy",
+    summary: "As Lesser Animate Dead, but it raises 1d4+2 skeletal champions to fight for you.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning, Evil],
+    casting_time: Standard,
+)

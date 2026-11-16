@@ -1,0 +1,14 @@
+(
+    key: "vampiric-blade",
+    blueprint: "81ac91fe92240a8478b5d2512c9fbec2",
+    name: "Vampiric Blade",
+    school: Necromancy,
+    guide: "lich#vampiric-blade-necromancy",
+    summary: "Your weapon deals an extra 1d6 + 1 per caster level and heals you that much.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

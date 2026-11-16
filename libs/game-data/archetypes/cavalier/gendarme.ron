@@ -1,0 +1,18 @@
+(
+    key: "cavalier/gendarme",
+    class: "cavalier",
+    blueprint: "48fd69254e9e5c540bd65101d3252184",
+    name: "Gendarme",
+    summary: "Cavalier with extra combat feats instead of teamwork abilities.",
+    guide: "cavalier#gendarme",
+    levels: [
+        (level: 1, features: ["cavalier/animal-companion", "cavalier/challenge"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [CombatFeat], selections: ["cavalier/order"]),
+        (level: 3, features: ["cavalier/cavaliers-charge"], feat_slots: [CombatFeat]),
+        (level: 5, features: ["cavalier/banner"]),
+        (level: 9, feat_slots: [CombatFeat]),
+        (level: 10, features: ["cavalier/banner", "cavalier/challenge"]),
+        (level: 15, features: ["cavalier/banner"], feat_slots: [CombatFeat]),
+        (level: 17),
+        (level: 20, features: ["cavalier/banner", "cavalier/gendarme/transfixing-charge"], feat_slots: [CombatFeat]),
+    ],
+)

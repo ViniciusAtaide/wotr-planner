@@ -1,0 +1,7 @@
+(
+    key: "acrobatic-spellcaster",
+    name: "Acrobatic Spellcaster",
+    category: Magic,
+    guide: "feats#acrobatic-spellcaster",
+    prerequisite: FeatFor(feat: "skill-focus", value: Skill("mobility")),
+)

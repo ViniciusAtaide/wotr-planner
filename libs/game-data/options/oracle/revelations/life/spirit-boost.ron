@@ -1,0 +1,1 @@
+(key: "oracle/revelations/life/spirit-boost", blueprint: "8cf1bc6fe4d14304392496ff66023271", name: "Spirit Boost", summary: "Healing past a target's max HP gives the excess, up to your class level, as temporary HP for 1 round.", guide: "oracle#spirit-boost", prerequisite: SelectionOption("oracle/mystery/life"))

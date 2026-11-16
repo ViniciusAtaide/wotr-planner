@@ -1,0 +1,12 @@
+(
+    key: "warpriest/feral-champion/blessing",
+    blueprint: "6c52c34b462be9047b83ae7f2a3b5822",
+    name: "Blessing (Feral Champion)",
+    summary: "A Feral Champion takes only the Animal Domain blessing, with no second blessing.",
+    guide: "warpriest#feral-blessing",
+    option_levels: ["warpriest"],
+    options: [],
+    shared_options: [
+        "warpriest/blessings/animal-domain",
+    ],
+)

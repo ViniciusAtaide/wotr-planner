@@ -1,0 +1,13 @@
+(
+    key: "cure-serious-wounds-mass",
+    blueprint: "0cea35de4d553cc439ae80b3a8724397",
+    name: "Cure Serious Wounds, Mass",
+    school: Conjuration,
+    guide: "cleric-spells#cure-serious-wounds-mass-conjuration",
+    summary: "Creatures in the area heal 3d8 + 1 per caster level; undead there take that much damage instead (Will half).",
+    target: "All creatures within 30' of target point within close range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [Cure],
+    casting_time: Standard,
+)

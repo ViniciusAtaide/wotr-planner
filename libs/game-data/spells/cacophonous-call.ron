@@ -1,0 +1,14 @@
+(
+    key: "cacophonous-call",
+    blueprint: "e6048d85fc3294f4c92b21c8d7526b1f",
+    name: "Cacophonous Call",
+    school: Enchantment,
+    guide: "bard#cacophonous-call-enchantment",
+    summary: "Unless it passes its save, the target is nauseated.",
+    target: "One creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

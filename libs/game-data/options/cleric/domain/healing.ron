@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/healing",
+    blueprint: "b0a26ee984b6b6945b884467aa2f1baa",
+    name: "Healing Domain",
+    summary: "Rebuke Death and empowered cure spells from 6th level; healing spells up to Mass Heal.",
+    guide: "character-creation#healing-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/healing/rebuke-death"]),
+        (level: 6, features: ["cleric/domain/healing/healers-blessing"]),
+    ],
+)

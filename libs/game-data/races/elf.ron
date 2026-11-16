@@ -1,0 +1,10 @@
+(
+    key: "elf",
+    blueprint: "25a5878d125338244896ebd3238226c8",
+    name: "Elf",
+    summary: "+2 caster level vs spell resistance; immune to magic sleep and +2 saves vs enchantment; +2 Perception and Knowledge (Arcana); elven weapon proficiencies.",
+    guide: "character-creation#elf",
+    ability_modifiers: [Fixed(ability: Dexterity, amount: 2), Fixed(ability: Constitution, amount: -2), Fixed(ability: Intelligence, amount: 2)],
+    weapons: ["long-bow", "longsword", "rapier", "short-bow"],
+    weapons_as_martial: ["elven-curve-blade"],
+)

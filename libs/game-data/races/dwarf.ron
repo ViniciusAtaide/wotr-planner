@@ -1,0 +1,10 @@
+(
+    key: "dwarf",
+    blueprint: "c4faf439f0e70bd40b5e36ee80d06be7",
+    name: "Dwarf",
+    summary: "Speed 20 ft unslowed by armour; +2 saves vs poison/spells; +4 CMD vs bull rush/trip; +4 AC vs giants; +1 hit vs orcs/goblinoids; +2 Perception; dwarven weapons.",
+    guide: "character-creation#dwarf",
+    ability_modifiers: [Fixed(ability: Constitution, amount: 2), Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: -2)],
+    weapons: ["battle-axe", "heavy-pick", "warhammer"],
+    weapons_as_martial: ["dwarven-urgrosh", "dwarven-waraxe"],
+)

@@ -1,0 +1,14 @@
+(
+    key: "restoration-greater",
+    blueprint: "fafd77c6bfa85c04ba31fdc1c962c914",
+    name: "Restoration, Greater",
+    school: Conjuration,
+    guide: "cleric-spells#restoration-greater-conjuration",
+    summary: "Heals all temporary ability damage and ability drain, dispels all negative levels, and ends fatigue, exhaustion, insanity, confusion and like mental effects.",
+    components: "Diamond Dust x10",
+    target: "One friendly creature within touch range",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: FullRound,
+)

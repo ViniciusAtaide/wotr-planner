@@ -1,0 +1,14 @@
+(
+    key: "confusion",
+    blueprint: "cf6c901fb7acc904e85c63b342e9c949",
+    name: "Confusion",
+    school: Enchantment,
+    guide: "wizard-spells#confusion-enchantment",
+    summary: "Creatures that fail are confused: each round at random they act normally, do nothing, hit themselves for 1d8 + Strength modifier or attack the nearest creature.",
+    target: "Target point within medium range, 15' burst",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

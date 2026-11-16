@@ -1,0 +1,14 @@
+(
+    key: "euphoric-tranquility",
+    blueprint: "740d943e42b60f64a8de74926ba6ddf7",
+    name: "Euphoric Tranquility",
+    school: Enchantment,
+    guide: "wizard-spells#euphoric-tranquility-enchantment",
+    summary: "Halves the target's speed for the duration, and each round it must save or be nauseated.",
+    target: "One enemy creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Emotion],
+    casting_time: Standard,
+)

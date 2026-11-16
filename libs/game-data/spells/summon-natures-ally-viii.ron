@@ -1,0 +1,14 @@
+(
+    key: "summon-natures-ally-viii",
+    blueprint: "ea78c04f0bd13d049a1cce5daf8d83e0",
+    name: "Summon Nature's Ally VIII",
+    school: Conjuration,
+    guide: "druid-spells#summon-natures-ally-viii-conjuration",
+    summary: "You summon 1d4+1 smilodons, 1d3 mastodons or one nereid.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

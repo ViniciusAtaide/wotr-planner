@@ -1,0 +1,13 @@
+(
+    key: "phantasmal-killer",
+    blueprint: "6717dbaef00c0eb4897a1c908a75dfe5",
+    name: "Phantasmal Killer",
+    school: Illusion,
+    guide: "wizard-spells#phantasmal-killer-illusion",
+    summary: "If the target fails its Will save, it must pass a Fortitude save or die; on that success it takes 3d6 damage.",
+    target: "One enemy creature within medium range",
+    saving_throw: "Will disbelief then Fortitude partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

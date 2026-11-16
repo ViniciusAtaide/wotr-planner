@@ -1,0 +1,14 @@
+// Armour.
+(
+    key: "half-plate-of-vigor",
+    blueprint: "053873b9eca18854696dfc0e49d260fe",
+    name: "Half-Plate of Vigor",
+    slot: Armour,
+    guide: "items#unique-armour",
+    bonuses: [
+        (target: Ability(Constitution), amount: 2),
+    ],
+    always_on: [
+        "A +1 half-plate",
+    ],
+)

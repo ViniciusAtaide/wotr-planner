@@ -1,0 +1,14 @@
+(
+    key: "scare",
+    blueprint: "08cb5f4c3b2695e44971bf5c45205df0",
+    name: "Scare",
+    school: Necromancy,
+    guide: "wizard-spells#scare-necromancy",
+    summary: "Frightens creatures in the burst, though any that pass a Will save are merely shaken for 1 round; creatures of 6 HD or more are immune.",
+    target: "One enemy creature within medium range, 30' burst",
+    duration: "1 round / level",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

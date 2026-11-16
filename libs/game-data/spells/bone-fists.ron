@@ -1,0 +1,14 @@
+(
+    key: "bone-fists",
+    blueprint: "0da2046b4517427bb9b2e304ea6342bf",
+    name: "Bone Fists",
+    school: Necromancy,
+    guide: "wizard-spells#bone-fists-necromancy",
+    summary: "Allies in the area gain +1 natural armour, +2 damage with natural weapons and an extra 1d6 piercing damage on successful grapple checks.",
+    target: "All allies within 30' of target creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "barbarian/flesheater/devour-essence", blueprint: "492abe84bb2c4e4ebf5fbc83f054ef78", name: "Devour Essence", summary: "From 2nd level, spends stored Essence to heal 1d8 + Con modifier, +1d8 at 8th, 13th and 18th level (max 4d8).", guide: "barbarian#devour-essence")

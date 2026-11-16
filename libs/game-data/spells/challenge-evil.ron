@@ -1,0 +1,14 @@
+(
+    key: "challenge-evil",
+    blueprint: "57aae1aa36b8022479e1cd39f3a85ef9",
+    name: "Challenge Evil",
+    school: Enchantment,
+    guide: "paladin#challenge-evil-enchantment",
+    summary: "Targets only evil enemies (so it reveals alignment); you gain +2 sacred on attacks against it, and it is sickened while it can't attack you.",
+    target: "One enemy creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

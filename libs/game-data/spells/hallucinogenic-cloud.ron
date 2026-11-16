@@ -1,0 +1,14 @@
+(
+    key: "hallucinogenic-cloud",
+    blueprint: "a68fc6abb6cb03f46a658b734d476630",
+    name: "Hallucinogenic Cloud",
+    school: Illusion,
+    guide: "trickster#hallucinogenic-cloud-illusion",
+    summary: "Creatures in the cloud that fail a save are confused, saving again each round they stay, and remain confused for 1d4+1 rounds after leaving.",
+    target: "Target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: false,
+    descriptors: [MindAffecting, Sight],
+    casting_time: Standard,
+)

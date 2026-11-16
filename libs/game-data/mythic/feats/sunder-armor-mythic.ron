@@ -1,0 +1,1 @@
+(key: "sunder-armor-mythic", blueprint: "3b19ac096f4de324daf40590e274102a", name: "Sunder Armor (Mythic)", summary: "+MR/2 to CMB and CMD for sundering armor, and an attack of opportunity on anyone who tries to sunder yours.", group: CombatManoeuvre, guide: "mythic-paths#sunder-armor-mythic", prerequisite: Feat("sunder-armor"))

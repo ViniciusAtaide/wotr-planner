@@ -1,0 +1,14 @@
+(
+    key: "cleric/herald-caller",
+    class: "cleric",
+    blueprint: "c4a02990f15c0bb4d8749a90a5ed46b3",
+    name: "Herald Caller",
+    summary: "Summoner with one domain, 4 skill points a level, spontaneous Summon Monster, Augment and Superior Summoning, but light armor.",
+    guide: "cleric#herald-caller",
+    skill_points: 3,
+    levels: [
+        (level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/herald-caller/call-heralds"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["cleric/domain"]),
+        (level: 4, features: ["cleric/herald-caller/mighty-heralds"]),
+        (level: 8, features: ["cleric/herald-caller/numerous-heralds"]),
+    ],
+)

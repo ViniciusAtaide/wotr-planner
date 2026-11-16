@@ -1,0 +1,14 @@
+(
+    key: "remove-sickness",
+    blueprint: "f6f95242abdfac346befd6f4f6222140",
+    name: "Remove Sickness",
+    school: Conjuration,
+    guide: "cleric-spells#remove-sickness-conjuration",
+    summary: "The target gains a +4 morale bonus on saves against disease, nausea and sickened, and any such effect on it is suppressed while the spell lasts.",
+    target: "One friendly creature within close range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

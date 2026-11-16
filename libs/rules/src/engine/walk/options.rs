@@ -130,7 +130,7 @@ impl<'a> Walker<'a> {
         let has_listed_archetype = |class: &ClassKey| {
             !selection.option_level_archetypes.is_empty()
                 && catalog.class(class).is_some_and(|(class, _)| {
-                    (class.archetypes.iter())
+                    (catalog.archetypes_of(&class.key))
                         .any(|archetype| selection.option_level_archetypes.contains(&archetype.key))
                 })
         };

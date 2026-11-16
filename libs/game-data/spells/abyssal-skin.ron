@@ -1,0 +1,14 @@
+(
+    key: "abyssal-skin",
+    blueprint: "3cefd45bcac368c4892d110d0b9ae891",
+    name: "Abyssal Skin",
+    school: Transmutation,
+    guide: "demon#abyssal-skin-transmutation",
+    summary: "You gain DR 10/cold iron and good and +1 natural armour, +1 per 3 caster levels, ignoring the first 10 weapon damage until 10 per caster level is prevented.",
+    target: "Personal",
+    duration: "Varies",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

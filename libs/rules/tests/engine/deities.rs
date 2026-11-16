@@ -564,16 +564,7 @@ fn conditions_of_one_case_read_as_that_case_once() {
 #[test]
 fn the_deity_picker_names_a_domain_without_domain_or_subdomain() {
     let mut data = world();
-    let domains = &mut data
-        .classes
-        .iter_mut()
-        .find(|class| class.key.as_str() == "cleric")
-        .unwrap()
-        .selections
-        .iter_mut()
-        .find(|selection| selection.key.as_str() == "cleric/domain")
-        .unwrap()
-        .options;
+    let mut domains = own_options_mut(&mut data, "cleric/domain");
     for (key, name) in [
         ("cleric/domain/fire", "Fire Domain"),
         ("cleric/domain/water", "Water Subdomain"),

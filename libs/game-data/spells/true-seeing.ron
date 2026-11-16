@@ -1,0 +1,14 @@
+(
+    key: "true-seeing",
+    blueprint: "4cf3d0fae3239ec478f51e86f49161cb",
+    name: "True Seeing",
+    school: Divination,
+    guide: "wizard-spells#true-seeing-divination",
+    summary: "Lets the target see past invisibility, blur and displacement.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -99,7 +99,7 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
             false,
         );
     }
-    for option in data.selections().flat_map(|selection| &selection.options) {
+    for option in &data.options {
         let at = DataAt::SelectionOption(option.key.clone());
         entry(
             ctx,
@@ -142,7 +142,7 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
             class.prerequisite.as_ref(),
             true,
         );
-        for archetype in &class.archetypes {
+        for archetype in data.archetypes_of(&class.key) {
             let at = DataAt::Archetype(archetype.key.clone());
             entry(
                 ctx,
@@ -826,8 +826,9 @@ fn whole_selection<'a>(ctx: &Ctx<'a>, inner: &[Prerequisite]) -> Option<&'a Blue
     let selection = ctx
         .planner
         .data
-        .selections()
-        .find(|selection| selection.options.iter().any(|option| option.key == **first))?;
+        .selections
+        .iter()
+        .find(|selection| selection.options.contains(*first))?;
     let named: std::collections::BTreeSet<&rules::SelectionOptionKey> = keys.into_iter().collect();
     (named == selection.offered()).then_some(())?;
     selection.blueprint.as_ref()

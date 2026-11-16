@@ -1,0 +1,4 @@
+(
+    why: "The game has one blueprint per dragon colour, element, energy, form or bloodline, none of them primary; the planner holds one entry for whichever is held.",
+    entry: (key: "sorcerer/bloodline/elemental/elemental-resistances", name: "Elemental Resistances", summary: "Resistance 10 to your bloodline's element at 3rd level, rising to 20 at 9th.", guide: "character-creation#elemental-resistances"),
+)

@@ -1,0 +1,1 @@
+(key: "shaman/hex/bone-lock", blueprint: "e506667113c93f94a962a90adedcdb03", name: "Bone Lock", summary: "Bones: stagger a creature within 30 feet for 1 round (Fortitude negates); class level rounds at 8th, no repeat saves at 16th.", guide: "shaman#bone-lock", prerequisite: SelectionOption("shaman/spirit/bones"))

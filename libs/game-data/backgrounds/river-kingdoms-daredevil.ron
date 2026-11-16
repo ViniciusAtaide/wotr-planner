@@ -1,0 +1,1 @@
+(key: "river-kingdoms-daredevil", blueprint: "c9cb4176176b4164ca3c0a65feda0226", name: "River Kingdoms Daredevil", group: Regional, note: "Proficient with shortsword and dagger. +2 AC against attacks of opportunity.", class_skills: ["mobility"], weapons: ["dagger", "short-sword"])

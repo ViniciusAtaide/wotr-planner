@@ -1,0 +1,1 @@
+(key: "ascendant-summons", blueprint: "fcdd46e2ead3d904cb9311c56112ce5f", name: "Ascendant Summons", summary: "Your summons gain MR/2+1 to Str, Dex, Con, Wis and Cha, and their attacks ignore all DR except universal.", group: Magic, guide: "mythic-paths#ascendant-summons")

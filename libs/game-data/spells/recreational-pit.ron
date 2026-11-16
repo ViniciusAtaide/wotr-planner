@@ -1,0 +1,14 @@
+(
+    key: "recreational-pit",
+    blueprint: "d7e6b7a26d2855f4cbf658122301abb7",
+    name: "Recreational Pit",
+    school: Conjuration,
+    guide: "trickster#recreational-pit-conjuration",
+    summary: "Opens a pit 10 ft deep per two caster levels; Large or smaller creatures failing a save (at +2) fall in unhurt and heal 3d6 a round; leaving is a DC 25 check.",
+    target: "Target point within medium range, 10' burst",
+    duration: "1 round + 1 round / level",
+    saving_throw: "Reflex negates",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

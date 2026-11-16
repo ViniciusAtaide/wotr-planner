@@ -1,0 +1,19 @@
+(
+    key: "bloodrager/bloodrider",
+    class: "bloodrager",
+    blueprint: "9a8b323e5559dab45a23e0dc0b8e9c52",
+    name: "Bloodrider",
+    summary: "Mounted bloodrager: a horse at 5th level and +10 feet mount speed, losing Fast Movement and Uncanny Dodge.",
+    guide: "bloodrager#bloodrider",
+    levels: [
+        (level: 1, features: ["bloodrager/bloodrage", "bloodrager/bloodrider/fast-rider"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["bloodrager/bloodline"]),
+        (level: 2),
+        (level: 5, features: ["bloodrager/bloodrider/feral-mount"]),
+        (level: 7, features: ["bloodrager/bloodrider/bloodline-spell-1st", "bloodrager/bloodrider/damage-reduction"]),
+        (level: 10, features: ["bloodrager/bloodrider/bloodline-spell-2nd", "bloodrager/bloodrider/damage-reduction"]),
+        (level: 13, features: ["bloodrager/bloodrider/bloodline-spell-3rd", "bloodrager/bloodrider/damage-reduction"]),
+        (level: 14, features: ["bloodrager/bloodrider/indomitable-will"]),
+        (level: 16, features: ["bloodrager/bloodrider/bloodline-spell-4th", "bloodrager/bloodrider/damage-reduction"]),
+        (level: 19, features: ["bloodrager/bloodrider/damage-reduction"]),
+    ],
+)

@@ -1,0 +1,14 @@
+(
+    key: "angelic-aspect-greater",
+    blueprint: "b1c7576bd06812b42bda3f09ab202f14",
+    name: "Angelic Aspect, Greater",
+    school: Transmutation,
+    guide: "wizard-spells#angelic-aspect-greater-transmutation",
+    summary: "You gain acid and cold immunity, DR 10/evil and +4 on saves vs poison; a 20 ft aura gives +4 deflection to AC and saves vs evil; your weapons count as good.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Good],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "wand-of-summon-monster-zero",
+    blueprint: "c219641a29670d44db0b30470565dede",
+    name: "Wand of Summon Monster Zero",
+    school: Conjuration,
+    guide: "trickster#wand-of-summon-monster-zero-conjuration",
+    summary: "Summons a small horse, the \"extraplanar murder pony\".",
+    target: "Target point within close range",
+    duration: "1 minute",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

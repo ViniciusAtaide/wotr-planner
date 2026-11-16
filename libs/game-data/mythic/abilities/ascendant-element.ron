@@ -1,0 +1,1 @@
+(key: "ascendant-element", blueprint: "535d4e5d8a5664f4797560c280941782", name: "Ascendant Element", summary: "Pick acid, cold, electricity, fire, sonic or negative energy: enemies\' resistance and immunity no longer stop it.", group: Magic, guide: "mythic-paths#ascendant-element", parameter: Element)

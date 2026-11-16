@@ -94,7 +94,7 @@ impl Catalog {
         let without_alignment = data
             .classes
             .iter()
-            .filter(|class| !class.archetypes.is_empty())
+            .filter(|class| data.archetypes_of(&class.key).next().is_some())
             .filter_map(|class| {
                 let prerequisite = class.prerequisite.as_ref()?;
                 prerequisite
@@ -133,8 +133,25 @@ impl Catalog {
     }
 
     pub(super) fn archetype(&self, key: &ArchetypeKey) -> Option<&Archetype> {
-        let &(c, a) = self.indexes.archetypes.get(key)?;
-        Some(&self.data.classes[c].archetypes[a])
+        let &a = self.indexes.archetypes.get(key)?;
+        Some(&self.data.archetypes[a])
+    }
+
+    /// A base class's archetypes, in key order.
+    pub(super) fn archetypes_of(&self, class: &ClassKey) -> impl Iterator<Item = &Archetype> {
+        (self
+            .indexes
+            .class_archetypes
+            .get(class)
+            .into_iter()
+            .flatten())
+        .map(|&a| &self.data.archetypes[a])
+    }
+
+    /// A race's subraces, in key order.
+    pub(super) fn subraces_of(&self, race: &RaceKey) -> impl Iterator<Item = &Subrace> {
+        (self.indexes.race_subraces.get(race).into_iter().flatten())
+            .map(|&s| &self.data.subraces[s])
     }
 
     pub(super) fn race(&self, key: &RaceKey) -> Option<&Race> {
@@ -147,8 +164,7 @@ impl Catalog {
     /// A subrace with the race it belongs to.
     pub(super) fn subrace(&self, key: &SubraceKey) -> Option<(&Race, &Subrace)> {
         let &(r, s) = self.indexes.subraces.get(key)?;
-        let race = &self.data.races[r];
-        Some((race, &race.subraces[s]))
+        Some((&self.data.races[r], &self.data.subraces[s]))
     }
 
     /// The ability modifiers a Build start's race gives: its subrace's in place of the race's, when the subrace is
@@ -332,7 +348,7 @@ impl Catalog {
     }
 
     pub(super) fn selection(&self, key: &FeatureSelectionKey) -> Option<&FeatureSelection> {
-        Some(self.indexes.selections.get(key)?.selection(&self.data))
+        Some(&self.data.selections[*self.indexes.selections.get(key)?])
     }
 
     /// The options that set the base attack bonus by skill ranks (Athletics III), with their rule.
@@ -341,9 +357,8 @@ impl Catalog {
     }
 
     pub(super) fn option(&self, key: &SelectionOptionKey) -> Option<&SelectionOption> {
-        let (selection, index) = self.indexes.options.get(key)?;
-        self.selection(selection)
-            .and_then(|selection| selection.options.get(*index))
+        let &(index, _) = self.indexes.options.get(key)?;
+        Some(&self.data.options[index])
     }
 
     /// Whether a selection's slot offers `option` by the game data alone: one of its own options (the one
@@ -355,7 +370,7 @@ impl Catalog {
                 .indexes
                 .options
                 .get(option)
-                .is_some_and(|(defined_by, _)| defined_by == &selection.key)
+                .is_some_and(|(_, defined_by)| defined_by.as_ref() == Some(&selection.key))
     }
 
     /// The one option a selection offers, when it offers exactly one: then it's granted with no pick.
@@ -368,8 +383,8 @@ impl Catalog {
 
     /// The Feature selection that defines an option.
     pub(super) fn selection_of(&self, option: &SelectionOptionKey) -> Option<&FeatureSelection> {
-        let (selection, _) = self.indexes.options.get(option)?;
-        self.selection(selection)
+        let (_, selection) = self.indexes.options.get(option)?;
+        self.selection(selection.as_ref()?)
     }
 
     pub(super) fn mythic_ability(&self, key: &MythicAbilityKey) -> Option<&MythicAbility> {
@@ -471,9 +486,8 @@ impl Catalog {
         class: &Class,
         archetype: Option<&ArchetypeKey>,
     ) -> Option<&Archetype> {
-        let &(c, a) = self.indexes.archetypes.get(archetype?)?;
-        let owner = &self.data.classes[c];
-        (owner.key == class.key).then(|| &owner.archetypes[a])
+        let archetype = self.archetype(archetype?)?;
+        (archetype.class == class.key).then_some(archetype)
     }
 
     /// What taking a class with an archetype (one of the class's, or none) needs: the class's prerequisite and the
@@ -637,15 +651,21 @@ impl Catalog {
 #[derive(Clone, Debug)]
 struct Indexes {
     classes: FxHashMap<ClassKey, ClassAt>,
-    archetypes: FxHashMap<ArchetypeKey, (usize, usize)>,
+    archetypes: FxHashMap<ArchetypeKey, usize>,
+    /// Each base class's archetypes' positions, in key order.
+    class_archetypes: FxHashMap<ClassKey, Vec<usize>>,
+    /// Each race's subraces' positions, in key order.
+    race_subraces: FxHashMap<RaceKey, Vec<usize>>,
     races: FxHashMap<RaceKey, usize>,
+    /// Each subrace's position, with its race's.
     subraces: FxHashMap<SubraceKey, (usize, usize)>,
     skills: FxHashMap<SkillKey, usize>,
     weapons: FxHashMap<WeaponKey, usize>,
     feats: FxHashMap<FeatKey, usize>,
     feat_lists: FxHashMap<FeatListKey, FeatList>,
-    selections: FxHashMap<FeatureSelectionKey, SelectionAt>,
-    options: FxHashMap<SelectionOptionKey, (FeatureSelectionKey, usize)>,
+    selections: FxHashMap<FeatureSelectionKey, usize>,
+    /// Each option's position, with the selection that defines it ([`FeatureSelection::options`]).
+    options: FxHashMap<SelectionOptionKey, (usize, Option<FeatureSelectionKey>)>,
     /// The options that set the base attack bonus by skill ranks (Athletics III), few and in key order.
     bab_options: Vec<(SelectionOptionKey, BabFromRanks)>,
     mythic_abilities: FxHashMap<MythicAbilityKey, usize>,
@@ -658,19 +678,46 @@ struct Indexes {
 
 impl Indexes {
     fn new(data: &GameData) -> Self {
-        let (classes, archetypes) = index_classes(data);
-        let (races, subraces) = index_races(data);
-        let selections = index_selections(data);
-        let mut bab_options: Vec<_> = selections
-            .values()
-            .flat_map(|at| &at.selection(data).options)
+        let races = index(&data.races, |r| &r.key);
+        let subraces = data
+            .subraces
+            .iter()
+            .enumerate()
+            .filter_map(|(s, subrace)| Some((subrace.key.clone(), (*races.get(&subrace.race)?, s))))
+            .collect();
+        let mut bab_options: Vec<_> = data
+            .options
+            .iter()
             .filter_map(|option| Some((option.key.clone(), option.bab_from_ranks.clone()?)))
             .collect();
         bab_options.sort_by(|a, b| a.0.cmp(&b.0));
+        let mut class_archetypes: FxHashMap<ClassKey, Vec<usize>> = FxHashMap::default();
+        for (a, archetype) in data.archetypes.iter().enumerate() {
+            class_archetypes
+                .entry(archetype.class.clone())
+                .or_default()
+                .push(a);
+        }
+        let mut race_subraces: FxHashMap<RaceKey, Vec<usize>> = FxHashMap::default();
+        for (s, subrace) in data.subraces.iter().enumerate() {
+            race_subraces
+                .entry(subrace.race.clone())
+                .or_default()
+                .push(s);
+        }
         Self {
-            options: index_options(data, &selections),
+            class_archetypes,
+            race_subraces,
+            classes: index_classes(data),
+            archetypes: index(&data.archetypes, |a| &a.key),
+            selections: index(&data.selections, |s| &s.key),
+            options: index_options(data),
             bab_options,
-            feat_lists: index_feat_lists(data),
+            feat_lists: data
+                .feat_lists
+                .iter()
+                .map(|list| (list.key.clone(), list.clone()))
+                .collect(),
             skills: index(&data.skills, |s| &s.key),
             weapons: index(&data.weapons, |w| &w.key),
             feats: index(&data.feats, |f| &f.key),
@@ -680,11 +727,8 @@ impl Indexes {
             backgrounds: index(&data.backgrounds, |b| &b.key),
             deities: index(&data.deities, |d| &d.key),
             gear: index(&data.gear, |item| &item.key),
-            classes,
-            archetypes,
             races,
             subraces,
-            selections,
         }
     }
 }
@@ -701,106 +745,36 @@ fn index<K: std::hash::Hash + Eq + Clone, T>(
         .collect()
 }
 
-/// The base and prestige classes by key, and each archetype by key with its class's position.
-fn index_classes(
-    data: &GameData,
-) -> (
-    FxHashMap<ClassKey, ClassAt>,
-    FxHashMap<ArchetypeKey, (usize, usize)>,
-) {
-    let mut classes = FxHashMap::default();
-    let mut archetypes = FxHashMap::default();
-    for (c, class) in data.classes.iter().enumerate() {
-        classes.insert(class.key.clone(), ClassAt::Base(c));
-        for (a, archetype) in class.archetypes.iter().enumerate() {
-            archetypes.insert(archetype.key.clone(), (c, a));
-        }
-    }
-    for (c, class) in data.prestige_classes.iter().enumerate() {
-        classes.insert(class.key.clone(), ClassAt::Prestige(c));
-    }
-    (classes, archetypes)
+/// The base and prestige classes by key.
+fn index_classes(data: &GameData) -> FxHashMap<ClassKey, ClassAt> {
+    let base = data.classes.iter().enumerate();
+    let prestige = data.prestige_classes.iter().enumerate();
+    base.map(|(c, class)| (class.key.clone(), ClassAt::Base(c)))
+        .chain(prestige.map(|(c, class)| (class.key.clone(), ClassAt::Prestige(c))))
+        .collect()
 }
 
-/// Every Feature selection by key, wherever it's defined: a base class's, an archetype's, a prestige class's or a
-/// path's.
-fn index_selections(data: &GameData) -> FxHashMap<FeatureSelectionKey, SelectionAt> {
-    let mut selections = FxHashMap::default();
-    let mut add_selections = |list: &[FeatureSelection], at: &dyn Fn(usize) -> SelectionAt| {
-        for (index, selection) in list.iter().enumerate() {
-            selections.insert(selection.key.clone(), at(index));
-        }
-    };
-    for (c, class) in data.classes.iter().enumerate() {
-        add_selections(&class.selections, &|index| SelectionAt::Class {
-            prestige: false,
-            class: c,
-            index,
-        });
-        for (a, archetype) in class.archetypes.iter().enumerate() {
-            add_selections(&archetype.selections, &|index| SelectionAt::Archetype {
-                class: c,
-                archetype: a,
-                index,
-            });
-        }
-    }
-    for (c, class) in data.prestige_classes.iter().enumerate() {
-        add_selections(&class.selections, &|index| SelectionAt::Class {
-            prestige: true,
-            class: c,
-            index,
-        });
-    }
-    for (p, path) in data.mythic_paths.iter().enumerate() {
-        add_selections(&path.selections, &|index| SelectionAt::Path {
-            path: p,
-            index,
-        });
-    }
-    selections
-}
-
-/// Every option by key, with the indexed selection that defines it and its position there.
+/// Every option by key, with its position and the selection that defines it.
 fn index_options(
     data: &GameData,
-    selections: &FxHashMap<FeatureSelectionKey, SelectionAt>,
-) -> FxHashMap<SelectionOptionKey, (FeatureSelectionKey, usize)> {
-    selections
-        .values()
-        .map(|at| at.selection(data))
+) -> FxHashMap<SelectionOptionKey, (usize, Option<FeatureSelectionKey>)> {
+    let defined_by: FxHashMap<&SelectionOptionKey, &FeatureSelectionKey> = data
+        .selections
+        .iter()
         .flat_map(|selection| {
             selection
                 .options
                 .iter()
-                .enumerate()
-                .map(|(i, option)| (option.key.clone(), (selection.key.clone(), i)))
+                .map(|option| (option, &selection.key))
         })
-        .collect()
-}
-
-/// The races by key, and each subrace by key with its race's position.
-fn index_races(
-    data: &GameData,
-) -> (
-    FxHashMap<RaceKey, usize>,
-    FxHashMap<SubraceKey, (usize, usize)>,
-) {
-    let mut races = FxHashMap::default();
-    let mut subraces = FxHashMap::default();
-    for (r, race) in data.races.iter().enumerate() {
-        races.insert(race.key.clone(), r);
-        for (s, subrace) in race.subraces.iter().enumerate() {
-            subraces.insert(subrace.key.clone(), (r, s));
-        }
-    }
-    (races, subraces)
-}
-
-/// Every feat list by key, wherever it's defined.
-fn index_feat_lists(data: &GameData) -> FxHashMap<FeatListKey, FeatList> {
-    data.feat_lists()
-        .map(|list| (list.key.clone(), list.clone()))
+        .collect();
+    data.options
+        .iter()
+        .enumerate()
+        .map(|(i, option)| {
+            let selection = defined_by.get(&option.key).map(|&key| key.clone());
+            (option.key.clone(), (i, selection))
+        })
         .collect()
 }
 
@@ -832,12 +806,14 @@ impl Casting {
             .map(|class| (class.key.clone(), casts_with(class, None)))
             .collect();
         let archetypes = data
-            .classes
+            .archetypes
             .iter()
-            .flat_map(|class| {
-                class.archetypes.iter().map(move |archetype| {
-                    (archetype.key.clone(), casts_with(class, Some(archetype)))
-                })
+            .filter_map(|archetype| {
+                let class = data
+                    .classes
+                    .iter()
+                    .find(|class| class.key == archetype.class)?;
+                Some((archetype.key.clone(), casts_with(class, Some(archetype))))
             })
             .collect();
         Self {
@@ -874,7 +850,7 @@ struct FeatureFacts {
 
 impl FeatureFacts {
     fn new(data: &GameData) -> Self {
-        let features: Vec<&crate::game_data::Feature> = data.features().collect();
+        let features: Vec<&crate::game_data::Feature> = data.features.iter().collect();
         let mut name_counts: FxHashMap<&str, usize> = FxHashMap::default();
         for feature in &features {
             *name_counts.entry(feature.name.as_str()).or_default() += 1;
@@ -951,51 +927,6 @@ impl FeatureFacts {
 enum ClassAt {
     Base(usize),
     Prestige(usize),
-}
-
-/// Where a Feature selection is defined.
-#[derive(Clone, Copy, Debug)]
-enum SelectionAt {
-    Class {
-        prestige: bool,
-        class: usize,
-        index: usize,
-    },
-    Archetype {
-        class: usize,
-        archetype: usize,
-        index: usize,
-    },
-    Path {
-        path: usize,
-        index: usize,
-    },
-}
-
-impl SelectionAt {
-    /// The selection it points to in `data`, the game data it was indexed from.
-    fn selection(self, data: &GameData) -> &FeatureSelection {
-        match self {
-            SelectionAt::Class {
-                prestige,
-                class,
-                index,
-            } => {
-                let list = if prestige {
-                    &data.prestige_classes
-                } else {
-                    &data.classes
-                };
-                &list[class].selections[index]
-            }
-            SelectionAt::Archetype {
-                class,
-                archetype,
-                index,
-            } => &data.classes[class].archetypes[archetype].selections[index],
-            SelectionAt::Path { path, index } => &data.mythic_paths[path].selections[index],
-        }
-    }
 }
 
 /// The Item bonuses (ticket 151).

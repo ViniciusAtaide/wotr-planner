@@ -1,0 +1,13 @@
+(
+    key: "flame-strike",
+    blueprint: "f9910c76efc34af41b6e43d5d8752f0f",
+    name: "Flame Strike",
+    school: Evocation,
+    guide: "cleric-spells#flame-strike-evocation",
+    summary: "Creatures in the area take 1d6 per caster level (max 15d6), half of it divine damage that fire resistance doesn't reduce.",
+    target: "All creatures within 10' of target point within medium range",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

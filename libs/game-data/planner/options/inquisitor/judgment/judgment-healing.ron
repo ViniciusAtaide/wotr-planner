@@ -1,0 +1,4 @@
+(
+    why: "An ability of JudgmentFeature in the game, not a feature of its own.",
+    entry: (key: "inquisitor/judgment/judgment-healing", name: "Judgment - Healing", summary: "Fast healing 1, +1 per 3 levels.", guide: "inquisitor#judgment-healing"),
+)

@@ -1,0 +1,10 @@
+(
+    key: "cleric/domain/animal",
+    blueprint: "23d2f87aa54c89f418e68e790dba11e0",
+    name: "Animal Domain",
+    summary: "An animal companion at 4th level and Lore (Nature) as a class skill; spells like Magic Fang and Summon Nature's Ally.",
+    guide: "character-creation#animal-domain",
+    levels: [
+        (level: 4, features: ["cleric/domain/animal/animal-companion"], class_skills: ["lore-nature"]),
+    ],
+)

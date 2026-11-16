@@ -1,0 +1,14 @@
+(
+    key: "breath-of-money",
+    blueprint: "bc9f91f243634c04bcee43028362b5c3",
+    name: "Breath of Money",
+    school: Evocation,
+    guide: "trickster#breath-of-money-evocation",
+    summary: "Deals 2d6 bludgeoning damage per mythic rank to creatures in the cone (Reflex half).",
+    components: "25g",
+    target: "All creatures within a 15' cone",
+    saving_throw: "Reflex half",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

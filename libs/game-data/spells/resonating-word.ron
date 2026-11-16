@@ -1,0 +1,14 @@
+(
+    key: "resonating-word",
+    blueprint: "df7d13c967bce6a40bec3ba7c9f0e64c",
+    name: "Resonating Word",
+    school: Transmutation,
+    guide: "wizard-spells#resonating-word-transmutation",
+    summary: "The target takes 5d6 sonic and is staggered, then 5d6 and stunned, then 10d6 and stunned 1d4+1 rounds; each round a save halves it and stops the condition.",
+    target: "One enemy creature within medium range",
+    duration: "3 rounds",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Sonic],
+    casting_time: Standard,
+)

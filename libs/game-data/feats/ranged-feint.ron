@@ -1,0 +1,1 @@
+(key: "ranged-feint", blueprint: "a2e947d6be234abba7c3ac0bd5dc9b1d", name: "Ranged Feint", summary: "Feints work with ranged weapons too, removing the target's Dex bonus against your shots.", category: Ranged, guide: "feats#ranged-feint", prerequisite: Feat("feint"))

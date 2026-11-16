@@ -1,0 +1,14 @@
+(
+    key: "false-life-greater",
+    blueprint: "dc6af3b4fd149f841912d8a3ce0983de",
+    name: "False Life, Greater",
+    school: Necromancy,
+    guide: "wizard-spells#false-life-greater-necromancy",
+    summary: "You gain 2d10 + your caster level in extra hit points.",
+    target: "Personal",
+    duration: "1 hour / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

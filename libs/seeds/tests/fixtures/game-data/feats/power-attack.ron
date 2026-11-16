@@ -1,0 +1,8 @@
+(
+    key: "power-attack",
+    name: "Power Attack",
+    category: Weapon,
+    summary: "Trade attack bonus for damage.",
+    guide: "feats#power-attack",
+    prerequisite: AbilityScore(ability: Strength, score: 13),
+)

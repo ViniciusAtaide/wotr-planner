@@ -1,0 +1,13 @@
+(
+    key: "finger-of-death",
+    blueprint: "6f1dcf6cfa92d1948a740195707c0dbe",
+    name: "Finger of Death",
+    school: Necromancy,
+    guide: "wizard-spells#finger-of-death-necromancy",
+    summary: "Deals 10 damage per caster level; on a successful Fortitude save the target takes 3d6 + 1 per caster level instead.",
+    target: "One enemy creature within close range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Death],
+    casting_time: Standard,
+)

@@ -1,0 +1,15 @@
+(
+    key: "bloodrager/bloodline/arcane",
+    blueprint: "aeff0a749e20ffe4b9e2846eae29c386",
+    name: "Arcane",
+    summary: "Arcane bloodline: hampers nearby casters and puts buffs on you when you rage (Blur at 4th, Haste at 8th, Transformation at 16th).",
+    guide: "bloodrager#arcane-bloodrager",
+    levels: [
+        (level: 1, features: ["bloodrager/bloodline/arcane/disruptive-bloodrage"], feat_list: "bloodrager/bloodline/arcane/feats"),
+        (level: 4, features: ["bloodrager/bloodline/arcane/arcane-bloodrage"]),
+        (level: 8, features: ["bloodrager/bloodline/arcane/greater-arcane-bloodrage"]),
+        (level: 12, features: ["bloodrager/bloodline/arcane/casters-scourge"]),
+        (level: 16, features: ["bloodrager/bloodline/arcane/true-arcane-bloodrage"]),
+        (level: 20, features: ["bloodrager/bloodline/arcane/casters-bane"]),
+    ],
+)

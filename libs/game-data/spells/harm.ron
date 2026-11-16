@@ -1,0 +1,13 @@
+(
+    key: "harm",
+    blueprint: "cc09224ecc9af79449816c45bc5be218",
+    name: "Harm",
+    school: Necromancy,
+    guide: "cleric-spells#harm-necromancy",
+    summary: "Deals 1d10 per caster level (max 15d10) but can't drop the target below 1 HP; on undead it works like Heal.",
+    target: "One creature within touch range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

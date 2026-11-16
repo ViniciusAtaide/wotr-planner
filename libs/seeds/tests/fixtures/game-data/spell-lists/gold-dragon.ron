@@ -1,0 +1,10 @@
+(
+    key: "gold-dragon",
+    name: "Gold Dragon Spells",
+    guide: "gold-dragon#gold-dragon-spells",
+    owner: Path("gold-dragon"),
+    entries: [
+        (level: 1, spell: "bless", only: Story(Uncorrupted)),
+        (level: 10, spell: "hold-monster"),
+    ],
+)

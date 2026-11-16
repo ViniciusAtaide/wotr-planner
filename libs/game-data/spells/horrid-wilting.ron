@@ -1,0 +1,13 @@
+(
+    key: "horrid-wilting",
+    blueprint: "08323922485f7e246acb3d2276515526",
+    name: "Horrid Wilting",
+    school: Necromancy,
+    guide: "wizard-spells#horrid-wilting-necromancy",
+    summary: "Every creature in the burst takes 1d6 damage per caster level, or 1d8 per caster level for water elementals and plants.",
+    target: "Target point within long range, 40' burst",
+    saving_throw: "Fortitude half",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

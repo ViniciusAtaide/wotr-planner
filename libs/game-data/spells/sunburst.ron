@@ -1,0 +1,13 @@
+(
+    key: "sunburst",
+    blueprint: "e96424f70ff884947b06f41a765b7658",
+    name: "Sunburst",
+    school: Evocation,
+    guide: "wizard-spells#sunburst-evocation",
+    summary: "Deals 6d6 fire damage and blinds; a successful save halves it and avoids blindness; undead take 1d6 per caster level instead.",
+    target: "All creatures within 50' of target point within medium range",
+    saving_throw: "Reflex partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

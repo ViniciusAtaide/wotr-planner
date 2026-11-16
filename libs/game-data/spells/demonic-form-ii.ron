@@ -1,0 +1,14 @@
+(
+    key: "demonic-form-ii",
+    blueprint: "98f23614c5c91e14f89f63d438027d43",
+    name: "Demonic Form II",
+    school: Transmutation,
+    guide: "demon#demonic-form-ii-transmutation",
+    summary: "You can turn into a derakni, kalavakus or nabasu demon.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

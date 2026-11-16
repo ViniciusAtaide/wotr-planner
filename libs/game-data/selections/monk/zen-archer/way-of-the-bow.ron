@@ -1,0 +1,9 @@
+(
+    key: "monk/zen-archer/way-of-the-bow",
+    blueprint: "53420038fdc76944695bf927f7bcd51c",
+    name: "Way of the Bow",
+    summary: "Weapon Focus with shortbows or longbows at 2nd level, and Weapon Specialization in it at 6th.",
+    guide: "monk#way-of-the-bow",
+    option_levels: ["monk"],
+    options: ["monk/zen-archer/way-of-the-bow/bow"],
+)

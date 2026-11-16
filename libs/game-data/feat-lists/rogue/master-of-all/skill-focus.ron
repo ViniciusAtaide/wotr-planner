@@ -1,0 +1,1 @@
+(key: "rogue/master-of-all/skill-focus", blueprint: "f2d2c1702d8a4cc6adfcbd4ebff8eee4", name: "Skill Focus (Master of All)", guide: "rogue#skill-focus-master-of-all", ignores_prerequisites: true, feats: ["skill-focus"])

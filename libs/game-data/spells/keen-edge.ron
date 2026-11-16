@@ -1,0 +1,14 @@
+(
+    key: "keen-edge",
+    blueprint: "64923c9c808143c7ab7adba5a27f0ca4",
+    name: "Keen Edge",
+    school: Transmutation,
+    guide: "wizard-spells#keen-edge-transmutation",
+    summary: "Doubles a weapon's threat range; doesn't stack with Keen or Improved Critical and can't target natural weapons.",
+    target: "One friendly creature within close range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

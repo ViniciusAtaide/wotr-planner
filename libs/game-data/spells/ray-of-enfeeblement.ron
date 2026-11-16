@@ -1,0 +1,14 @@
+(
+    key: "ray-of-enfeeblement",
+    blueprint: "450af0402422b0b4980d9c2175869612",
+    name: "Ray of Enfeeblement",
+    school: Necromancy,
+    guide: "wizard-spells#ray-of-enfeeblement-necromancy",
+    summary: "A ranged touch attack gives a Strength penalty of 1d6 + 1 per two caster levels (max 1d6+5), halved on a Fortitude save; Strength can't drop below 1.",
+    target: "One enemy creature within close range",
+    duration: "1 round per level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

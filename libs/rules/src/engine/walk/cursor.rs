@@ -420,7 +420,8 @@ impl<'a> Cursor<'a> {
         }
         for level in &build.levels {
             if let Some((class, _)) = catalog.class(&level.class) {
-                let archetypes = class.archetypes.iter().map(|a| a.prerequisite.as_ref());
+                let archetypes =
+                    (catalog.archetypes_of(&class.key)).map(|a| a.prerequisite.as_ref());
                 for prerequisite in std::iter::once(class.prerequisite.as_ref())
                     .chain(archetypes)
                     .flatten()

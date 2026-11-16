@@ -1,0 +1,7 @@
+(
+    key: "cleric/blessings",
+    name: "Blessings",
+    guide: "warpriest#blessings",
+    deity_domains: Offered,
+    options: ["cleric/blessings/good"],
+)

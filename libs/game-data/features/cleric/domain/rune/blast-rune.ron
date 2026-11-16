@@ -1,0 +1,1 @@
+(key: "cleric/domain/rune/blast-rune", blueprint: "b74c64a0152c7ee46b13ecdd72dda6f3", name: "Blast Rune", summary: "A rune trap for class level rounds that deals 1d6 energy +1 per two levels; 3 + Wisdom modifier uses a day.", guide: "character-creation#rune-domain")

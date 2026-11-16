@@ -1,0 +1,19 @@
+(
+    key: "paladin/hospitaler",
+    class: "paladin",
+    blueprint: "fcdb27e1a6cef834ea1d7fab7c6e2b61",
+    name: "Hospitaler",
+    summary: "Paladin focused on healing, with a separate channel energy pool and fewer smites.",
+    guide: "paladin#hospitaler",
+    levels: [
+        (level: 1, features: ["paladin/alignment-restriction", "paladin/hospitaler/smite-evil-hospitaler"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 4, features: ["paladin/hospitaler/channel-positive-energy-hospitaler"]),
+        (level: 5, features: ["paladin/divine-weapon-bond"]),
+        (level: 7, features: ["paladin/hospitaler/smite-evil-hospitaler"]),
+        (level: 10),
+        (level: 11, features: ["paladin/hospitaler/aura-of-life"]),
+        (level: 13, features: ["paladin/hospitaler/smite-evil-hospitaler"]),
+        (level: 16),
+        (level: 19, features: ["paladin/hospitaler/smite-evil-hospitaler"]),
+    ],
+)

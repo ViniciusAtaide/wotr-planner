@@ -1,0 +1,17 @@
+(
+    key: "rogue/thug",
+    class: "rogue",
+    blueprint: "b5f0b25e1519d27479018353b51fd349",
+    name: "Thug",
+    summary: "Rogue who sickens and terrifies foes.",
+    guide: "rogue#thug",
+    levels: [
+        (level: 1, features: ["rogue/rogue-proficiencies", "rogue/sneak-attack", "rogue/thug/frightening"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
+        (level: 3, features: ["rogue/sneak-attack", "rogue/thug/brutal-beating"], selections: ["rogue/finesse-training"]),
+        (level: 6, selections: ["rogue/rogue-talents"]),
+        (level: 9, features: ["rogue/sneak-attack"]),
+        (level: 12, selections: ["rogue/rogue-talents"]),
+        (level: 15, features: ["rogue/sneak-attack"]),
+        (level: 18, selections: ["rogue/rogue-talents"]),
+    ],
+)

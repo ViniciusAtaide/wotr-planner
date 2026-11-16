@@ -1,0 +1,13 @@
+(
+    key: "reviving-finale",
+    blueprint: "a896760c975d4f3b96f279aa3cdf2292",
+    name: "Reviving Finale",
+    school: Conjuration,
+    guide: "bard#reviving-final-finale-conjuration",
+    summary: "Ends your active bardic performance to heal allies within 20 ft for 2d6 + 1 per two caster levels.",
+    target: "Allies within 20'",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

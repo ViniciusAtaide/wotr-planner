@@ -1,0 +1,13 @@
+(
+    key: "cleric/demonbane-priest",
+    class: "cleric",
+    blueprint: "2537d1312a462834aadbd1153a2a0d54",
+    name: "Demonbane Priest",
+    summary: "Demon hunter with heavy armor, one domain and bonus feats at 4th and 8th level, but fewer spells.",
+    guide: "cleric#demonbane-priest",
+    levels: [
+        (level: 1, features: ["cleric/channel-energy", "cleric/demonbane-priest/demonic-knowledge", "cleric/diminished-spellcasting"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cleric/domain"]),
+        (level: 4, feat_slots: [OneOf(list: "cleric/demonbane-priest/bonus-feats")]),
+        (level: 8, feat_slots: [OneOf(list: "cleric/demonbane-priest/bonus-feats")]),
+    ],
+)

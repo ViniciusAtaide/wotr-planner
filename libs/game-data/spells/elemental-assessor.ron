@@ -1,0 +1,14 @@
+(
+    key: "elemental-assessor",
+    blueprint: "6303b404df12b0f4793fa0763b21dd2c",
+    name: "Elemental Assessor",
+    school: Evocation,
+    guide: "wizard-spells#elemental-assessor-evocation",
+    summary: "A ranged touch ray deals 2d6 each of fire, acid, cold and electricity; the type that dealt most then deals 4d6 a round for 1d4 more rounds.",
+    target: "One enemy creature within close range",
+    duration: "1d4+1 rounds",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Fire, Acid, Cold, Electricity],
+    casting_time: Standard,
+)

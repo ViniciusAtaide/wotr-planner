@@ -1,0 +1,14 @@
+(
+    key: "eaglesoul",
+    blueprint: "332ad68273db9704ab0e92518f2efd1c",
+    name: "Eaglesoul",
+    school: Conjuration,
+    guide: "cleric-spells#eaglesoul-conjuration",
+    summary: "You gain +2 sacred AC, +4 sacred Strength, acid and fire resistance 5, +2 initiative, fast healing 2, and vs evil +5 Persuasion and auto-confirmed criticals.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning, Good],
+    casting_time: Standard,
+)

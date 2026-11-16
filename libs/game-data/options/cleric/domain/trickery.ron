@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/trickery",
+    blueprint: "cc2d330bb0200e840aeb79140e770198",
+    name: "Trickery Domain",
+    summary: "Copycat mirror image, Master's Illusion from 8th, Stealth and Trickery as class skills; spells from Sleep to Weird.",
+    guide: "character-creation#trickery-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/trickery/copycat"], class_skills: ["stealth", "trickery"]),
+        (level: 8, features: ["cleric/domain/trickery/masters-illusion"]),
+    ],
+)

@@ -45,31 +45,23 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
             let (class, prestige) = class(planner, key).expect("an indexed class");
             item.levels = Some(class_rows(planner, class, prestige, None));
             item.archetypes = Some(
-                class
-                    .archetypes
-                    .iter()
+                data.archetypes_of(&class.key)
                     .map(|archetype| named(&archetype.key, &archetype.name))
                     .collect(),
             );
-            item.selections = Some(selections(planner, &class.selections));
+            let granted = class.levels.iter().flat_map(|row| &row.selections);
+            item.selections = Some(selections(planner, granted));
             item.spell_lists = spell_lists(planner, SpellCaster::Class(ClassKey::new(key)));
         }
         Kind::Archetype => {
-            let (class, prestige, archetype) = data
-                .classes
-                .iter()
-                .map(|class| (class, false))
-                .chain(data.prestige_classes.iter().map(|class| (class, true)))
-                .find_map(|(class, prestige)| {
-                    let archetype = class
-                        .archetypes
-                        .iter()
-                        .find(|archetype| archetype.key.as_str() == key)?;
-                    Some((class, prestige, archetype))
-                })
+            let archetype = (data.archetypes.iter())
+                .find(|archetype| archetype.key.as_str() == key)
                 .expect("an indexed archetype");
+            let (class, prestige) =
+                class(planner, archetype.class.as_str()).expect("an archetype's class");
             item.levels = Some(class_rows(planner, class, prestige, Some(archetype)));
-            item.selections = Some(selections(planner, &archetype.selections));
+            let granted = archetype.levels.iter().flat_map(|row| &row.selections);
+            item.selections = Some(selections(planner, granted));
             item.spell_lists = spell_lists(planner, SpellCaster::Archetype(ArchetypeKey::new(key)));
         }
         Kind::Path => {
@@ -92,7 +84,8 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                     })
                     .collect(),
             );
-            item.selections = Some(selections(planner, &path.selections));
+            let granted = path.ranks.iter().flat_map(|row| &row.selections);
+            item.selections = Some(selections(planner, granted));
             item.spell_lists = spell_lists(planner, SpellCaster::Path(MythicPathKey::new(key)));
         }
         Kind::Feat => {
@@ -126,9 +119,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
             item.taken_for = feat.parameter.map(|kind| kind.noun().to_owned());
         }
         Kind::SelectionOption => {
-            let option = planner
-                .selections()
-                .flat_map(|selection| &selection.options)
+            let option = (data.options.iter())
                 .find(|option| option.key.as_str() == key)
                 .expect("an indexed option");
             item.taken_for = option.parameter.map(|kind| kind.noun().to_owned());
@@ -161,8 +152,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                 .find(|race| race.key.as_str() == key)
                 .expect("an indexed race");
             item.subraces = Some(
-                race.subraces
-                    .iter()
+                data.subraces_of(&race.key)
                     .map(|subrace| named(&subrace.key, &subrace.name))
                     .collect(),
             );
@@ -347,7 +337,11 @@ fn class_rows(
                     row.features.iter().chain(
                         archetype
                             .into_iter()
-                            .flat_map(|archetype| &archetype.selections)
+                            .flat_map(|archetype| &archetype.levels)
+                            .flat_map(|row| &row.selections)
+                            .collect::<std::collections::BTreeSet<_>>()
+                            .into_iter()
+                            .filter_map(|key| planner.data.selection(key))
                             .filter_map(|selection| selection.replaced_by.get(&level)),
                     ),
                 ),
@@ -410,8 +404,14 @@ fn selection_names(engine: &Engine, keys: &[FeatureSelectionKey]) -> Vec<Named> 
         .collect()
 }
 
-fn selections(planner: &Planner, list: &[FeatureSelection]) -> Vec<Selection> {
-    list.iter()
+/// The selections `keys` name, each once, in key order.
+fn selections<'a>(
+    planner: &Planner,
+    keys: impl Iterator<Item = &'a FeatureSelectionKey>,
+) -> Vec<Selection> {
+    let keys: std::collections::BTreeSet<&FeatureSelectionKey> = keys.collect();
+    keys.into_iter()
+        .filter_map(|key| planner.data.selection(key))
         .map(|selection| self::selection(planner, selection))
         .collect()
 }
@@ -430,7 +430,7 @@ fn selection(planner: &Planner, selection: &FeatureSelection) -> Selection {
         options: selection
             .options
             .iter()
-            .map(|own| option(&own.key, &own.name))
+            .map(|own| option(own, planner.engine.option_name(own)))
             .chain(
                 selection
                     .shared_options

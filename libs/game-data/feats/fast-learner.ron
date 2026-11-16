@@ -1,0 +1,1 @@
+(key: "fast-learner", blueprint: "7ad59ca648c14c0a92adec798d51eb6d", name: "Fast Learner", summary: "+1 skill point per level.", category: Racial, guide: "feats#fast-learner", prerequisite: Race("human"))

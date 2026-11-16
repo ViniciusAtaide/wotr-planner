@@ -1,0 +1,14 @@
+(
+    key: "thorn-body",
+    blueprint: "2daf9c5112f16d54ab3cd6904c705c59",
+    name: "Thorn Body",
+    school: Transmutation,
+    guide: "druid-spells#thorn-body-transmutation",
+    summary: "Those hitting you with melee, unarmed or natural attacks take 1d6 piercing +1 per caster level (max +15); your natural and unarmed attacks deal +1d6 piercing.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

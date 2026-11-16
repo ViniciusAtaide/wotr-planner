@@ -1,0 +1,22 @@
+(
+    key: "cavalier/ghost-rider",
+    class: "cavalier",
+    blueprint: "c0503d9864b94134ab1237a2bf2d38a0",
+    name: "Ghost Rider",
+    summary: "Lord of Nothing cavalier on a ghostly mount, losing Tactician, teamwork feats, Banner and most charge abilities.",
+    guide: "cavalier#ghost-rider",
+    levels: [
+        (level: 1, features: ["cavalier/challenge", "cavalier/ghost-rider/etheric-tether", "cavalier/ghost-rider/frightful-gaze", "cavalier/ghost-rider/ghost-mount"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cavalier/order"]),
+        (level: 3, features: ["cavalier/ghost-rider/magic-attacks"]),
+        (level: 5, features: ["cavalier/ghost-rider/spirited-mount"]),
+        (level: 8, features: ["cavalier/ghost-rider/spirited-mount"]),
+        (level: 9, features: ["cavalier/ghost-rider/frightful-gaze"]),
+        (level: 10, features: ["cavalier/challenge", "cavalier/ghost-rider/magic-attacks"]),
+        (level: 11, features: ["cavalier/ghost-rider/ghost-wind"]),
+        (level: 14, features: ["cavalier/ghost-rider/ghost-wind", "cavalier/ghost-rider/spiritual-bond"]),
+        (level: 15),
+        (level: 16, features: ["cavalier/challenge", "cavalier/ghost-rider/shared-minds"]),
+        (level: 17),
+        (level: 20, features: ["cavalier/supreme-charge"]),
+    ],
+)

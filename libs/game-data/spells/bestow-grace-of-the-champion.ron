@@ -1,0 +1,14 @@
+(
+    key: "bestow-grace-of-the-champion",
+    blueprint: "199d585bff173c74b86387856919242c",
+    name: "Bestow Grace of the Champion",
+    school: Transmutation,
+    guide: "cleric-spells#bestow-grace-of-the-champion-transmutation",
+    summary: "A Lawful Good target gains its Charisma modifier on saving throws and becomes immune to fear and disease.",
+    target: "One friendly creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [Good, Law],
+    casting_time: Standard,
+)

@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/protection",
+    blueprint: "c6a3fa9d8d7f942499e4909cd01ca22d",
+    name: "Protection",
+    summary: "Minor: +1 sacred to AC and saves for 1 minute (+2 at 10th, +3 at 20th). Major (10th): allies within 30' get energy resistance 10 (20 at 15th).",
+    guide: "warpriest#protection",
+    domain: "cleric/domain/protection",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/protection/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/protection/major-blessing"]),
+    ],
+)

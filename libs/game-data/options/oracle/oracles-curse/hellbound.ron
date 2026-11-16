@@ -1,0 +1,13 @@
+(
+    key: "oracle/oracles-curse/hellbound",
+    blueprint: "9f08f0d1faf141c41a3d8205f1911e96",
+    name: "Hellbound",
+    summary: "-3 Persuasion for diplomacy, +2 Bluff and Intimidate; +4 vs charm at 5th, fire immunity at 10th, lawful evil weapons at 15th.",
+    guide: "oracle#hellbound",
+    levels: [
+        (level: 1, features: ["oracle/oracles-curse/hellbound/level-1"], class_skills: ["persuasion"]),
+        (level: 5, features: ["oracle/oracles-curse/hellbound/level-5"]),
+        (level: 10, features: ["oracle/oracles-curse/hellbound/level-10"]),
+        (level: 15, features: ["oracle/oracles-curse/hellbound/level-15"]),
+    ],
+)

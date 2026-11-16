@@ -1,0 +1,16 @@
+(
+    key: "offroad-boots",
+    blueprint: "77e8e9ceb50447bfbae19f6c9a850d76",
+    name: "Offroad Boots",
+    slot: Boots,
+    guide: "items#boots",
+    bonuses: [
+        (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+    ],
+    always_on: [
+        "Ignores difficult terrain",
+    ],
+    other_effects: [
+        "Crossing difficult terrain: +10 feet of speed for 1 round.",
+    ],
+)

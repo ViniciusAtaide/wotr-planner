@@ -1,0 +1,1 @@
+(key: "warrior-priest", blueprint: "b9bee4e4e15573546b76a8d942ce914b", name: "Warrior Priest", summary: "+1 to initiative and +2 to concentration checks.", category: Class, guide: "feats#warrior-priest", prerequisite: SpellLevel(spell_type: Divine, level: 1))

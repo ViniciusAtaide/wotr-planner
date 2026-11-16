@@ -1,0 +1,14 @@
+(
+    key: "life-bubble",
+    blueprint: "265582bc494c4b12b5860b508a2f89a2",
+    name: "Life Bubble",
+    school: Abjuration,
+    guide: "wizard-spells#life-bubble-abjuration",
+    summary: "The target is immune to inhaled diseases and poisons, such as Stinking Cloud and Cloudkill.",
+    target: "One friendly creature within touch range",
+    duration: "1 hour",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

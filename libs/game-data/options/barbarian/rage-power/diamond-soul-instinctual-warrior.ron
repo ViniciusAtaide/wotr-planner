@@ -1,0 +1,1 @@
+(key: "barbarian/rage-power/diamond-soul-instinctual-warrior", blueprint: "d4c929bffb80464bbe6daf1471088bf8", name: "Diamond Soul (Instinctual Warrior)", guide: "barbarian#rage-power-instinctual-warrior", prerequisite: All([ClassLevel(class: "barbarian", level: 16), Archetype("barbarian/instinctual-warrior")]))

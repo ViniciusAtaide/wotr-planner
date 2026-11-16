@@ -1,0 +1,10 @@
+(
+    key: "oracle/mystery/ancestor",
+    blueprint: "9936554e9372dab4a874c1dd165fb6f8",
+    name: "Ancestor",
+    summary: "Ancestor: spells from Unbreakable Heart to Foresight, revelations like Blood of Heroes and Spirit Shield, and a divination-focused final revelation.",
+    guide: "oracle#ancestor",
+    levels: [
+        (level: 20, features: ["oracle/mystery/ancestor/ancestor-final-revelation"]),
+    ],
+)

@@ -1,0 +1,13 @@
+(
+    key: "bring-back",
+    blueprint: "eb0d3e22826725d4199a3aac0db0ad50",
+    name: "Bring Back",
+    school: Conjuration,
+    guide: "angel#bring-back-conjuration",
+    summary: "Heals the target 10 HP per caster level, raising it from death if it died within the last round.",
+    target: "One friendly creature within touch range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

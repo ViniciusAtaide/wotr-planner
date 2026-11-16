@@ -1,0 +1,14 @@
+(
+    key: "pillar-of-life",
+    blueprint: "aca83c764d751594287f18b817814bce",
+    name: "Pillar of Life",
+    school: Conjuration,
+    guide: "cleric-spells#pillar-of-life-conjuration",
+    summary: "Living creatures next to the pillar can heal 2d8 + 1 per caster level (max +20) as a standard action; undead entering take 1d6 per level (max 10d6); once each.",
+    target: "All creatures within 5' of target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

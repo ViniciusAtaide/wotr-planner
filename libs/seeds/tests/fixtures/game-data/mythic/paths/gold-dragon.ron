@@ -7,25 +7,6 @@ MythicPath(
     key: "gold-dragon",
     name: "Gold Dragon",
     guide: "other-mythic-paths#gold-dragon",
-    features: [
-        (key: "gold-dragon/breath", name: "Breath Weapon", guide: "other-mythic-paths#gold-dragon-breath"),
-        (key: "gold-dragon/perfect-body", name: "Perfect Body", guide: "gold-dragon#perfect-body", ability_bonuses: [Highest(amount: 4), AtLeast(score: 14)]),
-        (key: "gold-dragon/dragon-might", name: "Dragon Might", guide: "gold-dragon#dragon-might", ability_bonuses: [Fixed(ability: Strength, amount: 2), Fixed(ability: Constitution, amount: 2)], bab_at_least_mythic_rank_plus: 15, skill_ranks_at_least_mythic_rank: true),
-    ],
-    selections: [
-        (
-            key: "gold-dragon/breaths",
-            name: "Breaths",
-            guide: "gold-dragon#improved-gold-dragon-breath",
-            options: [
-                (key: "gold-dragon/breaths/empowered", name: "Empowered Breath", guide: "gold-dragon#empowered-breath"),
-                (key: "gold-dragon/breaths/annihilating", name: "Annihilating Breath", guide: "gold-dragon#annihilating-breath", prerequisite: All([MythicRank(9), Story(VowOfDahak)])),
-            ],
-        ),
-    ],
-    feat_lists: [
-        (key: "gold-dragon/dragon-feats", name: "Dragon Feats", guide: "gold-dragon#dragon-feats", ignores_prerequisites: true, every_feat: true),
-    ],
     ranks: [
         (rank: 8, features: ["gold-dragon/breath", "gold-dragon/perfect-body"], selections: ["gold-dragon/breaths"]),
         (rank: 9, features: ["gold-dragon/dragon-might"], feat_slots: [OneOf(list: "gold-dragon/dragon-feats"), OneOf(list: "gold-dragon/dragon-feats")], selections: ["gold-dragon/breaths"]),

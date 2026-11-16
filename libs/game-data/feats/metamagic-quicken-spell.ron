@@ -1,0 +1,1 @@
+(key: "metamagic-quicken-spell", blueprint: "ef7ece7bb5bb66a41b256976b27f424e", name: "Metamagic (Quicken Spell)", summary: "+4 spell level: cast the spell as a swift action without provoking (not spells taking over a full round).", category: Magic, guide: "feats#metamagic-quicken-spell")

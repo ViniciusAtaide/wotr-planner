@@ -1,0 +1,1 @@
+(key: "steel-soul", blueprint: "8bc16857824564d4e9400bbfcdd957fb", name: "Steel Soul", summary: "+4 to saves against spells and spell-like abilities, replacing Hardy's +2.", category: Racial, guide: "feats#steel-soul", prerequisite: Race("dwarf"))

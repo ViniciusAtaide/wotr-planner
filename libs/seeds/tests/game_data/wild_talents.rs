@@ -145,8 +145,7 @@ fn element_feats(elements: &[&str]) -> BTreeSet<String> {
         .iter()
         .flat_map(|element| {
             let key = format!("kineticist/element/{element}/wild-talent-feats");
-            class("kineticist")
-                .feat_lists
+            DATA.feat_lists
                 .iter()
                 .find(|list| list.key.as_str() == key)
                 .unwrap_or_else(|| panic!("no list {key}"))
@@ -162,19 +161,13 @@ fn element_feats(elements: &[&str]) -> BTreeSet<String> {
 #[test]
 fn wild_talents_are_a_selection_of_22_talents_with_their_level_and_elements() {
     let kineticist = class("kineticist");
-    let selection = kineticist
-        .selections
-        .iter()
-        .find(|selection| selection.key.as_str() == WILD_TALENTS)
+    let selection = DATA
+        .selection(&rules::FeatureSelectionKey::new(WILD_TALENTS))
         .expect("the wild talents selection");
     // Game: WildTalentSelection 5c883ae0cd6d7d5448b7a420f51f8459: 20 talents, Skill Focus and 16 bonus-feat
     // selections (equivalent model: one bonus-feat talent).
     assert_eq!(selection.name, "Wild Talents");
-    let keys: BTreeSet<String> = selection
-        .options
-        .iter()
-        .map(|o| o.key.to_string())
-        .collect();
+    let keys: BTreeSet<String> = selection.options.iter().map(|o| o.to_string()).collect();
     let expected: BTreeSet<String> = TALENTS.iter().map(|(name, ..)| talent(name)).collect();
     assert_eq!(keys, expected);
     // Game: each row's blueprint in TALENTS (Flame Shield's is `flame_shield_needs_kineticist_10_and_searing_flesh`'s).
@@ -190,8 +183,7 @@ fn wild_talents_are_a_selection_of_22_talents_with_their_level_and_elements() {
     }
     // No feature stands for the pick any more.
     assert!(
-        kineticist
-            .features
+        DATA.features
             .iter()
             .all(|feature| feature.key.as_str() != "kineticist/wild-talents")
     );
@@ -451,7 +443,7 @@ fn the_skill_focus_talent_is_skill_focus_in_a_skill() {
 fn every_kineticist_archetype_picks_wild_talents_at_even_levels() {
     // Game: KineticistProgression b79e92dd495edd64e90fb483c504b8df; no archetype of KineticistClass
     // 42a455d9ec1ad924d889272429eb8391 removes WildTalentSelection 5c883ae0cd6d7d5448b7a420f51f8459.
-    for archetype in &class("kineticist").archetypes {
+    for archetype in DATA.archetypes_of(&class("kineticist").key) {
         let build = archetype_build("kineticist", archetype.key.as_str(), 20);
         let sheet = engine().evaluate(&build);
         let levels: Vec<u8> = (1..=20)

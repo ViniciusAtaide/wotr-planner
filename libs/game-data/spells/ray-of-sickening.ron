@@ -1,0 +1,14 @@
+(
+    key: "ray-of-sickening",
+    blueprint: "fa3078b9976a5b24caf92e20ee9c0f54",
+    name: "Ray of Sickening",
+    school: Necromancy,
+    guide: "wizard-spells#ray-of-sickening-necromancy",
+    summary: "Sickens the target unless it passes a Fortitude save.",
+    target: "One enemy creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

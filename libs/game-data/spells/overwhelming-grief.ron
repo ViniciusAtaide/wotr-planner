@@ -1,0 +1,14 @@
+(
+    key: "overwhelming-grief",
+    blueprint: "dd2918e4a77c50044acba1ac93494c36",
+    name: "Overwhelming Grief",
+    school: Enchantment,
+    guide: "wizard-spells#overwhelming-grief-enchantment",
+    summary: "The target can't act, takes -2 AC and loses its Dexterity bonus, with a new save each round.",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

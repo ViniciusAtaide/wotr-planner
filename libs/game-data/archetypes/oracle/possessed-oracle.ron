@@ -1,0 +1,11 @@
+(
+    key: "oracle/possessed-oracle",
+    class: "oracle",
+    blueprint: "09035bb5dbb714645bb08ea7db47884c",
+    name: "Possessed Oracle",
+    summary: "Powered by a demon or spirit: must take the Powerless Prophecy curse and gains Two Minds.",
+    guide: "oracle#possessed-oracle",
+    levels: [
+        (level: 1, features: ["oracle/additional-spells", "oracle/possessed-oracle/two-minds"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/mystery", "oracle/possessed-oracle/curse"]),
+    ],
+)

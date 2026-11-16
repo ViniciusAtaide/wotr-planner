@@ -1,0 +1,21 @@
+(
+    key: "oracle/divine-herbalist/mystery",
+    blueprint: "c11ff5dbd8518c941849b3112d4d6b68",
+    name: "Mystery (Divine Herbalist)",
+    summary: "The Divine Herbalist's mystery, which adds no class skills.",
+    guide: "oracle#divine-herbalist",
+    option_levels: ["oracle"],
+    skipped_levels: [1],
+    options: [],
+    shared_options: [
+        "oracle/mystery/ancestor",
+        "oracle/mystery/battle",
+        "oracle/mystery/bones",
+        "oracle/mystery/flame",
+        "oracle/mystery/life",
+        "oracle/mystery/nature",
+        "oracle/mystery/stone",
+        "oracle/mystery/waves",
+        "oracle/mystery/wind",
+    ],
+)

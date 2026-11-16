@@ -1,0 +1,17 @@
+(
+    key: "bloodrager/bloodline/draconic-black",
+    blueprint: "3d030a2fed2b5cf45919fc1e40629a9e",
+    name: "Draconic (Black)",
+    summary: "Black dragon (acid): claws, resistance and natural armor at 4th, breath weapon at 8th, wings at 12th, dragon form at 16th.",
+    guide: "bloodrager#draconic-bloodrager",
+    prerequisite: NoOtherOptionOfGroup(BloodragerDraconic),
+    group: BloodragerDraconic,
+    levels: [
+        (level: 1, features: ["bloodrager/bloodline/draconic/claws"], feat_list: "bloodrager/bloodline/draconic/feats"),
+        (level: 4, features: ["bloodrager/bloodline/draconic/draconic-resistance"]),
+        (level: 8, features: ["bloodrager/bloodline/draconic/breath-weapon", "bloodrager/bloodline/draconic/draconic-resistance"]),
+        (level: 12, features: ["bloodrager/bloodline/draconic/dragon-wings"]),
+        (level: 16, features: ["bloodrager/bloodline/draconic/dragon-form", "bloodrager/bloodline/draconic/draconic-resistance"]),
+        (level: 20, features: ["bloodrager/bloodline/draconic/power-of-wyrms"]),
+    ],
+)

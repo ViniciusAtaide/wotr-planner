@@ -1,0 +1,1 @@
+(key: "metamagic-persistent-spell", blueprint: "cd26b9fa3f734461a0fcedc81cafaaac", name: "Metamagic (Persistent Spell)", summary: "+2 spell level: a target that saves must save again or take the full effect.", category: Magic, guide: "feats#metamagic-persistent-spell")

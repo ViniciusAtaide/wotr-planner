@@ -1,0 +1,1 @@
+(key: "cleric/diminished-spellcasting", blueprint: "e47dba0476b36cf42809819237f44da1", name: "Diminished Spellcasting", summary: "One fewer spell per day of each level; at zero you cast that level only with bonus spells from Wisdom, but keep domain slots.", guide: "cleric#diminished-spellcasting")

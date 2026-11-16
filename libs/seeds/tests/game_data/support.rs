@@ -377,10 +377,14 @@ pub fn data_prerequisites(data: &GameData) -> Vec<&Prerequisite> {
             data.all_classes()
                 .filter_map(|class| class.prerequisite.as_ref()),
         )
-        .chain(data.archetypes().filter_map(|a| a.prerequisite.as_ref()))
         .chain(
-            data.selections()
-                .flat_map(|selection| &selection.options)
+            data.archetypes
+                .iter()
+                .filter_map(|a| a.prerequisite.as_ref()),
+        )
+        .chain(
+            data.options
+                .iter()
                 .filter_map(|option| option.prerequisite.as_ref()),
         )
         .chain(
@@ -607,16 +611,15 @@ pub fn reason_in(build: &Build, slot: &SlotId, option: &str) -> String {
     engine().issue_text(&status.expect_err("locked")).unwrap()
 }
 
-/// The features of `class`'s archetype `archetype`, by key.
+/// The features `class`'s archetype `archetype` grants on its level rows, by key.
 pub fn archetype_features(class_key: &str, archetype: &str) -> BTreeSet<String> {
-    class(class_key)
-        .archetypes
-        .iter()
+    DATA.archetypes_of(&class(class_key).key)
         .find(|a| a.key.as_str() == archetype)
         .unwrap_or_else(|| panic!("no {archetype}"))
-        .features
+        .levels
         .iter()
-        .map(|f| f.key.to_string())
+        .flat_map(|row| &row.features)
+        .map(|f| f.to_string())
         .collect()
 }
 
@@ -715,7 +718,7 @@ pub fn keys(selection: &rules::FeatureSelection) -> BTreeSet<String> {
     selection
         .options
         .iter()
-        .map(|o| o.key.to_string())
+        .map(|o| o.to_string())
         .chain(selection.shared_options.iter().map(|k| k.to_string()))
         .collect()
 }
@@ -765,4 +768,111 @@ pub fn bench() -> Vec<(String, Build)> {
             (name.to_owned(), build)
         })
         .collect()
+}
+
+/// Some features and Feature selections. An entry no longer says its owner (ticket 244): the classes' and the Mythic
+/// paths' are told apart by what grants them.
+#[derive(Default)]
+pub struct Grants {
+    pub features: Vec<&'static rules::Feature>,
+    pub selections: Vec<&'static rules::FeatureSelection>,
+}
+
+/// One level row's grants: the features and the Feature selections it names.
+type RowGrants = (&'static [FeatureKey], &'static [rules::FeatureSelectionKey]);
+
+/// What `rows` grant, in key order: the features and selections the rows name, and the ones the own options of those
+/// selections name on their rows, all the way down.
+pub fn grants(rows: impl IntoIterator<Item = RowGrants>) -> Grants {
+    let data: &'static GameData = &DATA;
+    let mut features = BTreeSet::new();
+    let mut selections = BTreeSet::new();
+    let mut waiting: Vec<RowGrants> = rows.into_iter().collect();
+    while let Some((row_features, row_selections)) = waiting.pop() {
+        features.extend(row_features);
+        for key in row_selections {
+            if !selections.insert(key) {
+                continue;
+            }
+            let Some(selection) = data.selection(key) else {
+                continue;
+            };
+            for option in data.options_of(selection) {
+                waiting.extend(
+                    option
+                        .levels
+                        .iter()
+                        .map(|row| (&row.features[..], &row.selections[..])),
+                );
+            }
+        }
+    }
+    Grants {
+        features: features
+            .into_iter()
+            .filter_map(|k| data.feature(k))
+            .collect(),
+        selections: selections
+            .into_iter()
+            .filter_map(|k| data.selection(k))
+            .collect(),
+    }
+}
+
+/// The rows of `class` and of its archetypes.
+pub fn class_rows(class: &'static rules::Class) -> Vec<RowGrants> {
+    let own = class
+        .levels
+        .iter()
+        .map(|row| (&row.features[..], &row.selections[..]));
+    let archetypes = DATA
+        .archetypes
+        .iter()
+        .filter(move |a| a.class == class.key)
+        .flat_map(|a| a.levels.iter())
+        .map(|row| (&row.features[..], &row.selections[..]));
+    own.chain(archetypes).collect()
+}
+
+/// The classes' features and selections (base and prestige classes', archetypes'): every one the Mythic paths don't
+/// grant ([`all_path_grants`]). Some are granted from elsewhere than a class's rows, so reaching them from the rows
+/// would miss them: Bloodline Ascendance and Second Mystery by a mythic ability, for one.
+pub fn all_class_grants() -> Grants {
+    let data: &'static GameData = &DATA;
+    let paths = all_path_grants();
+    let path_features: BTreeSet<&FeatureKey> = paths.features.iter().map(|f| &f.key).collect();
+    let path_selections: BTreeSet<&rules::FeatureSelectionKey> =
+        paths.selections.iter().map(|s| &s.key).collect();
+    Grants {
+        features: data
+            .features
+            .iter()
+            .filter(|f| !path_features.contains(&f.key))
+            .collect(),
+        selections: data
+            .selections
+            .iter()
+            .filter(|s| !path_selections.contains(&s.key))
+            .collect(),
+    }
+}
+
+/// What the Mythic paths grant: their rank rows' grants, and the features a switch to a path grants.
+pub fn all_path_grants() -> Grants {
+    let data: &'static GameData = &DATA;
+    let mut grants = grants(data.mythic_paths.iter().flat_map(|path| {
+        path.ranks
+            .iter()
+            .map(|row| (&row.features[..], &row.selections[..]))
+    }));
+    let switched = data
+        .mythic_paths
+        .iter()
+        .filter_map(|path| path.switch.as_ref())
+        .flat_map(|switch| &switch.features)
+        .filter_map(|key| data.feature(key));
+    grants.features.extend(switched);
+    grants.features.sort_by(|a, b| a.key.cmp(&b.key));
+    grants.features.dedup_by(|a, b| a.key == b.key);
+    grants
 }

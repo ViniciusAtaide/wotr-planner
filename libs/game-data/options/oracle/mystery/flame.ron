@@ -1,0 +1,11 @@
+(
+    key: "oracle/mystery/flame",
+    blueprint: "3b68909df737cd4458509d7f3a9c3706",
+    name: "Flame",
+    summary: "Flame: Athletics and Mobility as class skills, fire spells from Burning Hands to Fiery Body, and empowered fire spells at 20th.",
+    guide: "oracle#flame",
+    levels: [
+        (level: 1, class_skills: ["athletics", "mobility"]),
+        (level: 20, features: ["oracle/mystery/flame/flame-final-revelation"]),
+    ],
+)

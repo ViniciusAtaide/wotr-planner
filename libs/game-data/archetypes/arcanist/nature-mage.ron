@@ -1,0 +1,11 @@
+(
+    key: "arcanist/nature-mage",
+    class: "arcanist",
+    blueprint: "26185cfb81b34e778ad370407300de9a",
+    name: "Nature Mage",
+    summary: "Arcanist who casts from the druid spell list instead of the wizard's.",
+    guide: "arcanist#nature-mage",
+    levels: [
+        (level: 1, features: ["arcanist/arcane-reservoir", "arcanist/consume-spells", "arcanist/nature-mage/cantrips", "arcanist/nature-mage/nature-magic"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
+    ],
+)

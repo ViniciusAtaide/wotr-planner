@@ -9,6 +9,8 @@ use crate::support::*;
 /// Each kind's (summaries, empty), in the order the counts are kept below.
 fn counts() -> BTreeMap<&'static str, (usize, usize)> {
     let mut counts = BTreeMap::new();
+    let class_grants = all_class_grants();
+    let path_grants = all_path_grants();
     let mut add = |kind: &'static str, summaries: Vec<&str>| {
         let empty = summaries
             .iter()
@@ -25,9 +27,8 @@ fn counts() -> BTreeMap<&'static str, (usize, usize)> {
     );
     add(
         "subrace",
-        DATA.races
+        DATA.subraces
             .iter()
-            .flat_map(|race| &race.subraces)
             .map(|subrace| subrace.summary.as_str())
             .collect(),
     );
@@ -46,28 +47,33 @@ fn counts() -> BTreeMap<&'static str, (usize, usize)> {
     );
     add(
         "archetype",
-        DATA.classes
+        DATA.archetypes
             .iter()
-            .flat_map(|class| &class.archetypes)
             .map(|archetype| archetype.summary.as_str())
             .collect(),
     );
     add(
         "class feature",
-        DATA.class_features()
+        class_grants
+            .features
+            .iter()
             .map(|feature| feature.summary.as_str())
             .collect(),
     );
     add(
         "class selection",
-        DATA.class_selections()
+        class_grants
+            .selections
+            .iter()
             .map(|selection| selection.summary.as_str())
             .collect(),
     );
     add(
         "class selection option",
-        DATA.class_selections()
-            .flat_map(|selection| &selection.options)
+        class_grants
+            .selections
+            .iter()
+            .flat_map(|selection| DATA.options_of(selection))
             .map(|option| option.summary.as_str())
             .collect(),
     );
@@ -94,26 +100,26 @@ fn counts() -> BTreeMap<&'static str, (usize, usize)> {
     );
     add(
         "path feature",
-        DATA.mythic_paths
+        path_grants
+            .features
             .iter()
-            .flat_map(|path| &path.features)
             .map(|feature| feature.summary.as_str())
             .collect(),
     );
     add(
         "path selection",
-        DATA.mythic_paths
+        path_grants
+            .selections
             .iter()
-            .flat_map(|path| &path.selections)
             .map(|selection| selection.summary.as_str())
             .collect(),
     );
     add(
         "path selection option",
-        DATA.mythic_paths
+        path_grants
+            .selections
             .iter()
-            .flat_map(|path| &path.selections)
-            .flat_map(|selection| &selection.options)
+            .flat_map(|selection| DATA.options_of(selection))
             .map(|option| option.summary.as_str())
             .collect(),
     );
@@ -159,11 +165,13 @@ fn every_summary_is_one_short_line() {
             .iter()
             .map(|feat| feat.summary.as_str())
             .collect::<Vec<_>>(),
-        DATA.class_features()
+        all_class_grants()
+            .features
+            .into_iter()
             .map(|feature| feature.summary.as_str())
             .collect(),
-        DATA.selections()
-            .flat_map(|selection| &selection.options)
+        DATA.options
+            .iter()
             .map(|option| option.summary.as_str())
             .collect(),
         DATA.mythic_abilities

@@ -1,0 +1,14 @@
+(
+    key: "power-from-death",
+    blueprint: "9c2c85a3782af804880c81c1712e3a7b",
+    name: "Power from Death",
+    school: Necromancy,
+    guide: "lich#power-from-death-necromancy",
+    summary: "You gain +1 to attacks, saves and damage per dead creature within 30 ft, up to +3 plus 1 per five caster levels, and are hasted at +3 or more.",
+    target: "All creatures within a 30' burst centred on caster",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "rainbow-starfall",
+    blueprint: "0ad356eaf621d9a469e7da0acc552383",
+    name: "Rainbow Starfall",
+    school: Evocation,
+    guide: "azata#rainbow-starfall-evocation",
+    summary: "Like Call Lightning Storm: you call up to 15 stars, each dealing 1d6 per 3 caster levels of whichever energy type harms the target most.",
+    target: "Enemy creature within long range",
+    duration: "1 minute / level",
+    saving_throw: "Reflex half",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: FullRound,
+)

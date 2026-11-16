@@ -1,0 +1,14 @@
+(
+    key: "shield-of-dawn",
+    blueprint: "62888999171921e4dafb46de83f4d67d",
+    name: "Shield of Dawn",
+    school: Evocation,
+    guide: "cleric-spells#shield-of-dawn-evocation",
+    summary: "Any creature that hits you with a melee weapon lacking reach takes 1d6 + 1 per caster level (max 15) fire damage.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Fire, Good],
+    casting_time: Standard,
+)

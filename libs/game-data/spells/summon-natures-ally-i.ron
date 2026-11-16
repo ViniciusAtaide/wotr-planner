@@ -1,0 +1,14 @@
+(
+    key: "summon-natures-ally-i",
+    blueprint: "c6147854641924442a3bb736080cfeb6",
+    name: "Summon Nature's Ally I",
+    school: Conjuration,
+    guide: "druid-spells#summon-natures-ally-i-conjuration",
+    summary: "You summon a mite.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

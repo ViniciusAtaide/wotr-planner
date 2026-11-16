@@ -1,0 +1,14 @@
+(
+    key: "bestow-grace",
+    blueprint: "431f783e1a020cd46ab37b8666a92bd3",
+    name: "Bestow Grace",
+    school: Abjuration,
+    guide: "paladin#bestow-grace-abjuration",
+    summary: "The target's Charisma modifier is added to all its saves.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

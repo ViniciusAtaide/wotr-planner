@@ -1,0 +1,14 @@
+(
+    key: "demonic-form-i",
+    blueprint: "66fa2aab59294c44cad02c4dd60f986d",
+    name: "Demonic Form I",
+    school: Transmutation,
+    guide: "demon#demonic-form-i-transmutation",
+    summary: "You can turn into a babau, brimorak or schir demon.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/trickery",
+    blueprint: "a8e7abcad0cf8384b9f12c3b075b5cae",
+    name: "Trickery",
+    summary: "Minor: create an illusory duplicate for rounds equal to your level. Major (10th): Greater Invisibility for 1 round as a swift action.",
+    guide: "warpriest#trickery",
+    domain: "cleric/domain/trickery",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/trickery/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/trickery/major-blessing"]),
+    ],
+)

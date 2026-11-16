@@ -1,0 +1,18 @@
+(
+    key: "ranger/sable-company-marine",
+    class: "ranger",
+    blueprint: "475117e837fa461589005a5339f653a0",
+    name: "Sable Company Marine",
+    summary: "Dance of Masks ranger riding a hippogriff, with favoured enemy delayed and no favoured terrains.",
+    guide: "ranger#sable-company-marine",
+    levels: [
+        (level: 1, features: ["ranger/sable-company-marine/hippogriff-companion"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 3, features: ["ranger/favored-enemy", "ranger/sable-company-marine/the-strongest-wings"]),
+        (level: 4),
+        (level: 8),
+        (level: 12, features: ["ranger/sable-company-marine/feathered-confusion"]),
+        (level: 13),
+        (level: 18, feat_slots: [OptionList(selection: "ranger/combat-style-feat")]),
+        (level: 20, features: ["ranger/favored-enemy", "ranger/sable-company-marine/sable-strike"]),
+    ],
+)

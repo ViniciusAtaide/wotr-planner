@@ -1,0 +1,15 @@
+(
+    key: "broken-trickster",
+    blueprint: "692b59ae0433471aa675b5b1b80db863",
+    name: "Broken Trickster",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+        (target: Ability(Charisma), amount: 6, kind: Enhancement),
+    ],
+    other_effects: [
+        "Hit by energy damage: resist 20 against that energy for a round.",
+        "Hit by physical damage: DR 20/- for a round.",
+    ],
+)

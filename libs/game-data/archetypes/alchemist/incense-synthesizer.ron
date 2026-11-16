@@ -1,0 +1,18 @@
+(
+    key: "alchemist/incense-synthesizer",
+    class: "alchemist",
+    blueprint: "6faf49766d8156c419d08f556a40374f",
+    name: "Incense Synthesizer",
+    summary: "Alchemist whose incense fog buffs allies; no mutagen and fewer bomb dice increases.",
+    guide: "alchemist#incense-synthesizer",
+    levels: [
+        (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/bomb"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "throw-anything"], selections: ["alchemist/incense-synthesizer/incense-fog"]),
+        (level: 3, selections: ["alchemist/incense-synthesizer/incense-fog"]),
+        (level: 6, selections: ["alchemist/discovery", "alchemist/incense-synthesizer/incense-fog"]),
+        (level: 9, selections: ["alchemist/incense-synthesizer/incense-fog"]),
+        (level: 12, selections: ["alchemist/discovery", "alchemist/incense-synthesizer/incense-fog"]),
+        (level: 14, selections: ["alchemist/discovery"]),
+        (level: 15, selections: ["alchemist/incense-synthesizer/incense-fog"]),
+        (level: 18, selections: ["alchemist/discovery", "alchemist/incense-synthesizer/incense-fog"]),
+    ],
+)

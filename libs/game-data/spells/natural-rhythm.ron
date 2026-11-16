@@ -1,0 +1,14 @@
+(
+    key: "natural-rhythm",
+    blueprint: "dde924776bd7ad247928b5efbfacfbdd",
+    name: "Natural Rhythm",
+    school: Transmutation,
+    guide: "druid-spells#natural-rhythm-transmutation",
+    summary: "The target's natural attacks build momentum in a turn: each hit in an unbroken streak adds damage equal to how many streak hits came before it.",
+    target: "One friendly creature within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

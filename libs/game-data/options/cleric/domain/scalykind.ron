@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/scalykind",
+    blueprint: "67034c0985b240e5ad6e41e905461951",
+    name: "Scalykind Domain",
+    summary: "Venomous Stare and a monitor lizard or velociraptor companion at 4th level; spells from Magic Fang to Shapechange.",
+    guide: "character-creation#scalykind-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/scalykind/venomous-stare"]),
+        (level: 4, features: ["cleric/domain/scalykind/animal-companion"]),
+    ],
+)

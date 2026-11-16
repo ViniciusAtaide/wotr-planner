@@ -1,0 +1,4 @@
+(
+    why: "An ability of ImitationFeature in the game, not a feature of its own.",
+    entry: (key: "slayer/imitator/imitation/monk-stance", name: "Monk Stance", summary: "Improved Unarmed Strike, half Int to AC unarmoured, Evasion, magic and cold iron fists, and extra unarmed attacks at 11th and 20th.", guide: "slayer#monk-stance"),
+)

@@ -1,0 +1,1 @@
+(key: "piranha-strike-mythic", blueprint: "0d7884d730fa20a40a9d41bbba1ea4b5", name: "Piranha Strike (Mythic)", summary: "Piranha Strike\'s damage bonus rises to +3.", group: Melee, guide: "mythic-paths#piranha-strike-mythic", prerequisite: Feat("piranha-strike"))

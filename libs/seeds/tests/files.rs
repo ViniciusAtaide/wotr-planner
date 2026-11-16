@@ -45,7 +45,7 @@ fn reads_every_fixture_file() {
             ClassKey::new("sorcerer")
         ]
     );
-    assert_eq!(data.archetypes().count(), 4);
+    assert_eq!(data.archetypes.len(), 4);
     assert_eq!(
         data.prestige_classes
             .iter()
@@ -115,10 +115,7 @@ fn reads_deities_and_what_they_limit() {
     let cleric = data.class(&ClassKey::new("cleric")).unwrap();
     assert_eq!(cleric.prerequisite, Some(Prerequisite::Worships));
     let limit = |key: &str| {
-        cleric
-            .selections
-            .iter()
-            .find(|s| s.key.as_str() == key)
+        data.selection(&FeatureSelectionKey::new(key))
             .unwrap()
             .deity_domains
     };
@@ -131,16 +128,22 @@ fn reads_deities_and_what_they_limit() {
         blessing.domain,
         Some(SelectionOptionKey::new("cleric/domain/good"))
     );
-    assert!(cleric.features[0].favoured_weapon_proficiency);
+    assert!(
+        data.feature(&FeatureKey::new("cleric/cleric-proficiencies"))
+            .unwrap()
+            .favoured_weapon_proficiency
+    );
     assert!(data.check().is_empty(), "{:?}", data.check());
 }
 
-/// `deities.ron` is required, as every single file is.
+/// A kind's folder may be missing, and reads as no entries of the kind: `deities/` as any other.
 #[test]
-fn a_missing_deities_file_is_an_error() {
+fn a_missing_deities_folder_reads_as_no_deities() {
     let dir = copy_fixture();
-    fs::remove_file(dir.path().join("deities.ron")).unwrap();
-    assert!(seeds::read_game_data_files(dir.path()).is_err());
+    fs::remove_dir_all(dir.path().join("deities")).unwrap();
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    assert_eq!(data.deities, []);
+    assert_eq!(data.feats.len(), read_fixture().feats.len());
 }
 
 #[test]
@@ -161,12 +164,12 @@ fn reads_class_progressions_and_only_the_archetype_rows_that_differ() {
     assert_eq!(class("mystic-theurge").bab, BabProgression::Half);
 
     // The herald's rows were all the cleric's, so it stores none.
-    let herald = &class("cleric").archetypes[0];
+    let herald = data.archetypes_of(&class("cleric").key).next().unwrap();
     assert_eq!(herald.key.as_str(), "cleric/herald");
     assert_eq!(herald.levels, []);
 
     // The Eldritch Scoundrel casts arcane spells the rogue doesn't.
-    let scoundrel = &class("rogue").archetypes[0];
+    let scoundrel = data.archetypes_of(&class("rogue").key).next().unwrap();
     assert_eq!(
         scoundrel.levels[0],
         ArchetypeLevelRow {
@@ -218,8 +221,9 @@ fn reads_save_exceptions() {
 #[test]
 fn reads_feat_lists_and_the_slots_that_name_them() {
     let data = read_fixture();
-    let lists: Vec<(&str, &str, bool, Vec<&str>)> = data
-        .feat_lists()
+    let lists: BTreeSet<(&str, &str, bool, Vec<&str>)> = data
+        .feat_lists
+        .iter()
         .map(|list| {
             (
                 list.key.as_str(),
@@ -229,12 +233,11 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
             )
         })
         .collect();
-    // Each in its owner's file: the half-elf's (in the races file), the monk's, the Armiger's (inside the fighter's
-    // file), the Gold Dragon's and the trickster's. Left out, `ignores_prerequisites` and `every_feat` are unset,
-    // and `feats` is empty.
+    // Each in its own file under `feat-lists/`: the half-elf's, the monk's, the Armiger's, the Gold Dragon's and the
+    // trickster's among them. Left out, `ignores_prerequisites` and `every_feat` are unset, and `feats` is empty.
     assert_eq!(
         lists,
-        [
+        BTreeSet::from([
             (
                 "half-elf/adaptability",
                 "Adaptability",
@@ -272,7 +275,7 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
                 false,
                 vec!["dirty-trick", "toughness"]
             ),
-        ]
+        ])
     );
     let monk = data.classes.iter().find(|c| c.key.as_str() == "monk");
     assert_eq!(
@@ -286,14 +289,13 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
 #[test]
 fn reads_a_selections_shared_options_and_defaults_them_to_none() {
     let data = read_fixture();
-    let rogue = data
-        .classes
-        .iter()
-        .find(|c| c.key.as_str() == "rogue")
-        .unwrap();
+    let selection = |key: &str| data.selection(&FeatureSelectionKey::new(key)).unwrap();
     // The rogue's talents share nothing: left out, `shared_options` is empty.
-    assert_eq!(rogue.selections[0].shared_options, BTreeSet::new());
-    let arcane_talents = &rogue.archetypes[0].selections[0];
+    assert_eq!(
+        selection("rogue/rogue-talents").shared_options,
+        BTreeSet::new()
+    );
+    let arcane_talents = selection("rogue/eldritch-scoundrel/arcane-talents");
     assert_eq!(
         arcane_talents.key,
         FeatureSelectionKey::new("rogue/eldritch-scoundrel/arcane-talents")
@@ -320,7 +322,8 @@ fn reads_granted_feats_on_class_and_archetype_rows() {
         BTreeSet::from([FeatKey::new("improved-unarmed-strike")])
     );
     let armiger = data
-        .archetypes()
+        .archetypes
+        .iter()
         .find(|a| a.key.as_str() == "fighter/armiger")
         .unwrap();
     assert_eq!(
@@ -386,15 +389,15 @@ fn reads_nested_prerequisites_as_trees() {
 #[test]
 fn a_misspelt_field_fails_naming_the_file() {
     let dir = copy_fixture();
-    let feats = dir.path().join("feats.ron");
-    let text = fs::read_to_string(&feats).unwrap();
-    fs::write(&feats, text.replacen("prerequisite:", "prerequisites:", 1)).unwrap();
+    let feat = dir.path().join("feats/power-attack.ron");
+    let text = fs::read_to_string(&feat).unwrap();
+    fs::write(&feat, text.replacen("prerequisite:", "prerequisites:", 1)).unwrap();
 
     let error = seeds::read_game_data_files(dir.path())
         .unwrap_err()
         .to_string();
 
-    assert!(error.contains("feats.ron"), "{error}");
+    assert!(error.contains("power-attack.ron"), "{error}");
     assert!(error.contains("prerequisites"), "{error}");
 }
 
@@ -414,7 +417,7 @@ fn a_missing_required_file_fails() {
 fn a_ron_file_outside_the_layout_fails() {
     let dir = copy_fixture();
     fs::write(dir.path().join("classes").join("stray.txt"), "ignored").unwrap();
-    fs::write(dir.path().join("spells").join("fireball.ron"), "()").unwrap();
+    fs::write(dir.path().join("fireball.ron"), "()").unwrap();
 
     let error = seeds::read_game_data_files(dir.path())
         .unwrap_err()
@@ -423,16 +426,15 @@ fn a_ron_file_outside_the_layout_fails() {
     assert!(error.contains("fireball.ron"), "{error}");
 }
 
-/// Data from before ticket 121 has no `spells/` folder, and reads as no spells; once the folder exists, its
-/// `lists.ron` is required.
+/// Data from before ticket 121 has no `spells/` and no `spell-lists/` folder, and reads as no spells and no lists;
+/// the spells read without their lists.
 #[test]
-fn a_folder_without_spells_has_none_but_spells_need_their_lists() {
+fn a_folder_without_spells_has_none_and_spells_read_without_their_lists() {
     let dir = copy_fixture();
-    fs::remove_file(dir.path().join("spells/lists.ron")).unwrap();
-    let error = seeds::read_game_data_files(dir.path())
-        .unwrap_err()
-        .to_string();
-    assert!(error.contains("lists.ron"), "{error}");
+    fs::remove_dir_all(dir.path().join("spell-lists")).unwrap();
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    assert_eq!(data.spells.len(), 3);
+    assert_eq!(data.spell_lists, []);
 
     fs::remove_dir_all(dir.path().join("spells")).unwrap();
     let data = seeds::read_game_data_files(dir.path()).unwrap();
@@ -440,33 +442,33 @@ fn a_folder_without_spells_has_none_but_spells_need_their_lists() {
     assert_eq!(data.spell_lists, []);
 }
 
-/// A spell file is `spells/<page>/level-<n>.ron`, nothing else under `spells/` but `lists.ron`.
+/// A spell's file is `spells/<key>.ron`: the guide page and heading of the old `spells/<page>/level-<n>.ron` files
+/// are no part of its path, and a file there fails, naming it.
 #[test]
-fn a_spell_file_outside_its_page_and_level_fails() {
+fn a_spell_file_in_the_old_page_and_level_layout_fails() {
+    let spell = fs::read_to_string(fixture_dir().join("spells/dismiss-spell.ron")).unwrap();
     for stray in [
-        "spells/wizard/fireball.ron",
-        "spells/wizard/level-x.ron",
-        "spells/wizard/level-.ron",
-        "spells/wizard/old/level-1.ron",
-        "spells/level-1.ron",
+        "spells/wizard/level-0.ron",
+        "spells/wizard/dismiss-spell.ron",
+        "spells/level-0.ron",
     ] {
         let dir = copy_fixture();
+        fs::remove_file(dir.path().join("spells/dismiss-spell.ron")).unwrap();
         let path = dir.path().join(stray);
         fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(&path, "[]").unwrap();
+        fs::write(&path, &spell).unwrap();
 
-        let error = seeds::read_game_data_files(dir.path())
-            .unwrap_err()
-            .to_string();
+        let error = seeds::read_game_data_files(dir.path()).unwrap_err();
 
         assert!(
-            error.contains("not part of the game-data layout"),
+            matches!(&error, seeds::FilesError::Misnamed { key, .. } if key == "dismiss-spell"),
             "{stray}: {error}"
         );
+        assert!(error.to_string().contains(stray), "{stray}: {error}");
     }
 }
 
-/// Ticket 121: the spells of every `spells/<page>/level-<n>.ron` file, read into one list, and the spell lists.
+/// Ticket 121: the spells, a file each under `spells/`, and the spell lists, a file each under `spell-lists/`.
 #[test]
 fn reads_spells_and_spell_lists_and_defaults_them() {
     use rules::{
@@ -567,18 +569,20 @@ fn checking_the_files_lists_the_data_problems() {
 #[test]
 fn checking_the_files_names_every_missing_key() {
     let dir = copy_fixture();
-    let feats = dir.path().join("feats.ron");
-    let text = fs::read_to_string(&feats).unwrap();
-    fs::write(
-        &feats,
-        text.replace("Feat(\"power-attack\")", "Feat(\"no-such-feat\")")
-            .replacen(
-                "        repeat: Times(3),\n",
-                "        repeat: Times(3),\n        extra_pick_of: [\"rogue/no-such-selection\"],\n",
-                1,
-            ),
-    )
-    .unwrap();
+    for file in fs::read_dir(dir.path().join("feats")).unwrap() {
+        let path = file.unwrap().path();
+        let text = fs::read_to_string(&path).unwrap();
+        fs::write(
+            &path,
+            text.replace("Feat(\"power-attack\")", "Feat(\"no-such-feat\")")
+                .replacen(
+                    "    repeat: Times(3),\n",
+                    "    repeat: Times(3),\n    extra_pick_of: [\"rogue/no-such-selection\"],\n",
+                    1,
+                ),
+        )
+        .unwrap();
+    }
 
     let error = seeds::check_game_data_files(dir.path()).unwrap_err();
 
@@ -647,8 +651,9 @@ fn reads_the_mythic_path_rules() {
     );
     assert_eq!(switch.rank_after_switch(), 3);
     assert_eq!(switch.features, [FeatureKey::new("legend/legend")].into());
+    let feature = |key: &str| data.feature(&FeatureKey::new(key)).unwrap();
     assert_eq!(
-        legend.features[0].ability_bonuses,
+        feature("legend/legend").ability_bonuses,
         [AbilityBonus::Every { amount: 4 }]
     );
 
@@ -663,8 +668,13 @@ fn reads_the_mythic_path_rules() {
         switch.dropped_selections,
         [FeatureSelectionKey::new("trickster/tricks")].into()
     );
-    assert!(dragon.feat_lists[0].every_feat);
-    let body = &dragon.features[2];
+    let dragon_feats = FeatListKey::new("gold-dragon/dragon-feats");
+    assert!(dragon.ranks[1].feat_slots.contains(&FeatSlot::OneOf {
+        list: dragon_feats.clone()
+    }));
+    let list = data.feat_lists.iter().find(|l| l.key == dragon_feats);
+    assert!(list.unwrap().every_feat);
+    let body = feature(dragon.ranks[0].features[1].as_str());
     assert_eq!(body.key.as_str(), "gold-dragon/perfect-body");
     assert_eq!(
         body.ability_bonuses,
@@ -673,8 +683,9 @@ fn reads_the_mythic_path_rules() {
             AbilityBonus::AtLeast { score: 14 }
         ]
     );
+    let breaths = data.selection(&dragon.ranks[0].selections[0]).unwrap();
     assert_eq!(
-        dragon.selections[0].options[0].prerequisite,
+        data.options_of(breaths).next().unwrap().prerequisite,
         Some(Prerequisite::All(vec![
             Prerequisite::MythicRank(9),
             Prerequisite::Story(Story::VowOfDahak),
@@ -682,13 +693,14 @@ fn reads_the_mythic_path_rules() {
     );
 
     // A feature without bonuses reads as none; an option may grant several feats.
-    assert!(path("trickster").features[0].ability_bonuses.is_empty());
-    let rogue = data
-        .classes
-        .iter()
-        .find(|c| c.key.as_str() == "rogue")
+    assert!(
+        feature("trickster/trickster-tricks")
+            .ability_bonuses
+            .is_empty()
+    );
+    let combat_trick = data
+        .selection_option(&SelectionOptionKey::new("rogue/rogue-talents/combat-trick"))
         .unwrap();
-    let combat_trick = &rogue.selections[0].options[0];
     assert_eq!(
         combat_trick.feats,
         [
@@ -750,15 +762,11 @@ fn reads_weapons_and_what_feats_are_taken_for() {
 #[test]
 fn reads_an_options_chosen_feat_and_repeat_and_defaults_them() {
     let data = read_fixture();
-    let rogue = data
-        .classes
-        .iter()
-        .find(|c| c.key.as_str() == "rogue")
+    let talents = data
+        .selection(&FeatureSelectionKey::new("rogue/rogue-talents"))
         .unwrap();
     let option = |key: &str| {
-        rogue.selections[0]
-            .options
-            .iter()
+        data.options_of(talents)
             .find(|o| o.key.as_str() == key)
             .unwrap()
     };
@@ -776,10 +784,12 @@ fn reads_an_options_chosen_feat_and_repeat_and_defaults_them() {
         (None, Repeat::Once)
     );
     // A bonus feat of the player's choosing: a one-feat list of a parameterised feat.
-    assert_eq!(
-        rogue.feat_lists[0].feats,
-        BTreeSet::from([FeatKey::new("skill-focus")])
-    );
+    let list = data
+        .feat_lists
+        .iter()
+        .find(|l| l.key.as_str() == "rogue/skill-focus")
+        .unwrap();
+    assert_eq!(list.feats, BTreeSet::from([FeatKey::new("skill-focus")]));
 }
 
 #[test]
@@ -804,11 +814,7 @@ fn reads_advancement_counts_as_and_story_conditions_and_defaults_them() {
     assert_eq!(class("fighter").counts_as, BTreeSet::new());
 
     let breath = data
-        .mythic_paths
-        .iter()
-        .flat_map(|path| &path.selections)
-        .flat_map(|selection| &selection.options)
-        .find(|option| option.key.as_str() == "gold-dragon/breaths/annihilating")
+        .selection_option(&SelectionOptionKey::new("gold-dragon/breaths/annihilating"))
         .unwrap();
     assert_eq!(
         breath.prerequisite,
@@ -828,14 +834,10 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         .find(|c| c.key.as_str() == "sorcerer")
         .unwrap();
     assert!(sorcerer.spontaneous);
-    let selection = |key: &str| {
-        sorcerer
-            .selections
-            .iter()
-            .find(|s| s.key.as_str() == key)
-            .unwrap()
-    };
+    let selection = |key: &str| data.selection(&FeatureSelectionKey::new(key)).unwrap();
+    let options = |key: &str| data.options_of(selection(key)).collect::<Vec<_>>();
     let bloodline = selection("sorcerer/bloodline");
+    let bloodlines = options("sorcerer/bloodline");
     assert_eq!(
         bloodline
             .option_levels
@@ -844,7 +846,7 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
             .collect::<Vec<_>>(),
         ["fighter", "sorcerer"]
     );
-    let abyssal = &bloodline.options[0];
+    let abyssal = bloodlines[0];
     assert_eq!(
         abyssal
             .aliases
@@ -865,7 +867,7 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
     );
     // Ticket 37: an option row's class skills, and a row holding nothing else.
     assert_eq!(
-        bloodline.options[1].levels[2],
+        bloodlines[1].levels[2],
         OptionLevelRow {
             level: 9,
             class_skills: BTreeSet::from([SkillKey::new("mobility"), SkillKey::new("persuasion")]),
@@ -874,7 +876,7 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
     );
     // Ticket 31: an option row's feat slots, and its feats for the value the option's pick named.
     assert_eq!(
-        bloodline.options[1].levels[1].feat_slots,
+        bloodlines[1].levels[1].feat_slots,
         [
             FeatSlot::CombatFeat,
             FeatSlot::OneOf {
@@ -882,9 +884,8 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
             }
         ]
     );
-    let mastery = selection("sorcerer/abyssal-powers")
-        .options
-        .iter()
+    let mastery = options("sorcerer/abyssal-powers")
+        .into_iter()
         .find(|o| o.key.as_str() == "sorcerer/abyssal-powers/mastery")
         .unwrap();
     assert_eq!(mastery.chosen_feat, Some(FeatKey::new("weapon-focus")));
@@ -912,11 +913,8 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
             label: None,
         }
     );
-    let ascendance = sorcerer
-        .features
-        .iter()
-        .find(|f| f.key.as_str() == "sorcerer/bloodline-ascendance")
-        .unwrap();
+    let feature = |key: &str| data.feature(&FeatureKey::new(key)).unwrap();
+    let ascendance = feature("sorcerer/bloodline-ascendance");
     assert_eq!(
         ascendance.option_row,
         Some(OptionRow {
@@ -924,25 +922,22 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
             level: 3,
         })
     );
-    assert!(
-        sorcerer
-            .features
-            .iter()
-            .any(|f| f.key.as_str() == "sorcerer/mixed-bloodline" && f.daily_choice)
-    );
-    let power = sorcerer
-        .selections
-        .iter()
-        .find(|s| s.key.as_str() == "sorcerer/power")
-        .unwrap();
+    assert!(feature("sorcerer/mixed-bloodline").daily_choice);
+    let power = selection("sorcerer/power");
     assert_eq!(
         power.filtered_by.as_ref().map(FeatureSelectionKey::as_str),
         Some("sorcerer/bloodline")
     );
 
-    let seeker = &sorcerer.archetypes[0];
+    let seeker = data.archetypes_of(&sorcerer.key).next().unwrap();
     assert_eq!(seeker.spontaneous, Some(false));
-    let [own, choice, second] = &seeker.selections[..] else {
+    let seekers: Vec<_> = seeker
+        .levels
+        .iter()
+        .flat_map(|row| &row.selections)
+        .map(|key| data.selection(key).unwrap())
+        .collect();
+    let [own, second, choice] = seekers[..] else {
         panic!("three selections");
     };
     assert_eq!(own.skipped_levels, BTreeSet::from([3]));
@@ -950,9 +945,7 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
     assert!(second.feat_lists_only && second.only_without_option);
     assert!(!own.feat_lists_only && !own.only_without_option);
     assert_eq!(
-        choice
-            .options
-            .iter()
+        data.options_of(choice)
             .find(|o| o.key.as_str() == "sorcerer/seeker/choice/talents")
             .unwrap()
             .replaces_row_of
@@ -992,23 +985,26 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         .iter()
         .find(|c| c.key.as_str() == "rogue")
         .unwrap();
-    let talents = &rogue.selections[0];
+    let talents = selection("rogue/rogue-talents");
     assert!(talents.option_levels.is_empty() && talents.skipped_levels.is_empty());
     assert!(talents.filtered_by.is_none() && !talents.feat_lists_only);
     assert!(talents.option_level_archetypes.is_empty() && !talents.half_other_classes);
     assert!(
-        talents
-            .options
-            .iter()
+        data.options_of(talents)
             .all(|o| o.levels.is_empty() && o.aliases.is_empty())
     );
     assert!(
         rogue
-            .features
+            .levels
             .iter()
+            .flat_map(|row| &row.features)
+            .map(|key| feature(key.as_str()))
             .all(|f| f.option_row.is_none() && !f.daily_choice)
     );
-    assert!(rogue.archetypes.iter().all(|a| a.spontaneous.is_none()));
+    assert!(
+        data.archetypes_of(&rogue.key)
+            .all(|a| a.spontaneous.is_none())
+    );
 }
 
 #[test]
@@ -1026,15 +1022,23 @@ fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
             list: FeatListKey::new("half-elf/adaptability")
         }]
     );
+    let adaptability = data
+        .feat_lists
+        .iter()
+        .find(|l| l.key.as_str() == "half-elf/adaptability")
+        .unwrap();
     assert_eq!(
-        half_elf.feat_lists[0].feats,
+        adaptability.feats,
         BTreeSet::from([FeatKey::new("skill-focus")])
     );
     assert!(
         data.races
             .iter()
             .filter(|r| r.key.as_str() != "half-elf")
-            .all(|r| r.feat_lists.is_empty())
+            .all(|r| !r
+                .feat_slots
+                .iter()
+                .any(|slot| matches!(slot, FeatSlot::OneOf { .. })))
     );
 
     // A feat granted for one value on a class row; none elsewhere.
@@ -1053,7 +1057,12 @@ fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
     assert!(rogue.levels[1].feats_for.is_empty());
 
     // An option's own value from a short list; others take none.
-    let talents = &rogue.selections[0].options;
+    let talents: Vec<_> = data
+        .options_of(
+            data.selection(&FeatureSelectionKey::new("rogue/rogue-talents"))
+                .unwrap(),
+        )
+        .collect();
     let training = talents
         .iter()
         .find(|o| o.key.as_str() == "rogue/rogue-talents/weapon-training")
@@ -1116,8 +1125,7 @@ fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
     ));
 
     // A feature's floors; none elsewhere.
-    let features: Vec<&rules::Feature> =
-        data.mythic_paths.iter().flat_map(|p| &p.features).collect();
+    let features: Vec<&rules::Feature> = data.features.iter().collect();
     let might = features
         .iter()
         .find(|f| f.key.as_str() == "gold-dragon/dragon-might")
@@ -1141,22 +1149,11 @@ fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
 #[test]
 fn reads_option_groups_arcanas_level_sources_and_picks_through_and_defaults_them() {
     let data = read_fixture();
-    let sorcerer = data
-        .classes
-        .iter()
-        .find(|c| c.key.as_str() == "sorcerer")
-        .unwrap();
-    let selection = |key: &str| {
-        sorcerer
-            .selections
-            .iter()
-            .chain(sorcerer.archetypes.iter().flat_map(|a| &a.selections))
-            .find(|s| s.key.as_str() == key)
-            .unwrap()
-    };
+    let selection = |key: &str| data.selection(&FeatureSelectionKey::new(key)).unwrap();
+    let options = |key: &str| data.options_of(selection(key)).collect::<Vec<_>>();
     // An option's group and arcana, and the prerequisite that looks at the group.
     let bloodline = selection("sorcerer/bloodline");
-    let red = &bloodline.options[1];
+    let red = options("sorcerer/bloodline")[1];
     assert_eq!(red.group, Some(OptionGroup::Draconic));
     assert_eq!(
         red.arcana,
@@ -1169,10 +1166,10 @@ fn reads_option_groups_arcanas_level_sources_and_picks_through_and_defaults_them
             Prerequisite::NoOtherOptionOfGroup(OptionGroup::Draconic),
         ]))
     );
-    let abyssal = &bloodline.options[0];
+    let abyssal = options("sorcerer/bloodline")[0];
     assert_eq!((abyssal.group, &abyssal.arcana), (None, &None));
     // The selection picked through.
-    let necromancy = &selection("sorcerer/school").options[1];
+    let necromancy = options("sorcerer/school")[1];
     assert_eq!(
         necromancy.prerequisite,
         Some(Prerequisite::Any(vec![
@@ -1212,7 +1209,7 @@ fn reads_option_groups_arcanas_level_sources_and_picks_through_and_defaults_them
         power
             .options
             .iter()
-            .map(|o| o.key.as_str())
+            .map(SelectionOptionKey::as_str)
             .collect::<Vec<_>>(),
         ["sorcerer/power/surge"]
     );
@@ -1228,9 +1225,7 @@ fn reads_subrace_slots_option_list_stages_and_options_levelled_alongside_and_def
         .find(|r| r.key.as_str() == "half-elf")
         .unwrap();
     let subrace = |key: &str| {
-        half_elf
-            .subraces
-            .iter()
+        data.subraces_of(&half_elf.key)
             .find(|s| s.key.as_str() == key)
             .unwrap()
     };
@@ -1242,9 +1237,8 @@ fn reads_subrace_slots_option_list_stages_and_options_levelled_alongside_and_def
     );
     assert_eq!(subrace("half-elf/dual-heritage").feat_slots, []);
     assert!(
-        data.races
+        data.subraces
             .iter()
-            .flat_map(|r| &r.subraces)
             .filter(|s| s.key.as_str() != "half-elf/adaptable")
             .all(|s| s.feat_slots.is_empty())
     );
@@ -1271,14 +1265,7 @@ fn reads_subrace_slots_option_list_stages_and_options_levelled_alongside_and_def
         ]
     );
     // An option counting beside the other options held.
-    let selection = |key: &str| {
-        sorcerer
-            .selections
-            .iter()
-            .chain(sorcerer.archetypes.iter().flat_map(|a| &a.selections))
-            .find(|s| s.key.as_str() == key)
-            .unwrap()
-    };
+    let selection = |key: &str| data.selection(&FeatureSelectionKey::new(key)).unwrap();
     assert_eq!(
         selection("sorcerer/abyssal-powers").level_also_from,
         Some(SelectionOptionKey::new("sorcerer/seeker/choice/power"))
@@ -1326,14 +1313,68 @@ fn reads_backgrounds_and_defaults_them() {
 #[test]
 fn reads_an_entry_without_a_guide_link() {
     let dir = copy_fixture();
-    let deities = dir.path().join("deities.ron");
+    let deities = dir.path().join("deities/iomedae.ron");
     let text = fs::read_to_string(&deities).unwrap();
     let without = text.replacen(r#"guide: "character-creation#deities", "#, "", 1);
-    assert_ne!(without, text, "the fixture's first deity had a guide link");
+    assert_ne!(without, text, "the fixture's Iomedae had a guide link");
     fs::write(&deities, without).unwrap();
 
     let data = seeds::read_game_data_files(dir.path()).unwrap();
     let guides: Vec<_> = data.deities.iter().map(|d| d.guide.is_some()).collect();
     assert_eq!(guides.iter().filter(|g| !**g).count(), 1, "{guides:?}");
     assert_eq!(data.check(), []);
+}
+
+/// Ticket 244: an entry's file is named by its key, under its kind's folder; a file whose path says another key
+/// fails, naming the file and the key it holds.
+#[test]
+fn a_file_whose_path_isnt_its_entrys_key_fails() {
+    let dir = copy_fixture();
+    let features = dir.path().join("features");
+    fs::rename(
+        features.join("rogue/sneak-attack.ron"),
+        features.join("fighter/sneak-attack.ron"),
+    )
+    .unwrap();
+
+    let error = seeds::read_game_data_files(dir.path()).unwrap_err();
+
+    assert!(
+        matches!(&error, seeds::FilesError::Misnamed { key, .. } if key == "rogue/sneak-attack"),
+        "{error}"
+    );
+    let error = error.to_string();
+    assert!(
+        error.contains("features/fighter/sneak-attack.ron"),
+        "{error}"
+    );
+    assert!(error.contains("rogue/sneak-attack"), "{error}");
+}
+
+/// Ticket 244: an entry the planner made, with no game blueprint behind it, sits under `planner/<kind folder>/`,
+/// wrapped with the reason no blueprint stands behind it; it reads as the entry, and one with an empty reason fails.
+#[test]
+fn a_planner_entry_reads_with_its_reason_and_fails_without_one() {
+    let dir = copy_fixture();
+    let own = dir.path().join("features/rogue/sneak-attack.ron");
+    let entry = fs::read_to_string(&own).unwrap();
+    fs::remove_file(&own).unwrap();
+    let planner = dir.path().join("planner/features/rogue/sneak-attack.ron");
+    fs::create_dir_all(planner.parent().unwrap()).unwrap();
+    let wrapped = |why: &str| format!("(\n    why: \"{why}\",\n    entry: {entry})\n");
+
+    fs::write(
+        &planner,
+        wrapped("The guide's feature, which no blueprint holds alone."),
+    )
+    .unwrap();
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    assert_eq!(data, read_fixture());
+
+    fs::write(&planner, wrapped(" ")).unwrap();
+    let error = seeds::read_game_data_files(dir.path()).unwrap_err();
+    assert!(
+        matches!(&error, seeds::FilesError::NoReason { path } if *path == planner),
+        "{error}"
+    );
 }

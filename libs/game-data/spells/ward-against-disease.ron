@@ -1,0 +1,14 @@
+(
+    key: "ward-against-disease",
+    blueprint: "5f83b793960047e49af1a3551afa4d58",
+    name: "Ward Against Disease",
+    school: Abjuration,
+    guide: "angel#ward-against-disease-abjuration",
+    summary: "Makes the target immune to disease.",
+    target: "One friendly creature within touch range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

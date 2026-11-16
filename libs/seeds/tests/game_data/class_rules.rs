@@ -169,7 +169,7 @@ fn a_crusaders_bonus_feats_still_skip_every_prerequisite_and_the_data_says_so() 
     // Weapon Focus needs BAB 1; a crusader cleric 1 has 0.
     // Game: CrusaderArchetype 6bfb7e74b530f3749b590286dd2b9b30 adds CrusaderBonusFeat1 c5357c05cf4f8414ebd0a33e534aec50
     // at 1 (IgnorePrerequisites, Weapon Focus listed); BlueprintFeatureSelection.IsIgnorePrerequisites, WrathDecompiled
-    // 6ce4a6b. The note in cleric.ron is not a game fact.
+    // 6ce4a6b. The note in the Crusader's feat-list files is not a game fact.
     let crusader = archetype_build("cleric", "cleric/crusader", 1);
     let focus = Pick::feat_for(FeatKey::new("weapon-focus"), weapon("longsword"));
     let status = engine()
@@ -181,12 +181,28 @@ fn a_crusaders_bonus_feats_still_skip_every_prerequisite_and_the_data_says_so() 
         .status;
     assert_eq!(status, Ok(()));
 
-    let cleric =
-        std::fs::read_to_string(seeds::game_data_dir().join("classes/cleric.ron")).unwrap();
-    assert!(
-        cleric.contains("// Crusader Bonus Feats:"),
-        "the note on the Crusader's lists"
-    );
+    let lists: BTreeSet<String> = DATA
+        .archetypes
+        .iter()
+        .find(|a| a.key.as_str() == "cleric/crusader")
+        .unwrap()
+        .levels
+        .iter()
+        .flat_map(|row| &row.feat_slots)
+        .filter_map(|slot| match slot {
+            rules::FeatSlot::OneOf { list } => Some(list.to_string()),
+            _ => None,
+        })
+        .collect();
+    assert!(!lists.is_empty());
+    for list in lists {
+        let file = seeds::game_data_dir().join(format!("feat-lists/{list}.ron"));
+        let text = std::fs::read_to_string(&file).unwrap();
+        assert!(
+            text.contains("// Crusader Bonus Feats:"),
+            "the note on the Crusader's lists"
+        );
+    }
 }
 
 #[test]
@@ -247,9 +263,8 @@ fn a_druid_chooses_an_animal_companion_or_a_domain_at_level_1() {
     // The archetypes whose table keeps both columns choose too; the others have their companion, their domain
     // or neither.
     let chooses = |archetype: &str| {
-        let row = class("druid")
-            .archetypes
-            .iter()
+        let row = DATA
+            .archetypes_of(&class("druid").key)
             .find(|a| a.key.as_str() == archetype)
             .unwrap()
             .levels

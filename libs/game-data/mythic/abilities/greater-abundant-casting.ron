@@ -1,0 +1,1 @@
+(key: "greater-abundant-casting", blueprint: "db5be78901afbfa4e8ea5b399a88b92d", name: "Greater Abundant Casting", summary: "+4 daily spell slots at each of spell levels 7, 8 and 9.", group: Magic, guide: "mythic-paths#greater-abundant-casting", prerequisite: MythicAbility("improved-abundant-casting"))

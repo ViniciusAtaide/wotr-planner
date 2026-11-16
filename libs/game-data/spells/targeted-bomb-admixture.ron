@@ -1,0 +1,14 @@
+(
+    key: "targeted-bomb-admixture",
+    blueprint: "24afb2c948c731440a3aaf5411904c89",
+    name: "Targeted Bomb Admixture",
+    school: Transmutation,
+    guide: "alchemist#targeted-bomb-admixture-transmutation",
+    summary: "Your bombs lose their splash, but a direct hit adds twice your Intelligence modifier to the damage.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

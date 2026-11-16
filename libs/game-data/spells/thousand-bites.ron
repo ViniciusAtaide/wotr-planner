@@ -1,0 +1,14 @@
+(
+    key: "thousand-bites",
+    blueprint: "d35b16edbd5c436286e34cf7bcbdb645",
+    name: "Thousand Bites",
+    school: Transmutation,
+    guide: "gold-dragon#thousand-bites-transmutation",
+    summary: "In Gold Dragon form, you gain 3 extra attacks per round, which stack with Haste and similar bonus attacks.",
+    target: "Self",
+    duration: "1 minute",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Swift,
+)

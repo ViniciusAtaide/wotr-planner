@@ -1,0 +1,1 @@
+(key: "weapon-focus", blueprint: "1e1f627d26ad36f43bbd26cc2bf8ac7e", name: "Weapon Focus", summary: "+1 to attack with one weapon (or unarmed strike, natural weapons, touch attacks or rays); repeatable for other weapons.", category: Weapon, guide: "feats#weapon-focus", parameter: Weapon, repeat: PerValue, prerequisite: BaseAttackBonus(1))

@@ -1,0 +1,1 @@
+(key: "shaman/hex/hypothermia", blueprint: "9b764fbd91bf92643a36d833762fd069", name: "Hypothermia", summary: "Frost: the target is fatigued for 2 rounds unless it passes Fortitude, 1 round longer at 8th and 16th.", guide: "shaman#hypothermia", prerequisite: SelectionOption("shaman/spirit/frost"))

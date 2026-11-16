@@ -1,0 +1,1 @@
+(key: "trickster/greater-mythic-trick/persuasion-iii", blueprint: "9f677bc314b84cc388044c3786148fd9", name: "Persuasion III", summary: "A demoralised foe that fails its save wastes its first round trying to coup de grace itself.", guide: "trickster#persuasion-iii", prerequisite: SelectionOption("trickster/improved-mythic-trick/persuasion-ii"))

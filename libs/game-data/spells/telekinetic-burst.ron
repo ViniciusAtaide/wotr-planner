@@ -1,0 +1,13 @@
+(
+    key: "telekinetic-burst",
+    blueprint: "9ccd404771c25e24490e4f8838ea8ebb",
+    name: "Telekinetic Burst",
+    school: Transmutation,
+    guide: "demon#telekinetic-burst-transmutation",
+    summary: "Telekinetic Strike against every enemy in the burst.",
+    target: "All enemies within a 30' burst centred on the caster",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "holy-sword",
+    blueprint: "bea9deffd3ab6734c9534153ddc70bde",
+    name: "Holy Sword",
+    school: Evocation,
+    guide: "paladin#holy-sword-evocation",
+    summary: "Turns the ally's melee weapon into a +5 holy weapon that deals 2d6 extra damage to evil creatures.",
+    target: "One friendly creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

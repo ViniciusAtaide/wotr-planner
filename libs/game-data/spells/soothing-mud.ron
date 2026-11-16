@@ -1,0 +1,14 @@
+(
+    key: "soothing-mud",
+    blueprint: "1a36c8b9ed655c249a9f9e8d4731f001",
+    name: "Soothing Mud",
+    school: Conjuration,
+    guide: "druid-spells#soothing-mud-conjuration",
+    summary: "Creates healing mud (difficult terrain) that heals 1d4 attribute damage on entry (once a day per creature) and then 1 HP each round.",
+    target: "Target point within medium range, 20' burst",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

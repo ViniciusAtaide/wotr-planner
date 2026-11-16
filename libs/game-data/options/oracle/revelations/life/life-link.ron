@@ -1,0 +1,1 @@
+(key: "oracle/revelations/life/life-link", blueprint: "ef97c9bcc1c54ea7993ef8b2489c908a", name: "Life Link", summary: "Bond with up to one creature per level: each turn, one 5+ HP below max heals 5 and you take 4.", guide: "oracle#life-link", prerequisite: SelectionOption("oracle/mystery/life"))

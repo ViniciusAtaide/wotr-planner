@@ -1,0 +1,13 @@
+(
+    why: "The game lists the teamwork feats themselves in this selection; the planner offers them through one option.",
+    entry: (
+        key: "skald/battle-scion/rage-power-or-teamwork-feat/teamwork-feat",
+        name: "Teamwork Feat",
+        summary: "A teamwork feat in place of a rage power, added to Inspired Rage for 3 rounds of song.",
+        guide: "skald#battle-prowess",
+        repeat: Unlimited,
+        levels: [
+            (level: 1, feat_slots: [Category(Teamwork)]),
+        ],
+    ),
+)

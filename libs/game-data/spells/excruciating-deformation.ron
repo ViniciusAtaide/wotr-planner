@@ -1,0 +1,14 @@
+(
+    key: "excruciating-deformation",
+    blueprint: "448aa456600749d18c14ad979cc88a67",
+    name: "Excruciating Deformation",
+    school: Transmutation,
+    guide: "wizard-spells#excruciating-deformation-transmutation",
+    summary: "Your touch deals 2d6 damage, 1 Dexterity and 1 Constitution damage and -10 ft speed; the target can save each round to shrug it off for 1 round.",
+    target: "One enemy creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Evil, Polymorph],
+    casting_time: Standard,
+)

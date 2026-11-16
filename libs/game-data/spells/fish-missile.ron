@@ -1,0 +1,13 @@
+(
+    key: "fish-missile",
+    blueprint: "3d1c5aa69827faf419bb17b0a8cadf9b",
+    name: "Fish Missile",
+    school: Conjuration,
+    guide: "trickster#fish-missile-conjuration",
+    summary: "A ranged touch attack dealing 1d6, plus 1d6 per two caster levels beyond the first; on a hit the target is sickened for 1d4+1 rounds unless it saves.",
+    target: "One creature within medium range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

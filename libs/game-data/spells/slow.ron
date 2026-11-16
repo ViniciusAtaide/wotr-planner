@@ -1,0 +1,14 @@
+(
+    key: "slow",
+    blueprint: "f492622e473d34747806bdb39356eb89",
+    name: "Slow",
+    school: Transmutation,
+    guide: "wizard-spells#slow-transmutation",
+    summary: "Enemies in the area are staggered, take -1 on attack rolls, AC and Reflex saves, and move at half speed.",
+    target: "Enemies within 30' of a target creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

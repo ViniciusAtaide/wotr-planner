@@ -1,0 +1,1 @@
+(key: "alchemist/bomb", blueprint: "c59b2f256f5a70a4d896568658315b7d", name: "Bomb", summary: "Class level + Int modifier bombs a day: 30-foot range, 1d6 fire + Int on a hit (+1d6 per odd level) and Reflex-halved splash.", guide: "alchemist#bomb")

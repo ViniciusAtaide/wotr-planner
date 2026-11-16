@@ -1,0 +1,1 @@
+(key: "oracle/revelations/bones/near-death", blueprint: "96649fb9694c1164caf7b836898685aa", name: "Near Death", summary: "+2 insight on saves vs disease, mind-affecting and poison; also death, sleep and stun from 7th; +4 from 11th.", guide: "oracle#near-death", prerequisite: SelectionOption("oracle/mystery/bones"))

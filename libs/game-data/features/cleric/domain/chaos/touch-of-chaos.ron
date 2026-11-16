@@ -1,0 +1,1 @@
+(key: "cleric/domain/chaos/touch-of-chaos", blueprint: "0c9d931180a19a646bcf4165f66bd318", name: "Touch of Chaos", summary: "Melee touch: the target rolls twice and takes the worse result for the next round; 3 + Wisdom modifier uses a day.", guide: "character-creation#chaos-domain")

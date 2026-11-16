@@ -1,0 +1,13 @@
+(
+    key: "exsanguinate",
+    blueprint: "291524731e8b8f440b44915be833ae07",
+    name: "Exsanguinate",
+    school: Necromancy,
+    guide: "lich#exsanguinate-necromancy",
+    summary: "Deals 1d6 per caster level; if the target fails, it also takes 1d6 Strength damage and 2d6 bleed.",
+    target: "Creature within medium range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

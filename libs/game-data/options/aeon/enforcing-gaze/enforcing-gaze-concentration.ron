@@ -1,0 +1,1 @@
+(key: "aeon/enforcing-gaze/enforcing-gaze-concentration", blueprint: "2eae9b2c25a969641a2cf230acdca478", name: "Enforcing Gaze - Concentration", summary: "Rank 5: allies gain +MR on concentration checks; enemies that fail the save must make a concentration check for every spell.", guide: "aeon#enforcing-gaze-concentration", prerequisite: MythicRank(5))

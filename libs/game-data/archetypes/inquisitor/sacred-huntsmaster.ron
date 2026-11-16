@@ -1,0 +1,18 @@
+(
+    key: "inquisitor/sacred-huntsmaster",
+    class: "inquisitor",
+    blueprint: "46eb929c8b6d7164188eb4d9bcd0a012",
+    name: "Sacred Huntsmaster",
+    summary: "Inquisitor with an animal companion and favoured enemies instead of judgments; cannot take the Animal domain.",
+    guide: "inquisitor#sacred-huntsmaster",
+    levels: [
+        (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/sacred-huntsmaster/animal-companion", "inquisitor/sacred-huntsmaster/orisons", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/sacred-huntsmaster/domain"]),
+        (level: 3, features: ["inquisitor/sacred-huntsmaster/hunter-tactics"], feat_slots: [Category(Teamwork)]),
+        (level: 5, features: ["inquisitor/bane", "inquisitor/sacred-huntsmaster/favored-enemy"]),
+        (level: 8),
+        (level: 10, features: ["inquisitor/sacred-huntsmaster/favored-enemy"]),
+        (level: 15, features: ["inquisitor/sacred-huntsmaster/favored-enemy"], feat_slots: [Category(Teamwork)]),
+        (level: 16),
+        (level: 20, features: ["inquisitor/sacred-huntsmaster/favored-enemy"]),
+    ],
+)

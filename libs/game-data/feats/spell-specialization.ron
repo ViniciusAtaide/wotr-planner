@@ -1,0 +1,1 @@
+(key: "spell-specialization", blueprint: "f327a765a4353d04f872482ef3e48c35", name: "Spell Specialization", summary: "For one chosen spell from a Spell Focus school, level-based effects use caster level +2; you may switch spells each time your caster level rises.", category: Magic, guide: "feats#spell-specialization", prerequisite: Feat("spell-focus"))

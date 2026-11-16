@@ -1,0 +1,13 @@
+(
+    key: "force-punch",
+    blueprint: "fc58ddcff6ab1394eb6c18e9126bb990",
+    name: "Force Punch",
+    school: Evocation,
+    guide: "wizard-spells#force-punch-evocation",
+    summary: "A melee touch deals 1d4 force damage per level (max 10d4) and pushes the target 5 ft per two caster levels unless it passes a Fortitude save.",
+    target: "Enemy creature within touch range",
+    saving_throw: "See below",
+    spell_resistance: true,
+    descriptors: [Force],
+    casting_time: Standard,
+)

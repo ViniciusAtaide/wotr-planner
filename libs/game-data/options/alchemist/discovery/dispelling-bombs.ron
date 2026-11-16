@@ -1,0 +1,1 @@
+(key: "alchemist/discovery/dispelling-bombs", blueprint: "92085b99a3fd6e34b85f0e2bb67a17ba", name: "Dispelling Bombs", summary: "A direct hit applies a targeted Dispel Magic.", guide: "alchemist#dispelling-bombs", prerequisite: ClassLevel(class: "alchemist", level: 6))

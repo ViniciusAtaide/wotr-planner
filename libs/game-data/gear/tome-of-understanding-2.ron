@@ -1,0 +1,10 @@
+(
+    key: "tome-of-understanding-2",
+    blueprint: "419a486154514594c99193da785d4302",
+    name: "Tome of Understanding +2",
+    slot: Usable,
+    guide: "items#equipable-and-consumable",
+    bonuses: [
+        (target: Ability(Wisdom), amount: 2, kind: Inherent),
+    ],
+)

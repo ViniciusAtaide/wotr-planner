@@ -1,0 +1,13 @@
+(
+    key: "slayer/imitator/imitation",
+    blueprint: "35336c21b12f40ef9bf0ef7207107f4b",
+    name: "Imitation",
+    summary: "Free action: one of four stances (Fighter, Barbarian, Monk, Rogue) for 1 minute, half level + Int times a day.",
+    guide: "slayer#imitation",
+    options: [
+        "slayer/imitator/imitation/barbarian-stance",
+        "slayer/imitator/imitation/fighter-stance",
+        "slayer/imitator/imitation/monk-stance",
+        "slayer/imitator/imitation/rogue-stance",
+    ],
+)

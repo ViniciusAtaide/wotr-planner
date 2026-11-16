@@ -1,0 +1,4 @@
+(
+    why: "An ability of the Devil's Hell's Decree or Hell's Seal feature in the game, not a feature of its own.",
+    entry: (key: "devil/hells-decree/decree-of-vengeance", name: "Decree of Vengeance", summary: "An ally attacks indiscriminately with 10x MR temporary HP; each kill adds DR 5/good, +2 CMD and +2 vs. movement effects, up to 5 times.", guide: "other-mythic-paths#decree-of-vengeance"),
+)

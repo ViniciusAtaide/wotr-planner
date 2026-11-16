@@ -1,0 +1,9 @@
+(
+    key: "gorum",
+    blueprint: "8f49a5d8528a82c44b8c117a89f6b68c",
+    name: "Gorum",
+    guide: "character-creation#deities",
+    alignments: [ChaoticGood, TrueNeutral, ChaoticNeutral, ChaoticEvil],
+    favoured_weapons: ["greatsword"],
+    domains: ["cleric/domain/chaos", "cleric/domain/destruction", "cleric/domain/glory", "cleric/domain/strength", "cleric/domain/war"],
+)

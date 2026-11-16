@@ -1,0 +1,1 @@
+(key: "punching-dagger", blueprint: "89dc4dc5f386e2049b5e0a5e209a3407", name: "Punching Dagger", proficiency: Simple, stats: (damage: (count: 1, sides: 4), threat: 20, multiplier: 3, handedness: Light, finesse: true))

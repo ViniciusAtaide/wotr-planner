@@ -1,0 +1,1 @@
+(key: "improved-unarmed-strike", blueprint: "7812ad3672a4b9a4fb894ea402095167", name: "Improved Unarmed Strike", summary: "You count as armed when unarmed; unarmed strikes deal 1d3 (1d2 if small).", category: UnarmedCombat, guide: "feats#improved-unarmed-strike")

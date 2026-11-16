@@ -1,0 +1,16 @@
+(
+    key: "fighter/mutation-warrior",
+    class: "fighter",
+    blueprint: "758e0061a077e54409a3bf0eb51511e5",
+    name: "Mutation Warrior",
+    summary: "Fighter who uses alchemist mutagens, losing Armor Training and Armor Mastery.",
+    guide: "fighter#mutation-warrior",
+    skill_points: 3,
+    levels: [
+        (level: 3, features: ["fighter/mutation-warrior/mutagen"]),
+        (level: 7, features: ["fighter/mutation-warrior/mutagen-discovery"]),
+        (level: 11, features: ["fighter/mutation-warrior/mutagen-discovery"]),
+        (level: 15, features: ["fighter/mutation-warrior/mutagen-discovery"]),
+        (level: 19, features: ["fighter/mutation-warrior/mutagen-discovery"]),
+    ],
+)

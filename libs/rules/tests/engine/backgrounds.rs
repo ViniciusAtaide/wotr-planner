@@ -62,16 +62,7 @@ fn class_skills_are_every_class_takens() {
 #[test]
 fn an_archetype_that_replaces_its_classs_skills_gives_its_own() {
     let mut data = world();
-    let rogue = data
-        .classes
-        .iter_mut()
-        .find(|c| c.key.as_str() == "rogue")
-        .unwrap();
-    let archetype = rogue
-        .archetypes
-        .iter_mut()
-        .find(|a| a.key.as_str() == "rogue/eldritch-scoundrel")
-        .unwrap();
+    let archetype = archetype_mut(&mut data, "rogue/eldritch-scoundrel");
     archetype.class_skills = Some(BTreeSet::from([skill("knowledge-arcana")]));
     let engine = engine_on(data);
     let mut build = build("dwarf", &["rogue"]);

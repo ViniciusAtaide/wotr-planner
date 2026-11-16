@@ -1,0 +1,14 @@
+(
+    key: "edict-of-retaliation",
+    blueprint: "d57fcfdfcffa2d346985648cb77390fb",
+    name: "Edict of Retaliation",
+    school: Abjuration,
+    guide: "aeon#edict-of-retaliation-abjuration",
+    summary: "Whenever the target attacks it takes 1d6 + caster level damage, and 2d6 + caster level for each spell or spell-like ability it uses.",
+    target: "One enemy creature within close range",
+    duration: "1 round / 4 caster levels",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Swift,
+)

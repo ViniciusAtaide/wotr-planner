@@ -1,0 +1,14 @@
+(
+    key: "winters-grasp",
+    blueprint: "406c6e4a631b43ce8f7a77844b75bf75",
+    name: "Winter's Grasp",
+    school: Conjuration,
+    guide: "druid-spells#winters-grasp-conjuration",
+    summary: "Each round creatures in the area take 1d6 cold damage and -2 on saves against cold spells, and fall prone unless they make a Reflex save.",
+    target: "All creatures within 20' of a point within medium range",
+    duration: "1 round / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [Cold],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "domain-of-the-hungry-flesh",
+    blueprint: "0d820abda7693a9418546a47eea62ea2",
+    name: "Domain of the Hungry Flesh",
+    school: Conjuration,
+    guide: "lich#domain-of-the-hungry-flesh-conjuration",
+    summary: "Creatures in the area are tripped (CMB caster level + casting modifier), taking 2d6 + caster level and 1d4 damage to a random physical ability score.",
+    target: "All creatures with a 20' burst centred on target point within medium range",
+    duration: "1 round level",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

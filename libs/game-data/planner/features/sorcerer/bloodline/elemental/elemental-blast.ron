@@ -1,0 +1,4 @@
+(
+    why: "The game has one blueprint per dragon colour, element, energy, form or bloodline, none of them primary; the planner holds one entry for whichever is held.",
+    entry: (key: "sorcerer/bloodline/elemental/elemental-blast", name: "Elemental Blast", summary: "From 9th level, a 20-foot blast for 1d6 per class level; a failed Reflex save leaves foes vulnerable to your element; 1/day, 2 at 17th, 3 at 20th.", guide: "character-creation#elemental-blast"),
+)

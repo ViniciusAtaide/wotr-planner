@@ -1,0 +1,9 @@
+(
+    // Ticket 35: a subrace's slots replace the race's. Dual Heritage has none; an invented one names the race's
+    // list.
+    key: "half-elf/dual-heritage",
+    race: "half-elf",
+    name: "Half-Elf (Dual Heritage)",
+    guide: "character-creation#half-elf-dual-heritage",
+    ability_modifiers: [Chosen(amount: 2)],
+)

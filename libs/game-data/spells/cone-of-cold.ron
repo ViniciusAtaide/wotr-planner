@@ -1,0 +1,13 @@
+(
+    key: "cone-of-cold",
+    blueprint: "e7c530f8137630f4d9d7ee1aa7b1edc0",
+    name: "Cone of Cold",
+    school: Evocation,
+    guide: "wizard-spells#cone-of-cold-evocation",
+    summary: "Deals 1d6 cold per caster level (max 15d6) to creatures in the cone.",
+    target: "All creatures within a 50' cone",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Cold],
+    casting_time: Standard,
+)

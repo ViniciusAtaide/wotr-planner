@@ -1,0 +1,15 @@
+(
+    key: "witch/witch-of-the-veil",
+    class: "witch",
+    blueprint: "08045a390a764d71b2150fd122e05e19",
+    name: "Witch of the Veil",
+    summary: "Deception-patron witch with Stealth and Trickery as class skills and at-will invisibility.",
+    guide: "witch#witch-of-the-veil",
+    class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "persuasion", "stealth", "trickery", "use-magic-device"],
+    levels: [
+        (level: 1, features: ["witch/familiar", "witch/witch-of-the-veil/cantrips", "witch/witch-of-the-veil/deception-witch-of-the-veil", "witch/witch-of-the-veil/secrecy"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex"]),
+        (level: 2, features: ["witch/witch-of-the-veil/shrouded-step"]),
+        (level: 8, features: ["witch/witch-of-the-veil/shrouded-step"]),
+        (level: 16, features: ["witch/witch-of-the-veil/shrouded-step"]),
+    ],
+)

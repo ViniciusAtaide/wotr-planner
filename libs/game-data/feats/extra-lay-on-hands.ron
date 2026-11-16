@@ -1,0 +1,1 @@
+(key: "extra-lay-on-hands", blueprint: "a2b2f20dfb4d3ed40b9198e22be82030", name: "Extra Lay On Hands", summary: "2 more uses of Lay On Hands a day; can be taken more than once.", category: Class, guide: "feats#extra-lay-on-hands", repeat: Unlimited, prerequisite: Feature(feature: "paladin/lay-on-hands", count: 1))

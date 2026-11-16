@@ -1,0 +1,14 @@
+(
+    key: "peer-into-spell-resistance",
+    blueprint: "249c0abba99e4d6f82437b83db57f52c",
+    name: "Peer Into Spell Resistance",
+    school: Divination,
+    guide: "arcanist#peer-into-spell-resistance-divination",
+    summary: "The target's spell resistance drops by 1 per two caster levels (max 10).",
+    target: "One enemy creature within close range",
+    duration: "1 round",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [MindAffecting],
+    casting_time: Standard,
+)

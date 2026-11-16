@@ -1,0 +1,13 @@
+(
+    key: "weird",
+    blueprint: "870af83be6572594d84d276d7fc583e0",
+    name: "Weird",
+    school: Illusion,
+    guide: "wizard-spells#weird-illusion",
+    summary: "Each enemy that fails a Will save to disbelieve must then make a Fortitude save or die, taking 3d6 damage if it succeeds.",
+    target: "All enemies with 30' of target creature within medium range",
+    saving_throw: "Will disbelief then Fortitude partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

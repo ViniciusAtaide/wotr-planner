@@ -1,0 +1,14 @@
+(
+    key: "prayer",
+    blueprint: "faabd2cc67efa4646ac58c7bb3e40fcc",
+    name: "Prayer",
+    school: Enchantment,
+    guide: "cleric-spells#prayer-enchantment",
+    summary: "Allies within 40 ft gain +1 morale on attacks, weapon damage, saves and skill checks, and enemies there take -1 on the same rolls.",
+    target: "40' burst centred on caster",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

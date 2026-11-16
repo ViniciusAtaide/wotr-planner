@@ -1,0 +1,14 @@
+(
+    key: "blur",
+    blueprint: "14ec7a4e52e90fa47a4c8d63c69fd5c1",
+    name: "Blur",
+    school: Illusion,
+    guide: "wizard-spells#blur-illusion",
+    summary: "Concealment for the target: attacks against it have a 20% miss chance.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

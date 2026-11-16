@@ -1,0 +1,1 @@
+(key: "armor-proficiency-heavy-barding", blueprint: "aed0b33e17a3b3d44a718852e87305bd", name: "Armor Proficiency (Heavy Barding)", summary: "Your animal companion gains heavy barding proficiency.", category: ArmourAndShield, guide: "feats#armor-proficiency-heavy-barding", prerequisite: Feat("armor-proficiency-medium-barding"))

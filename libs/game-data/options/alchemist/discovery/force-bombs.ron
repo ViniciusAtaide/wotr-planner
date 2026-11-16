@@ -1,0 +1,1 @@
+(key: "alchemist/discovery/force-bombs", blueprint: "bfbaa0dd74b9909459e462cd8b091177", name: "Force Bombs", summary: "Bomb dice become d4s, but a direct hit knocks the target prone unless it saves on Reflex.", guide: "alchemist#force-bombs", prerequisite: ClassLevel(class: "alchemist", level: 8))

@@ -1,0 +1,1 @@
+(key: "magical-tail", blueprint: "5114829572da5a04f896a8c5b67be413", name: "Magical Tail", summary: "Up to 8 times: a new spell-like ability, usable twice a day, in order from Vanish to Dominate Person; caster level = HD, DCs use Cha.", category: Racial, guide: "feats#magical-tail", repeat: Times(8), prerequisite: Race("kitsune"))

@@ -1,0 +1,13 @@
+(
+    key: "inflict-moderate-wounds",
+    blueprint: "65f0b63c45ea82a4f8b8325768a3832d",
+    name: "Inflict Moderate Wounds",
+    school: Necromancy,
+    guide: "cleric-spells#inflict-moderate-wounds-necromancy",
+    summary: "Deals 2d8 + 1 per caster level (max +10) to the target, Will for half; heals undead by the same amount.",
+    target: "One creature within touch range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

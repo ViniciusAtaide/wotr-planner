@@ -1,0 +1,2 @@
+// Crusader Bonus Feats: the guide skips only their BAB and fighter-level prerequisites; they skip every prerequisite here (user, ticket 21 R5).
+(key: "cleric/crusader/bonus-feats-10", blueprint: "50dc57d2662ccbd479b6bc8ab44edc44", name: "Crusader Bonus Feats (from level 10)", guide: "cleric#crusader-bonus-feats", ignores_prerequisites: true, feats: ["armor-proficiency-heavy-armor", "greater-weapon-focus", "improved-critical", "martial-weapons-proficiency", "shield-bash", "shield-focus", "tower-shield-proficiency", "weapon-focus", "weapon-specialization"])

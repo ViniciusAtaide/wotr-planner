@@ -1,0 +1,13 @@
+(
+    key: "contagion",
+    blueprint: "48e2744846ed04b4580be1a3343a5d3d",
+    name: "Contagion",
+    school: Necromancy,
+    guide: "wizard-spells#contagion-necromancy",
+    summary: "Infects the target with a disease you pick: 1d4 Strength damage (maybe blindness), 1d4 Constitution (fatigued), 1d6 Wisdom, 1d4 Intelligence or 1d8 Dexterity.",
+    target: "One enemy creature within touch range",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Evil, Disease],
+    casting_time: Standard,
+)

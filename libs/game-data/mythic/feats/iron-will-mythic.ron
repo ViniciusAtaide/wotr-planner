@@ -1,0 +1,1 @@
+(key: "iron-will-mythic", blueprint: "952147d43befd5b4ba853f24cd1368ee", name: "Iron Will (Mythic)", summary: "Roll Will saves twice and keep the better result.", group: Miscellaneous, guide: "mythic-paths#iron-will-mythic", prerequisite: Feat("iron-will"))

@@ -1,0 +1,20 @@
+(
+    key: "skald/herald-of-the-horn",
+    class: "skald",
+    blueprint: "72fa7b1c7a6ede44eb490080bf4a2f90",
+    name: "Herald of the Horn",
+    summary: "Skald with a bonded horn: higher sonic spell DCs and a sonic cone blast from 11th level.",
+    guide: "skald#herald-of-the-horn",
+    levels: [
+        (level: 1, features: ["skald/herald-of-the-horn/arcane-bond-object", "skald/herald-of-the-horn/bardic-knowledge", "skald/inspired-rage", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
+        (level: 2, features: ["skald/herald-of-the-horn/well-versed"], selections: ["rogue/rogue-talents"]),
+        (level: 4, features: ["skald/herald-of-the-horn/uncanny-dodge"]),
+        (level: 7, features: ["skald/herald-of-the-horn/horn-call", "skald/raging-song-move-action"], selections: ["rogue/rogue-talents"]),
+        (level: 8, features: ["skald/herald-of-the-horn/improved-uncanny-dodge"]),
+        (level: 10, features: ["skald/herald-of-the-horn/dirge-of-doom"]),
+        (level: 11, features: ["skald/herald-of-the-horn/crumbling-blast"]),
+        (level: 13, features: ["skald/herald-of-the-horn/horn-call", "skald/raging-song-swift-action"]),
+        (level: 17, features: ["skald/herald-of-the-horn/crumbling-blast"], selections: ["rogue/rogue-talents"]),
+        (level: 19, features: ["skald/damage-reduction", "skald/herald-of-the-horn/horn-call"]),
+    ],
+)

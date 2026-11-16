@@ -1,0 +1,13 @@
+(
+    key: "dismiss-spell",
+    blueprint: "97a23111df7547fd8f6417f9ba9b9775",
+    name: "Dismiss Spell",
+    school: None,
+    guide: "wizard-spells#dismiss-spell-universalist",
+    summary: "Out of combat, you end an area spell whose effect lies within 100 ft of you.",
+    target: "Target point within long range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

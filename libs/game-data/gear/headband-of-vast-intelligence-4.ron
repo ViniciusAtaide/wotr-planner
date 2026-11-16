@@ -1,0 +1,9 @@
+(
+    key: "headband-of-vast-intelligence-4",
+    blueprint: "ee15329357f8f974bacf02521d8d37fe",
+    name: "Headband of Vast Intelligence +4",
+    slot: Headwear,
+    bonuses: [
+        (target: Ability(Intelligence), amount: 4, kind: Enhancement),
+    ],
+)

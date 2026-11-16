@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/weather",
+    blueprint: "4172d92c598de1d47aa2c0dd51c05e24",
+    name: "Weather",
+    summary: "Minor: a weapon deals +1d4 electricity for 1 minute. Major (10th): ranged attacks against you get a miss chance of twice your level.",
+    guide: "warpriest#weather",
+    domain: "cleric/domain/weather",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/weather/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/weather/major-blessing"]),
+    ],
+)

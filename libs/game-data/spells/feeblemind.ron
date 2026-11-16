@@ -1,0 +1,14 @@
+(
+    key: "feeblemind",
+    blueprint: "444eed6e26f773a40ab6e4d160c67faa",
+    name: "Feeblemind",
+    school: Enchantment,
+    guide: "wizard-spells#feeblemind-enchantment",
+    summary: "Drops the target's Intelligence and Charisma to 1 and stops it casting; spellcasters take -4 on the save.",
+    target: "One enemy creature within medium range",
+    duration: "Permanent",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

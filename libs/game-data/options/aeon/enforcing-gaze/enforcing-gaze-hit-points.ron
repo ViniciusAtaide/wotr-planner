@@ -1,0 +1,1 @@
+(key: "aeon/enforcing-gaze/enforcing-gaze-hit-points", blueprint: "bb6ac47cdff935d4e8ebf3ba8c5fdcda", name: "Enforcing Gaze - Hit Points", summary: "Rank 5: allies gain temporary HP of 2x MR; failing enemies take 1d6 per three mythic ranks whenever they hit an ally.", guide: "aeon#enforcing-gaze-hit-points", prerequisite: MythicRank(5))

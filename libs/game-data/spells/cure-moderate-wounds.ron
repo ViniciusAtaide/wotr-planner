@@ -1,0 +1,13 @@
+(
+    key: "cure-moderate-wounds",
+    blueprint: "6b90c773a6543dc49b2505858ce33db5",
+    name: "Cure Moderate Wounds",
+    school: Conjuration,
+    guide: "cleric-spells#cure-moderate-wounds-conjuration",
+    summary: "Heals the target 2d8 + 1 per caster level (max +10), or deals that much damage to undead, who can save for half.",
+    target: "One friendly creature within touch range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [Cure],
+    casting_time: Standard,
+)

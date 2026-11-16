@@ -1,0 +1,1 @@
+(key: "kineticist/wild-talents/enduring-earth", blueprint: "14359e9c35a42ee48b8c31b4424a8d3f", name: "Enduring Earth", summary: "Effect durations of your earth blasts, composite earth blasts and wild talents are doubled.", guide: "kineticist#enduring-earth", prerequisite: All([ClassLevel(class: "kineticist", level: 8), SelectionOption("kineticist/element/earth")]))

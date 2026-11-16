@@ -1,0 +1,9 @@
+(
+    key: "rogue/rogue-talents/crippling-strike",
+    name: "Crippling Strike",
+    guide: "rogue#crippling-strike",
+    prerequisite: All([
+        ClassLevel(class: "rogue", level: 10),
+        SelectionOption("rogue/rogue-talents/combat-trick"),
+    ]),
+)

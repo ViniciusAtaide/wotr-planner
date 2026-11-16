@@ -1,0 +1,1 @@
+(key: "gold-dragon/improved-gold-dragon-breath/annihilating-breath", blueprint: "e8b9aad5295c49539f1bbf901d314964", name: "Annihilating Breath", summary: "Rank 9, Vow of Dahak: living foes in the breath take its damage again as negative energy, Fortitude half.", guide: "gold-dragon#annihilating-breath", prerequisite: All([MythicRank(9), Story(VowOfDahak)]))

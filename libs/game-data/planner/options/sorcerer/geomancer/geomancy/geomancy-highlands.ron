@@ -1,0 +1,4 @@
+(
+    why: "An ability of Geomancy in the game, not a feature of its own.",
+    entry: (key: "sorcerer/geomancer/geomancy/geomancy-highlands", name: "Geomancy: Highlands", summary: "Allies within 30 feet gain DR equal to twice the spell level (DR/-) for 1 round.", guide: "sorcerer#geomancy-highlands"),
+)

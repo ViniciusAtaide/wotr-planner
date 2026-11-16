@@ -917,9 +917,8 @@ fn summary_of(planner: &Planner, address: &Address, value: &ChoiceValue) -> Opti
         (Address::Race, ChoiceValue::Key(key)) => planner.summary(Kind::Race, key).or_else(|| {
             planner
                 .data
-                .races
+                .subraces
                 .iter()
-                .flat_map(|race| &race.subraces)
                 .find(|subrace| subrace.key.as_str() == key)
                 .and_then(|subrace| (!subrace.summary.is_empty()).then(|| subrace.summary.clone()))
         }),

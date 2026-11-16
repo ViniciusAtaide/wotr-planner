@@ -1,0 +1,14 @@
+(
+    key: "disrupting-weapon",
+    blueprint: "46c96cc3a3ef35243915ff3452dfacf5",
+    name: "Disrupting Weapon",
+    school: Transmutation,
+    guide: "cleric-spells#disrupting-weapon-transmutation",
+    summary: "A melee weapon destroys any undead it strikes whose HD are no higher than your caster level, unless the undead makes a Will save.",
+    target: "One friendly creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

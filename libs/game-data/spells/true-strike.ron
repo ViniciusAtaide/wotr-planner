@@ -1,0 +1,14 @@
+(
+    key: "true-strike",
+    blueprint: "2c38da66e5a599347ac95b3294acbe00",
+    name: "True Strike",
+    school: Divination,
+    guide: "wizard-spells#true-strike-divination",
+    summary: "Your next attack roll gets a +20 insight bonus and ignores concealment's miss chance.",
+    target: "Personal",
+    duration: "1 round",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

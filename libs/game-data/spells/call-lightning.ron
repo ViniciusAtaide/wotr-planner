@@ -1,0 +1,14 @@
+(
+    key: "call-lightning",
+    blueprint: "2a9ef0e0b5822a24d88b16673a267456",
+    name: "Call Lightning",
+    school: Conjuration,
+    guide: "druid-spells#call-lightning-conjuration",
+    summary: "Each round you can call a 3d6 electricity bolt on a creature (later bolts take a standard action); each bolt uses up one minute of the duration.",
+    target: "One creature within medium range",
+    duration: "1 minute / level",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Electricity],
+    casting_time: FullRound,
+)

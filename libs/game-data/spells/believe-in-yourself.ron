@@ -1,0 +1,14 @@
+(
+    key: "believe-in-yourself",
+    blueprint: "3ed3cef7c267cb847bfd44ed4708b726",
+    name: "Believe in Yourself",
+    school: Enchantment,
+    guide: "azata#believe-in-yourself-enchantment",
+    summary: "Raises an ability score you pick on the target by +1 (morale) for every 4 caster levels.",
+    target: "One friendly creature within medium range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

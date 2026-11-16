@@ -1,0 +1,13 @@
+(
+    key: "oracles-burden",
+    blueprint: "039b8b8b6d5747e3a37c447a46a58761",
+    name: "Oracle's Burden",
+    school: Necromancy,
+    guide: "cleric-spells#oracles-burden-necromancy",
+    summary: "Oracles only: the target suffers the drawbacks of your oracle curse.",
+    target: "One enemy creature within medium range",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [Curse],
+    casting_time: Standard,
+)

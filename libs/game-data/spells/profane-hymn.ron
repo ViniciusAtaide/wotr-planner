@@ -1,0 +1,14 @@
+(
+    key: "profane-hymn",
+    blueprint: "cab32c685bfb3fc4ebe042867af825d6",
+    name: "Profane Hymn",
+    school: Transmutation,
+    guide: "demon#profane-hymn-transmutation",
+    summary: "Enemies in the burst take -2 to attack and damage rolls, spell resistance and concentration checks, and saves.",
+    target: "All enemies within a 40' burst centred on the caster",
+    duration: "1 round / level",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

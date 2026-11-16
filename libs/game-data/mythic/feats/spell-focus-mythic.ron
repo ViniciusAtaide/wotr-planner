@@ -1,0 +1,1 @@
+(key: "spell-focus-mythic", blueprint: "41fa2470ab50ff441b4cfbb2fc725109", name: "Spell Focus (Mythic)", summary: "Spells from one school you have Spell Focus in gain +1 DC.", group: Magic, guide: "mythic-paths#spell-focus-mythic", parameter: SpellSchool, repeat: PerValue, prerequisite: FeatForSameValue("spell-focus"))

@@ -1,0 +1,10 @@
+(
+    key: "cornugon-smash",
+    name: "Cornugon Smash",
+    category: Weapon,
+    guide: "feats#cornugon-smash",
+    prerequisite: All([
+        Feat("power-attack"),
+        SkillRanks(skill: "persuasion", ranks: 6),
+    ]),
+)

@@ -54,9 +54,8 @@ fn the_start_pickers_list_the_races_backgrounds_and_skills_in_key_order() {
     let engine = engine();
     let races: Vec<&str> = engine.races().iter().map(|r| r.key.as_str()).collect();
     assert_eq!(races, ["dwarf", "elf", "half-elf", "human"]);
-    let subraces: Vec<&str> = engine.races()[2]
-        .subraces
-        .iter()
+    let subraces: Vec<&str> = engine
+        .subraces_of(&engine.races()[2].key)
         .map(|s| s.key.as_str())
         .collect();
     assert_eq!(subraces, ["half-elf/adaptable", "half-elf/dual-heritage"]);
@@ -122,11 +121,7 @@ fn a_class_and_an_archetype_summary_come_from_the_game_data() {
         .find(|c| c.key == class("sorcerer"))
         .unwrap();
     sorcerer.summary = "Spontaneous arcane caster.".into();
-    let sage = sorcerer
-        .archetypes
-        .iter_mut()
-        .find(|a| a.key.as_str() == "sorcerer/sage")
-        .unwrap();
+    let sage = archetype_mut(&mut data, "sorcerer/sage");
     sage.summary = "Casts with Intelligence.".into();
     let engine = engine_on(data);
     assert_eq!(

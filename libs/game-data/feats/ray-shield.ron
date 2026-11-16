@@ -1,0 +1,1 @@
+(key: "ray-shield", blueprint: "e92cb7c4c900dcf4282def347af42b9c", name: "Ray Shield", summary: "Your touch AC includes your shield's base bonus (enhancement excluded).", category: ArmourAndShield, guide: "feats#ray-shield", prerequisite: All([Feat("missile-shield"), AbilityScore(ability: Dexterity, score: 15)]))
