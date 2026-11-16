@@ -2,9 +2,9 @@
     key: "bloodrager/primalist/primal-choices/rage-powers",
     blueprint: "8eb5c34bb8471a0438e7eb3994de3b92",
     name: "Two Rage Powers",
+    ranks: 5,
     summary: "Take two rage powers instead of this level's bloodline ability.",
     guide: "bloodrager#primal-choices",
-    repeat: Unlimited,
     replaces_row_of: "bloodrager/bloodline",
     levels: [
         (level: 1, selections: ["barbarian/rage-power", "barbarian/rage-power"]),

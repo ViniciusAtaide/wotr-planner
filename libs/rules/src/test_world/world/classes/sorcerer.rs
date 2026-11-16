@@ -233,7 +233,7 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
                     None,
                 ),
                 SelectionOption {
-                    repeat: Repeat::Unlimited,
+                    ranks: 5,
                     replaces_row_of: Some(bloodline.clone()),
                     levels: vec![OptionLevelRow {
                         selections: vec![

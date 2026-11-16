@@ -1,11 +1,11 @@
 (
-    why: "The game lists the teamwork feats themselves in this selection; the planner offers them through one option.",
+    why: "The game lists the teamwork feats themselves in this selection; the planner offers them through one option. As the game's teamwork feats are taken once each, it is a selection of them, taken while one is left (ticket 303).",
     entry: (
         key: "skald/battle-scion/rage-power-or-teamwork-feat/teamwork-feat",
         name: "Teamwork Feat",
+        is_selection: true,
         summary: "A teamwork feat in place of a rage power, added to Inspired Rage for 3 rounds of song.",
         guide: "skald#battle-prowess",
-        repeat: Unlimited,
         levels: [
             (level: 1, selections: ["teamwork-feats"]),
         ],

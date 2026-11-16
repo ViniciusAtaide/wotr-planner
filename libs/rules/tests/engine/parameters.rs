@@ -7,7 +7,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
     ArmourType, Build, Choice, Engine, GameData, Issue, MythicFeatKey, OptionLevelRow, Parameter,
-    Pick, Prerequisite, Repeat, SelectionOption, SlotId, SlotKind, SlotOption, SpellSchool, Unmet,
+    Pick, Prerequisite, SelectionOption, SlotId, SlotKind, SlotOption, SpellSchool, Unmet,
 };
 
 use crate::support::*;
@@ -297,9 +297,11 @@ fn a_parameterised_feat_is_offered_once_per_value() {
     );
 }
 
+/// Ticket 303: a parameterised feat is a selection of values in the game (`BlueprintParametrizedFeature`), so it is
+/// taken once per value, never once whatever the value.
 #[test]
-fn a_parameterised_feat_taken_once_is_held_for_one_value() {
-    // Spell Focus: the guide doesn't say it repeats.
+fn a_parameterised_feat_is_taken_once_per_value() {
+    // Spell Focus in another school, then the same one again.
     let mut build = build("elf", &["wizard", "wizard", "wizard"]);
     build.picks.insert(
         general_slot(1),
@@ -308,6 +310,11 @@ fn a_parameterised_feat_taken_once_is_held_for_one_value() {
     build.picks.insert(
         general_slot(3),
         pick_feat_for("spell-focus", spell_school(SpellSchool::Conjuration)),
+    );
+    assert!(engine().is_possible(&build));
+    build.picks.insert(
+        general_slot(3),
+        pick_feat_for("spell-focus", spell_school(SpellSchool::Evocation)),
     );
     assert_eq!(why_not(&build, &general_slot(3)), Some(Issue::AlreadyHeld));
 
@@ -413,7 +420,7 @@ fn why_not_by(engine: &Engine, build: &Build, slot: &SlotId) -> Issue {
 fn an_option_once_per_value_repeats_for_another_value_of_its_chosen_feat() {
     // The rogue talent Weapon Focus taken once per weapon, as the Skill Focus talents are taken once per skill.
     let talent = "rogue/rogue-talents/weapon-focus";
-    let engine = engine_with(|data| rogue_talent_mut(data, talent).repeat = Repeat::PerValue);
+    let engine = engine_with(|data| rogue_talent_mut(data, talent).is_selection = true);
     let mut build = build("elf", &times("rogue", 6));
     build.picks.insert(
         selection_slot(2, 0),
@@ -475,7 +482,7 @@ fn an_option_taken_again_grants_its_rows_slot_again() {
     let trick = "rogue/rogue-talents/combat-trick";
     let engine = engine_with(|data| {
         let option = rogue_talent_mut(data, trick);
-        option.repeat = Repeat::Unlimited;
+        option.is_selection = true;
         option.levels = vec![OptionLevelRow {
             level: 1,
             selections: vec![feat_list("combat-feats")],
@@ -968,7 +975,7 @@ fn an_option_once_per_value_repeats_for_another_value_of_its_own() {
     let talent = "slayer/slayer-talents/battle-master";
     let engine = engine_with(|data| {
         let option = option_mut(data, talent);
-        option.repeat = Repeat::PerValue;
+        option.is_selection = true;
     });
     let mut build = build("elf", &times("slayer", 6));
     build.picks.insert(

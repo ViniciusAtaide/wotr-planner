@@ -43,7 +43,7 @@ fn the_skill_focus_talents_repeat_once_per_skill() {
             Some(FeatKey::new("skill-focus")),
             "{key}"
         );
-        assert_eq!(option.repeat, Repeat::PerValue, "{key}");
+        assert_eq!(option.repeat(), Repeat::PerValue, "{key}");
     }
     // Game: RogueTalentSelection c074a5d615200494b8f2a9c845799d93 offers WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e
     // itself.
@@ -126,7 +126,7 @@ fn the_rogue_weapon_focus_talent_is_taken_once_per_weapon() {
     // parametrised feature); Blueprints/Classes/Selection/BlueprintParametrizedFeature.CanSelect, WrathDecompiled
     // 6ce4a6b (refuses only a value already held).
     assert_eq!(
-        selection_option(&rogue_talent("weapon-focus")).repeat,
+        selection_option(&rogue_talent("weapon-focus")).repeat(),
         Repeat::PerValue
     );
     let focus = rogue_talent("weapon-focus");
@@ -157,9 +157,9 @@ fn the_rogue_weapon_focus_talent_is_taken_once_per_weapon() {
 fn combat_trick_repeats_and_grants_a_combat_feat_slot_each_time() {
     // Game: CombatTrick c5158a6622d0b694a99efb1d0025d2c1, a selection of combat feats, so repeatable
     // (Blueprints/Classes/Selection/BlueprintFeatureSelection.CanSelect, WrathDecompiled 6ce4a6b) (equivalent model:
-    // an unlimited option giving a combat feat slot).
+    // an option that is a selection, giving a combat feat slot while one is left; ticket 303).
     let trick = selection_option(&rogue_talent("combat-trick"));
-    assert_eq!(trick.repeat, Repeat::Unlimited);
+    assert_eq!(trick.repeat(), Repeat::WhileOptionLeft);
     assert_eq!(
         trick
             .levels

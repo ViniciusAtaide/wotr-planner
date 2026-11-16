@@ -13,6 +13,7 @@ use super::catalog::GrantedBy;
 use super::{Engine, SlotKind};
 use crate::build::{Faith, FeatSource, Pick, SlotId};
 use crate::choice::{Issue, LaterPick, Unmet};
+use crate::component::Fact;
 use crate::engine::Slot;
 use crate::game_data::{
     Ability, Alignment, Archetype, BASIC_FEAT_SELECTION, Class, DeityDomains, FeatCategory,
@@ -413,6 +414,22 @@ impl Engine {
             .map_or(key.as_str(), |feat| &feat.name)
     }
 
+    /// A fact's name, as its kind's own name helper gives it.
+    pub fn fact_name<'a>(&'a self, fact: &'a Fact) -> &'a str {
+        match fact {
+            Fact::Feat(key) => self.feat_name(key),
+            Fact::Feature(key) => self.feature_name(key),
+            Fact::Option(key) => self.option_name(key),
+            Fact::Selection(key) => self.selection_name(key),
+            Fact::MythicAbility(key) => self.mythic_ability_name(key),
+            Fact::MythicFeat(key) => self.mythic_feat_name(key),
+            Fact::Class(key) => self.class_name(key),
+            Fact::Archetype(key) => self.archetype_name(key),
+            Fact::Race(key) => self.race_name(key),
+            Fact::Deity(key) => self.deity_name(key),
+        }
+    }
+
     pub fn path_name<'a>(&'a self, key: &'a MythicPathKey) -> &'a str {
         self.catalog
             .path(key)
@@ -624,6 +641,9 @@ impl Engine {
             Issue::Unmet(unmet) => self.unmet_reason(unmet),
             Issue::AlreadyHeld => "Already taken".to_owned(),
             Issue::MaxTimes { times } => format!("Already taken {times} times"),
+            Issue::NoOptionLeft(selection) => {
+                format!("No {} left to take", self.selection_name(selection))
+            }
             Issue::NotAllowed => "Not allowed here".to_owned(),
             Issue::UnknownKey => "Not in the game data".to_owned(),
             Issue::NotReached => "Not reached: the Build doesn't get this far".to_owned(),
@@ -840,6 +860,7 @@ impl Engine {
                 (Lead::With, format!("({})", text()))
             }
             Prerequisite::Feature { count, .. } if *count > 1 => (Lead::From, text()),
+            Prerequisite::Rank { .. } => (Lead::From, text()),
             Prerequisite::ClassLevel { .. }
             | Prerequisite::SkillRanks { .. }
             | Prerequisite::AbilityScore { .. }
@@ -1050,6 +1071,7 @@ impl Engine {
             Prerequisite::Feature { feature, count } => {
                 have(format!("{} ×{count}", self.feature_name_apart(feature)))
             }
+            Prerequisite::Rank { fact, rank } => have(format!("{} ×{rank}", self.fact_name(fact))),
             Prerequisite::SelectionOption(option) => self.option_name(option).to_owned(),
             Prerequisite::Selection(selection) => {
                 format!("the {} selection", self.selection_name(selection))

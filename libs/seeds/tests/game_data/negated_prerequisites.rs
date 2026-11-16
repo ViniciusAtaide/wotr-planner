@@ -77,6 +77,11 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
             Prerequisite::PickedThrough(_) => ("picked through", "Not as "),
             // Ticket 86: the Priest of Balance's deity offers neither Good nor Evil.
             Prerequisite::DeityOffers(_) => ("deity offers", "Not for a deity offering the "),
+            // Ticket 303: a selection's own `PrerequisiteNoFeature` (Second Bloodline, Advanced Weapon Training).
+            Prerequisite::Feat(_) => ("feat", "Not with "),
+            Prerequisite::MythicAbility(_) => ("mythic ability", "Not with "),
+            // Ticket 303: a selection's cap on its own rank (Extra Hex: `Not` of its rank 3).
+            Prerequisite::Rank { .. } => ("rank", "Only below "),
             other => panic!("a new negated kind: {other:?} reads {text:?}"),
         };
         assert!(text.starts_with(lead), "{child:?} reads {text:?}");
@@ -88,8 +93,11 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
             "archetype",
             "class level",
             "deity offers",
+            "feat",
+            "mythic ability",
             "option",
-            "picked through"
+            "picked through",
+            "rank"
         ])
     );
 

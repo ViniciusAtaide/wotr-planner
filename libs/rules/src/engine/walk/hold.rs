@@ -267,6 +267,8 @@ impl<'a> Walker<'a> {
             }
             Held::MythicFeat(key, value) => {
                 state.mythic_feats.insert(key.clone());
+                let holds = state.mythic_feat_holds.entry(key.clone()).or_default();
+                *holds = holds.saturating_add(1);
                 if let Some(value) = value {
                     state
                         .mythic_feat_values
@@ -410,16 +412,20 @@ impl<'a> Walker<'a> {
                 }
             }
             Held::MythicFeat(key, value) => {
-                // A parameterised one stays held while it's held for another value.
-                let values = state.mythic_feat_values.get_mut(key);
-                let left = match (values, value) {
-                    (Some(values), Some(value)) => {
-                        values.remove(value);
-                        !values.is_empty()
+                // Held while another pick holds it: for another value, or again (Extra Feat).
+                if let (Some(values), Some(value)) = (state.mythic_feat_values.get_mut(key), value)
+                {
+                    values.remove(value);
+                    if values.is_empty() {
+                        state.mythic_feat_values.remove(key);
                     }
-                    _ => false,
-                };
-                if !left {
+                }
+                let holds = state.mythic_feat_holds.get_mut(key).map(|holds| {
+                    *holds = holds.saturating_sub(1);
+                    *holds
+                });
+                if holds.unwrap_or(0) == 0 {
+                    state.mythic_feat_holds.remove(key);
                     state.mythic_feat_values.remove(key);
                     state.mythic_feats.remove(key);
                 }

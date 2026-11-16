@@ -474,13 +474,14 @@ fn the_battle_scions_selection_shares_every_rage_power_and_adds_a_teamwork_feat(
     assert_eq!(selection.name, "Rage Power or Teamwork Feat");
     // The shared rage powers are `the_battle_scions_selection_offers_21_rage_powers`'s.
     // Game: BattleProwessSelection 29b480a26a88f9e47a10d8c9fab84ee6 lists the 12 teamwork feats of TeamworkFeat
-    // d87e2f6a9278ac04caeb0f93eff95fcb, each once (equivalent model: a repeatable option giving a teamwork feat slot).
+    // d87e2f6a9278ac04caeb0f93eff95fcb, each once (equivalent model: an option that is a selection, giving a teamwork
+    // feat slot while one is left; ticket 303).
     let [option] = DATA.options_of(selection).collect::<Vec<_>>()[..] else {
         panic!("the Battle Scion's selection has one option of its own");
     };
     assert_eq!(option.key.as_str(), TEAMWORK_FEAT);
     assert_eq!(option.name, "Teamwork Feat");
-    assert_eq!(option.repeat, Repeat::Unlimited);
+    assert_eq!(option.repeat(), Repeat::WhileOptionLeft);
     assert_eq!(option.prerequisite, None);
     assert_eq!(
         selection

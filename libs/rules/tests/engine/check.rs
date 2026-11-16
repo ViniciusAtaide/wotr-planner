@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 
 use rules::{
     ArchetypeKey, ArchetypeLevelRow, ClassKey, DataAt, DataIssue, DataProblem, FeatKey, FeatureKey,
-    FeatureSelectionKey, GameData, MythicPathKey, OptionGroup, Prerequisite, RaceKey, Repeat, Save,
+    FeatureSelectionKey, GameData, MythicPathKey, OptionGroup, Prerequisite, RaceKey, Save,
     SaveException, SaveProgression, SelectionOptionKey, SpellLevels,
 };
 
@@ -681,21 +681,24 @@ fn at_option(key: &str) -> DataAt {
     DataAt::SelectionOption(SelectionOptionKey::new(key))
 }
 
+/// Ticket 303: a feature has a rank or more.
 #[test]
-fn repeats_and_chosen_feats_fit_their_feats() {
+fn ranks_and_chosen_feats_fit_their_feats() {
     let mut data = world();
-    // Once per value, but the feat takes none.
-    feat_mut(&mut data, "toughness").repeat = Repeat::PerValue;
-    // "Up to once" is just once.
-    feat_mut(&mut data, "dodge").repeat = Repeat::Times(1);
+    // No rank: a feature is held at least once.
+    feat_mut(&mut data, "toughness").ranks = 0;
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/fast-stealth").ranks = 0;
     // A chosen feat is one that takes a value.
     rogue_talent_mut(&mut data, "rogue/rogue-talents/weapon-focus").chosen_feat =
         Some(FeatKey::new("toughness"));
     assert_eq!(
         sorted(issues(&data)),
         sorted(vec![
-            (at_feat("toughness"), DataIssue::PerValueWithoutParameter),
-            (at_feat("dodge"), DataIssue::TimesOutOfRange(1)),
+            (at_feat("toughness"), DataIssue::NoRanks),
+            (
+                at_option("rogue/rogue-talents/fast-stealth"),
+                DataIssue::NoRanks
+            ),
             (
                 at_option("rogue/rogue-talents/weapon-focus"),
                 DataIssue::ChosenFeatNotParameterised
@@ -704,22 +707,22 @@ fn repeats_and_chosen_feats_fit_their_feats() {
     );
 }
 
+/// Ticket 303: an option is a selection over the values it takes or the options of the one selection it grants.
 #[test]
-fn an_option_repeats_once_per_value_only_when_it_takes_a_value() {
+fn an_option_is_a_selection_only_over_a_value_or_a_granted_selection() {
     let mut data = world();
-    // The rogue talent Weapon Focus once per weapon, as its chosen feat: the Skill Focus talents' kind (ticket 47).
-    rogue_talent_mut(&mut data, "rogue/rogue-talents/weapon-focus").repeat = Repeat::PerValue;
-    // An option taking a value of its own (Battle Master's weapon), once per weapon: Finesse Training's kind (ticket
-    // 172).
-    slayer_talent_mut(&mut data, "slayer/slayer-talents/battle-master").repeat = Repeat::PerValue;
+    // The rogue talent Weapon Focus over its chosen feat's values: the Skill Focus talents' kind (ticket 47).
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/weapon-focus").is_selection = true;
+    // An option taking a value of its own (Battle Master's weapon): Finesse Training's kind (ticket 172).
+    slayer_talent_mut(&mut data, "slayer/slayer-talents/battle-master").is_selection = true;
     assert_eq!(issues(&data), []);
-    // An option that takes no value has none to count.
-    rogue_talent_mut(&mut data, "rogue/rogue-talents/fast-stealth").repeat = Repeat::PerValue;
+    // An option that takes no value and grants no selection has nothing to repeat over.
+    rogue_talent_mut(&mut data, "rogue/rogue-talents/fast-stealth").is_selection = true;
     assert_eq!(
         issues(&data),
         [(
             at_option("rogue/rogue-talents/fast-stealth"),
-            DataIssue::PerValueOptionWithoutValue
+            DataIssue::SelectionWithoutPick
         )]
     );
 }
@@ -1062,13 +1065,6 @@ fn an_option_rows_bonus_slot_names_its_list() {
 
 // ---- ticket 32: values asked about, granted and offered ---------------------------------------------------------
 
-fn mythic_feat_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::MythicFeat {
-    data.mythic_feats
-        .iter_mut()
-        .find(|f| f.key.as_str() == key)
-        .unwrap()
-}
-
 fn slayer_talent_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::SelectionOption {
     option_mut(data, key)
 }
@@ -1107,28 +1103,28 @@ fn a_prerequisite_asking_about_the_picks_value_is_on_a_pick_that_takes_one_of_it
 }
 
 #[test]
-fn a_mythic_feat_repeats_per_value_only_with_a_value() {
+fn a_mythic_feat_has_a_rank_and_a_value_for_the_same_value() {
     let mut data = world();
-    mythic_feat_mut(&mut data, "toughness-mythic").repeat = Repeat::PerValue;
+    mythic_feat_mut(&mut data, "toughness-mythic").ranks = 0;
     mythic_feat_mut(&mut data, "dodge-mythic").prerequisite =
         Some(Prerequisite::FeatForSameValue(FeatKey::new("weapon-focus")));
     let at = |key: &str| DataAt::MythicFeat(rules::MythicFeatKey::new(key));
     assert_eq!(
         sorted(issues(&data)),
         sorted(vec![
-            (at("toughness-mythic"), DataIssue::PerValueWithoutParameter),
+            (at("toughness-mythic"), DataIssue::NoRanks),
             (at("dodge-mythic"), DataIssue::SameValueWithoutValue),
         ])
     );
 }
 
-/// Ticket 249: a mythic ability repeats per value only when it takes one, as a mythic feat.
+/// Ticket 303: a mythic ability has a rank or more, as a mythic feat.
 #[test]
-fn a_mythic_ability_repeats_per_value_only_with_a_value() {
+fn a_mythic_ability_has_a_rank() {
     let mut data = world();
-    data.mythic_abilities[0].repeat = Repeat::PerValue;
+    data.mythic_abilities[0].ranks = 0;
     let at = DataAt::MythicAbility(data.mythic_abilities[0].key.clone());
-    assert_eq!(issues(&data), [(at, DataIssue::PerValueWithoutParameter)]);
+    assert_eq!(issues(&data), [(at, DataIssue::NoRanks)]);
 }
 
 #[test]
@@ -1993,7 +1989,6 @@ fn an_expanded_arsenals_focuses_each_hold_a_spell_focus() {
         key: MythicFeatKey::new("expanded-arsenal"),
         name: "Expanded Arsenal".into(),
         parameter: Some(ParameterKind::SpellSchool),
-        repeat: Repeat::PerValue,
         prerequisite: None,
         selection: None,
         components: vec![arsenal("spell-focus")],

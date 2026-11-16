@@ -1354,5 +1354,54 @@
     "!bp_000000000000000000000000000000a3"
    ]
   }
+ },
+ {
+  "guid": "0000000000000000000000000000031a",
+  "name": "LonePickSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "$type": "0, BlueprintFeatureSelection",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteNoFeature",
+     "Group": "All",
+     "m_Feature": "!bp_0000000000000000000000000000031a"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "0000000000000000000000000000031b",
+  "name": "KeptPickSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "$type": "0, BlueprintFeatureSelection",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteNoFeature",
+     "Group": "All",
+     "m_Feature": "!bp_0000000000000000000000000000031b"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "0000000000000000000000000000031c",
+  "name": "ThriceFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [],
+   "Ranks": 3
+  }
+ },
+ {
+  "guid": "0000000000000000000000000000031d",
+  "name": "TwiceFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
  }
 ]

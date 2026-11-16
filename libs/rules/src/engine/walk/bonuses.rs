@@ -259,19 +259,12 @@ impl Walker<'_> {
         let engine = self.engine;
         let name = match holder {
             Holder::Fact(fact) => match fact {
-                Fact::Feat(key) => engine.feat_name(key).to_owned(),
                 Fact::Feature(key) => engine.feature_name_for(key, &self.state),
                 Fact::Option(key) => match engine.catalog.selection_of(key) {
                     Some(selection) => format!("{} ({})", selection.name, engine.option_name(key)),
                     None => engine.option_name(key).to_owned(),
                 },
-                Fact::Selection(key) => engine.selection_name(key).to_owned(),
-                Fact::MythicAbility(key) => engine.mythic_ability_name(key).to_owned(),
-                Fact::MythicFeat(key) => engine.mythic_feat_name(key).to_owned(),
-                Fact::Class(key) => engine.class_name(key).to_owned(),
-                Fact::Archetype(key) => engine.archetype_name(key).to_owned(),
-                Fact::Race(key) => engine.race_name(key).to_owned(),
-                Fact::Deity(key) => engine.deity_name(key).to_owned(),
+                other => engine.fact_name(other).to_owned(),
             },
             Holder::Subrace(key) => engine.subrace_name(key).to_owned(),
             Holder::Background(key) => engine.background_name(key).to_owned(),

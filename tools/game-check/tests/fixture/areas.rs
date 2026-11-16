@@ -441,3 +441,20 @@ fn items_count_one_bonus_of_a_type_that_doesn_t_stack_and_the_caster_level_stat(
         report.text()
     );
 }
+
+/// Ticket 303: a selection's own NoFeature is what makes it once-only, so it's compared; and a feat's `ranks` is its
+/// blueprint's `Ranks`.
+#[test]
+fn a_selections_own_no_feature_and_a_feats_ranks_are_compared() {
+    let report = report();
+    assert_finding(
+        &report,
+        "prerequisites / missing in planner",
+        "feat lone-pick",
+        "not LonePickSelection",
+        "-",
+    );
+    assert_agrees(&report, "prerequisites", "feat kept-pick");
+    assert_finding(&report, "mapping / ranks differ", "feat twice", "1", "2");
+    assert_agrees(&report, "mapping", "feat thrice");
+}

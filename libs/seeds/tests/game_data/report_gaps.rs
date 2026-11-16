@@ -501,22 +501,27 @@ fn extra_slayer_talent_needs_slayer_level_2() {
     // Game: ExtraSlayerTalentSelection 53f7237f5b1447bb851ba68045a00e41 needs SlayerTalentSelection2
     // 04430ad24988baa4daa0bcd4f1c7d118 (SlayerProgression 1f35d11937a06624b8a60db68c7869a1 at 2) or
     // SanctifiedSlayerSlayerTalentFeature db3767ba22ce84942af56525cb9f9ce6 (SanctifiedSlayerArchetype
-    // 19b4a243d9a4bd34887d03c3dea03ced at inquisitor 8) (equivalent model: the levels that grant them).
+    // 19b4a243d9a4bd34887d03c3dea03ced at inquisitor 8) (equivalent model: the levels that grant them); and its cap
+    // at 3, its own PrerequisiteCondition (ticket 250).
+    let any = |children| Prerequisite::Any(children);
     assert_eq!(
         feat("extra-slayer-talent").prerequisite,
-        Some(Prerequisite::Any(vec![
-            Prerequisite::All(vec![
+        Some(and_not(
+            any(vec![
+                Prerequisite::All(vec![
+                    Prerequisite::ClassLevel {
+                        class: ClassKey::new("inquisitor"),
+                        level: 8,
+                    },
+                    Prerequisite::Archetype(ArchetypeKey::new("inquisitor/sanctified-slayer")),
+                ]),
                 Prerequisite::ClassLevel {
-                    class: ClassKey::new("inquisitor"),
-                    level: 8,
+                    class: ClassKey::new("slayer"),
+                    level: 2,
                 },
-                Prerequisite::Archetype(ArchetypeKey::new("inquisitor/sanctified-slayer")),
             ]),
-            Prerequisite::ClassLevel {
-                class: ClassKey::new("slayer"),
-                level: 2,
-            },
-        ]))
+            own_rank("extra-slayer-talent", 3)
+        ))
     );
     let status = feat_status(&build("slayer", 1), &general_slot(1), "extra-slayer-talent");
     assert_eq!(

@@ -1,1 +1,1 @@
-(key: "extra-bombs", blueprint: "54c57ce67fa1d9044b1b3edc459e05e2", name: "Extra Bombs", summary: "4 more bombs a day; up to 10 times.", category: Class, guide: "feats#extra-bombs", repeat: Times(10), components: [Requires(condition: Has(Feature("bomb")))])
+(key: "extra-bombs", blueprint: "54c57ce67fa1d9044b1b3edc459e05e2", name: "Extra Bombs", ranks: 10, summary: "4 more bombs a day; up to 10 times.", category: Class, guide: "feats#extra-bombs", components: [Requires(condition: Has(Feature("bomb")))])

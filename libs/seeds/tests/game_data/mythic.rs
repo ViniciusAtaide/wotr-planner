@@ -303,8 +303,8 @@ fn slot_options(build: &Build, slot: &SlotId) -> Vec<SlotOption> {
 }
 
 /// "You can select any normal feat." / "You can select a mythic ability." (mythic-paths#extra-feat,
-/// mythic-paths#extra-mythic-ability): each gives one pick, and only these two; taken once, as the guide says no
-/// more.
+/// mythic-paths#extra-mythic-ability): each gives one pick, and only these two; each a selection, taken again while
+/// it has an option left (ticket 303: the game over ticket 55's reading of the guide's silence).
 #[test]
 fn extra_feat_and_extra_mythic_ability_are_the_mythic_feats_that_give_a_pick() {
     let giving: Vec<(String, String, Repeat)> = DATA
@@ -312,11 +312,13 @@ fn extra_feat_and_extra_mythic_ability_are_the_mythic_feats_that_give_a_pick() {
         .iter()
         .filter_map(|feat| {
             let selection = feat.selection.as_ref()?.to_string();
-            Some((feat.key.to_string(), selection, feat.repeat))
+            Some((feat.key.to_string(), selection, feat.repeat()))
         })
         .collect();
     // Game: ExtraFeatMythicFeat e10c4f18a6c8b4342afe6954bde0587b and ExtraMythicAbilityMythicFeat
-    // 8a6a511c55e67d04db328cc49aaad2b8 are selections of Ranks 1; MythicFeatSelection
+    // 8a6a511c55e67d04db328cc49aaad2b8 are selections of Ranks 1, with no PrerequisiteNoFeature of themselves nor a
+    // PrerequisiteCondition, so BlueprintFeatureSelection.CanSelect lets them repeat (WrathDecompiled 6ce4a6b);
+    // MythicFeatSelection
     // 9ee0f6745f555484299b0a1563b99d81's other selections pick a parameter (equivalent model: those are the
     // planner's parameterised mythic feats).
     assert_eq!(
@@ -325,12 +327,12 @@ fn extra_feat_and_extra_mythic_ability_are_the_mythic_feats_that_give_a_pick() {
             (
                 "extra-feat".to_owned(),
                 rules::BASIC_FEAT_SELECTION.to_owned(),
-                Repeat::Once
+                Repeat::WhileOptionLeft
             ),
             (
                 "extra-mythic-ability".to_owned(),
                 "mythic/extra-mythic-ability".to_owned(),
-                Repeat::Once
+                Repeat::WhileOptionLeft
             ),
         ]
     );
@@ -598,8 +600,19 @@ fn beneficial_curse_gives_a_slot_of_the_oracles_curses() {
         any_selection(own.as_str()).offered(),
         any_selection(CURSES).offered()
     );
-    let held: BTreeSet<String> = match curse.prerequisite.as_ref() {
-        Some(Prerequisite::Any(children)) => children
+    // Taken once (ticket 303), the planner's: the game's selection repeats while a curse whose progression it lists is
+    // left, which the planner's list of the curses themselves can't say (293).
+    let once = Prerequisite::Not(Box::new(Prerequisite::MythicAbility(
+        rules::MythicAbilityKey::new(BENEFICIAL_CURSE),
+    )));
+    let any = match curse.prerequisite.as_ref() {
+        Some(Prerequisite::All(children)) if children.len() == 2 && children[1] == once => {
+            &children[0]
+        }
+        other => panic!("{other:?}"),
+    };
+    let held: BTreeSet<String> = match any {
+        Prerequisite::Any(children) => children
             .iter()
             .map(|child| match child {
                 Prerequisite::SelectionOption(option) => option.to_string(),

@@ -7,7 +7,9 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::component::Fact;
 use crate::keys::{FeatKey, SkillKey, WeaponKey};
+use crate::prerequisite::Prerequisite;
 
 /// The kind of value a parameterised feat is taken for.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -240,20 +242,83 @@ impl Element {
     }
 }
 
-/// How many times a feat or a selection option can be held.
-#[derive(
-    Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
-)]
+/// How many times a feat, a selection option, a mythic ability or a mythic feat can be held: derived from what the
+/// data holds of its blueprint's header (ticket 303; [`derive`](Self::derive)), never written. The game's
+/// `BlueprintFeatureSelection.CanSelect` (`Blueprints/Classes/Selection/BlueprintFeatureSelection.cs`, WrathDecompiled
+/// 6ce4a6b) refuses a feature held at its `Ranks`, unless it is an `IFeatureSelection` (a selection, or a
+/// parametrised feature, which picks a value), which it refuses only once none of its items can be picked
+/// (`NestedFeatureSelectionUtils.AllNestedFeaturesUnavailable`).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum Repeat {
-    /// Once: what the guide means when it doesn't say otherwise.
-    #[default]
+    /// Once: a feature of one rank, or a selection whose prerequisite is that it isn't held (its own
+    /// `PrerequisiteNoFeature`: Second Bloodline).
     Once,
-    /// Up to this many times, 2 or more ("You can take this feat up to 3 times").
+    /// Up to this many times, 2 or more: a feature's `ranks` (Extra Rage: 10), or a selection's cap on its own rank
+    /// (its own `PrerequisiteCondition`, `Not` of `ContextConditionBuffRank` at 3: Extra Hex).
     Times(u8),
-    /// Any number of times ("This feat may be taken multiple times").
-    Unlimited,
-    /// Once for each value of the feat's parameter ("it must be applied to a different weapon each time"). Only a
-    /// parameterised feat, or an option with a chosen feat: once for each value of that feat (the Skill Focus
-    /// talents, once per skill).
+    /// Once for each value it takes: a parametrised feature, whose items are its values (Weapon Focus: once per
+    /// weapon), or a selection the planner takes as a value (Skill Focus: once per skill), with a chosen feat's
+    /// values for an option that has one (the Skill Focus talents).
     PerValue,
+    /// As long as its selection has an option left: a selection with no cap of its own (Extra Feat (mythic), Combat
+    /// Trick).
+    WhileOptionLeft,
+}
+
+impl Repeat {
+    /// The repeat an entry's header gives: once per value for a selection that takes a value; for another selection,
+    /// once with a `Not` of itself among its prerequisite's `All`, up to `n` times with a `Not` of its own rank `n`
+    /// there, else while an option is left; for anything else its `ranks`. `own` is the entry as a fact, made only for
+    /// a selection that takes no value.
+    pub(crate) fn derive(
+        takes_value: bool,
+        selection: bool,
+        ranks: u8,
+        prerequisite: Option<&Prerequisite>,
+        own: impl FnOnce() -> Fact,
+    ) -> Self {
+        if !selection {
+            return Self::of_ranks(ranks);
+        }
+        if takes_value {
+            return Self::PerValue;
+        }
+        let own = own();
+        let leaf = own.leaf();
+        let all = match prerequisite {
+            Some(Prerequisite::All(children)) => children.as_slice(),
+            Some(lone) => std::slice::from_ref(lone),
+            None => &[],
+        };
+        let negated = all.iter().filter_map(|child| match child {
+            Prerequisite::Not(inner) => Some(&**inner),
+            _ => None,
+        });
+        for inner in negated {
+            match inner {
+                Prerequisite::Rank { fact, rank } if *fact == own => return Self::of_ranks(*rank),
+                inner if *inner == leaf => return Self::Once,
+                _ => {}
+            }
+        }
+        Self::WhileOptionLeft
+    }
+
+    /// Once for one rank, else up to that many times.
+    fn of_ranks(ranks: u8) -> Self {
+        if ranks > 1 {
+            Self::Times(ranks)
+        } else {
+            Self::Once
+        }
+    }
+
+    /// How many times it may be held whatever the values; `u8::MAX` for no number of its own.
+    pub fn times(self) -> u8 {
+        match self {
+            Self::Once => 1,
+            Self::Times(times) => times,
+            Self::PerValue | Self::WhileOptionLeft => u8::MAX,
+        }
+    }
 }

@@ -1,8 +1,9 @@
 (
-    why: "One parameterised option for the game's per-weapon FinesseTraining features.",
+    why: "One parameterised option for the game's per-weapon FinesseTraining features. As the game's per-weapon features are taken once each, it is a selection over its weapon (ticket 303).",
     entry: (
         key: "rogue/finesse-training/weapon",
         name: "Finesse Training",
+        is_selection: true,
         summary: "Adds Dexterity instead of Strength to damage with the chosen finessable weapon.",
         guide: "rogue#finesse-training",
         parameter: Weapon,
@@ -30,6 +31,5 @@
             Weapon("starknife"),
             Weapon("unarmed-strike"),
         ],
-        repeat: PerValue,
     ),
 )

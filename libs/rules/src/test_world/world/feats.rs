@@ -61,7 +61,7 @@ fn feat_row(key: &str, category: FeatCategory, prerequisite: Option<Prerequisite
         summary: String::new(),
         guide: guide(&format!("feats#{key}")),
         parameter: None,
-        repeat: Repeat::Once,
+        ranks: 1,
         selection: None,
         aliases: BTreeSet::new(),
         requires_proficiency: false,
@@ -69,34 +69,45 @@ fn feat_row(key: &str, category: FeatCategory, prerequisite: Option<Prerequisite
     }
 }
 
-/// A parameterised feat.
+/// A parameterised feat: once per value (ticket 303).
 fn param_feat_row(
     key: &str,
     category: FeatCategory,
     parameter: ParameterKind,
-    repeat: Repeat,
     prerequisite: Option<Prerequisite>,
 ) -> Feat {
     Feat {
         parameter: Some(parameter),
-        repeat,
         ..feat_row(key, category, prerequisite)
     }
 }
 
-/// A feat taken more than once, for nothing in particular.
-fn repeat_feat_row(key: &str, category: FeatCategory, repeat: Repeat) -> Feat {
+/// A feat of `ranks` ranks: taken up to that many times, for nothing in particular.
+fn repeat_feat_row(key: &str, category: FeatCategory, ranks: u8) -> Feat {
     Feat {
-        repeat,
+        ranks,
         ..feat_row(key, category, None)
     }
 }
 
-/// A feat taken more than once that grants `selection` each time, whose pick is one more slot (ticket 302).
-fn granting_row(key: &str, category: FeatCategory, repeat: Repeat, selection: &str) -> Feat {
+/// A feat that grants `selection` each time, whose pick is one more slot (ticket 302): a selection, taken while it
+/// has an option left (ticket 303).
+fn granting_row(key: &str, category: FeatCategory, selection: &str) -> Feat {
     Feat {
         selection: Some(FeatureSelectionKey::new(selection)),
-        ..repeat_feat_row(key, category, repeat)
+        ..feat_row(key, category, None)
+    }
+}
+
+/// A feat granting `selection` that caps its own rank at `times`, as the game's Extra Hex does (`Not` of its rank 3).
+fn capped_granting_row(key: &str, category: FeatCategory, selection: &str, times: u8) -> Feat {
+    Feat {
+        ranks: times,
+        prerequisite: Some(Prerequisite::Not(Box::new(Prerequisite::Rank {
+            fact: Fact::Feat(feat(key)),
+            rank: times,
+        }))),
+        ..granting_row(key, category, selection)
     }
 }
 
@@ -148,7 +159,6 @@ pub(super) fn feats() -> Vec<Feat> {
             "weapon-focus",
             Weapon,
             ParameterKind::Weapon,
-            Repeat::PerValue,
             Some(BaseAttackBonus(1)),
         ),
         // "Choose a single weapon for which you have already selected Weapon Focus."
@@ -156,7 +166,6 @@ pub(super) fn feats() -> Vec<Feat> {
             "weapon-specialization",
             Weapon,
             ParameterKind::Weapon,
-            Repeat::PerValue,
             Some(All(vec![
                 FeatForSameValue(feat("weapon-focus")),
                 ClassLevel {
@@ -177,16 +186,9 @@ pub(super) fn feats() -> Vec<Feat> {
             "exotic-weapon-proficiency",
             Weapon,
             ParameterKind::ExoticWeapon,
-            Repeat::PerValue,
             Some(BaseAttackBonus(1)),
         ),
-        param_feat_row(
-            "skill-focus",
-            Skill,
-            ParameterKind::Skill,
-            Repeat::PerValue,
-            None,
-        ),
+        param_feat_row("skill-focus", Skill, ParameterKind::Skill, None),
         feat_row(
             "acrobatic-spellcaster",
             Magic,
@@ -195,14 +197,8 @@ pub(super) fn feats() -> Vec<Feat> {
                 value: skill_value("mobility"),
             }),
         ),
-        // Parameterised but taken once: the guide doesn't say it repeats.
-        param_feat_row(
-            "spell-focus",
-            Magic,
-            ParameterKind::SpellSchool,
-            Repeat::Once,
-            None,
-        ),
+        // Parameterised, so once per school (ticket 303).
+        param_feat_row("spell-focus", Magic, ParameterKind::SpellSchool, None),
         feat_row(
             "augment-summoning",
             Magic,
@@ -213,22 +209,12 @@ pub(super) fn feats() -> Vec<Feat> {
         ),
         // One more rogue talent, or slayer talent for a character who had a slayer talent slot first (as Extra Hex
         // names the witch's and the shaman's hexes): their selections are in `granted_selections`.
-        granting_row(
-            "extra-rogue-talent",
-            Class,
-            Repeat::Times(3),
-            "rogue/extra-rogue-talent",
-        ),
-        granting_row("extra-hex", Class, Repeat::Times(3), "witch/extra-hex"),
+        capped_granting_row("extra-rogue-talent", Class, "rogue/extra-rogue-talent", 3),
+        capped_granting_row("extra-hex", Class, "witch/extra-hex", 3),
         // Invented: a Combat feat granting a selection, so a fighter's bonus slot can hold one before the general
         // slot's at the same level.
-        granting_row(
-            "slayer-trick",
-            Weapon,
-            Repeat::Unlimited,
-            "slayer/slayer-trick",
-        ),
-        repeat_feat_row("extra-ki", Class, Repeat::Unlimited),
+        granting_row("slayer-trick", Weapon, "slayer/slayer-trick"),
+        repeat_feat_row("extra-ki", Class, 20),
         feat_row(
             "arcane-strike",
             Magic,
@@ -358,7 +344,6 @@ pub(super) fn feats() -> Vec<Feat> {
             "armor-focus",
             ArmourAndShield,
             ParameterKind::ArmourType,
-            Repeat::PerValue,
             Some(All(vec![
                 FeatIfValue {
                     value: Parameter::ArmourType(ArmourType::Light),

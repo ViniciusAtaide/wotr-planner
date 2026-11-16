@@ -258,6 +258,7 @@ pub(crate) fn issue_code(issue: &Issue) -> &'static str {
         Issue::Unmet(_) => "unmet",
         Issue::AlreadyHeld => "already_held",
         Issue::MaxTimes { .. } => "max_times",
+        Issue::NoOptionLeft(_) => "no_option_left",
         Issue::NotAllowed => "not_allowed",
         Issue::UnknownKey => "unknown_key",
         Issue::NotReached => "not_reached",

@@ -1,27 +1,32 @@
 //! Each entry's blueprint is in the dump, of a type its kind can be: a class a class (a prestige class a prestige
-//! one), a mythic path a mythic class, an archetype one of its class's archetypes, a feat or feature a feature.
+//! one), a mythic path a mythic class, an archetype one of its class's archetypes, a feat or feature a feature. A
+//! feat's, an option's, a mythic ability's or a mythic feat's `ranks` is its blueprint's `Ranks` (ticket 303).
 
-use rules::{BlueprintGuid, DataAt};
+use std::collections::BTreeMap;
+
+use rules::{BlueprintGuid, DataAt, GameData};
 
 use super::Ctx;
-use crate::dump::{flag, is_feature_kind, references};
+use crate::dump::{flag, int, is_feature_kind, references};
 use crate::report::{Area, Out};
 
 const AREA: Area = Area::Mapping;
 
 pub fn compare(ctx: &Ctx, out: &mut Out) {
+    let ranks = ranks(ctx.planner.data);
     for (at, guid) in &ctx.planner.entries {
         let Some(guid) = guid else {
             out.skip(AREA, format!("{} with no blueprint", at.kind()));
             continue;
         };
         let mark = out.mark();
-        entry(ctx, out, at, guid);
+        entry(ctx, out, at, guid, ranks.get(at).copied().unwrap_or(1));
         out.compared(AREA, mark);
     }
 }
 
-fn entry(ctx: &Ctx, out: &mut Out, at: &DataAt, guid: &BlueprintGuid) {
+/// `ranks`: the entry's own, 1 for a kind without one.
+fn entry(ctx: &Ctx, out: &mut Out, at: &DataAt, guid: &BlueprintGuid, ranks: u8) {
     let Some(blueprint) = ctx.dump.get(guid) else {
         out.finding(AREA, "not in the dump", at, guid, "-", "-", at.kind());
         return;
@@ -110,8 +115,44 @@ fn entry(ctx: &Ctx, out: &mut Out, at: &DataAt, guid: &BlueprintGuid) {
                 );
             }
         }
+        DataAt::Feat(_)
+        | DataAt::SelectionOption(_)
+        | DataAt::MythicAbility(_)
+        | DataAt::MythicFeat(_) => {
+            let Some(json) = json else { return };
+            let game = json.get("Ranks").map_or(1, int);
+            let planner = i64::from(ranks);
+            if game != planner {
+                out.finding(
+                    AREA,
+                    "ranks differ",
+                    at,
+                    guid,
+                    name,
+                    game.to_string(),
+                    planner.to_string(),
+                );
+            }
+        }
         _ => {}
     }
+}
+
+/// Each feat's, option's, mythic ability's and mythic feat's `ranks`: how often it can be held when it isn't a
+/// selection.
+fn ranks(data: &GameData) -> BTreeMap<DataAt, u8> {
+    let feats = (data.feats.iter()).map(|feat| (DataAt::Feat(feat.key.clone()), feat.ranks));
+    let options = (data.options.iter())
+        .map(|option| (DataAt::SelectionOption(option.key.clone()), option.ranks));
+    let abilities = (data.mythic_abilities.iter())
+        .map(|ability| (DataAt::MythicAbility(ability.key.clone()), ability.ranks));
+    let mythic_feats =
+        (data.mythic_feats.iter()).map(|feat| (DataAt::MythicFeat(feat.key.clone()), feat.ranks));
+    feats
+        .chain(options)
+        .chain(abilities)
+        .chain(mythic_feats)
+        .collect()
 }
 
 fn prestige(prestige: bool) -> &'static str {

@@ -6,6 +6,7 @@
     guide: "slayer#slayer-talents",
     components: [
         Requires(condition: ClassLevel("slayer", 10)),
+        Requires(condition: HasNot(Option("slayer/slayer-talents/combat-style-feat-10"))),
     ],
     levels: [
         (level: 1, selections: ["slayer/combat-style", "slayer/combat-style-feats-10"]),

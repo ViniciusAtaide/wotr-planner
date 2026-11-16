@@ -172,9 +172,15 @@ fn wild_talents_are_a_selection_of_22_talents_with_their_level_and_elements() {
         if name == "flame-shield" {
             continue;
         }
+        let mut expected = talent_prerequisite(level, elements, other);
+        // Game: ElementalWhispersSelection f02525006521bee4eb90ab26b7b9db24's PrerequisiteNoFeature of itself.
+        if name == "elemental-whispers" {
+            let own = Prerequisite::SelectionOption(SelectionOptionKey::new(talent(name)));
+            expected = and_not(expected, own);
+        }
         assert_eq!(
             selection_option(&talent(name)).prerequisite,
-            Some(talent_prerequisite(level, elements, other)),
+            Some(expected),
             "{name}"
         );
     }
@@ -491,12 +497,16 @@ fn the_sheet_labels_the_wild_talent_and_its_bonus_feat() {
 fn extra_wild_talent_needs_kineticist_level_2() {
     // Game: ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471 needs WildTalentSelection, first held at
     // kineticist 2 (equivalent model).
+    // And its cap at 3, its own PrerequisiteCondition (ticket 250).
     assert_eq!(
         feat("extra-wild-talent").prerequisite,
-        Some(Prerequisite::ClassLevel {
-            class: ClassKey::new("kineticist"),
-            level: 2,
-        })
+        Some(and_not(
+            Prerequisite::ClassLevel {
+                class: ClassKey::new("kineticist"),
+                level: 2,
+            },
+            own_rank("extra-wild-talent", 3)
+        ))
     );
     let status = feat_status(
         &kineticist("fire", 1),

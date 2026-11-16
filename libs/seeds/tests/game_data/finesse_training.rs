@@ -82,7 +82,8 @@ fn finesse_trainings_weapons_are_the_guides_list() {
     assert_eq!(option.parameter, Some(rules::ParameterKind::Weapon));
     // Game: FinesseTrainingSelection b78d146cea711a84598f0acef69462ea, one option per weapon, each Ranks 1
     // (equivalent model: one option taking a weapon, once per weapon)
-    assert_eq!(option.repeat, rules::Repeat::PerValue);
+    assert!(option.is_selection);
+    assert_eq!(option.repeat(), rules::Repeat::PerValue);
     assert_eq!(option.name, "Finesse Training");
     // The Light Shield is a weapon: the shield's bash, finessable as the guide's weapon table has it.
     // Game: Kingmaker/Enums/WeaponCategoryExtension.cs (the WeaponLightShield entry: Light, Finessable), WrathDecompiled 6ce4a6b

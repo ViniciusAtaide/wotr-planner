@@ -60,11 +60,9 @@ impl<'a> Walker<'a> {
         // a mythic ability either holds may grant a selection, whose slot comes next (Second Bloodline; ticket 302).
         let general_id = SlotId::Mythic { rank };
         let general_pick = self.build.picks.get(&general_id);
-        let mut ability = self.newly_held_ability(general_pick);
+        let mut ability = self.picked_ability(general_pick);
         let feat = match general_pick {
-            Some(Pick::MythicFeat { feat, .. }) if !self.state.mythic_feats.contains(feat) => {
-                Some(feat)
-            }
+            Some(Pick::MythicFeat { feat, .. }) => Some((feat, self.state.mythic_feat_count(feat))),
             _ => None,
         };
         let general = self.fill(
@@ -77,17 +75,18 @@ impl<'a> Walker<'a> {
         );
         let mut slots = vec![general];
         if let Some(kind) = feat
-            .filter(|key| self.state.mythic_feats.contains(*key))
-            .and_then(|key| catalog.mythic_feat(key)?.selection.as_ref())
+            .filter(|(key, before)| self.state.mythic_feat_count(key) > *before)
+            .and_then(|(key, _)| catalog.mythic_feat(key)?.selection.as_ref())
             .and_then(|selection| self.granted_slot(selection, Some(&GrantSource::general(rank))))
         {
             let id = SlotId::MythicExtra { rank };
-            ability = self.newly_held_ability(self.build.picks.get(&id));
+            ability = self.picked_ability(self.build.picks.get(&id));
             slots.push(self.fill(id, kind, Some(rank)));
         }
         let mut slot_kinds = Vec::new();
         if let Some(kind) = ability
-            .filter(|key| self.state.mythic_abilities.contains(*key))
+            .filter(|(key, before)| self.state.mythic_ability_count(key) > *before)
+            .map(|(key, _)| key)
             .and_then(|key| catalog.mythic_ability(key)?.selection.as_ref())
             .and_then(|selection| self.granted_slot(selection, Some(&GrantSource::general(rank))))
         {
@@ -149,13 +148,13 @@ impl<'a> Walker<'a> {
         true
     }
 
-    /// The mythic ability a pick would hold anew: `None` for another kind of pick, or one held already.
-    fn newly_held_ability(&self, pick: Option<&'a Pick>) -> Option<&'a MythicAbilityKey> {
+    /// The mythic ability a pick names, with how many picks hold it before it: whether its slot held it is whether
+    /// that number grew (a second Impossible Domain grants its selection again; ticket 303). `None` for another kind
+    /// of pick.
+    fn picked_ability(&self, pick: Option<&'a Pick>) -> Option<(&'a MythicAbilityKey, u8)> {
         match pick {
-            Some(Pick::MythicAbility { ability, .. })
-                if !self.state.mythic_abilities.contains(ability) =>
-            {
-                Some(ability)
+            Some(Pick::MythicAbility { ability, .. }) => {
+                Some((ability, self.state.mythic_ability_count(ability)))
             }
             _ => None,
         }

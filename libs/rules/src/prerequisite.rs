@@ -4,6 +4,7 @@ use std::collections::{BTreeSet, HashSet};
 
 use serde::{Deserialize, Serialize};
 
+use crate::component::Fact;
 use crate::game_data::{Ability, Alignment, OptionGroup, SpellType};
 use crate::keys::{
     ArchetypeKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
@@ -59,6 +60,13 @@ pub enum Prerequisite {
     Feature {
         feature: FeatureKey,
         count: u8,
+    },
+    /// A fact held at least `rank` times, of a kind [`Feature`](Self::Feature) doesn't name (Extra Hex taken 3
+    /// times): the game's `ContextConditionBuffRank` on it (`Features.GetRank`), compiled from a
+    /// [`FactRank`](crate::Condition::FactRank) (ticket 303).
+    Rank {
+        fact: Fact,
+        rank: u8,
     },
     /// An option already taken from a Feature selection ("Beast Totem, Lesser").
     SelectionOption(SelectionOptionKey),

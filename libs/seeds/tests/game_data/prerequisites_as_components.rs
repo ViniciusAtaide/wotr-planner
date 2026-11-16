@@ -127,7 +127,8 @@ fn a_blueprint_entry_holds_its_prerequisite_as_requires_components() {
     );
     let moved = entries.iter().filter(|entry| entry.requires).count();
     let fields = entries.iter().filter(|entry| entry.field.is_some()).count();
-    assert_eq!((moved, fields), (608, 62));
+    // Ticket 303: three Loremaster secrets hold one now, their own `PrerequisiteNoFeature`.
+    assert_eq!((moved, fields), (611, 62));
 
     // The planner-made entries keep what they hold: their fields, and no `Requires`.
     let planner_requires = (files.feats.iter())

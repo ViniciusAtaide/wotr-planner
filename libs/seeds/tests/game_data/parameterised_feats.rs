@@ -81,7 +81,7 @@ fn the_martial_weapons_include_the_spiked_shields_and_the_natural_attacks_includ
 #[test]
 fn feats_repeat_and_take_values_as_the_guide_says() {
     use ParameterKind as K;
-    let shape = |key| (feat(key).parameter, feat(key).repeat);
+    let shape = |key| (feat(key).parameter, feat(key).repeat());
     // Game: WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e, SpellFocus 16fa59cc9a72a6043b566b49184f53fe and
     // ImprovedCritical f4201c85a991369408740c6888362e20 are parametrised, once per value
     // (Blueprints/Classes/Selection/BlueprintParametrizedFeature.CanSelect, WrathDecompiled 6ce4a6b);
@@ -114,12 +114,13 @@ fn feats_repeat_and_take_values_as_the_guide_says() {
     // Game: ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35, capped at 3 by its own PrerequisiteCondition
     // (UnitLogic/Mechanics/Conditions/ContextConditionBuffRank.CheckCondition, WrathDecompiled 6ce4a6b).
     assert_eq!(shape("extra-hex"), (None, Repeat::Times(3)));
-    // Game: MagicalTail febb8fe9a2d142fb80c1be6b0b539d9d, Ranks 8.
+    // Game: MagicalTail febb8fe9a2d142fb80c1be6b0b539d9d, Ranks 8 (the planner's entry merges MagicalTail1 and its
+    // copies, so its `ranks` is the planner's, known to the game check under 293).
     assert_eq!(shape("magical-tail"), (None, Repeat::Times(8)));
     let repeating: Vec<&str> = DATA
         .feats
         .iter()
-        .filter(|f| f.repeat != Repeat::Once)
+        .filter(|f| f.repeat() != Repeat::Once)
         .map(|f| f.key.as_str())
         .collect();
     // The 16 parameterised feats once per value (ticket 32; Stat Focus since ticket 125), Magical Tail and the 18
@@ -134,7 +135,7 @@ fn feats_repeat_and_take_values_as_the_guide_says() {
 /// at 20, the other seven at 10.
 #[test]
 fn the_extra_feats_repeat_up_to_their_blueprints_ranks() {
-    let repeat = |key| feat(key).repeat;
+    let repeat = |key| feat(key).repeat();
     // Game: ExtraKi 231a2a603d0b437e939553e6da3e7247, Ranks 20.
     assert_eq!(repeat("extra-ki"), Repeat::Times(20));
     // Game: ExtraReservoir 29afc53efa4d469b9476760fa09576de, Ranks 20.
@@ -178,13 +179,13 @@ fn the_extra_talent_feats_stop_at_3_and_extra_rage_power_doesnt() {
         "extra-slayer-talent",
         "extra-wild-talent",
     ] {
-        assert_eq!(feat(key).repeat, Repeat::Times(3), "{key}");
+        assert_eq!(feat(key).repeat(), Repeat::Times(3), "{key}");
     }
     // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a has no PrerequisiteCondition, and a selection
-    // skips the rank check (BlueprintFeatureSelection.CanSelect). ExtraBane 756dc2f7340b0b34285a1dc367ff7359 has
-    // Ranks 1.
-    assert_eq!(feat("extra-rage-power").repeat, Repeat::Unlimited);
-    assert_eq!(feat("extra-bane-weapon").repeat, Repeat::Once);
+    // skips the rank check (BlueprintFeatureSelection.CanSelect), so it repeats while it has an option left.
+    // ExtraBane 756dc2f7340b0b34285a1dc367ff7359 has Ranks 1.
+    assert_eq!(feat("extra-rage-power").repeat(), Repeat::WhileOptionLeft);
+    assert_eq!(feat("extra-bane-weapon").repeat(), Repeat::Once);
 
     // A witch 7 with Extra Hex at 1, 3 and 5 is refused a fourth at 7.
     let mut witch = classes_build(&["witch"; 7]);
@@ -503,15 +504,12 @@ fn the_rogue_talents_weapon_focus_and_skill_focus_name_their_value() {
 
 #[test]
 fn rage_powers_discoveries_incense_and_mutations_repeat_as_the_guide_says() {
-    // The two whose repeat differs from the game's wait in their own tests: New Strain in
-    // plague_mutation_new_strain_repeats_four_times, the rogue's Weapon Focus talent in repeating_talents.rs.
-    const WAITING: [&str; 2] = [NEW_STRAIN, "rogue/rogue-talents/weapon-focus"];
     let options: HashMap<&str, Repeat> = all_class_grants()
         .selections
         .into_iter()
         .flat_map(|selection| DATA.options_of(selection))
-        .filter(|option| option.repeat != Repeat::Once && !WAITING.contains(&option.key.as_str()))
-        .map(|option| (option.key.as_str(), option.repeat))
+        .filter(|option| option.repeat() != Repeat::Once)
+        .map(|option| (option.key.as_str(), option.repeat()))
         .collect();
     let incense =
         |key: &str| format!("alchemist/incense-synthesizer/incense-fog/incense-fog-{key}");
@@ -532,10 +530,11 @@ fn rage_powers_discoveries_incense_and_mutations_repeat_as_the_guide_says() {
         ("alchemist/discovery/preserve-organs", Repeat::Times(3)),
         // "At 4th level and every four levels thereafter, a Primalist can choose ... two Rage Powers."
         // Game: PrimalistTakeRagePowers4 8eb5c34bb8471a0438e7eb3994de3b92 and its copies to 20, one per level, each
-        // once (equivalent model: one option taken at each of those levels).
+        // once (equivalent model: one option taken at each of those five levels; its `ranks` 5 is the planner's,
+        // known to the game check under 293).
         (
             "bloodrager/primalist/primal-choices/rage-powers",
-            Repeat::Unlimited,
+            Repeat::Times(5),
         ),
     ]
     .into_iter()
@@ -574,14 +573,23 @@ fn rage_powers_discoveries_incense_and_mutations_repeat_as_the_guide_says() {
         Repeat::PerValue,
     );
     expected.insert("rogue/rogue-talents/skill-focus".into(), Repeat::PerValue);
-    expected.insert("rogue/rogue-talents/combat-trick".into(), Repeat::Unlimited);
+    expected.insert(
+        "rogue/rogue-talents/combat-trick".into(),
+        Repeat::WhileOptionLeft,
+    );
     // The Battle Scion's teamwork feat in place of a rage power, as often as it likes (ticket 189).
     // Game: BattleScionTeamworkFeat 64960cdba39692243bef11da263ab7f3 is a selection, so it skips the rank check
     // (BlueprintFeatureSelection.CanSelect, WrathDecompiled 6ce4a6b; equivalent model: each teamwork feat once).
     expected.insert(
         "skald/battle-scion/rage-power-or-teamwork-feat/teamwork-feat".into(),
-        Repeat::Unlimited,
+        Repeat::WhileOptionLeft,
     );
+    // Ticket 249: the rogue talent Weapon Focus once per weapon. Game: WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e is a
+    // BlueprintParametrizedFeature, offered by RogueTalentSelection c074a5d615200494b8f2a9c845799d93.
+    expected.insert("rogue/rogue-talents/weapon-focus".into(), Repeat::PerValue);
+    // Ticket 303: New Strain stops at four. Game: PlagueHexIncreaseDamageStepFeature 505648df95f5489fa13ddbd1af9473fd,
+    // offered by PlagueHexSelection 68db664d2b5046eab2e6fd267f5d017d, Ranks 4 (BlueprintFeatureSelection.CanSelect).
+    expected.insert(NEW_STRAIN.into(), Repeat::Times(4));
     // "She can select a second weapon at 11th level and a third at 19th level" (ticket 172): once per weapon.
     // Game: FinesseTrainingSelection b78d146cea711a84598f0acef69462ea, one feature per weapon (equivalent model).
     expected.insert("rogue/finesse-training/weapon".into(), Repeat::PerValue);
@@ -630,14 +638,6 @@ fn rage_powers_discoveries_incense_and_mutations_repeat_as_the_guide_says() {
 
 const NEW_STRAIN: &str =
     "shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-new-strain";
-
-/// The game's Plague Mutation: New Strain is taken up to four times.
-#[test]
-#[ignore = "waits on ticket 278: the game gives New Strain 4 ranks"]
-fn plague_mutation_new_strain_repeats_four_times() {
-    // Game: PlagueHexIncreaseDamageStepFeature 505648df95f5489fa13ddbd1af9473fd, Ranks 4.
-    assert_eq!(selection_option(NEW_STRAIN).repeat, Repeat::Times(4));
-}
 
 /// The feats taken for a weapon the character must be proficient with: those whose blueprint sets
 /// `RequireProficiency` (ticket 251).

@@ -51,6 +51,7 @@ mod proficiency;
 mod races;
 mod ranks_and_pools;
 mod repeating_talents;
+mod repeats_from_the_header;
 mod report_gaps;
 mod scaling_features;
 mod skald_rage_powers;

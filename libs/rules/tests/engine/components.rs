@@ -9,9 +9,9 @@ use rules::{
     Ability, BonusTarget, Build, ClassChoice, Component, Condition, DataAt, DataIssue, DeityKey,
     Descriptor, Engine, Fact, Feat, FeatCategory, FeatKey, Feature, FeatureKey,
     FeatureSelectionKey, GameData, Group, IfHeld, Issue, Pick, Pool, Prerequisite, RankBase,
-    RankConfig, RankProgression, Repeat, Save, SelectionOptionKey, Share, SharedValue, SlotId,
-    SpellType, StatRef, StatRule, StatTarget, Value, WeaponProficiency, compile_requires,
-    game_stacked, game_stacking,
+    RankConfig, RankProgression, Save, SelectionOptionKey, Share, SharedValue, SlotId, SpellType,
+    StatRef, StatRule, StatTarget, Value, WeaponProficiency, compile_requires, game_stacked,
+    game_stacking,
 };
 
 use crate::agreement::{SAMPLE, corpus};
@@ -29,7 +29,7 @@ fn component_feat(key: &str, components: Vec<Component>) -> Feat {
         summary: String::new(),
         guide: None,
         parameter: None,
-        repeat: Repeat::Once,
+        ranks: 1,
         selection: None,
         aliases: BTreeSet::new(),
         requires_proficiency: false,
@@ -1331,7 +1331,9 @@ fn condition(prerequisite: &Prerequisite) -> Option<Condition> {
         P::ClassLevel { class, level } => Condition::ClassLevel(class.clone(), *level),
         P::Archetype(key) => has(Fact::Archetype(key.clone())),
         P::Feature { feature, count: 1 } => has(Fact::Feature(feature.clone())),
-        P::Feature { feature, count } => Condition::FactRank(feature.clone(), *count),
+        P::Feature { feature, count } => {
+            Condition::FactRank(Fact::Feature(feature.clone()), *count)
+        }
         P::SelectionOption(key) => has(Fact::Option(key.clone())),
         P::Selection(key) => has(Fact::Selection(key.clone())),
         P::SkillRanks { skill, ranks } => Condition::Stat {

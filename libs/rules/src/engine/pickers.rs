@@ -255,8 +255,8 @@ impl Engine {
         })
     }
 
-    /// Whether a held pick is what keeps a pick from being taken again: the same pick; the same feat, option or
-    /// mythic ability that counts once whatever its value; an option's chosen feat and the feat itself.
+    /// Whether a held pick is what keeps a pick from being taken again: the same pick; the same feat, option, mythic
+    /// ability or mythic feat taken once ([`Repeat::Once`]); an option's chosen feat and the feat itself.
     fn holds_the_same(&self, held: &Pick, wanted: &Pick) -> bool {
         if held == wanted {
             return true;
@@ -267,25 +267,25 @@ impl Engine {
                 a == b
                     && catalog
                         .feat(a)
-                        .is_some_and(|feat| feat.repeat == Repeat::Once)
+                        .is_some_and(|feat| feat.repeat() == Repeat::Once)
             }
             (Pick::SelectionOption { option: a, .. }, Pick::SelectionOption { option: b, .. }) => {
                 a == b
                     && catalog
                         .option(a)
-                        .is_some_and(|option| option.repeat == Repeat::Once)
+                        .is_some_and(|option| option.repeat() == Repeat::Once)
             }
             (Pick::MythicAbility { ability: a, .. }, Pick::MythicAbility { ability: b, .. }) => {
                 a == b
                     && catalog
                         .mythic_ability(a)
-                        .is_some_and(|ability| ability.repeat != Repeat::PerValue)
+                        .is_some_and(|ability| ability.repeat() == Repeat::Once)
             }
             (Pick::MythicFeat { feat: a, .. }, Pick::MythicFeat { feat: b, .. }) => {
                 a == b
                     && catalog
                         .mythic_feat(a)
-                        .is_some_and(|feat| feat.repeat != Repeat::PerValue)
+                        .is_some_and(|feat| feat.repeat() == Repeat::Once)
             }
             (
                 Pick::SelectionOption {

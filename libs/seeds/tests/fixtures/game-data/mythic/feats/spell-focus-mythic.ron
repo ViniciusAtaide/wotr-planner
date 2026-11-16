@@ -5,6 +5,5 @@
     group: Magic,
     guide: "mythic-paths#spell-focus-mythic",
     parameter: SpellSchool,
-    repeat: PerValue,
     prerequisite: FeatForSameValue("spell-focus"),
 )

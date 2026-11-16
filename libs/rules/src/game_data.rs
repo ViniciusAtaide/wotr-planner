@@ -12,7 +12,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::{Deserialize, Serialize};
 
 use crate::bonus::ItemInteractions;
-use crate::component::Component;
+use crate::component::{Component, Fact};
 use crate::gear::GearItem;
 use crate::keys::{
     ArchetypeKey, BackgroundKey, BlueprintGuid, ClassKey, DeityKey, FeatKey, FeatureKey,
@@ -678,9 +678,10 @@ pub struct Feat {
     /// names a value of this kind.
     #[serde(default)]
     pub parameter: Option<ParameterKind>,
-    /// How many times it can be taken (Weapon Focus: once per weapon; Extra Hex: three times).
-    #[serde(default)]
-    pub repeat: Repeat,
+    /// Its blueprint's `Ranks`: how often a feature that isn't a selection can be held (Extra Rage: 10), which
+    /// [`repeat`](Self::repeat) reads (ticket 303). 1 by default, and left out when written.
+    #[serde(default = "one_rank", skip_serializing_if = "is_one_rank")]
+    pub ranks: u8,
     /// The Feature selection a pick of it grants, each time it's taken, at the level it's taken: the game's Extra
     /// feat is itself a selection ("You gain one additional hex": `ExtraWitchHexSelection`
     /// b6054088b4ab4be286724127cbf48b35), and that selection's pick is the slot it opens (ticket 302). `None`: it
@@ -709,6 +710,19 @@ pub struct Feat {
 }
 
 impl Feat {
+    /// How often it can be taken, from its header ([`Repeat::derive`]): a feat that takes a value or grants a
+    /// selection is a selection in the game (Weapon Focus: `BlueprintParametrizedFeature`; Extra Hex:
+    /// `BlueprintFeatureSelection`).
+    pub fn repeat(&self) -> Repeat {
+        Repeat::derive(
+            self.parameter.is_some(),
+            self.parameter.is_some() || self.selection.is_some(),
+            self.ranks,
+            self.prerequisite.as_ref(),
+            || Fact::Feat(self.key.clone()),
+        )
+    }
+
     /// The key prefix of the metamagic feats: the guide names each "Metamagic (…)".
     pub const METAMAGIC_PREFIX: &'static str = "metamagic-";
 
@@ -1404,11 +1418,19 @@ pub struct SelectionOption {
     /// shortbow).
     #[serde(default)]
     pub values: BTreeSet<Parameter>,
-    /// How many times it can be taken (Increased Damage Reduction: three times; Combat Trick: any number).
-    /// `PerValue` only for an option that takes a value: once for each value of its chosen feat (the Skill Focus
-    /// talents: once per skill), or of its own `parameter` (Finesse Training: once per weapon).
-    #[serde(default)]
-    pub repeat: Repeat,
+    /// Its blueprint's `Ranks`: how often a feature that isn't a selection can be held (Increased Damage Reduction: 3), which
+    /// [`repeat`](Self::repeat) reads (ticket 303). 1 by default, and left out when written.
+    #[serde(default = "one_rank", skip_serializing_if = "is_one_rank")]
+    pub ranks: u8,
+    /// Set where the game's blueprint is an `IFeatureSelection`, which skips the rank check
+    /// (`BlueprintFeatureSelection.CanSelect`): a selection whose pick the planner takes as the option's value (the
+    /// Skill Focus talents: `SkillFocusSelection` c9629ef9eebb88b479b2fbc5e836656a) or as the slot of the one selection
+    /// its level-1 row grants (Combat Trick: `CombatTrick` c5158a6622d0b694a99efb1d0025d2c1), or a parametrised
+    /// feature (the rogue talent Weapon Focus: `WeaponFocus` 1e1f627d26ad36f43bbd26cc2bf8ac7e). The options the planner
+    /// takes as rows of their own (Maneuver Mastery, the Loremaster's secrets) are 293's. Read by
+    /// [`repeat`](Self::repeat); unset by default, and left out when written.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub is_selection: bool,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
     /// What the option gives by option level (a bloodline's powers at 1, 3, 9, 15 and 20), each level at most
@@ -1464,6 +1486,48 @@ impl SelectionOption {
     pub fn deity_domain(&self) -> &SelectionOptionKey {
         self.domain.as_ref().unwrap_or(&self.key)
     }
+
+    /// Whether its pick names a value: of its chosen feat, or of its own `parameter`.
+    pub fn takes_value(&self) -> bool {
+        self.chosen_feat.is_some() || self.parameter.is_some()
+    }
+
+    /// How often it can be taken, from its header ([`Repeat::derive`]): a selection
+    /// ([`is_selection`](Self::is_selection)) once per value when it takes one (the Skill Focus talents), else while
+    /// its selection has an option left (Combat Trick); any other option up to its `ranks`.
+    pub fn repeat(&self) -> Repeat {
+        Repeat::derive(
+            self.takes_value(),
+            self.is_selection,
+            self.ranks,
+            self.prerequisite.as_ref(),
+            || Fact::Option(self.key.clone()),
+        )
+    }
+
+    /// The selection a selection option is, whose slot its pick opens: the one selection its lone level-1 row
+    /// grants (Combat Trick: a Combat feat). `None` for any other option, one that takes a value among them.
+    pub fn nested_selection(&self) -> Option<&FeatureSelectionKey> {
+        if !self.is_selection || self.takes_value() {
+            return None;
+        }
+        match self.levels.as_slice() {
+            [row] if row.level == 1 => match row.selections.as_slice() {
+                [selection] => Some(selection),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
+}
+
+/// The default [`ranks`](Feat::ranks): one.
+fn one_rank() -> u8 {
+    1
+}
+
+fn is_one_rank(ranks: &u8) -> bool {
+    *ranks == 1
 }
 
 /// What an option gives at one option level.
@@ -1587,18 +1651,39 @@ pub struct MythicAbility {
     /// when written.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub selection: Option<FeatureSelectionKey>,
+    /// Set where the game's blueprint is a plain feature whose pick the planner holds as a slot of its `selection`
+    /// (Witch Wandering Hex: `WitchWanderingHex` fb8490d1721bd5a4883c3b6559310351 is a `BlueprintFeature` of one
+    /// rank, ticket 259): it is taken by its `ranks`, as `BlueprintFeatureSelection.CanSelect` takes a feature that
+    /// isn't a selection (ticket 303). Unset by default, and left out when written.
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub plain_feature: bool,
     /// What the ability is taken for, when the guide says to choose one (Favorite Metamagic: a metamagic). Each pick
     /// of it then names a value of this kind, or none yet ([`ParameterKind::may_stay_open`]).
     #[serde(default)]
     pub parameter: Option<ParameterKind>,
-    /// How many times it can be taken: once, or once per value (Favorite Metamagic, whose game blueprint is a
-    /// selection of one-rank features, one per metamagic; ticket 249).
-    #[serde(default)]
-    pub repeat: Repeat,
+    /// Its blueprint's `Ranks`: how often a feature that isn't a selection can be held (none yet), which
+    /// [`repeat`](Self::repeat) reads (ticket 303). 1 by default, and left out when written.
+    #[serde(default = "one_rank", skip_serializing_if = "is_one_rank")]
+    pub ranks: u8,
     /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
     /// for none, and left out when written.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub components: Vec<Component>,
+}
+
+impl MythicAbility {
+    /// How often it can be taken, from its header ([`Repeat::derive`]): one that takes a value or grants a selection
+    /// is a selection in the game (Favorite Metamagic, Impossible Domain), unless it is a
+    /// [`plain_feature`](Self::plain_feature).
+    pub fn repeat(&self) -> Repeat {
+        Repeat::derive(
+            self.parameter.is_some(),
+            self.parameter.is_some() || (self.selection.is_some() && !self.plain_feature),
+            self.ranks,
+            self.prerequisite.as_ref(),
+            || Fact::MythicAbility(self.key.clone()),
+        )
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -1618,9 +1703,10 @@ pub struct MythicFeat {
     /// What the mythic feat is taken for, as on a feat (Improved Critical (Mythic): a weapon).
     #[serde(default)]
     pub parameter: Option<ParameterKind>,
-    /// How many times it can be taken, as on a feat.
-    #[serde(default)]
-    pub repeat: Repeat,
+    /// Its blueprint's `Ranks`: how often a feature that isn't a selection can be held (none yet), which
+    /// [`repeat`](Self::repeat) reads (ticket 303). 1 by default, and left out when written.
+    #[serde(default = "one_rank", skip_serializing_if = "is_one_rank")]
+    pub ranks: u8,
     /// The race's ability penalties no longer apply to the character's own scores while it's held (Destiny Beyond
     /// Birth).
     #[serde(default)]
@@ -1640,6 +1726,19 @@ pub struct MythicFeat {
     /// for none, and left out when written.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub components: Vec<Component>,
+}
+
+impl MythicFeat {
+    /// How often it can be taken, from its header ([`Repeat::derive`]), as a feat's (Extra Feat: a selection).
+    pub fn repeat(&self) -> Repeat {
+        Repeat::derive(
+            self.parameter.is_some(),
+            self.parameter.is_some() || self.selection.is_some(),
+            self.ranks,
+            self.prerequisite.as_ref(),
+            || Fact::MythicFeat(self.key.clone()),
+        )
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

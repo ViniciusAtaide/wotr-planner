@@ -4,5 +4,4 @@
     category: Skill,
     guide: "feats#skill-focus",
     parameter: Skill,
-    repeat: PerValue,
 )

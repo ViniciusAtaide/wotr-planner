@@ -371,12 +371,14 @@ fn game_side(json: &Value, own: &BlueprintGuid, class: bool, out: &mut Out) -> O
             );
             continue;
         }
-        // A feature's `PrerequisiteNoFeature` of itself: `BlueprintFeature.MeetsPrerequisites` already refuses a
-        // feature held at its `Ranks`, so with one rank it says nothing the feature doesn't.
+        // A feature's `PrerequisiteNoFeature` of itself: `BlueprintFeatureSelection.CanSelect` already refuses a
+        // feature held at its `Ranks`, so with one rank it says nothing the feature doesn't. A selection skips that
+        // check, so of one it is what makes it once-only, which the planner says as `HasNot` of itself (ticket 303).
         if kind == "PrerequisiteNoFeature"
             && group == "All"
             && reference(&component["m_Feature"]).as_ref() == Some(own)
             && json["Ranks"].as_i64().unwrap_or(1) <= 1
+            && !component_kind(json).ends_with("BlueprintFeatureSelection")
         {
             out.skip(AREA, "a feature's own NoFeature, not compared");
             continue;
