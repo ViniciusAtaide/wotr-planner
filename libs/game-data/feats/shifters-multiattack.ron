@@ -1,1 +1,1 @@
-(key: "shifters-multiattack", blueprint: "b5d998bd85a74b708516e24fa198874e", name: "Shifter\'s Multiattack", summary: "Secondary natural attacks take -2 instead of -5.", category: Class, guide: "feats#shifters-multiattack", prerequisite: ClassLevel(class: "shifter", level: 6))
+(key: "shifters-multiattack", blueprint: "b5d998bd85a74b708516e24fa198874e", name: "Shifter\'s Multiattack", summary: "Secondary natural attacks take -2 instead of -5.", category: Class, guide: "feats#shifters-multiattack", components: [Requires(condition: ClassLevel("shifter", 6))])

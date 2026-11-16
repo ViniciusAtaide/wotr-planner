@@ -1,13 +1,13 @@
-//! The entries' components (ticket 295), as the catalog keeps them: `Requires` compiled into the entries'
-//! prerequisites and `NoSelectionIf`'s own-options rule into its selection at load, and the rest indexed by the entry
-//! that holds them, for the walk to evaluate while it holds that entry.
+//! The entries' components (ticket 295), as the catalog keeps them: `NoSelectionIf`'s own-options rule compiled into
+//! its selection at load, and the rest indexed by the entry that holds them, for the walk to evaluate while it holds
+//! that entry. The `Requires` reach it compiled into the entries' prerequisites already ([`GameData::checked`]).
 
 use std::collections::BTreeSet;
 
 use rustc_hash::FxHashMap;
 
 use super::Catalog;
-use crate::component::{Component, Fact, Holder, compile_requires};
+use crate::component::{Component, Fact, Holder};
 use crate::game_data::GameData;
 use crate::keys::{ArchetypeKey, ClassKey, FeatureSelectionKey};
 use crate::prerequisite::Prerequisite;
@@ -69,38 +69,10 @@ pub(in crate::engine) struct Components {
 }
 
 impl Components {
-    /// Compiles the components that become the entries' own fields, and indexes the others.
+    /// Compiles `NoSelectionIf`'s own-options rule into its selection, and indexes the other components. The
+    /// `Requires` are compiled already: the checked data holds them as the entries' prerequisites
+    /// ([`GameData::checked`]).
     pub(super) fn compile(data: &mut GameData) -> Self {
-        let archetype_classes: FxHashMap<ArchetypeKey, ClassKey> = data
-            .archetypes
-            .iter()
-            .map(|archetype| (archetype.key.clone(), archetype.class.clone()))
-            .collect();
-        let class_of = |archetype: &ArchetypeKey| archetype_classes.get(archetype);
-        let compile = |prerequisite: &mut Option<Prerequisite>, components: &[Component]| {
-            if let Some(compiled) = compile_requires(components, class_of) {
-                *prerequisite = Some(compiled);
-            }
-        };
-        for feat in &mut data.feats {
-            compile(&mut feat.prerequisite, &feat.components);
-        }
-        for option in &mut data.options {
-            compile(&mut option.prerequisite, &option.components);
-        }
-        for ability in &mut data.mythic_abilities {
-            compile(&mut ability.prerequisite, &ability.components);
-        }
-        for feat in &mut data.mythic_feats {
-            compile(&mut feat.prerequisite, &feat.components);
-        }
-        for class in data.all_classes_mut() {
-            compile(&mut class.prerequisite, &class.components);
-        }
-        for archetype in &mut data.archetypes {
-            compile(&mut archetype.prerequisite, &archetype.components);
-        }
-
         let mut index = Self {
             held: vec![FxHashMap::default(); HOLDER_KINDS],
             ..Self::default()

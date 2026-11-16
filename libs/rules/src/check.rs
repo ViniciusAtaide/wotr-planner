@@ -828,10 +828,12 @@ impl GameData {
         out
     }
 
-    /// The data as [`CheckedGameData`] when [`check`](Self::check) finds no problem, otherwise every problem.
-    pub fn checked(self) -> Result<CheckedGameData, Vec<DataProblem>> {
+    /// The data as [`CheckedGameData`] when [`check`](Self::check) finds no problem, otherwise every problem. The
+    /// checked data holds each entry's `Requires` compiled into its `prerequisite` (ticket 296).
+    pub fn checked(mut self) -> Result<CheckedGameData, Vec<DataProblem>> {
         let problems = self.check();
         if problems.is_empty() {
+            self.compile_prerequisites();
             Ok(CheckedGameData(self))
         } else {
             Err(problems)
@@ -841,7 +843,9 @@ impl GameData {
 
 /// Game data that [`GameData::check`] found no problem in, the only data [`Engine::new`](crate::Engine::new) takes:
 /// the engine relies on the check's rules (every feat list or selection a slot names is one of the data's, so is
-/// every selection a filtered pool is filtered by). Only [`GameData::checked`] makes one. Outside this crate it lends the data only for
+/// every selection a filtered pool is filtered by). Only [`GameData::checked`] makes one, with each entry's
+/// [`Requires`](crate::Component::Requires) compiled into its `prerequisite` and no longer among its components: the
+/// one tree the engine, the MCP server, the game check and the browser (which checks the JSON again) read. Outside this crate it lends the data only for
 /// reading: it derefs to `&GameData`, with no `DerefMut` and no way to take the data back out. Inside it,
 /// [`Engine::new`](crate::Engine::new) takes the data owned (`into_data`) and puts it in canonical order, which only
 /// sorts it, so the check's rules still hold.
@@ -2045,7 +2049,7 @@ impl Checker {
             let fields = [(
                 "prerequisite",
                 feat.prerequisite.is_some(),
-                is_requires as Replaces,
+                Component::is_requires as Replaces,
             )];
             let at = At::Feat(feat.key.clone());
             self.components(&at, &feat.components, true, feat.parameter, &fields);
@@ -2057,7 +2061,7 @@ impl Checker {
             let fields = [(
                 "prerequisite",
                 option.prerequisite.is_some(),
-                is_requires as Replaces,
+                Component::is_requires as Replaces,
             )];
             let at = At::SelectionOption(option.key.clone());
             self.components(&at, &option.components, true, takes, &fields);
@@ -2066,7 +2070,7 @@ impl Checker {
             let fields = [(
                 "prerequisite",
                 ability.prerequisite.is_some(),
-                is_requires as Replaces,
+                Component::is_requires as Replaces,
             )];
             let at = At::MythicAbility(ability.key.clone());
             self.components(&at, &ability.components, true, ability.parameter, &fields);
@@ -2075,7 +2079,7 @@ impl Checker {
             let fields = [(
                 "prerequisite",
                 feat.prerequisite.is_some(),
-                is_requires as Replaces,
+                Component::is_requires as Replaces,
             )];
             let at = At::MythicFeat(feat.key.clone());
             self.components(&at, &feat.components, true, feat.parameter, &fields);
@@ -2085,7 +2089,7 @@ impl Checker {
                 (
                     "prerequisite",
                     class.prerequisite.is_some(),
-                    is_requires as Replaces,
+                    Component::is_requires as Replaces,
                 ),
                 (
                     "class_skills",
@@ -2103,7 +2107,7 @@ impl Checker {
                 (
                     "prerequisite",
                     archetype.prerequisite.is_some(),
-                    is_requires as Replaces,
+                    Component::is_requires as Replaces,
                 ),
                 (
                     "class_skills",
@@ -2479,10 +2483,6 @@ fn item_at(item: &BonusItem) -> DataAt {
 
 /// Whether a component replaces a hand field of its entry ([`DataIssue::FieldAndComponent`]).
 type Replaces = fn(&Component) -> bool;
-
-fn is_requires(component: &Component) -> bool {
-    matches!(component, Component::Requires { .. })
-}
 
 fn is_class_skill(component: &Component) -> bool {
     matches!(component, Component::ClassSkill(_))

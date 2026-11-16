@@ -237,6 +237,42 @@ fn requires_all_and_any_compile_into_the_prerequisite_tree_with_its_reasons() {
     assert_eq!(status(&engine, &build, &general_slot(5), &pick), Ok(()));
 }
 
+/// Ticket 296: the checked data holds an entry's `Requires` as the `prerequisite` they compile into, canonical as the
+/// files' trees are read, and no longer among its components, so every reader of a prerequisite (the engine, the MCP
+/// server's text, the game check, the browser's JSON) reads one tree. The other components stay.
+#[test]
+fn checked_data_holds_the_requires_compiled_into_the_prerequisite() {
+    let flag = Component::Flag(rules::MechanicsFlag::WeaponFinesse);
+    let mut data = world();
+    data.feats.push(component_feat(
+        "trained-cleaver",
+        vec![
+            requires_any(Condition::ClassLevel(class("rogue"), 2)),
+            requires(has(Fact::Feat(feat("power-attack")))),
+            flag.clone(),
+            requires_any(Condition::ClassLevel(class("fighter"), 4)),
+        ],
+    ));
+    let checked = data.checked().expect("the data checks");
+    let cleaver = (checked.feats.iter())
+        .find(|entry| entry.key == feat("trained-cleaver"))
+        .unwrap();
+
+    let class_level = |key: &str, level| Prerequisite::ClassLevel {
+        class: class(key),
+        level,
+    };
+    let mut expected = Prerequisite::All(vec![
+        Prerequisite::Feat(feat("power-attack")),
+        Prerequisite::Any(vec![class_level("fighter", 4), class_level("rogue", 2)]),
+    ]);
+    expected.canonicalize();
+    assert_eq!(cleaver.prerequisite, Some(expected));
+    assert_eq!(cleaver.components, [flag]);
+    // Checked again, as the browser checks the JSON the server sends, it holds the field alone.
+    assert_eq!(GameData::clone(&checked).check(), []);
+}
+
 /// `Blueprints/Classes/Prerequisites/PrerequisiteClassLevel.cs` `GetClassLevel`: the class level plus, for each held
 /// `ClassLevelsForPrerequisites` whose fake class it is and whose `ForSelection` lists the pick,
 /// `(int)(Modifier × ActualClass level + Summand)` (Eldritch Scion's Fighter Training: magus levels at 0.5 as fighter

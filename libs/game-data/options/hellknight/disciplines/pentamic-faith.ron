@@ -4,7 +4,9 @@
     name: "Pentamic Faith",
     summary: "Order of the Godclaw only: gain one of eleven domains, with your Hellknight level as its level.",
     guide: "prestige-classes#pentamic-faith",
-    prerequisite: SelectionOption("fighter/armiger/order/order-of-the-godclaw"),
+    components: [
+        Requires(condition: Has(Option("fighter/armiger/order/order-of-the-godclaw"))),
+    ],
     levels: [
         (level: 1, selections: ["hellknight/pentamic-faith"]),
     ],

@@ -5,7 +5,9 @@
     name: "Stonelord",
     summary: "Dwarf-only paladin with natural armour, adamantine DR and a growing chance to shrug off crits, instead of Smite Evil.",
     guide: "paladin#stonelord",
-    prerequisite: Race("dwarf"),
+    components: [
+        Requires(condition: Has(Race("dwarf"))),
+    ],
     levels: [
         (level: 1, features: ["paladin/alignment-restriction", "paladin/stonelord/stonestrike"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, features: ["paladin/lay-on-hands", "paladin/stonelord/heartstone"]),

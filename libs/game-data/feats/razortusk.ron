@@ -1,1 +1,1 @@
-(key: "razortusk", blueprint: "86af486a0d92427280c46127a216c85a", name: "Razortusk", summary: "Grants a secondary bite (1d4 + half Strength) attacking at your full BAB -5.", category: Racial, guide: "feats#razortusk", prerequisite: Race("half-orc"))
+(key: "razortusk", blueprint: "86af486a0d92427280c46127a216c85a", name: "Razortusk", summary: "Grants a secondary bite (1d4 + half Strength) attacking at your full BAB -5.", category: Racial, guide: "feats#razortusk", components: [Requires(condition: Has(Race("half-orc")))])

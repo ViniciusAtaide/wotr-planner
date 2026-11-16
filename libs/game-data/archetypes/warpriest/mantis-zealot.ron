@@ -5,7 +5,9 @@
     name: "Mantis Zealot",
     summary: "Warpriest of Achaekek (Dance of Masks DLC) with powers tied to their sawtooth sabers; no channel energy or armour enchanting.",
     guide: "warpriest#mantis-zealot",
-    prerequisite: Deity("achaekek"),
+    components: [
+        Requires(condition: Has(Deity("achaekek"))),
+    ],
     levels: [
         (level: 1, features: ["warpriest/mantis-zealot/red-shroud", "warpriest/sacred-weapon", "warpriest/spontaneous-casting"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"], feats_for: [(feat: "exotic-weapon-proficiency", value: Weapon("sawtooth-saber")), (feat: "weapon-focus", value: Weapon("sawtooth-saber"))]),
         (level: 3, features: ["warpriest/mantis-zealot/deadly-fascination"]),

@@ -1,1 +1,1 @@
-(key: "lunge", blueprint: "d41d5bd9a775d7245929256d58a3e03e", name: "Lunge", summary: "Trade 2 AC for 5 ft of extra melee reach until your turn ends.", category: Weapon, guide: "feats#lunge", prerequisite: BaseAttackBonus(6))
+(key: "lunge", blueprint: "d41d5bd9a775d7245929256d58a3e03e", name: "Lunge", summary: "Trade 2 AC for 5 ft of extra melee reach until your turn ends.", category: Weapon, guide: "feats#lunge", components: [Requires(condition: Stat(stat: BaseAttack, value: 6))])

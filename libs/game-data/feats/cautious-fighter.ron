@@ -1,1 +1,1 @@
-(key: "cautious-fighter", blueprint: "4a6fbe77a4a2ce24db0cd0b1e4d93db1", name: "Cautious Fighter", summary: "Fighting defensively gives 2 more dodge AC.", category: Racial, guide: "feats#cautious-fighter", prerequisite: Race("halfling"))
+(key: "cautious-fighter", blueprint: "4a6fbe77a4a2ce24db0cd0b1e4d93db1", name: "Cautious Fighter", summary: "Fighting defensively gives 2 more dodge AC.", category: Racial, guide: "feats#cautious-fighter", components: [Requires(condition: Has(Race("halfling")))])

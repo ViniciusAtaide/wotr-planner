@@ -1,1 +1,1 @@
-(key: "abundant-ki-pool", blueprint: "e8752f9126d986748b10d0bdac693264", name: "Abundant Ki Pool", summary: "Ki Pool grows by your mythic rank in points.", group: Class, guide: "mythic-paths#abundant-ki-pool", prerequisite: Feature(feature: "monk/ki-pool", count: 1))
+(key: "abundant-ki-pool", blueprint: "e8752f9126d986748b10d0bdac693264", name: "Abundant Ki Pool", summary: "Ki Pool grows by your mythic rank in points.", group: Class, guide: "mythic-paths#abundant-ki-pool", components: [Requires(condition: Has(Feature("monk/ki-pool")))])

@@ -1,1 +1,1 @@
-(key: "rapid-shot-mythic", blueprint: "e332694d67066f24da821f119201b5c7", name: "Rapid Shot (Mythic)", summary: "Rapid Shot no longer gives a -2 attack penalty.", group: Ranged, guide: "mythic-paths#rapid-shot-mythic", prerequisite: Feat("rapid-shot"))
+(key: "rapid-shot-mythic", blueprint: "e332694d67066f24da821f119201b5c7", name: "Rapid Shot (Mythic)", summary: "Rapid Shot no longer gives a -2 attack penalty.", group: Ranged, guide: "mythic-paths#rapid-shot-mythic", components: [Requires(condition: Has(Feat("rapid-shot")))])

@@ -273,6 +273,10 @@ _Avoid_: Game data (that's the planner's files), asset
 The game's program in readable form, where the rules that apply the **Blueprints** are written (how dice scale with size, what a component does). A rule taken from it is cited by file and method.
 _Avoid_: Source code, the game's scripts
 
+**Component**:
+One generic piece a **Blueprint** is built from, as the planner's data holds it in its own words, with keys inside and never GUIDs: a condition before a pick (`Requires`, the game's prerequisites), a grant of facts, a stat bonus with the value it reads, a class skill, a proficiency. The **Decompiled code** gives each kind its meaning, so one rule serves every entry that holds it. Since 2026-11-16 every blueprint entry holds its **Prerequisite** as `Requires` components, all of one group or one of another as the game's are; the planner's own conditions (a **Story condition**, an **Option group**'s) stay in the entry's prerequisite until a component says them.
+_Avoid_: Effect, modifier (a component may be neither), field
+
 **Guide**:
 The GameFAQs walkthrough the planner's data was first extracted from, the source of truth until 2026-11-14. It still supplies summaries where it says more than the game, never contradicting it, and the link a player reads.
 _Avoid_: Wiki, FAQ

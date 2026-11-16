@@ -3,7 +3,9 @@
     blueprint: "84f5169d964185741b97e95a1f1f2a79",
     name: "War Sight",
     summary: "Roll initiative twice and keep the higher; Uncanny Dodge at 7th; roll three times from 11th.",
-    prerequisite: SelectionOption("oracle/mystery/battle"),
+    components: [
+        Requires(condition: Has(Option("oracle/mystery/battle"))),
+    ],
     guide: "oracle#war-sight",
     levels: [
         (level: 7, features: ["oracle/revelations/battle/war-sight/uncanny-dodge"]),

@@ -1,1 +1,1 @@
-(key: "paladin/mercy/fatigued", blueprint: "e5aa306af9b91974a9b2f2cbe702f562", name: "Fatigued", summary: "From 3rd level, Lay on Hands also removes fatigue.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 3))
+(key: "paladin/mercy/fatigued", blueprint: "e5aa306af9b91974a9b2f2cbe702f562", name: "Fatigued", summary: "From 3rd level, Lay on Hands also removes fatigue.", guide: "paladin#mercy", components: [Requires(condition: ClassLevel("paladin", 3))])

@@ -5,7 +5,9 @@
     name: "Prophet of Pestilence",
     summary: "Lord of Nothing DLC disease shaman with the fixed Pestilence spirit, no familiar and fewer hexes; neutral, neutral evil or chaotic evil only.",
     guide: "shaman#prophet-of-pestilence",
-    prerequisite: Any([Alignment(TrueNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
+    components: [
+        Requires(condition: Alignment([TrueNeutral, NeutralEvil, ChaoticEvil])),
+    ],
     levels: [
         (level: 1, features: ["shaman-orisons", "shaman/prophet-of-pestilence/pestilence-spirit", "shaman/prophet-of-pestilence/plagues-caress"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"]),
         (level: 2, features: ["shaman/prophet-of-pestilence/plague-of-abaddon"], selections: ["shaman/prophet-of-pestilence/carrier-of-disease"]),

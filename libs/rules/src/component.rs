@@ -4,8 +4,9 @@
 //! Each kind is named for what it does and holds keys, never GUIDs. Its doc names the game component it stands for
 //! and the code that gives it its meaning, by file and method at WrathDecompiled 6ce4a6b (`Kingmaker/…` under
 //! `Assembly-CSharp`). The engine reads them in the structures it already has:
-//! - [`Requires`](Component::Requires) compiles at load into the entry's [`Prerequisite`] tree ([`compile_requires`]),
-//!   so the walk, the pickers, the reasons and `allows` read one form;
+//! - [`Requires`](Component::Requires) compiles at load into the entry's [`Prerequisite`] tree ([`compile_requires`]):
+//!   the checked data holds that tree in place of them ([`GameData::checked`](crate::GameData::checked)), so the walk,
+//!   the pickers, the reasons, `allows` and every other reader of a prerequisite read one form;
 //! - the grants hold their facts through the walk's holds, as a level row's do;
 //! - the stat bonuses feed the ability scores, the base attack bonus and the bonuses in force
 //!   ([`BonusInForce`](crate::BonusInForce)), with their values worked out from the state at that level ([`Value`]);
@@ -15,12 +16,12 @@
 //! [`GameData::check`](crate::GameData::check) refuses an entry that holds a hand field and the component kind that
 //! replaces it, and a component on an entry it has no meaning on.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, HashMap};
 
 use serde::{Deserialize, Serialize};
 
 use crate::build::AbilityScores;
-use crate::game_data::{Ability, Alignment, Save, SpellType, WeaponProficiency};
+use crate::game_data::{Ability, Alignment, GameData, Save, SpellType, WeaponProficiency};
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
@@ -901,8 +902,14 @@ impl Component {
         }
     }
 
+    /// Whether it is a `Requires`, which the checked data holds compiled into its entry's prerequisite.
+    pub fn is_requires(&self) -> bool {
+        matches!(self, Self::Requires { .. })
+    }
+
     /// Whether the walk evaluates it while its entry is held: every kind but `Requires` (compiled into the entry's
-    /// prerequisite) and `NoSelectionIf` (read where its selection is granted).
+    /// prerequisite, and gone from the checked data the engine takes) and `NoSelectionIf` (read where its selection is
+    /// granted).
     pub(crate) fn applies_while_held(&self) -> bool {
         !matches!(self, Self::Requires { .. } | Self::NoSelectionIf { .. })
     }
@@ -929,6 +936,45 @@ pub fn compile_requires<'a>(
         all.push(lone_or(any, Prerequisite::Any));
     }
     (!all.is_empty()).then(|| lone_or(all, Prerequisite::All))
+}
+
+impl GameData {
+    /// Compiles every picked entry's `Requires` into its `prerequisite` ([`compile_requires`]), canonical as a tree
+    /// read from the files is, and takes them out of its components: the data [`checked`](GameData::checked) holds, so
+    /// the engine, the MCP server, the game check and the browser's JSON read one tree. An entry without one keeps its
+    /// field; the check refuses an entry holding both.
+    pub(crate) fn compile_prerequisites(&mut self) {
+        let archetype_classes: HashMap<ArchetypeKey, ClassKey> = (self.archetypes.iter())
+            .map(|archetype| (archetype.key.clone(), archetype.class.clone()))
+            .collect();
+        let compile = |prerequisite: &mut Option<Prerequisite>, components: &mut Vec<Component>| {
+            if let Some(mut compiled) =
+                compile_requires(components, |archetype| archetype_classes.get(archetype))
+            {
+                compiled.canonicalize();
+                *prerequisite = Some(compiled);
+                components.retain(|component| !component.is_requires());
+            }
+        };
+        for feat in &mut self.feats {
+            compile(&mut feat.prerequisite, &mut feat.components);
+        }
+        for option in &mut self.options {
+            compile(&mut option.prerequisite, &mut option.components);
+        }
+        for ability in &mut self.mythic_abilities {
+            compile(&mut ability.prerequisite, &mut ability.components);
+        }
+        for feat in &mut self.mythic_feats {
+            compile(&mut feat.prerequisite, &mut feat.components);
+        }
+        for class in self.all_classes_mut() {
+            compile(&mut class.prerequisite, &mut class.components);
+        }
+        for archetype in &mut self.archetypes {
+            compile(&mut archetype.prerequisite, &mut archetype.components);
+        }
+    }
 }
 
 /// A group's lone condition itself, or the group of them.

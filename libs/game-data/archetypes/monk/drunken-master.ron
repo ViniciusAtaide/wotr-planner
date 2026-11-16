@@ -5,7 +5,9 @@
     name: "Drunken Master",
     summary: "Non-lawful monk (Dance of Masks DLC) who draws power from drinking.",
     guide: "monk#drunken-master",
-    prerequisite: Any([Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
+    components: [
+        Requires(condition: Alignment([NeutralGood, ChaoticGood, TrueNeutral, ChaoticNeutral, NeutralEvil, ChaoticEvil])),
+    ],
     levels: [
         (level: 3, features: ["monk/drunken-master/drunken-combat", "monk/drunken-master/drunken-ki", "monk/fast-movement", "monk/ki-power-extra-attack", "monk/ki-strike-magic"]),
         (level: 4, features: ["monk/drunken-master/drunken-technique-firewater-breath", "monk/stunning-fist-fatigue"], selections: ["monk/ki-power"]),

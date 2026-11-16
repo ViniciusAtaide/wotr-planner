@@ -1,1 +1,1 @@
-(key: "spirited-charge", blueprint: "95ef0ff14771f2549897f300ce62c95c", name: "Spirited Charge", summary: "Double melee damage on a mounted charge.", category: MountedCombat, guide: "feats#spirited-charge", prerequisite: Feat("mounted-combat"))
+(key: "spirited-charge", blueprint: "95ef0ff14771f2549897f300ce62c95c", name: "Spirited Charge", summary: "Double melee damage on a mounted charge.", category: MountedCombat, guide: "feats#spirited-charge", components: [Requires(condition: Has(Feat("mounted-combat")))])

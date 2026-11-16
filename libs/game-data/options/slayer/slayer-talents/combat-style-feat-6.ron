@@ -4,7 +4,10 @@
     name: "Combat Style Feat (6th or 8th level)",
     summary: "A Ranger combat style feat taken as a slayer talent at 6th or 8th level.",
     guide: "slayer#slayer-talents",
-    prerequisite: All([Not(ClassLevel(class: "slayer", level: 10)), ClassLevel(class: "slayer", level: 6)]),
+    components: [
+        Requires(condition: Not(ClassLevel("slayer", 10))),
+        Requires(condition: ClassLevel("slayer", 6)),
+    ],
     levels: [
         (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style", at_level: 6)], selections: ["slayer/combat-style"]),
     ],

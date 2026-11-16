@@ -1,1 +1,1 @@
-(key: "paladin/mercy/paralyzed", blueprint: "62582b4636218d74db34606f872c9c05", name: "Paralyzed", summary: "From 12th level, Lay on Hands also removes paralysis.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 12))
+(key: "paladin/mercy/paralyzed", blueprint: "62582b4636218d74db34606f872c9c05", name: "Paralyzed", summary: "From 12th level, Lay on Hands also removes paralysis.", guide: "paladin#mercy", components: [Requires(condition: ClassLevel("paladin", 12))])

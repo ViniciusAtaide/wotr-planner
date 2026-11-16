@@ -1,1 +1,1 @@
-(key: "improved-initiative-mythic", blueprint: "25f4cb387ba4ab94d944fdef3da9ab97", name: "Improved Initiative (Mythic)", summary: "Initiative +MR.", group: Miscellaneous, guide: "mythic-paths#improved-initiative-mythic", prerequisite: Feat("improved-initiative"))
+(key: "improved-initiative-mythic", blueprint: "25f4cb387ba4ab94d944fdef3da9ab97", name: "Improved Initiative (Mythic)", summary: "Initiative +MR.", group: Miscellaneous, guide: "mythic-paths#improved-initiative-mythic", components: [Requires(condition: Has(Feat("improved-initiative")))])

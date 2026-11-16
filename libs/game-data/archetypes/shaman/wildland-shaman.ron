@@ -5,7 +5,9 @@
     name: "Wildland Shaman",
     summary: "Half-orc only: the Battle spirit and any animal companion instead of a familiar, with no wandering spirits.",
     guide: "shaman#wildland-shaman",
-    prerequisite: Race("half-orc"),
+    components: [
+        Requires(condition: Has(Race("half-orc"))),
+    ],
     levels: [
         (level: 1, features: ["shaman/wildland-shaman/animal-companion", "shaman-orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/wildland-shaman/spirit"]),
         (level: 4, selections: ["shaman/hex"]),

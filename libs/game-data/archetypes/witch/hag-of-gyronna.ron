@@ -2,7 +2,9 @@
     key: "witch/hag-of-gyronna",
     class: "witch",
     blueprint: "411fa458481e44f0855d47a19358874b",
-    prerequisite: Deity("gyronna"),
+    components: [
+        Requires(condition: Has(Deity("gyronna"))),
+    ],
     name: "Hag of Gyronna",
     summary: "Lord of Nothing witch of Gyronna with a fixed patron, fear and dispel powers and a hag companion, but fewer hexes.",
     guide: "witch#hag-of-gyronna",

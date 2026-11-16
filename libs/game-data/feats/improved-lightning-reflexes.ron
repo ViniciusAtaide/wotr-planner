@@ -1,1 +1,1 @@
-(key: "improved-lightning-reflexes", blueprint: "1e813eb8159b67a459b1c975027866e5", name: "Improved Lightning Reflexes", summary: "+2 more to Reflex saves.", category: Miscellaneous, guide: "feats#improved-lightning-reflexes", prerequisite: Feat("lightning-reflexes"))
+(key: "improved-lightning-reflexes", blueprint: "1e813eb8159b67a459b1c975027866e5", name: "Improved Lightning Reflexes", summary: "+2 more to Reflex saves.", category: Miscellaneous, guide: "feats#improved-lightning-reflexes", components: [Requires(condition: Has(Feat("lightning-reflexes")))])

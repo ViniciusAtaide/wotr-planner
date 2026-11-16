@@ -1,1 +1,1 @@
-(key: "stony-step", blueprint: "c542b083d72f19944a4c6bdf640fc099", name: "Stony Step", summary: "+2 Mobility, and you ignore difficult terrain underground.", category: Racial, guide: "feats#stony-step", prerequisite: Race("oread"))
+(key: "stony-step", blueprint: "c542b083d72f19944a4c6bdf640fc099", name: "Stony Step", summary: "+2 Mobility, and you ignore difficult terrain underground.", category: Racial, guide: "feats#stony-step", components: [Requires(condition: Has(Race("oread")))])

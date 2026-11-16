@@ -1,1 +1,1 @@
-(key: "precise-shot", blueprint: "8f3d1e6b4be006f4d896081f2f889665", name: "Precise Shot", summary: "No -4 penalty for shooting at foes in melee.", category: Ranged, guide: "feats#precise-shot", prerequisite: Feat("point-blank-shot"))
+(key: "precise-shot", blueprint: "8f3d1e6b4be006f4d896081f2f889665", name: "Precise Shot", summary: "No -4 penalty for shooting at foes in melee.", category: Ranged, guide: "feats#precise-shot", components: [Requires(condition: Has(Feat("point-blank-shot")))])

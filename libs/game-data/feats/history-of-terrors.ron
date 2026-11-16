@@ -1,1 +1,1 @@
-(key: "history-of-terrors", blueprint: "9e4c7d08f67f4496ba42c2cdb00609a7", name: "History of Terrors", summary: "+2 to saves against mind-affecting effects and +4 against fear.", category: Racial, guide: "feats#history-of-terrors", prerequisite: Race("human"))
+(key: "history-of-terrors", blueprint: "9e4c7d08f67f4496ba42c2cdb00609a7", name: "History of Terrors", summary: "+2 to saves against mind-affecting effects and +4 against fear.", category: Racial, guide: "feats#history-of-terrors", components: [Requires(condition: Has(Race("human")))])

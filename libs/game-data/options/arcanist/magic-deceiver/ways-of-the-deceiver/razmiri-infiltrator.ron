@@ -4,7 +4,9 @@
     name: "Razmiri Infiltrator",
     summary: "Neutral or evil deceiver path built around a Razmiri mask that grows stronger with level.",
     guide: "arcanist#razmiri-infiltrator",
-    prerequisite: Any([Alignment(TrueNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
+    components: [
+        Requires(condition: Alignment([TrueNeutral, LawfulEvil, NeutralEvil, ChaoticEvil])),
+    ],
     levels: [
         (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/acolyte-of-the-first-step", "arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/razmiri-mask"]),
         (level: 2, features: ["trick-magic"]),

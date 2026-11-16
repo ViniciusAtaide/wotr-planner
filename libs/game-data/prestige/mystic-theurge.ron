@@ -11,7 +11,13 @@ Class(
     will: Good,
     save_exceptions: [(level: 4, save: Will, value: 3)],
     class_skills: ["knowledge-arcana", "lore-religion", "perception"],
-    prerequisite: All([SkillRanks(skill: "knowledge-arcana", ranks: 5), SkillRanks(skill: "lore-religion", ranks: 5), SpellLevel(spell_type: Arcane, level: 2), SpellLevel(spell_type: Divine, level: 2), CharacterLevel(7)]),
+    components: [
+        Requires(condition: Stat(stat: Skill("knowledge-arcana"), value: 5)),
+        Requires(condition: Stat(stat: Skill("lore-religion"), value: 5)),
+        Requires(condition: CasterTypeSpellLevel(caster: Arcane, level: 2)),
+        Requires(condition: CasterTypeSpellLevel(caster: Divine, level: 2)),
+        Requires(condition: CharacterLevel(7)),
+    ],
     levels: [
         (level: 1, advances_arcane: true, advances_divine: true, features: ["mystic-theurge/arcane-spellcasting", "mystic-theurge/combined-spells-1st", "mystic-theurge/divine-spellcasting"]),
         (level: 2, advances_arcane: true, advances_divine: true),

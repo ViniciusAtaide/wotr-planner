@@ -1,1 +1,1 @@
-(key: "improved-iron-will", blueprint: "3ea2215150a1c8a4a9bfed9d9023903e", name: "Improved Iron Will", summary: "+2 more to Will saves.", category: Miscellaneous, guide: "feats#improved-iron-will", prerequisite: Feat("iron-will"))
+(key: "improved-iron-will", blueprint: "3ea2215150a1c8a4a9bfed9d9023903e", name: "Improved Iron Will", summary: "+2 more to Will saves.", category: Miscellaneous, guide: "feats#improved-iron-will", components: [Requires(condition: Has(Feat("iron-will")))])

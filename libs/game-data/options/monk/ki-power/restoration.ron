@@ -1,1 +1,1 @@
-(key: "monk/ki-power/restoration", blueprint: "64dea39d32b9400469ef84a8fb4b171d", name: "Restoration", summary: "From 8th level, spend 2 ki points to cast Restoration.", guide: "monk", prerequisite: ClassLevel(class: "monk", level: 8))
+(key: "monk/ki-power/restoration", blueprint: "64dea39d32b9400469ef84a8fb4b171d", name: "Restoration", summary: "From 8th level, spend 2 ki points to cast Restoration.", guide: "monk", components: [Requires(condition: ClassLevel("monk", 8))])

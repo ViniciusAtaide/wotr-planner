@@ -5,7 +5,10 @@
     summary: "Battle: an extra attack of opportunity each round (stacks with Combat Reflexes), Weapon Specialization at 8th, Greater Weapon Focus at 16th.",
     guide: "shaman#battle-master",
     parameter: Weapon,
-    prerequisite: Any([Archetype("shaman/wildland-shaman"), SelectionOption("shaman/spirit/battle")]),
+    components: [
+        Requires(condition: Has(Archetype("shaman/wildland-shaman")), group: Any),
+        Requires(condition: Has(Option("shaman/spirit/battle")), group: Any),
+    ],
     levels: [
         (level: 8, chosen_feats: ["weapon-specialization"]),
         (level: 16, chosen_feats: ["greater-weapon-focus"]),

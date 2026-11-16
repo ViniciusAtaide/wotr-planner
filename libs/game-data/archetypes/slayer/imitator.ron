@@ -5,7 +5,9 @@
     name: "Imitator",
     summary: "Human slayer who adopts other classes' stances instead of Studied Target, with fewer sneak dice and talents.",
     guide: "slayer#imitator",
-    prerequisite: Race("human"),
+    components: [
+        Requires(condition: Has(Race("human"))),
+    ],
     levels: [
         (level: 1, features: ["slayer/slayer-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["slayer/imitator/imitation"]),
         (level: 4),

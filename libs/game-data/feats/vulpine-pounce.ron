@@ -1,1 +1,1 @@
-(key: "vulpine-pounce", blueprint: "cd258f1bce80ef54580f6b236c82608c", name: "Vulpine Pounce", summary: "Pounce while in kitsune form.", category: Racial, guide: "feats#vulpine-pounce", prerequisite: All([BaseAttackBonus(10), Race("kitsune")]))
+(key: "vulpine-pounce", blueprint: "cd258f1bce80ef54580f6b236c82608c", name: "Vulpine Pounce", summary: "Pounce while in kitsune form.", category: Racial, guide: "feats#vulpine-pounce", components: [Requires(condition: Stat(stat: BaseAttack, value: 10)), Requires(condition: Has(Race("kitsune")))])

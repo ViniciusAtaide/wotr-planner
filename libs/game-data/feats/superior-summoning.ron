@@ -1,1 +1,1 @@
-(key: "superior-summoning", blueprint: "0477936c0f74841498b5c8753a8062a3", name: "Superior Summoning", summary: "Multi-creature summons bring one extra creature of that kind.", category: Magic, guide: "feats#superior-summoning", prerequisite: Feat("augment-summoning"))
+(key: "superior-summoning", blueprint: "0477936c0f74841498b5c8753a8062a3", name: "Superior Summoning", summary: "Multi-creature summons bring one extra creature of that kind.", category: Magic, guide: "feats#superior-summoning", components: [Requires(condition: Has(Feat("augment-summoning")))])

@@ -1,1 +1,1 @@
-(key: "paladin/mercy/stunned", blueprint: "7775c915661f8fb449c38dd873524389", name: "Stunned", summary: "From 12th level, Lay on Hands also removes stun.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 12))
+(key: "paladin/mercy/stunned", blueprint: "7775c915661f8fb449c38dd873524389", name: "Stunned", summary: "From 12th level, Lay on Hands also removes stun.", guide: "paladin#mercy", components: [Requires(condition: ClassLevel("paladin", 12))])

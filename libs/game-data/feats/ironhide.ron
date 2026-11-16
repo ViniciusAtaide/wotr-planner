@@ -1,1 +1,1 @@
-(key: "ironhide", blueprint: "07a8059e18fd42eea61567cb11365a9d", name: "Ironhide", summary: "+1 natural armour to AC.", category: Racial, guide: "feats#ironhide", prerequisite: Any([Race("dwarf"), Race("half-orc")]))
+(key: "ironhide", blueprint: "07a8059e18fd42eea61567cb11365a9d", name: "Ironhide", summary: "+1 natural armour to AC.", category: Racial, guide: "feats#ironhide", components: [Requires(condition: Has(Race("dwarf")), group: Any), Requires(condition: Has(Race("half-orc")), group: Any)])

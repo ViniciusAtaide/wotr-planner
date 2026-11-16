@@ -3,7 +3,9 @@
     blueprint: "e248a57686c53be4cb49b082057850f3",
     name: "Fluid Nature",
     summary: "+4 CMD against bull rush, grapple and trip, and Dodge as a bonus feat at 5th level.",
-    prerequisite: SelectionOption("oracle/mystery/waves"),
+    components: [
+        Requires(condition: Has(Option("oracle/mystery/waves"))),
+    ],
     guide: "oracle#fluid-nature",
     levels: [
         (level: 5, feats: ["dodge"]),

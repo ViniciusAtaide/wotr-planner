@@ -1,1 +1,1 @@
-(key: "oracle/revelations/life/safe-cure", blueprint: "3fa75c1a809882a4697db75daf8803e3", name: "Safe Cure", summary: "Casting cure spells doesn't provoke attacks of opportunity.", guide: "oracle#safe-cure", prerequisite: SelectionOption("oracle/mystery/life"))
+(key: "oracle/revelations/life/safe-cure", blueprint: "3fa75c1a809882a4697db75daf8803e3", name: "Safe Cure", summary: "Casting cure spells doesn't provoke attacks of opportunity.", guide: "oracle#safe-cure", components: [Requires(condition: Has(Option("oracle/mystery/life")))])

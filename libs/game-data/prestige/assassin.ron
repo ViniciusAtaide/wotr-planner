@@ -10,7 +10,11 @@ Class(
     reflex: Good,
     will: Poor,
     class_skills: ["mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
-    prerequisite: All([Any([Alignment(TrueNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), SkillRanks(skill: "stealth", ranks: 5), CharacterLevel(6)]),
+    components: [
+        Requires(condition: Alignment([TrueNeutral, LawfulEvil, NeutralEvil, ChaoticEvil])),
+        Requires(condition: Stat(stat: Skill("stealth"), value: 5)),
+        Requires(condition: CharacterLevel(6)),
+    ],
     levels: [
         (level: 1, features: ["assassin/mark-of-death", "sneak-attack", "assassin/target-assassination"]),
         (level: 2, features: ["assassin/cold-minded", "assassin/poison-use-strength-or-dexterity", "uncanny-dodge"]),

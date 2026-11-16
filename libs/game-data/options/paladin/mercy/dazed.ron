@@ -1,1 +1,1 @@
-(key: "paladin/mercy/dazed", blueprint: "7df9329013baaec4fac20ae08bc1f849", name: "Dazed", summary: "From 6th level, Lay on Hands also removes the dazed condition.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 6))
+(key: "paladin/mercy/dazed", blueprint: "7df9329013baaec4fac20ae08bc1f849", name: "Dazed", summary: "From 6th level, Lay on Hands also removes the dazed condition.", guide: "paladin#mercy", components: [Requires(condition: ClassLevel("paladin", 6))])

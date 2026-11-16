@@ -10,7 +10,15 @@ Class(
     reflex: Poor,
     will: Good,
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "perception", "persuasion"],
-    prerequisite: All([Any([Feat("arcane-armor-training"), Feat("warrior-priest")]), Any([SpellLevel(spell_type: Arcane, level: 3), SpellLevel(spell_type: Divine, level: 3)]), Any([Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), SkillRanks(skill: "knowledge-arcana", ranks: 5), SkillRanks(skill: "knowledge-world", ranks: 5), SkillRanks(skill: "persuasion", ranks: 2), CharacterLevel(6)]),
+    components: [
+        Requires(condition: Any([Has(Feat("arcane-armor-training")), Has(Feat("warrior-priest"))])),
+        Requires(condition: Any([CasterTypeSpellLevel(caster: Arcane, level: 3), CasterTypeSpellLevel(caster: Divine, level: 3)])),
+        Requires(condition: Alignment([LawfulGood, LawfulNeutral, LawfulEvil])),
+        Requires(condition: Stat(stat: Skill("knowledge-arcana"), value: 5)),
+        Requires(condition: Stat(stat: Skill("knowledge-world"), value: 5)),
+        Requires(condition: Stat(stat: Skill("persuasion"), value: 2)),
+        Requires(condition: CharacterLevel(6)),
+    ],
     advances: Either,
     levels: [
         (level: 1, advances_arcane: true, advances_divine: true, features: ["hellknight-signifer/hellknight-signifer-spellcasting"], feats: ["armor-proficiency-heavy-armor"], selections: ["hellknight-signifer/order"]),

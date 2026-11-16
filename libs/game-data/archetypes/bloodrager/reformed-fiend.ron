@@ -5,7 +5,10 @@
     name: "Reformed Fiend",
     summary: "Good tiefling with the Abyssal or Infernal bloodline: bonus attack and damage against evil while raging, and DR/evil.",
     guide: "bloodrager#reformed-fiend",
-    prerequisite: All([Any([Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Race("tiefling")]),
+    components: [
+        Requires(condition: Alignment([LawfulGood, NeutralGood, ChaoticGood])),
+        Requires(condition: Has(Race("tiefling"))),
+    ],
     levels: [
         (level: 1, features: ["bloodrager/bloodrage", "fast-movement"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["bloodrager/reformed-fiend/bloodline"]),
         (level: 5, features: ["bloodrager/reformed-fiend/hatred-against-evil", "improved-uncanny-dodge"]),

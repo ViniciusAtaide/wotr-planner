@@ -1,1 +1,1 @@
-(key: "kineticist/wild-talents/elemental-whispers", blueprint: "f02525006521bee4eb90ab26b7b9db24", name: "Elemental Whispers", summary: "Gain a familiar.", guide: "kineticist#elemental-whispers", prerequisite: ClassLevel(class: "kineticist", level: 2))
+(key: "kineticist/wild-talents/elemental-whispers", blueprint: "f02525006521bee4eb90ab26b7b9db24", name: "Elemental Whispers", summary: "Gain a familiar.", guide: "kineticist#elemental-whispers", components: [Requires(condition: ClassLevel("kineticist", 2))])

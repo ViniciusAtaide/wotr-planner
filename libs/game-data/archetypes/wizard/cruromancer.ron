@@ -5,7 +5,9 @@
     name: "Cruromancer",
     summary: "Dhampir-only necromancer who powers necromancy spells with their own blood; no arcane bond.",
     guide: "wizard#cruromancer",
-    prerequisite: Race("dhampir"),
+    components: [
+        Requires(condition: Has(Race("dhampir"))),
+    ],
     levels: [
         (level: 1, features: ["wizard-cantrips", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/cruromancer/blood-infusion", "wizard/cruromancer/school"]),
         (level: 5, features: ["wizard/cruromancer/commanding-infusion"]),

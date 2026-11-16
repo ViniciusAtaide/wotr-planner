@@ -1,1 +1,1 @@
-(key: "shadowplay", blueprint: "caba7e4dc9b14206bbf667814cc1cb90", name: "Shadowplay", summary: "+2 caster level for shadow spells.", category: Racial, guide: "feats#shadowplay", prerequisite: Race("gnome"))
+(key: "shadowplay", blueprint: "caba7e4dc9b14206bbf667814cc1cb90", name: "Shadowplay", summary: "+2 caster level for shadow spells.", category: Racial, guide: "feats#shadowplay", components: [Requires(condition: Has(Race("gnome")))])

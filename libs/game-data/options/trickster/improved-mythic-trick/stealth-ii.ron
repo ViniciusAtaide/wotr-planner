@@ -1,1 +1,1 @@
-(key: "trickster/improved-mythic-trick/stealth-ii", blueprint: "0d1071f085c5c4f408cd2bf1ec4f6adc", name: "Stealth II", summary: "Stealth in combat acts as Greater Invisibility.", guide: "trickster#stealth-ii", prerequisite: SelectionOption("trickster/mythic-trick/stealth-i"))
+(key: "trickster/improved-mythic-trick/stealth-ii", blueprint: "0d1071f085c5c4f408cd2bf1ec4f6adc", name: "Stealth II", summary: "Stealth in combat acts as Greater Invisibility.", guide: "trickster#stealth-ii", components: [Requires(condition: Has(Option("trickster/mythic-trick/stealth-i")))])
