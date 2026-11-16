@@ -28,6 +28,11 @@ const HEADER: usize = 16;
 
 /// Reads the dump at `path` once it is the pinned one: its size, then its SHA-256, before anything else.
 pub fn read(path: &Path, pins: &Pins) -> Result<Dump, Error> {
+    parse(&pinned_bytes(path, pins)?)
+}
+
+/// The bytes of the file at `path`, once they are the pinned dump's.
+pub fn pinned_bytes(path: &Path, pins: &Pins) -> Result<Vec<u8>, Error> {
     let io = |error| Error::Io {
         path: path.display().to_string(),
         error,
@@ -49,7 +54,7 @@ pub fn read(path: &Path, pins: &Pins) -> Result<Dump, Error> {
             found,
         });
     }
-    parse(&bytes)
+    Ok(bytes)
 }
 
 /// The SHA-256 of `bytes`, as 64 lowercase hex digits.
@@ -63,6 +68,18 @@ pub fn sha256(bytes: &[u8]) -> String {
 /// The blueprints of a `.binz` file's bytes, unchecked: [`read`] checks them against the pins first.
 pub fn parse(bytes: &[u8]) -> Result<Dump, Error> {
     let mut dump = Dump::default();
+    scan(bytes, |guid, name, type_name, raw| {
+        dump.insert(guid, name, type_name, raw)
+    })?;
+    Ok(dump)
+}
+
+/// Calls `visit` with the GUID, asset name, full type name and JSON of every blueprint of a `.binz` file's bytes,
+/// in the file's order, unchecked.
+pub fn scan(
+    bytes: &[u8],
+    mut visit: impl FnMut(&str, &str, &str, &[u8]) -> Result<(), Error>,
+) -> Result<(), Error> {
     let mut chunks = 0;
     let mut pos = 0;
     let mut buffer = Vec::new();
@@ -100,12 +117,12 @@ pub fn parse(bytes: &[u8]) -> Result<Dump, Error> {
         } else {
             payload
         };
-        read_records(records, &mut dump)?;
+        read_records(records, &mut visit)?;
     }
     if chunks == 0 {
         return Err(format_error("no blueprints chunk".to_owned()));
     }
-    Ok(dump)
+    Ok(())
 }
 
 fn u32_at(header: &[u8], at: usize) -> usize {
@@ -116,14 +133,17 @@ fn format_error(message: String) -> Error {
     Error::Format(message)
 }
 
-fn read_records(mut bytes: &[u8], dump: &mut Dump) -> Result<(), Error> {
+fn read_records(
+    mut bytes: &[u8],
+    visit: &mut impl FnMut(&str, &str, &str, &[u8]) -> Result<(), Error>,
+) -> Result<(), Error> {
     while !bytes.is_empty() {
         let guid = text(read_bytes(&mut bytes)?)?;
         let name = text(read_bytes(&mut bytes)?)?;
         let type_name = text(read_bytes(&mut bytes)?)?;
-        // The JSON stays bytes: the dump reads it as text only for the kinds it keeps, a small part of the 542 MB.
+        // The JSON stays bytes: a visitor reads it as text only for what it keeps, a small part of the 542 MB.
         let raw = read_bytes(&mut bytes)?;
-        dump.insert(guid, name, type_name, raw)?;
+        visit(guid, name, type_name, raw)?;
     }
     Ok(())
 }
