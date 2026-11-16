@@ -190,7 +190,7 @@ fn class_tables_find_skill_points_a_save_and_class_skills_for_a_class_and_an_arc
         &report,
         &format!("class tables / class skills differ {user}"),
         "class warden",
-        "SkillAthletics, SkillStealth",
+        "CheckIntimidate, SkillAthletics, SkillStealth",
         "SkillAthletics, SkillPerception",
     );
     assert_finding(

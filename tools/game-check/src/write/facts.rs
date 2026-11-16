@@ -47,9 +47,6 @@ pub enum Decision {
     Held,
 }
 
-// TODO(293h): when `ClassTables` becomes a `WriteArea`, add a test that every kind in `user-facts.txt` other than `*` is
-// one the check emits for its area (`areas/class_tables.rs`, `areas/items.rs`), so a misspelled kind can't silently
-// protect nothing.
 impl Facts {
     /// The repo's own registry, `tools/game-check/user-facts.txt`.
     pub fn embedded() -> Result<Facts, Error> {
@@ -101,6 +98,19 @@ impl Facts {
             });
         }
         Ok(Facts { lines })
+    }
+
+    /// The area and kind of every line that names a kind (not `*`), for a test that each is one the check emits.
+    pub fn kinds(&self) -> Vec<(Area, String)> {
+        self.lines
+            .iter()
+            .filter_map(|line| {
+                line.kind
+                    .as_ref()
+                    .filter(|kind| *kind != "*")
+                    .map(|kind| (line.area, kind.clone()))
+            })
+            .collect()
     }
 
     pub fn len(&self) -> usize {
