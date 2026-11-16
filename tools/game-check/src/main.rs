@@ -34,6 +34,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::time::Instant;
 
+use game_check::write::facts::Facts;
 use game_check::write::{WriteArea, log, run as write};
 use game_check::{Known, Library, Pins, Report, binz, check, default_dump};
 
@@ -96,6 +97,19 @@ fn run() -> Result<Outcome, String> {
             _ if arg.starts_with("--") => return Err(format!("{USAGE}; not {arg}")),
             _ => words.push(arg),
         }
+    }
+    if write_areas.is_some() && !words.is_empty() {
+        return Err(format!(
+            "--write takes no lookup command, not `{}`\n{USAGE}",
+            words.join(" ")
+        ));
+    }
+    if let Some(path) = &log_path
+        && write_areas.is_some()
+    {
+        // A log that can't be written is found before anything is: never after the data is.
+        std::fs::File::create(path)
+            .map_err(|error| format!("--log {}: {error}", path.display()))?;
     }
     let pins = Pins::embedded().map_err(|error| error.to_string())?;
     let binz_path = binz_path.unwrap_or_else(|| {
@@ -196,8 +210,9 @@ fn write_run(
             .map(|_| ())
             .map_err(|error| error.to_string())
     };
-    let outcome =
-        write(&dump, data_dir, areas, dry_run, validate).map_err(|error| error.to_string())?;
+    let facts = Facts::embedded().map_err(|error| error.to_string())?;
+    let outcome = write(&dump, data_dir, areas, dry_run, &facts, validate)
+        .map_err(|error| error.to_string())?;
     let mut text = String::new();
     if dry_run {
         text.push_str("dry run: nothing written\n");
@@ -225,14 +240,26 @@ fn write_run(
             text.push_str(&format!("  {} | {}\n", item.at, item.what));
         }
     }
-    if outcome.changes.is_empty() {
+    if !outcome.to_the_user.is_empty() {
+        text.push_str("to the user, the user's facts held, not written:\n");
+        for change in &outcome.to_the_user {
+            text.push_str(&format!(
+                "  {} | {} | was: {} | now: {}\n",
+                change.at, change.field, change.old, change.new
+            ));
+        }
+    }
+    if outcome.changes.is_empty() && outcome.to_the_user.is_empty() {
         text.push_str("nothing to write\n");
     }
     if let Some(path) = log_path {
         let data = seeds::check_game_data_files(data_dir).map_err(|error| error.to_string())?;
         let after = check(pins, &dump, &data, known).map_err(|error| error.to_string())?;
-        std::fs::write(path, log::tsv(&outcome.changes, &before, &after))
-            .map_err(|error| format!("{}: {error}", path.display()))?;
+        std::fs::write(
+            path,
+            log::tsv(&outcome.changes, &outcome.facts, &before, &after),
+        )
+        .map_err(|error| format!("{}: {error}", path.display()))?;
     }
     Ok(text)
 }

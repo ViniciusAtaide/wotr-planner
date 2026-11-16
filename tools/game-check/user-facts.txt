@@ -1,0 +1,56 @@
+# The user's facts in the fields the importer writes (importer design §3.2; ticket 293e). A change to one is written
+# only under an `applied` line; otherwise `game-check --write` skips it, lists it under "to the user", and the finding
+# stays. The grammar is `known.txt`'s with another right side:
+#
+#   <area> / <kind> / <entry> -> applied <ticket>
+#   <area> / <kind> -> held
+#
+# A kind of `*` is any kind; the most specific line wins. A line naming an entry the data doesn't have fails the run.
+# The headband +8's line comes with 293k.
+
+# Every class's and archetype's class skills and skill points are the user's (research/skills-from-user.md, map Notes);
+# the kinds are the ones the check tags "(the user's facts)" (areas/class_tables.rs).
+class tables / class skills differ (the user's facts) -> held
+class tables / skill points differ (the user's facts) -> held
+
+# Applied: the user decided these in ticket 262 (class skills and the Defender of the Hearth's skill points) and 261
+# (the Arcane Trickster's skill points).
+class tables / class skills differ (the user's facts) / archetype alchemist/metamorph -> applied 262
+class tables / class skills differ (the user's facts) / archetype arcanist/magic-deceiver -> applied 262
+class tables / class skills differ (the user's facts) / archetype magus/spell-dancer -> applied 262
+class tables / class skills differ (the user's facts) / archetype monk/sohei -> applied 262
+class tables / class skills differ (the user's facts) / archetype oracle/seeker -> applied 262
+class tables / class skills differ (the user's facts) / archetype oracle/wind-whisperer -> applied 262
+class tables / class skills differ (the user's facts) / archetype ranger/sable-company-marine -> applied 262
+class tables / class skills differ (the user's facts) / archetype rogue/sylvan-trickster -> applied 262
+class tables / class skills differ (the user's facts) / archetype sorcerer/empyreal-sorcerer -> applied 262
+class tables / class skills differ (the user's facts) / archetype sorcerer/sylvan-sorcerer -> applied 262
+class tables / class skills differ (the user's facts) / archetype witch/witch-of-the-veil -> applied 262
+class tables / class skills differ (the user's facts) / archetype hunter/divine-hunter -> applied 262
+class tables / class skills differ (the user's facts) / class stalwart-defender -> applied 262
+class tables / skill points differ (the user's facts) / archetype fighter/defender-of-the-hearth -> applied 262
+class tables / skill points differ (the user's facts) / class arcane-trickster -> applied 261
+
+# The user's 22 plain stat belts and headbands: the gear files with no guide link (libs/game-data/README.md, gear/).
+items / * / gear item belt-of-giant-strength-2 -> held
+items / * / gear item belt-of-giant-strength-4 -> held
+items / * / gear item belt-of-giant-strength-6 -> held
+items / * / gear item belt-of-incredible-dexterity-2 -> held
+items / * / gear item belt-of-incredible-dexterity-4 -> held
+items / * / gear item belt-of-incredible-dexterity-6 -> held
+items / * / gear item belt-of-physical-perfection-2 -> held
+items / * / gear item belt-of-physical-perfection-4 -> held
+items / * / gear item belt-of-the-mighty-constitution-2 -> held
+items / * / gear item belt-of-the-mighty-constitution-4 -> held
+items / * / gear item belt-of-the-mighty-constitution-6 -> held
+items / * / gear item headband-of-alluring-charisma-2 -> held
+items / * / gear item headband-of-alluring-charisma-4 -> held
+items / * / gear item headband-of-alluring-charisma-6 -> held
+items / * / gear item headband-of-inspired-wisdom-2 -> held
+items / * / gear item headband-of-inspired-wisdom-4 -> held
+items / * / gear item headband-of-inspired-wisdom-6 -> held
+items / * / gear item headband-of-mental-perfection-2 -> held
+items / * / gear item headband-of-mental-perfection-4 -> held
+items / * / gear item headband-of-vast-intelligence-2 -> held
+items / * / gear item headband-of-vast-intelligence-4 -> held
+items / * / gear item headband-of-vast-intelligence-6 -> held

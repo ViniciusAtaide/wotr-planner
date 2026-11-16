@@ -3,6 +3,7 @@
 
 use std::path::{Path, PathBuf};
 
+use game_check::write::facts::Facts;
 use game_check::write::items::gear_stat;
 use game_check::write::span::Value;
 use game_check::write::{
@@ -412,7 +413,15 @@ fn report_of(dir: &Path) -> game_check::Report {
 
 fn write_items(dir: &Path) -> game_check::write::Outcome {
     let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
-    run(&dump, dir, &[WriteArea::Items], false, |_| Ok(())).unwrap()
+    run(
+        &dump,
+        dir,
+        &[WriteArea::Items],
+        false,
+        &Facts::default(),
+        |_| Ok(()),
+    )
+    .unwrap()
 }
 
 #[test]
@@ -575,7 +584,15 @@ fn an_item_with_a_bonus_the_importer_cannot_read_or_name_stays_unwritten_and_lis
     );
     let before = all_files(dir.path());
     let (_, dump) = crate::support::dump(&crate::support::binz(&records, 2));
-    let outcome = run(&dump, dir.path(), &[WriteArea::Items], false, |_| Ok(())).unwrap();
+    let outcome = run(
+        &dump,
+        dir.path(),
+        &[WriteArea::Items],
+        false,
+        &Facts::default(),
+        |_| Ok(()),
+    )
+    .unwrap();
     let left: Vec<_> = outcome
         .unexpressed
         .iter()
@@ -697,7 +714,7 @@ fn items_with_log(dir: &Path) -> (Vec<(PathBuf, String)>, String) {
     let before = report_of(dir);
     let outcome = write_items(dir);
     let after = report_of(dir);
-    let log = game_check::write::log::tsv(&outcome.changes, &before, &after);
+    let log = game_check::write::log::tsv(&outcome.changes, &outcome.facts, &before, &after);
     (all_files(dir), log)
 }
 
@@ -761,11 +778,113 @@ fn a_dry_run_writes_nothing() {
     let dir = data_copy();
     let before = all_files(dir.path());
     let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
-    let outcome = run(&dump, dir.path(), &[WriteArea::Items], true, |_| {
-        panic!("a dry run checks nothing written")
-    })
+    let outcome = run(
+        &dump,
+        dir.path(),
+        &[WriteArea::Items],
+        true,
+        &Facts::default(),
+        |_| panic!("a dry run checks nothing written"),
+    )
     .unwrap();
     assert_eq!(outcome.changes.len(), 3);
     assert_eq!(outcome.applied.files.len(), 3, "the files it would write");
     assert_eq!(all_files(dir.path()), before);
+}
+
+fn items_with_facts(
+    dir: &Path,
+    facts: &str,
+) -> Result<game_check::write::Outcome, game_check::write::WriteError> {
+    let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
+    let facts = Facts::parse(facts).unwrap();
+    run(&dump, dir, &[WriteArea::Items], false, &facts, |_| Ok(()))
+}
+
+#[test]
+fn a_held_fact_is_not_written_and_goes_to_the_user() {
+    let dir = data_copy();
+    let cloak = read(dir.path(), "gear/cloak-of-test.ron");
+    let outcome =
+        items_with_facts(dir.path(), "items / * / gear item cloak-of-test -> held").unwrap();
+    assert_eq!(read(dir.path(), "gear/cloak-of-test.ron"), cloak);
+    let held: Vec<_> = outcome
+        .to_the_user
+        .iter()
+        .map(|c| c.at.to_string())
+        .collect();
+    assert_eq!(held, ["gear item cloak-of-test"]);
+    assert_eq!(outcome.to_the_user[0].field, "components");
+    assert!(
+        outcome.to_the_user[0]
+            .new
+            .contains("AllSaves +3 Resistance")
+    );
+    // The others are written as without the registry, and the held finding stays in the report.
+    assert_eq!(outcome.changes.len(), 2);
+    assert!(read(dir.path(), "gear/ring-of-nothing.ron").contains("components: []"));
+    assert!(
+        report_of(dir.path())
+            .text()
+            .contains("gear item cloak-of-test")
+    );
+}
+
+#[test]
+fn an_applied_fact_is_written_and_logged_with_its_ticket() {
+    let dir = data_copy();
+    let before = report_of(dir.path());
+    let outcome = items_with_facts(
+        dir.path(),
+        "items / * -> held\nitems / * / gear item cloak-of-test -> applied 999",
+    )
+    .unwrap();
+    // The area is held, the entry's own line applies: only the cloak is written.
+    assert_eq!(outcome.changes.len(), 1);
+    assert_eq!(outcome.to_the_user.len(), 2);
+    assert!(read(dir.path(), "gear/cloak-of-test.ron").contains("value: 3"));
+    let log = game_check::write::log::tsv(
+        &outcome.changes,
+        &outcome.facts,
+        &before,
+        &report_of(dir.path()),
+    );
+    let row: Vec<_> = log.lines().nth(1).unwrap().split('\t').collect();
+    assert_eq!(row[0], "gear item cloak-of-test");
+    assert_eq!(row[5], "applied 999");
+}
+
+#[test]
+fn a_fact_naming_no_entry_fails_the_run_and_writes_nothing() {
+    let dir = data_copy();
+    let before = all_files(dir.path());
+    let error =
+        items_with_facts(dir.path(), "items / * / gear item nothing-here -> held").unwrap_err();
+    assert!(
+        matches!(error, WriteError::StaleFacts(ref lines) if lines.len() == 1),
+        "{error}"
+    );
+    assert!(error.to_string().contains("gear item nothing-here"));
+    assert_eq!(all_files(dir.path()), before);
+}
+
+#[test]
+fn the_registry_refuses_what_it_cannot_read() {
+    for bad in [
+        "items / * / gear item x",
+        "items / * / gear item x -> maybe",
+        "items / * / gear item x -> applied",
+        "nowhere / * -> held",
+        "items / * / gear item x / 3 -> held",
+    ] {
+        assert!(Facts::parse(bad).is_err(), "{bad}");
+    }
+}
+
+#[test]
+fn the_embedded_registry_names_only_entries_the_data_has() {
+    let data = seeds::read_game_data_files(&seeds::game_data_dir()).unwrap();
+    let facts = Facts::embedded().unwrap();
+    assert!(!facts.is_empty());
+    assert_eq!(facts.stale(&data), Vec::<String>::new());
 }
