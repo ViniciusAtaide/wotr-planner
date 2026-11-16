@@ -49,6 +49,13 @@ opt-level = 3
 [profile.dev.package.serde_json]
 opt-level = 3
 
+# The lookups (ticket 299) parse every blueprint's JSON: `grep` in seconds, not in a minute.
+[profile.dev.package.game-check]
+opt-level = 3
+
+[profile.dev.package.regex-automata]
+opt-level = 3
+
 [[workspace.metadata.leptos]]
 name = "wotr-planner"
 bin-package = "server"

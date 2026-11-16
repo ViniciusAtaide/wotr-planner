@@ -14,6 +14,9 @@
 //! - `tests/self_checks.rs`: the withdrawals against `removable`, each start and level option's status against
 //!   `allows`, and ticket 48's picker shortcut against full walks; the sample in the suite, the whole corpus ignored.
 //!
+//! - `tests/form_proof.rs` (ticket 300): `record` and `compare`, for a ticket that changes only the data's or the model's
+//!   form and so claims no behaviour moves; ignored, a few seconds in release.
+//!
 //! The ignored runs take minutes in release (`cargo test --release -p corpus -- --ignored`): a heavy run, once per
 //! queue of tickets by the main session (`CLAUDE.md`, "Parallel agents"). A self-check never outranks the game: when
 //! one disagrees with it, the engine is fixed (`CLAUDE.md`, "Behaviour checks").
