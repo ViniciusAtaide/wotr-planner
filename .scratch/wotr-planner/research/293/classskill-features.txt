@@ -1,0 +1,18 @@
+== MetamorphArchetype
+  MetamorphClassSkills 1d42191a101f2fb42b6e87b7bfc99a5e [SkillStealth ] -> NO ENTRY
+== MagicDeceiver
+== DivineHunterArchetype
+== SpellDancerArchetype
+== SoheiArchetype
+  SoheiLoreNatureFeature d59fe46a1aa1ace4e987d843c8e309ff [SkillLoreNature ] -> NO ENTRY
+== SeekerArchetype
+  SeekerTrapfinding cb3abfaa682b67c48953dfa200aab325 [SkillThievery ] -> features/oracle/seeker/seekers-trapfinding.ron 
+== WIndWhispererArchetype
+  OracleWindMysteryFeature 7c1fdd831af747b47bb2cce0051f309b [SkillMobility SkillStealth ] -> options/oracle/mystery/wind.ron 
+== SableMarineArchetype
+== SylvanTricksterArchetype
+== EmpyrealSorcererArchetype
+== SylvanSorcererArchetype
+== WitchOfTheVeilArchetype
+  WitchOfTheVeilSecrecyFeature 8c189560d7f94dd688f0dc29f6963610 [SkillStealth SkillThievery ] -> features/witch/witch-of-the-veil/secrecy.ron 
+== StalwartDefenderClass
