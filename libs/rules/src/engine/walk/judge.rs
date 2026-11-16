@@ -120,8 +120,11 @@ pub(super) fn check_pick_with(
             if kind != &SlotKind::MythicAbility || !catalog.value_fits(ability.parameter, value) {
                 return Err(Issue::NotAllowed);
             }
-            // Held once, whatever its value.
-            if state.mythic_abilities.contains(key) {
+            let held = match (ability.repeat, value) {
+                (Repeat::PerValue, Some(value)) => state.has_mythic_ability_for(key, value),
+                _ => state.mythic_abilities.contains(key),
+            };
+            if held {
                 return Err(Issue::AlreadyHeld);
             }
             ability.prerequisite.as_ref()

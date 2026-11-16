@@ -1145,6 +1145,15 @@ fn a_mythic_feat_repeats_per_value_only_with_a_value() {
     );
 }
 
+/// Ticket 249: a mythic ability repeats per value only when it takes one, as a mythic feat.
+#[test]
+fn a_mythic_ability_repeats_per_value_only_with_a_value() {
+    let mut data = world();
+    data.mythic_abilities[0].repeat = Repeat::PerValue;
+    let at = DataAt::MythicAbility(data.mythic_abilities[0].key.clone());
+    assert_eq!(issues(&data), [(at, DataIssue::PerValueWithoutParameter)]);
+}
+
 #[test]
 fn a_feat_granted_for_a_value_takes_a_value_of_that_kind() {
     let mut data = world();
@@ -1505,6 +1514,8 @@ fn every_feature_selection_and_option_named_is_one_the_data_has() {
         .insert(selection());
     data.mythic_abilities[0].features.push(feature());
     feat_mut(&mut data, "dodge").prerequisite = Some(Prerequisite::SelectionOption(option()));
+    feat_mut(&mut data, "extra-rogue-talent").prerequisite =
+        Some(Prerequisite::Selection(selection()));
     path_mut(&mut data, "legend")
         .switch
         .as_mut()
@@ -1524,6 +1535,7 @@ fn every_feature_selection_and_option_named_is_one_the_data_has() {
             ),
             unknown(at_option("rogue/rogue-talents/resiliency"), selection()),
             unknown(at_feat("toughness"), selection()),
+            unknown(at_feat("extra-rogue-talent"), selection()),
             unknown(
                 DataAt::MythicAbility(rules::MythicAbilityKey::new("mythic-charge")),
                 feature()

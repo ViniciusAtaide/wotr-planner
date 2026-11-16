@@ -785,6 +785,7 @@ impl Engine {
             | Prerequisite::MythicAbility(_)
             | Prerequisite::Feature { .. }
             | Prerequisite::SelectionOption(_)
+            | Prerequisite::Selection(_)
             | Prerequisite::Story(_) => (Lead::With, text()),
             Prerequisite::Deity(deity) => (
                 Lead::For,
@@ -977,6 +978,9 @@ impl Engine {
                 have(format!("{} ×{count}", self.feature_name_apart(feature)))
             }
             Prerequisite::SelectionOption(option) => self.option_name(option).to_owned(),
+            Prerequisite::Selection(selection) => {
+                format!("the {} selection", self.selection_name(selection))
+            }
             Prerequisite::NoOptionFrom(selection) => {
                 format!("no {} yet", self.selection_name(selection))
             }

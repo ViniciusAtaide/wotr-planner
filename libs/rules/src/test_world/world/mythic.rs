@@ -18,6 +18,7 @@ pub(super) fn mythic_abilities() -> Vec<MythicAbility> {
         features: vec![],
         selections: vec![],
         parameter: None,
+        repeat: Repeat::Once,
     };
     vec![
         ability("mythic-charge", None),

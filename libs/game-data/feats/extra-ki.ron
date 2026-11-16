@@ -1,1 +1,1 @@
-(key: "extra-ki", blueprint: "231a2a603d0b437e939553e6da3e7247", name: "Extra Ki", summary: "+2 points in your ki pool; can be taken more than once.", category: Class, guide: "feats#extra-ki", repeat: Unlimited, prerequisite: Feature(feature: "monk/ki-pool", count: 1))
+(key: "extra-ki", blueprint: "231a2a603d0b437e939553e6da3e7247", name: "Extra Ki", summary: "+2 points in your ki pool; up to 20 times.", category: Class, guide: "feats#extra-ki", repeat: Times(20), prerequisite: Feature(feature: "monk/ki-pool", count: 1))

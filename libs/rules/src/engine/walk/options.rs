@@ -344,8 +344,9 @@ impl<'a> Walker<'a> {
             .any(|feature| self.state.feature_count(feature) > 0)
     }
 
-    /// Holds an option row's features, feats, chosen feats (for `parameter`, the value the option's pick named) and
-    /// class skills (from `source`) and queues its selections and feat slots as `option`'s. Returns what it holds.
+    /// Holds an option row's features, feats, chosen feats (for `parameter`, the value the option's pick named),
+    /// class skills and selections (from `source`) and queues its selections' and feat slots as `option`'s. Returns
+    /// what it holds.
     fn grant_row(
         &mut self,
         row: &'a crate::game_data::OptionLevelRow,
@@ -372,6 +373,11 @@ impl<'a> Walker<'a> {
                 row.class_skills
                     .iter()
                     .map(|skill| Held::ClassSkill(skill.clone())),
+            )
+            .chain(
+                row.selections
+                    .iter()
+                    .map(|selection| Held::Selection(selection.clone())),
             )
             .collect();
         for item in &held {

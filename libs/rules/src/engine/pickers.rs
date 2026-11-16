@@ -266,6 +266,9 @@ impl Engine {
             }
             (Pick::MythicAbility { ability: a, .. }, Pick::MythicAbility { ability: b, .. }) => {
                 a == b
+                    && catalog
+                        .mythic_ability(a)
+                        .is_some_and(|ability| ability.repeat != Repeat::PerValue)
             }
             (Pick::MythicFeat { feat: a, .. }, Pick::MythicFeat { feat: b, .. }) => {
                 a == b

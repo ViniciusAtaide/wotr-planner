@@ -1,1 +1,1 @@
-(key: "rogue/rogue-talents/weapon-focus", blueprint: "1e1f627d26ad36f43bbd26cc2bf8ac7e", name: "Weapon Focus", summary: "Gains the Weapon Focus feat.", guide: "rogue#weapon-focus", chosen_feat: "weapon-focus")
+(key: "rogue/rogue-talents/weapon-focus", blueprint: "1e1f627d26ad36f43bbd26cc2bf8ac7e", name: "Weapon Focus", summary: "Gains the Weapon Focus feat for one weapon; can be taken again for another weapon.", guide: "rogue#weapon-focus", chosen_feat: "weapon-focus", repeat: PerValue)

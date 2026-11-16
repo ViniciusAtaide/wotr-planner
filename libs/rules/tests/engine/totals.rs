@@ -78,6 +78,7 @@ fn world_with_bonus_items() -> GameData {
         features: Vec::new(),
         selections: Vec::new(),
         parameter: None,
+        repeat: rules::Repeat::Once,
     });
     data.backgrounds.push(Background {
         key: BackgroundKey::new("pickpocket"),
