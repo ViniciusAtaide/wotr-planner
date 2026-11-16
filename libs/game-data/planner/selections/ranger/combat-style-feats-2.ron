@@ -1,0 +1,14 @@
+(
+    why: "The game's RangerStyleSelection2 is the style pick and its 2nd-level feat in one: it offers each style's 2nd-level feat selection; the planner picks the style apart (`ranger/combat-style-feat`), and this slot offers the held style's 2nd-level list, as RangerStyleSelection6 and 10 offer theirs (ticket 304).",
+    entry: (
+        key: "ranger/combat-style-feats-2",
+        name: "Combat Style feat",
+        options: [
+            "ranger/combat-style-feats-2/archery",
+            "ranger/combat-style-feats-2/menacing",
+            "ranger/combat-style-feats-2/two-handed-weapon",
+            "ranger/combat-style-feats-2/two-weapon-combat",
+            "ranger/combat-style-feats-2/weapon-and-shield",
+        ],
+    ),
+)

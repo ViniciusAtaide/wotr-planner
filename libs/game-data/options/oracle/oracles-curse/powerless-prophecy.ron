@@ -4,6 +4,7 @@
     name: "Powerless Prophecy",
     summary: "Staggered in the first round of combat but gain Uncanny Dodge; +4 initiative at 5th, Improved Uncanny Dodge at 10th, +4 first-round AC and saves at 15th.",
     guide: "oracle#powerless-prophecy",
+    header: (classes: {"oracle": 0, "witch": 0}, archetypes: {"witch/stigmatized-witch": 0}, half_other_classes: true, previous_levels: true),
     levels: [
         (level: 1, features: ["oracle/oracles-curse/powerless-prophecy/level-1", "uncanny-dodge"]),
         (level: 5, features: ["oracle/oracles-curse/powerless-prophecy/level-5"]),

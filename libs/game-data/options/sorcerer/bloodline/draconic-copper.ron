@@ -7,8 +7,9 @@
     prerequisite: NoOtherOptionOfGroup(Draconic),
     group: Draconic,
     arcana: "sorcerer/bloodline/draconic/draconic-arcana",
+    header: (classes: {"dragon-disciple": 0, "magus": 0, "sorcerer": 0}, archetypes: {"magus/eldritch-scion": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["sorcerer/bloodline/draconic/draconic-arcana", "sorcerer/bloodline/draconic/grow-claws"], feat_list: "sorcerer/bloodline/draconic/feats", class_skills: ["perception"]),
+        (level: 1, features: ["sorcerer/bloodline/draconic/draconic-arcana", "sorcerer/bloodline/draconic/grow-claws"], class_skills: ["perception"]),
         (level: 3, features: ["sorcerer/bloodline/draconic/draconic-resistances"]),
         (level: 9, features: ["sorcerer/bloodline/draconic/draconic-resistances"]),
         (level: 15, features: ["sorcerer/bloodline/draconic/draconic-resistances"], feats: ["wings"]),

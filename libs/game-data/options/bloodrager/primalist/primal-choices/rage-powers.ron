@@ -6,6 +6,7 @@
     summary: "Take two rage powers instead of this level's bloodline ability.",
     guide: "bloodrager#primal-choices",
     replaces_row_of: "bloodrager/bloodline",
+    header: (classes: {"bloodrager": 0}),
     levels: [
         (level: 1, selections: ["barbarian/rage-power", "barbarian/rage-power"]),
     ],

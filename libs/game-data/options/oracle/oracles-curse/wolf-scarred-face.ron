@@ -4,6 +4,7 @@
     name: "Wolf-Scarred Face",
     summary: "10% spell failure for a 1d4 bite that grows to 2d6 by 15th, plus Magic Fang at 5th and Greater Magic Fang at 15th.",
     guide: "oracle#wolf-scarred-face",
+    header: (classes: {"oracle": 0, "witch": 0}, archetypes: {"witch/stigmatized-witch": 0}, half_other_classes: true, previous_levels: true),
     levels: [
         (level: 1, features: ["oracle/oracles-curse/wolf-scarred-face/level-1"]),
         (level: 5, features: ["oracle/oracles-curse/wolf-scarred-face/level-5"]),

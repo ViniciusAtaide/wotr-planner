@@ -1,1 +1,1 @@
-(key: "witch/patron/transformation", blueprint: "23ea5ade326f80b488164f75580c03af", name: "Transformation", summary: "Bonus spells: Longstrider, Bear's Endurance, Beast Shape I to III, Dragonkind I to III, Shapechange.", guide: "witch#transformation")
+(key: "witch/patron/transformation", blueprint: "23ea5ade326f80b488164f75580c03af", name: "Transformation", summary: "Bonus spells: Longstrider, Bear's Endurance, Beast Shape I to III, Dragonkind I to III, Shapechange.", guide: "witch#transformation", header: (classes: {"witch": 0}))

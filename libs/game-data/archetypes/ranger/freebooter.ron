@@ -9,7 +9,7 @@
         (level: 1, features: ["ranger/freebooter/freebooters-bane"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 4, features: ["ranger/freebooter/freebooters-bond"]),
         (level: 5, features: ["ranger/freebooter/freebooters-bane"]),
-        (level: 10, features: ["ranger/freebooter/freebooters-bane"], selections: ["ranger/combat-style-feats"]),
+        (level: 10, features: ["ranger/freebooter/freebooters-bane"], selections: ["ranger/combat-style-feats-10"]),
         (level: 15, features: ["ranger/freebooter/freebooters-bane"]),
         (level: 20, features: ["ranger/freebooter/freebooters-bane", "ranger/master-hunter"]),
     ],

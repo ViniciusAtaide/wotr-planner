@@ -4,6 +4,7 @@
     name: "Ice Subdomain",
     summary: "Icicle, and Body of Ice from 8th level (DR/- and cold immunity, but double fire damage); spells from Snowball to Mass Icy Prison.",
     guide: "character-creation#ice-subdomain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/ice/icicle"]),
         (level: 8, features: ["cleric/domain/ice/body-of-ice"]),

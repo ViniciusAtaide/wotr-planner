@@ -2,5 +2,15 @@
     key: "sorcerer/bloodline-feats",
     blueprint: "3a60f0c0442acfb419b0c03b584e1394",
     name: "Bloodline feat",
-    option_lists: (selection: "sorcerer/bloodline"),
+    options: [
+        "sorcerer/bloodline-feats/abyssal",
+        "sorcerer/bloodline-feats/arcane",
+        "sorcerer/bloodline-feats/celestial",
+        "sorcerer/bloodline-feats/draconic",
+        "sorcerer/bloodline-feats/elemental",
+        "sorcerer/bloodline-feats/fey",
+        "sorcerer/bloodline-feats/infernal",
+        "sorcerer/bloodline-feats/serpentine",
+        "sorcerer/bloodline-feats/undead",
+    ],
 )

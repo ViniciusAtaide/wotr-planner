@@ -4,6 +4,7 @@
     name: "Scalykind Domain",
     summary: "Venomous Stare and a monitor lizard or velociraptor companion at 4th level; spells from Magic Fang to Shapechange.",
     guide: "character-creation#scalykind-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/scalykind/venomous-stare"]),
         (level: 4, features: ["cleric/domain/scalykind/animal-companion"]),

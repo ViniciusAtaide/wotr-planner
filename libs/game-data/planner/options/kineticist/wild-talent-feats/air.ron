@@ -1,0 +1,13 @@
+(
+    why: "An element's bonus-feat list as an option of the planner's wild talent feat selection (ticket 304): the game has the element's own list (WildTalentBonusFeatAir and the others) with no selection over them.",
+    entry: (
+        key: "kineticist/wild-talent-feats/air",
+        name: "Wild Talent Bonus Feats (Air)",
+        guide: "kineticist#elemental-focus-air",
+        is_selection: true,
+        prerequisite: SelectionOption("kineticist/element/air"),
+        levels: [
+            (level: 1, selections: ["kineticist/element/air/wild-talent-feats"]),
+        ],
+    ),
+)

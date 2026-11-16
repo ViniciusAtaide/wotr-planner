@@ -1,0 +1,13 @@
+(
+    why: "A bloodline's feat list as an option of the planner's bloodline feat selection (ticket 304): the game grants the list from the bloodline's progression, with no selection over the lists.",
+    entry: (
+        key: "bloodrager/bloodline-feats/elemental",
+        name: "Elemental Bloodline Feats",
+        guide: "bloodrager#bonus-feats-elemental",
+        is_selection: true,
+        prerequisite: Any([SelectionOption("bloodrager/bloodline/elemental-air"), SelectionOption("bloodrager/bloodline/elemental-earth"), SelectionOption("bloodrager/bloodline/elemental-fire"), SelectionOption("bloodrager/bloodline/elemental-water")]),
+        levels: [
+            (level: 1, selections: ["bloodrager/bloodline/elemental/feats"]),
+        ],
+    ),
+)

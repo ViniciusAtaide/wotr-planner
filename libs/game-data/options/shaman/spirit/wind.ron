@@ -4,6 +4,7 @@
     name: "Wind",
     summary: "Wind: Shocking Touch, electricity resistance and a line at 8th, air elemental form at 16th, free electricity metamagic at 20th.",
     guide: "shaman#wind",
+    header: (classes: {"shaman": 0}, previous_levels: true),
     levels: [
         (level: 1, features: ["shaman/spirit/wind/shocking-touch"]),
         (level: 8, features: ["shaman/spirit/wind/spark-soul"]),

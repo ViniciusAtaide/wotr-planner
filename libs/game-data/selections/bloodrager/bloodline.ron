@@ -4,7 +4,6 @@
     name: "Bloodline",
     summary: "The bloodline gives your bloodrage powers, bonus spells from 7th level and bonus feats from 6th level.",
     guide: "character-creation#bloodlines",
-    option_levels: ["bloodrager"],
     options: [
         "bloodrager/bloodline/abyssal",
         "bloodrager/bloodline/arcane",

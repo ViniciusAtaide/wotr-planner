@@ -4,9 +4,4 @@
     name: "Archery Feats",
     summary: "Point Blank Shot, Precise Shot, Rapid Shot; from 6th Improved Precise Shot, Point Blank Master, Manyshot; from 10th Improved Critical.",
     guide: "ranger#archery-feats",
-    levels: [
-        (level: 2, feat_list: "ranger/combat-style-feat/archery-feats-2"),
-        (level: 6, feat_list: "ranger/combat-style-feat/archery-feats-6"),
-        (level: 10, feat_list: "ranger/combat-style-feat/archery-feats-10"),
-    ],
 )

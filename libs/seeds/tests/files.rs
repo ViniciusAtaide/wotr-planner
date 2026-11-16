@@ -2,7 +2,7 @@
 
 mod common;
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 
 use common::{copy_fixture, fixture_dir};
@@ -11,8 +11,9 @@ use rules::{
     BackgroundGroup, ClassKey, Component, CountsAs, CountsToward, DataAt, Descriptor, FeatKey,
     FeatValue, FeatureKey, FeatureSelectionKey, GameData, LevelFrom, MythicAbilityGroup,
     MythicFeatGroup, MythicPathKey, OptionGroup, OptionLevelRow, OptionRow, Parameter,
-    ParameterKind, Prerequisite, Repeat, Save, SaveException, SaveProgression, SelectionOptionKey,
-    SkillKey, SpellLevels, StatTarget, Story, Value, WeaponKey, WeaponProficiency,
+    ParameterKind, Prerequisite, ProgressionHeader, Repeat, Save, SaveException, SaveProgression,
+    SelectionOptionKey, SkillKey, SpellLevels, StatTarget, Story, Value, WeaponKey,
+    WeaponProficiency,
 };
 
 fn read_fixture() -> GameData {
@@ -926,11 +927,23 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         OptionLevelRow {
             level: 1,
             features: vec![FeatureKey::new("sorcerer/bloodline/abyssal/claws")],
-            feat_list: Some(FeatureSelectionKey::new("sorcerer/bloodline/abyssal-feats")),
             class_skills: BTreeSet::from([SkillKey::new("athletics")]),
             ..OptionLevelRow::default()
         }
     );
+    // Ticket 304: an option's progression header, a class with an offset; one without has none.
+    assert_eq!(
+        abyssal.header,
+        Some(ProgressionHeader {
+            classes: BTreeMap::from([
+                (ClassKey::new("fighter"), -1),
+                (ClassKey::new("sorcerer"), 0)
+            ]),
+            previous_levels: true,
+            ..ProgressionHeader::default()
+        })
+    );
+    assert_eq!(bloodlines[1].header, None);
     // Ticket 37: an option row's class skills, and a row holding nothing else.
     assert_eq!(
         bloodlines[1].levels[2],
@@ -974,14 +987,23 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         sorcerer.levels[2].selections[0],
         FeatureSelectionKey::new("sorcerer/bloodline-feats")
     );
+    // Ticket 304: a selection of feats nesting each bloodline's list as an option the bloodline opens.
+    let bloodline_feats = selection("sorcerer/bloodline-feats");
+    assert!(data.nests_feat_lists(bloodline_feats) && data.offers_feats(bloodline_feats));
+    let nested = options("sorcerer/bloodline-feats");
     assert_eq!(
-        data.selection(&FeatureSelectionKey::new("sorcerer/bloodline-feats"))
-            .unwrap()
-            .option_lists,
-        Some(rules::OptionLists {
-            selection: FeatureSelectionKey::new("sorcerer/bloodline"),
-            at_level: None,
-        })
+        nested
+            .iter()
+            .map(|option| (option.nested_selection(), option.prerequisite.clone()))
+            .collect::<Vec<_>>(),
+        [(
+            Some(&FeatureSelectionKey::new(
+                "sorcerer/bloodline/abyssal-feats"
+            )),
+            Some(Prerequisite::SelectionOption(SelectionOptionKey::new(
+                "sorcerer/bloodline/abyssal"
+            )))
+        )]
     );
     let feature = |key: &str| data.feature(&FeatureKey::new(key)).unwrap();
     let ascendance = feature("sorcerer/bloodline-ascendance");
@@ -1058,10 +1080,10 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
     let talents = selection("rogue/rogue-talents");
     assert!(talents.option_levels.is_empty() && talents.skipped_levels.is_empty());
     assert!(talents.filtered_by.is_none() && !talents.feat_lists_only);
-    assert!(talents.option_level_archetypes.is_empty() && !talents.half_other_classes);
+    assert!(talents.option_level_archetypes.is_empty() && !talents.option_headers_first);
     assert!(
         data.options_of(talents)
-            .all(|o| o.levels.is_empty() && o.aliases.is_empty())
+            .all(|o| o.levels.is_empty() && o.aliases.is_empty() && o.header.is_none())
     );
     assert!(
         rogue
@@ -1265,16 +1287,19 @@ fn reads_option_groups_arcanas_level_sources_and_picks_through_and_defaults_them
     // Once per option through a selection.
     assert!(selection("sorcerer/seeker/second-bloodline").once_per_option);
     assert!(!bloodline.once_per_option);
-    // A filtered pool with an option of its own, levelled by an archetype and half the other classes.
+    // A filtered pool with an option of its own, levelled by its header (ticket 304): a class, an archetype and half
+    // the other classes.
     let power = selection("sorcerer/power");
-    assert!(power.filtered_by.is_some() && power.half_other_classes);
+    assert!(power.filtered_by.is_some() && power.option_levels.is_empty());
+    let surge = data.options_of(power).next().unwrap();
     assert_eq!(
-        power
-            .option_level_archetypes
-            .keys()
-            .map(ArchetypeKey::as_str)
-            .collect::<Vec<_>>(),
-        ["sorcerer/seeker"]
+        surge.header,
+        Some(ProgressionHeader {
+            classes: BTreeMap::from([(ClassKey::new("sorcerer"), 0)]),
+            archetypes: BTreeMap::from([(ArchetypeKey::new("sorcerer/seeker"), 0)]),
+            half_other_classes: true,
+            previous_levels: false,
+        })
     );
     assert_eq!(
         power
@@ -1287,7 +1312,7 @@ fn reads_option_groups_arcanas_level_sources_and_picks_through_and_defaults_them
 }
 
 #[test]
-fn reads_subrace_slots_option_list_stages_and_options_levelled_alongside_and_defaults_them() {
+fn reads_subrace_slots_a_nesting_feat_slot_and_options_levelled_alongside_and_defaults_them() {
     let data = read_fixture();
     // A subrace's own slots, naming its race's list; another with none.
     let half_elf = data
@@ -1311,7 +1336,7 @@ fn reads_subrace_slots_option_list_stages_and_options_levelled_alongside_and_def
             .filter(|s| s.key.as_str() != "half-elf/adaptable")
             .all(|s| s.selections.is_empty())
     );
-    // An option list slot fixed at an option level, beside one that follows the option's level.
+    // The bloodline feat slot: one selection nesting the bloodlines' lists (ticket 304; the option list stages went).
     let sorcerer = data
         .classes
         .iter()
@@ -1319,28 +1344,7 @@ fn reads_subrace_slots_option_list_stages_and_options_levelled_alongside_and_def
         .unwrap();
     assert_eq!(
         sorcerer.levels[2].selections,
-        [
-            FeatureSelectionKey::new("sorcerer/bloodline-feats"),
-            FeatureSelectionKey::new("sorcerer/bloodline-feats-1"),
-        ]
-    );
-    let lists = |key: &str| selection(&data, key).option_lists.clone().unwrap();
-    let bloodline = FeatureSelectionKey::new("sorcerer/bloodline");
-    assert_eq!(
-        (
-            lists("sorcerer/bloodline-feats"),
-            lists("sorcerer/bloodline-feats-1")
-        ),
-        (
-            rules::OptionLists {
-                selection: bloodline.clone(),
-                at_level: None,
-            },
-            rules::OptionLists {
-                selection: bloodline,
-                at_level: Some(1),
-            }
-        )
+        [FeatureSelectionKey::new("sorcerer/bloodline-feats")]
     );
     // An option counting beside the other options held.
     let selection = |key: &str| data.selection(&FeatureSelectionKey::new(key)).unwrap();

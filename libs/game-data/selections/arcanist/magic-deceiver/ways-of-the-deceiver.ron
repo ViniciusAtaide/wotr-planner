@@ -4,7 +4,6 @@
     name: "Ways of the Deceiver",
     summary: "At 1st level, choose Fake Celebrity, Living Deity, Magic Inventor, Razmiri Infiltrator, Time Manipulator or Way of the Charlatan.",
     guide: "arcanist#ways-of-the-deceiver",
-    option_levels: ["arcanist"],
     options: [
         "arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity",
         "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity",

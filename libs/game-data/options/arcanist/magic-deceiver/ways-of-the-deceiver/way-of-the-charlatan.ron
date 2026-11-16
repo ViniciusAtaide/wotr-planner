@@ -4,6 +4,7 @@
     name: "Way of the Charlatan",
     summary: "Deceiver path built on Persuasion (Bluff), using it for magic devices and spell fabrication.",
     guide: "arcanist#way-of-the-charlatan",
+    header: (classes: {"arcanist": 0}, archetypes: {"arcanist/magic-deceiver": 0}),
     levels: [
         (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/way-of-the-charlatan/fool-magic"]),
         (level: 2, features: ["trick-magic"]),

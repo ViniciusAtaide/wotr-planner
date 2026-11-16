@@ -1,0 +1,13 @@
+(
+    key: "ranger/combat-style-feats-10/weapon-and-shield",
+    blueprint: "b2e73b554839a314a8c716dbf33fcfc3",
+    name: "Weapon and Shield Feats (from level 10)",
+    guide: "ranger#weapon-and-shield-feats",
+    is_selection: true,
+    components: [
+        Requires(condition: Has(Option("ranger/combat-style-feat/weapon-and-shield-feats"))),
+    ],
+    levels: [
+        (level: 1, selections: ["ranger/combat-style-feat/weapon-and-shield-feats-10"]),
+    ],
+)

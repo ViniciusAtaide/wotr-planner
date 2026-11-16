@@ -4,6 +4,7 @@
     name: "Strength Domain",
     summary: "Strength Surge and an Athletics bonus from 8th level; spells from Enlarge Person to Transformation.",
     guide: "character-creation#strength-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/strength/strength-surge"]),
         (level: 8, features: ["cleric/domain/strength/might-of-the-gods"]),

@@ -188,7 +188,10 @@ fn entries_name_their_game_blueprint() {
 /// added six planner selections of a held option's feat lists, where the game has one selection per option: the
 /// bloodrager's bloodline feat, the ranger's style feat, the slayer's at 2, 6 and 10, the kineticist's wild talent feat.
 /// Ticket 302 added Witch Wandering Hex's pick of a witch hex, where the game's `WitchWanderingHex`
-/// fb8490d1721bd5a4883c3b6559310351 is a plain feature.
+/// fb8490d1721bd5a4883c3b6559310351 is a plain feature. Ticket 304 nested those lists as options, 19 with no blueprint:
+/// the bloodrager's ten bloodline lists and the kineticist's four element lists (the game grants each from the option's
+/// progression, with no selection over them), and the five 2nd-level style lists of the ranger's stage-2 selection,
+/// which stands in for the game's style pick and its first feat in one; the ranger's style feat became that selection.
 #[test]
 fn the_entries_left_without_a_blueprint_are_the_answers() {
     let mut empty: BTreeMap<&str, usize> = BTreeMap::new();
@@ -203,7 +206,7 @@ fn the_entries_left_without_a_blueprint_are_the_answers() {
             ("feature", 102),
             ("gear item", 1),
             ("selection", 10),
-            ("selection option", 39),
+            ("selection option", 58),
             ("spell", 1),
             ("spell list", 2),
             ("weapon", 1),

@@ -1,0 +1,13 @@
+(
+    key: "sorcerer/bloodline-feats/elemental",
+    blueprint: "d2a4b74ee7e43a648b51d0f36db2aa34",
+    name: "Elemental Bloodline Feats",
+    guide: "character-creation#elemental-bloodline",
+    is_selection: true,
+    components: [
+        Requires(condition: Any([Has(Option("sorcerer/bloodline/elemental-air")), Has(Option("sorcerer/bloodline/elemental-earth")), Has(Option("sorcerer/bloodline/elemental-fire")), Has(Option("sorcerer/bloodline/elemental-water"))])),
+    ],
+    levels: [
+        (level: 1, selections: ["sorcerer/bloodline/elemental/feats"]),
+    ],
+)

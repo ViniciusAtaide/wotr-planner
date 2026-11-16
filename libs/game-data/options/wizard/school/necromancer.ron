@@ -4,6 +4,7 @@
     name: "Necromancer",
     summary: "Necromancy specialist: Power Over Undead, Grave Touch and Life Sight.",
     guide: "wizard#necromancer",
+    header: (classes: {"wizard": 0}),
     levels: [
         (level: 1, features: ["wizard/school/necromancer/grave-touch", "wizard/school/necromancer/power-over-undead"]),
         (level: 8, features: ["wizard/school/necromancer/life-sight"]),

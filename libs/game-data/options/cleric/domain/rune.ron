@@ -4,6 +4,7 @@
     name: "Rune Domain",
     summary: "Blast Rune traps and Warding Rune from 8th level; spells from Protection from Alignment to Power Word Kill.",
     guide: "character-creation#rune-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/rune/blast-rune"]),
         (level: 8, features: ["cleric/domain/rune/warding-rune"]),

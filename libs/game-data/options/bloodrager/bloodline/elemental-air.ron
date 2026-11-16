@@ -6,8 +6,9 @@
     guide: "bloodrager#elemental-bloodrager",
     prerequisite: NoOtherOptionOfGroup(BloodragerElemental),
     group: BloodragerElemental,
+    header: (classes: {"bloodrager": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["bloodrager/bloodline/elemental/elemental-strikes"], feat_list: "bloodrager/bloodline/elemental/feats"),
+        (level: 1, features: ["bloodrager/bloodline/elemental/elemental-strikes"]),
         (level: 4, features: ["bloodrager/bloodline/elemental/elemental-resistance"]),
         (level: 8, features: ["bloodrager/bloodline/elemental/elemental-movement"]),
         (level: 12, features: ["bloodrager/bloodline/elemental/power-of-the-elements"]),

@@ -5,8 +5,9 @@
     summary: "Spellcaster bloodline: metamagic raises DCs by 1, a bonded object or familiar, +concentration, School Power at 15th and Arcane Apotheosis at 20th.",
     guide: "sorcerer#arcane",
     arcana: "sorcerer/bloodline/arcane/arcane-arcana",
+    header: (classes: {"magus": 0, "sorcerer": 0}, archetypes: {"magus/eldritch-scion": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["sorcerer/bloodline/arcane/arcane-arcana", "sorcerer/bloodline/arcane/arcane-bond", "arcane-bloodline-class-skill"], feat_list: "sorcerer/bloodline/arcane/feats"),
+        (level: 1, features: ["sorcerer/bloodline/arcane/arcane-arcana", "sorcerer/bloodline/arcane/arcane-bond", "arcane-bloodline-class-skill"]),
         (level: 3, features: ["sorcerer/bloodline/arcane/combat-casting-adept"]),
         (level: 15, selections: ["sorcerer/bloodline/arcane/school-power"]),
         (level: 20, features: ["sorcerer/bloodline/arcane/arcane-apotheosis"]),

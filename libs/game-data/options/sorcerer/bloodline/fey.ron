@@ -5,8 +5,9 @@
     summary: "Fey bloodline: +2 compulsion DCs, Laughing Touch, Woodland Stride, invisibility at 9th, Fey Magic at 15th; Lore (Nature) is a class skill.",
     guide: "sorcerer#fey",
     arcana: "sorcerer/bloodline/fey/fey-arcana",
+    header: (classes: {"magus": 0, "sorcerer": 0}, archetypes: {"magus/eldritch-scion": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["sorcerer/bloodline/fey/fey-arcana", "sorcerer/bloodline/fey/laughing-touch"], feat_list: "sorcerer/bloodline/fey/feats", class_skills: ["lore-nature"]),
+        (level: 1, features: ["sorcerer/bloodline/fey/fey-arcana", "sorcerer/bloodline/fey/laughing-touch"], class_skills: ["lore-nature"]),
         (level: 3, features: ["sorcerer/bloodline/fey/woodland-stride"]),
         (level: 9, features: ["sorcerer/bloodline/fey/fleeting-glance"]),
         (level: 15, features: ["sorcerer/bloodline/fey/fey-magic"]),

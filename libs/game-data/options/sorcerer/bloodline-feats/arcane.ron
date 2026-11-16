@@ -1,0 +1,13 @@
+(
+    key: "sorcerer/bloodline-feats/arcane",
+    blueprint: "ff4fd877b4c801342ab8e880b734a6b9",
+    name: "Arcane Bloodline Feats",
+    guide: "character-creation#arcane-bloodline",
+    is_selection: true,
+    components: [
+        Requires(condition: Has(Option("sorcerer/bloodline/arcane"))),
+    ],
+    levels: [
+        (level: 1, selections: ["sorcerer/bloodline/arcane/feats"]),
+    ],
+)

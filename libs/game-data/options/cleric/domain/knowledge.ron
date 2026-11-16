@@ -4,6 +4,7 @@
     name: "Knowledge Domain",
     summary: "Void Form, Teaching Moment rerolls from 8th, and all Knowledge and Lore as class skills; spells up to Power Word Kill.",
     guide: "character-creation#knowledge-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/knowledge/void-form"], class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion"]),
         (level: 8, features: ["cleric/domain/knowledge/teaching-moment"]),

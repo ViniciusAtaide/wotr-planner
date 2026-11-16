@@ -4,7 +4,6 @@
     name: "Elemental Focus (Blood Kineticist)",
     summary: "The Blood Kineticist must take Water as their element, and only the Water blast at 1st level.",
     guide: "kineticist#blood-kineticist",
-    option_levels: ["kineticist"],
     options: [],
     shared_options: [
         "kineticist/element/water",

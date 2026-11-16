@@ -5,8 +5,9 @@
     summary: "Undead bloodline: Grave Touch, cold resistance and DR/magic, Grasp of the Dead at 9th, Incorporeal Form at 15th; Lore (Religion) is a class skill.",
     guide: "sorcerer#undead",
     arcana: "sorcerer/bloodline/undead/undead-arcana",
+    header: (classes: {"magus": 0, "sorcerer": 0}, archetypes: {"magus/eldritch-scion": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["sorcerer/bloodline/undead/grave-touch", "sorcerer/bloodline/undead/undead-arcana"], feat_list: "sorcerer/bloodline/undead/feats", class_skills: ["lore-religion"]),
+        (level: 1, features: ["sorcerer/bloodline/undead/grave-touch", "sorcerer/bloodline/undead/undead-arcana"], class_skills: ["lore-religion"]),
         (level: 3, features: ["sorcerer/bloodline/undead/deaths-gift"]),
         (level: 9, features: ["sorcerer/bloodline/undead/grasp-of-the-dead", "sorcerer/bloodline/undead/deaths-gift"]),
         (level: 15, features: ["sorcerer/bloodline/undead/incorporeal-form"]),

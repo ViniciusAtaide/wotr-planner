@@ -8,9 +8,9 @@ use crate::*;
 use crate::test_world::builds::{class, feat, feat_list, feature, skill};
 use crate::test_world::world::classes::{archetype, archetype_row, row};
 use crate::test_world::world::selections::{
-    levelled_option, levelled_selection, option_row, selection_option, with_class_skills,
+    levelled_option, levelled_selection, nest, option_row, selection_option, with_class_skills,
 };
-use crate::test_world::world::{bonus_feature, fixed, guide, list, option_list, plain_feature};
+use crate::test_world::world::{bonus_feature, fixed, guide, list, plain_feature};
 
 const BLOODLINES: [&str; 4] = [
     "sorcerer/bloodline/abyssal",
@@ -41,10 +41,6 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
             r
         })
         .collect();
-    let with_list = |mut row: OptionLevelRow, list: &str| {
-        row.feat_list = Some(feat_list(list));
-        row
-    };
     // One Draconic bloodline at most, each with the Draconic arcana.
     let draconic = |key: &str| SelectionOption {
         group: Some(OptionGroup::Draconic),
@@ -54,15 +50,12 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
             key,
             vec![
                 with_class_skills(
-                    with_list(
-                        option_row(
-                            1,
-                            &[
-                                "sorcerer/bloodline/draconic/arcana",
-                                "sorcerer/bloodline/draconic/claws",
-                            ],
-                        ),
-                        "sorcerer/bloodline/draconic-feats",
+                    option_row(
+                        1,
+                        &[
+                            "sorcerer/bloodline/draconic/arcana",
+                            "sorcerer/bloodline/draconic/claws",
+                        ],
                     ),
                     &["persuasion"],
                 ),
@@ -82,15 +75,12 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
                     "sorcerer/bloodline/abyssal",
                     vec![
                         with_class_skills(
-                            with_list(
-                                option_row(
-                                    1,
-                                    &[
-                                        "sorcerer/bloodline/abyssal/arcana",
-                                        "sorcerer/bloodline/abyssal/claws",
-                                    ],
-                                ),
-                                "sorcerer/bloodline/abyssal-feats",
+                            option_row(
+                                1,
+                                &[
+                                    "sorcerer/bloodline/abyssal/arcana",
+                                    "sorcerer/bloodline/abyssal/claws",
+                                ],
                             ),
                             &["athletics"],
                         ),
@@ -109,10 +99,7 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
             levelled_option(
                 "sorcerer/bloodline/arcane",
                 vec![
-                    with_list(
-                        option_row(1, &["sorcerer/bloodline/arcane/arcane-bond"]),
-                        "sorcerer/bloodline/arcane-feats",
-                    ),
+                    option_row(1, &["sorcerer/bloodline/arcane/arcane-bond"]),
                     option_row(3, &["sorcerer/bloodline/arcane/combat-casting-adept"]),
                     OptionLevelRow {
                         selections: vec![FeatureSelectionKey::new("sorcerer/school-power")],
@@ -275,9 +262,8 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
         class_skills: BTreeSet::from([skill("knowledge-arcana")]),
         prerequisite: None,
         features,
-        selections: vec![bloodlines, school_power],
+        selections: vec![bloodlines, school_power, bloodline_feats()],
         feat_lists: vec![
-            option_list("sorcerer/bloodline-feats", "sorcerer/bloodline", None),
             list(
                 "sorcerer/bloodline/abyssal-feats",
                 false,
@@ -297,4 +283,33 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
         levels,
         archetypes: vec![crossblooded, primalist, sage, seeker],
     }
+}
+
+/// The bloodline feat of the 7, 13 and 19 slots: each bloodline's list nested as an option the bloodline opens, as the
+/// game's SorcererFeatSelection nests the bloodlines' feat selections (ticket 304); both Draconic bloodlines open one.
+fn bloodline_feats() -> FeatureSelection {
+    nest(
+        "sorcerer/bloodline-feats",
+        "sorcerer/bloodline feat",
+        &[
+            (
+                "sorcerer/bloodline-feats/abyssal",
+                "sorcerer/bloodline/abyssal-feats",
+                &["sorcerer/bloodline/abyssal"],
+            ),
+            (
+                "sorcerer/bloodline-feats/arcane",
+                "sorcerer/bloodline/arcane-feats",
+                &["sorcerer/bloodline/arcane"],
+            ),
+            (
+                "sorcerer/bloodline-feats/draconic",
+                "sorcerer/bloodline/draconic-feats",
+                &[
+                    "sorcerer/bloodline/draconic-gold",
+                    "sorcerer/bloodline/draconic-red",
+                ],
+            ),
+        ],
+    )
 }

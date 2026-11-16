@@ -1,8 +1,0 @@
-(
-    why: "The game's RangerStyleSelection2, 6 and 10 offer a selection per style; the planner's one slot offers the held style's list until nested selections (ticket 302).",
-    entry: (
-        key: "ranger/combat-style-feats",
-        name: "Combat Style feat",
-        option_lists: (selection: "ranger/combat-style-feat"),
-    ),
-)

@@ -4,6 +4,7 @@
     name: "Darkness Domain",
     summary: "Touch of Darkness miss chance and Moonfire from 8th level; spells from Sleep to Polar Midnight.",
     guide: "character-creation#darkness-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/darkness/touch-of-darkness"]),
         (level: 8, features: ["cleric/domain/darkness/moonfire"]),

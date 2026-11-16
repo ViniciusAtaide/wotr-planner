@@ -494,17 +494,14 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
     };
     let current = found.pick.clone();
     let title = engine.choice_label(&Address::Slot(slot.clone()), Some(&found));
-    // A slot whose list comes from a held option (a sorcerer's bloodline feat) has none until that option is chosen.
+    // A slot whose lists a held option opens (a sorcerer's bloodline feat) has none until that option is chosen.
     let empty = match &found.kind {
-        SlotKind::Feat(key) => engine
-            .selection(key)
-            .and_then(|selection| selection.option_lists.as_ref())
-            .map(|lists| {
-                format!(
-                    "Nothing to choose yet: choose the {} first.",
-                    engine.selection_name(&lists.selection)
-                )
-            }),
+        SlotKind::Feat(key) => engine.nest_opened_by(key).map(|opener| {
+            format!(
+                "Nothing to choose yet: choose the {} first.",
+                engine.selection_name(&opener.key)
+            )
+        }),
         _ => None,
     };
     let remove = Some(Choice::Slot(slot.clone()));

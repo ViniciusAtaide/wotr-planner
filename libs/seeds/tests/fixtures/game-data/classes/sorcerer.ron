@@ -15,7 +15,6 @@ Class(
     levels: [
         (level: 1, arcane_spell_level: 1, selections: ["sorcerer/bloodline"]),
         (level: 2, arcane_spell_level: 1, selections: ["sorcerer/power"]),
-        // Ticket 35: the second slot offers the bloodline's list at option level 1 (a slayer's combat style window).
-        (level: 3, arcane_spell_level: 2, selections: ["sorcerer/bloodline-feats", "sorcerer/bloodline-feats-1"]),
+        (level: 3, arcane_spell_level: 2, selections: ["sorcerer/bloodline-feats"]),
     ],
 )

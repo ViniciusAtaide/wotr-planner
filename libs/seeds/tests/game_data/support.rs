@@ -834,7 +834,7 @@ pub fn grants(rows: impl IntoIterator<Item = RowGrants>) -> Grants {
         selections: selections
             .into_iter()
             .filter_map(|k| data.selection(k))
-            .filter(|s| !s.offers_feats())
+            .filter(|s| !data.offers_feats(s))
             .collect(),
     }
 }
@@ -872,7 +872,7 @@ pub fn all_class_grants() -> Grants {
         selections: data
             .selections
             .iter()
-            .filter(|s| !s.offers_feats() && !path_selections.contains(&s.key))
+            .filter(|s| !data.offers_feats(s) && !path_selections.contains(&s.key))
             .collect(),
     }
 }
@@ -941,7 +941,7 @@ pub fn feat_selections(
     keys: &[rules::FeatureSelectionKey],
 ) -> impl Iterator<Item = &rules::FeatureSelectionKey> {
     keys.iter()
-        .filter(|key| DATA.selection(key).is_some_and(|s| s.offers_feats()))
+        .filter(|key| DATA.selection(key).is_some_and(|s| DATA.offers_feats(s)))
 }
 
 /// The slot kind of a selection of feats.

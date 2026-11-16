@@ -4,7 +4,6 @@
     name: "School (Cruromancer)",
     summary: "A Cruromancer always specialises in Necromancy.",
     guide: "wizard#cruromancer",
-    option_levels: ["wizard"],
     options: [],
     shared_options: [
         "wizard/school/necromancer",

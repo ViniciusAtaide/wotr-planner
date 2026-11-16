@@ -7,7 +7,8 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
     Build, ClassChoice, DataAt, DataIssue, FeatureKey, FeatureSelectionKey, GameData, Issue,
-    LinkKeys, OptionLevelRow, Prerequisite, SelectionOptionKey, decode_build, encode_build,
+    LinkKeys, OptionLevelRow, Prerequisite, ProgressionHeader, SelectionOptionKey, decode_build,
+    encode_build,
 };
 
 use crate::support::*;
@@ -207,10 +208,14 @@ fn curse_world() -> GameData {
     let mut lame = own_options_mut(&mut data, "cleric/water-revelations")[0].clone();
     let mut curse = selection_mut(&mut data, "cleric/water-revelations").clone();
     curse.key = FeatureSelectionKey::new(CURSE);
-    curse.option_levels = BTreeSet::from([class("cleric"), class("witch")]);
-    curse.option_level_archetypes =
-        BTreeMap::from([(rules::ArchetypeKey::new("witch/false-god"), 0)]);
-    curse.half_other_classes = true;
+    // The curse's level is its option's progression header (ticket 304), as an oracle's curse's is.
+    curse.option_levels = BTreeSet::new();
+    lame.header = Some(ProgressionHeader {
+        classes: BTreeMap::from([(class("cleric"), 0), (class("witch"), 0)]),
+        archetypes: BTreeMap::from([(rules::ArchetypeKey::new("witch/false-god"), 0)]),
+        half_other_classes: true,
+        previous_levels: true,
+    });
     lame.key = SelectionOptionKey::new(LAME);
     lame.prerequisite = None;
     lame.levels = vec![OptionLevelRow {
@@ -269,6 +274,116 @@ fn an_option_level_counts_half_the_other_classes_and_a_class_only_through_its_na
         curse_level(&times("witch", 3), Some(("witch", "witch/false-god"))),
         (5, true)
     );
+}
+
+const BATTLE_RAGE: &str = "cleric/domain/war/battle-rage";
+
+/// After cleric 2 then `then`, in the curse world with Lame's header `header`, a row at option level 3 (Battle
+/// Rage) beside its stage at 5, and the curse's own classes `own`: the curse's option level, and whether Battle
+/// Rage and the stage are held.
+fn header_level(
+    header: ProgressionHeader,
+    own: &[&str],
+    then: &[&'static str],
+) -> (u8, bool, bool) {
+    let mut data = curse_world();
+    let lame = option_mut(&mut data, LAME);
+    lame.header = Some(header);
+    lame.levels.insert(
+        0,
+        OptionLevelRow {
+            level: 3,
+            features: vec![FeatureKey::new(BATTLE_RAGE)],
+            ..OptionLevelRow::default()
+        },
+    );
+    selection_mut(&mut data, CURSE).option_levels = own.iter().map(|key| class(key)).collect();
+    let engine = engine_on(data);
+    let mut classes = vec!["cleric", "cleric"];
+    classes.extend_from_slice(then);
+    let sheet = engine.evaluate(&build("elf", &classes));
+    let state = &sheet.levels.last().unwrap().state;
+    (
+        state.option_level(&option(LAME)),
+        state.feature_count(&feature(BATTLE_RAGE)) > 0,
+        state.feature_count(&feature(STAGE_2)) > 0,
+    )
+}
+
+/// A progression header (ticket 304) as `BlueprintProgression.CalcLevel` reads it (WrathDecompiled 6ce4a6b): with no
+/// classes and no archetypes, the character level; a class's offset (`ClassWithLevel.AdditionalLevel`) adds to its
+/// levels.
+#[test]
+fn a_header_with_no_classes_counts_the_character_level_and_a_class_its_offset() {
+    // Cleric 2 and fighter 3: character level 5, reached a level at a time (the row at 3 too).
+    assert_eq!(
+        header_level(ProgressionHeader::default(), &[], &times("fighter", 3)),
+        (5, true, true)
+    );
+    // Cleric 2 with an offset of 3: 5 at once; the header's previous levels give the row at 3 too.
+    let offset = ProgressionHeader {
+        classes: BTreeMap::from([(class("cleric"), 3)]),
+        previous_levels: true,
+        ..ProgressionHeader::default()
+    };
+    assert_eq!(header_level(offset, &[], &[]), (5, true, true));
+}
+
+/// `LevelUpHelper.UpdateProgression` (WrathDecompiled 6ce4a6b): without `GiveFeaturesForPreviousLevels`, a progression
+/// whose level rises gets only the row of the level it reaches, never those it passes over (a wizard's school, a
+/// kineticist's element).
+#[test]
+fn a_header_without_previous_levels_skips_the_rows_it_passes_over() {
+    let offset = ProgressionHeader {
+        classes: BTreeMap::from([(class("cleric"), 3)]),
+        ..ProgressionHeader::default()
+    };
+    // Taken at option level 5: the row at 5, not the one at 3.
+    assert_eq!(header_level(offset.clone(), &[], &[]), (5, false, true));
+    // Nor later.
+    assert_eq!(
+        header_level(offset, &[], &times("cleric", 2)),
+        (7, false, true)
+    );
+    // One level at a time, it gets each row it reaches.
+    let plain = ProgressionHeader {
+        classes: BTreeMap::from([(class("cleric"), 0)]),
+        ..ProgressionHeader::default()
+    };
+    assert_eq!(
+        header_level(plain, &[], &times("cleric", 3)),
+        (5, true, true)
+    );
+}
+
+/// Until 293 and 294 (ticket 304), a selection naming its own classes gives the level of every option it offers, a
+/// header or not (the domains, shared by selections the game keeps apart), unless it lets its options' headers go
+/// first (an oracle's revelations: Weapon Mastery's own header).
+#[test]
+fn a_selections_own_classes_go_before_an_options_header_unless_it_lets_headers_first() {
+    let fighter_header = ProgressionHeader {
+        classes: BTreeMap::from([(class("fighter"), 0)]),
+        previous_levels: true,
+        ..ProgressionHeader::default()
+    };
+    // The curse names cleric: cleric 2 and fighter 3 make 2, whatever Lame's header says.
+    assert_eq!(
+        header_level(fighter_header.clone(), &["cleric"], &times("fighter", 3)),
+        (2, false, false)
+    );
+    // Letting the headers go first: fighter 3.
+    let mut data = curse_world();
+    option_mut(&mut data, LAME).header = Some(fighter_header);
+    let curse = selection_mut(&mut data, CURSE);
+    curse.option_levels = BTreeSet::from([class("cleric")]);
+    curse.option_headers_first = true;
+    let engine = engine_on(data);
+    let sheet = engine.evaluate(&build(
+        "elf",
+        &["cleric", "cleric", "fighter", "fighter", "fighter"],
+    ));
+    let state = &sheet.levels.last().unwrap().state;
+    assert_eq!(state.option_level(&option(LAME)), 3);
 }
 
 // ---- an option's old keys -------------------------------------------------------------------------------------

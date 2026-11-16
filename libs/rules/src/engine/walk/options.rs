@@ -6,7 +6,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use super::{GrantSource, Held, Holding, Pending, Walker};
 use crate::build::SlotId;
 use crate::engine::{Slot, SlotKind};
-use crate::game_data::{FeatureSelection, LevelFrom, MythicRankRow, OptionRow};
+use crate::game_data::{LevelFrom, MythicRankRow, OptionRow, ProgressionHeader};
 use crate::keys::{ClassKey, FeatureKey, FeatureSelectionKey, SelectionOptionKey};
 use crate::parameter::Parameter;
 
@@ -48,8 +48,11 @@ impl<'a> Walker<'a> {
             ),
             (None, None) => {}
         }
+        // Held with its rows when its level is made: by a header (its own, or the one its selection's classes make), or
+        // by the selection's other source.
         if let Some(through) = catalog.selection(selection)
-            && (through.levels_by_class() || through.level_from.is_some())
+            && let header = catalog.level_header(through, defined)
+            && (header.is_some() || through.level_from.is_some())
         {
             self.holdings.push(Holding {
                 selection: selection.clone(),
@@ -57,6 +60,8 @@ impl<'a> Walker<'a> {
                 applied: BTreeMap::new(),
                 early: BTreeMap::new(),
                 skipped: through.skipped_levels.clone(),
+                previous_levels: header.is_none_or(|header| header.previous_levels),
+                reached: 0,
                 lists_only: through.feat_lists_only,
                 unlocked: BTreeSet::new(),
                 parameter: parameter.cloned(),
@@ -71,15 +76,21 @@ impl<'a> Walker<'a> {
         }
     }
 
-    /// The option level of a holding: the levels of the classes its selection names, less the levels it lags
-    /// behind; or, for a selection naming none, the level its source gives (for Mythic ranks, the rank it was
-    /// picked at: 1 there, 2 at the next).
+    /// The option level of a holding: the class levels its header counts ([`Catalog::level_header`]), less the levels
+    /// it lags behind; or, for a selection with another source, the level that source gives (for Mythic ranks, the
+    /// rank it was picked at: 1 there, 2 at the next).
+    ///
+    /// [`Catalog::level_header`]: crate::engine::catalog::Catalog::level_header
     fn holding_level(&self, holding: &Holding) -> u8 {
-        let Some(selection) = self.engine.catalog.selection(&holding.selection) else {
+        let catalog = &self.engine.catalog;
+        let Some(selection) = catalog.selection(&holding.selection) else {
             return 0;
         };
         let level = match selection.level_from {
-            None => self.class_levels_of(selection),
+            None => catalog
+                .option(&holding.option)
+                .and_then(|option| catalog.level_header(selection, option))
+                .map_or(0, |header| self.class_levels_of(header)),
             // The highest level of the other options held that it offers (themselves levelled by their classes),
             // and of the option that counts beside them (a Living Deity's way).
             Some(LevelFrom::OtherOptions) => self
@@ -113,35 +124,50 @@ impl<'a> Walker<'a> {
         lagging(level, selection.later_rows_behind)
     }
 
-    /// The class levels that make the option level of an option held through `selection`, as the game's
-    /// `BlueprintProgression.CalcLevel` adds them (WrathDecompiled 6ce4a6b): each class it names, unless that class has
-    /// one of its archetypes; each class taken with one of its archetypes, plus the levels the archetype adds (a sum
-    /// below 0 adds 0); and half the other classes' levels, when it counts them, rounded down. The other classes
-    /// include the mythic ones, whose levels are the Mythic rank (`UnitProgressionData.SetupLevelsIfNecessary`).
-    fn class_levels_of(&self, selection: &FeatureSelection) -> u8 {
+    /// The class levels a progression header counts, as the game's `BlueprintProgression.CalcLevel` adds them
+    /// (WrathDecompiled 6ce4a6b): with no classes and no archetypes, the character level; else each class it names
+    /// plus its offset, unless that class has one of its archetypes; each class taken with one of its archetypes, plus
+    /// that archetype's offset (a sum below 0 adds 0, a class not taken counts 0 levels); and half the other classes'
+    /// levels, when it counts them, rounded down. The other classes include the mythic ones, whose levels are the
+    /// Mythic rank (`UnitProgressionData.SetupLevelsIfNecessary`).
+    fn class_levels_of(&self, header: &ProgressionHeader) -> u8 {
+        let classes = &self.state.classes;
+        if header.classes.is_empty() && header.archetypes.is_empty() {
+            return classes
+                .iter()
+                .fold(0u8, |sum, taken| sum.saturating_add(taken.level));
+        }
         let catalog = &self.engine.catalog;
-        let archetypes = &selection.option_level_archetypes;
+        let archetypes = &header.archetypes;
         let has_listed_archetype = |class: &ClassKey| {
             !archetypes.is_empty()
-                && catalog.class(class).is_some_and(|(class, _)| {
-                    (catalog.archetypes_of(&class.key))
-                        .any(|archetype| archetypes.contains_key(&archetype.key))
-                })
+                && (catalog.archetypes_of(class))
+                    .any(|archetype| archetypes.contains_key(&archetype.key))
         };
-        let (mut own, mut others) = (0u8, self.state.mythic_rank);
-        for taken in &self.state.classes {
-            let named = selection.option_levels.contains(&taken.class);
-            if let Some(&offset) =
-                (taken.archetype.as_ref()).and_then(|archetype| archetypes.get(archetype))
-            {
-                own = own.saturating_add(taken.level.saturating_add_signed(offset));
-            } else if named && !has_listed_archetype(&taken.class) {
-                own = own.saturating_add(taken.level);
-            } else if !named {
-                others = others.saturating_add(taken.level);
+        let level_of = |class: &ClassKey| {
+            (classes.iter())
+                .find(|taken| &taken.class == class)
+                .map_or(0, |taken| taken.level)
+        };
+        let mut own = 0u8;
+        for (class, &offset) in &header.classes {
+            if !has_listed_archetype(class) {
+                own = own.saturating_add(level_of(class).saturating_add_signed(offset));
             }
         }
-        if selection.half_other_classes {
+        let mut others = self.state.mythic_rank;
+        for taken in classes {
+            match (taken.archetype.as_ref()).and_then(|archetype| archetypes.get(archetype)) {
+                Some(&offset) => {
+                    own = own.saturating_add(taken.level.saturating_add_signed(offset))
+                }
+                None if !header.classes.contains_key(&taken.class) => {
+                    others = others.saturating_add(taken.level);
+                }
+                None => {}
+            }
+        }
+        if header.half_other_classes {
             own.saturating_add(others / 2)
         } else {
             own
@@ -214,24 +240,27 @@ impl<'a> Walker<'a> {
     /// ones among them, as every level-up recomputes each progression's level (the game's
     /// `ApplyClassMechanics.ApplyProgressions`).
     pub(super) fn advance_by_mythic_rank(&mut self) {
-        self.advance_where(|selection| selection.half_other_classes);
+        self.advance_where(|header| header.is_some_and(|header| header.half_other_classes));
     }
 
-    /// Advances each holding whose selection `through` keeps.
-    fn advance_where(&mut self, through: impl Fn(&FeatureSelection) -> bool) {
+    /// Advances each holding whose level header (`None`: its selection's other source) `by` keeps.
+    fn advance_where(&mut self, by: impl Fn(Option<&ProgressionHeader>) -> bool) {
+        let catalog = &self.engine.catalog;
         for index in 0..self.holdings.len() {
-            let selection = self
-                .engine
-                .catalog
-                .selection(&self.holdings[index].selection);
-            if selection.is_some_and(&through) {
+            let holding = &self.holdings[index];
+            let header = catalog
+                .selection(&holding.selection)
+                .zip(catalog.option(&holding.option))
+                .and_then(|(selection, option)| catalog.level_header(selection, option));
+            if by(header) {
                 self.advance(index);
             }
         }
     }
 
-    /// Gives a holding every row up to its option level that it hasn't had or skipped, and sets its level and
-    /// feat list in the state.
+    /// Gives a holding every row up to its option level that it hasn't had or skipped, and sets its level in the
+    /// state. A holding without its header's `previous_levels` skips the rows of the levels it passes over, as the
+    /// game gives only the reached level's row (`LevelUpHelper.UpdateProgression`, WrathDecompiled 6ce4a6b).
     fn advance(&mut self, index: usize) {
         let catalog = &self.engine.catalog;
         let holding = &self.holdings[index];
@@ -242,21 +271,19 @@ impl<'a> Walker<'a> {
         let key = holding.option.clone();
         let source = holding.source.clone();
         let parameter = holding.parameter.clone();
-        let list = option
-            .levels
-            .iter()
-            .filter(|row| row.level <= level)
-            .filter_map(|row| row.feat_list.clone())
-            .next_back();
         self.state.option_levels.insert(key.clone(), level);
-        match list {
-            Some(list) => {
-                self.state.option_feat_lists.insert(key.clone(), list);
-            }
-            None => {
-                self.state.option_feat_lists.remove(&key);
-            }
+        let holding = &mut self.holdings[index];
+        if !holding.previous_levels && level > holding.reached {
+            let passed = holding.reached.saturating_add(1)..level;
+            (holding.skipped).extend(
+                option
+                    .levels
+                    .iter()
+                    .map(|row| row.level)
+                    .filter(|at| passed.contains(at)),
+            );
         }
+        holding.reached = holding.reached.max(level);
         for row in option.levels.iter().filter(|row| row.level <= level) {
             let holding = &self.holdings[index];
             if holding.applied.contains_key(&row.level) || holding.skipped.contains(&row.level) {

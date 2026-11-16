@@ -1,1 +1,6 @@
-(key: "sorcerer/power/surge", name: "Surge", guide: "sorcerer")
+(
+    key: "sorcerer/power/surge",
+    name: "Surge",
+    guide: "sorcerer",
+    header: (classes: {"sorcerer": 0}, archetypes: {"sorcerer/seeker": 0}, half_other_classes: true),
+)

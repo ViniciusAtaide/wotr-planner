@@ -142,7 +142,6 @@ pub(in crate::test_world::world) fn witch() -> Class {
             shared_options: BTreeSet::new(),
             option_levels: BTreeSet::new(),
             option_level_archetypes: BTreeMap::new(),
-            half_other_classes: false,
             skipped_levels: BTreeSet::new(),
             replaced_by: BTreeMap::new(),
             feat_lists_only: false,

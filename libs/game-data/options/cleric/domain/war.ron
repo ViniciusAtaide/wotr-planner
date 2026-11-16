@@ -4,6 +4,7 @@
     name: "War Domain",
     summary: "Battle Rage damage bonus and a bonus combat feat at 8th level; spells from Bless to Power Word Kill.",
     guide: "character-creation#war-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/war/battle-rage"]),
         (level: 8, selections: ["combat-feats"]),

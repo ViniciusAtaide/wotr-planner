@@ -4,8 +4,10 @@
     guide: "sorcerer#abyssal",
     // An old key a link may still name (ticket 243).
     aliases: ["sorcerer/bloodline/demonic"],
+    // Its progression header (ticket 304); the selection's own classes go first until 293.
+    header: (classes: {"sorcerer": 0, "fighter": -1}, previous_levels: true),
     levels: [
-        (level: 1, features: ["sorcerer/bloodline/abyssal/claws"], feat_list: "sorcerer/bloodline/abyssal-feats", class_skills: ["athletics"]),
+        (level: 1, features: ["sorcerer/bloodline/abyssal/claws"], class_skills: ["athletics"]),
         (level: 3, features: ["sorcerer/bloodline/abyssal/strength-of-the-abyss"], feats: ["toughness"], selections: ["sorcerer/school"]),
     ],
 )

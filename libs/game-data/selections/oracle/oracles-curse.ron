@@ -5,9 +5,6 @@
     band: Path,
     summary: "Pick a curse with a drawback and benefits that grow at 5th, 10th and 15th; its level is oracle level + 1 per two other class levels.",
     guide: "oracle#oracles-curse",
-    option_levels: ["oracle", "witch"],
-    option_level_archetypes: {"witch/stigmatized-witch": 0},
-    half_other_classes: true,
     options: [
         "oracle/oracles-curse/blackened",
         "oracle/oracles-curse/demonic",

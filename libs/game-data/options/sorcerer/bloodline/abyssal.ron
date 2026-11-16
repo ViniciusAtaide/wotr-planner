@@ -5,8 +5,9 @@
     summary: "Demonic bloodline: claws, electricity resistance, up to +6 Strength from 9th level, wings and extra summons at 15th; Athletics is a class skill.",
     guide: "sorcerer#abyssal",
     arcana: "sorcerer/bloodline/abyssal/demonic-arcana",
+    header: (classes: {"magus": 0, "sorcerer": 0}, archetypes: {"magus/eldritch-scion": 0}, previous_levels: true),
     levels: [
-        (level: 1, features: ["sorcerer/bloodline/abyssal/demonic-arcana", "sorcerer/bloodline/abyssal/grow-claws"], feat_list: "sorcerer/bloodline/abyssal/feats", class_skills: ["athletics"]),
+        (level: 1, features: ["sorcerer/bloodline/abyssal/demonic-arcana", "sorcerer/bloodline/abyssal/grow-claws"], class_skills: ["athletics"]),
         (level: 3, features: ["sorcerer/bloodline/abyssal/demon-resistances"]),
         (level: 9, features: ["sorcerer/bloodline/abyssal/strength-of-the-abyss", "sorcerer/bloodline/abyssal/demon-resistances"]),
         (level: 13, features: ["sorcerer/bloodline/abyssal/strength-of-the-abyss"]),

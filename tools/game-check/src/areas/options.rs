@@ -17,10 +17,6 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
     let data = ctx.planner.data;
     for selection in &data.selections {
         let at = DataAt::FeatureSelection(selection.key.clone());
-        if selection.option_lists.is_some() {
-            out.skip(AREA, "a selection of a held option's feat lists (304)");
-            continue;
-        }
         // An Extra feat's planner list: the slot is of the first selection it names the character had (ticket 302).
         if !selection.has_list() {
             out.skip(
@@ -45,8 +41,8 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
             );
         let planner = guids(ctx, out, offered);
         // Whether a pick ignores prerequisites is a selection of feats' own (a bonus list's).
-        let ignores = selection
-            .offers_feats()
+        let ignores = data
+            .offers_feats(selection)
             .then_some(selection.ignores_prerequisites);
         list(
             ctx,

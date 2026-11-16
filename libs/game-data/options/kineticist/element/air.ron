@@ -5,8 +5,9 @@
     ranks: 2,
     summary: "Air: Lore (Nature) as a class skill, mobility and reflex bonus feats, and the Enveloping Winds defense.",
     guide: "kineticist#elemental-focus-air",
+    header: (classes: {"kineticist": 0}),
     levels: [
-        (level: 1, feat_list: "kineticist/element/air/wild-talent-feats", class_skills: ["lore-nature"]),
+        (level: 1, class_skills: ["lore-nature"]),
         (level: 2, features: ["kineticist/element/air/enveloping-winds"]),
     ],
 )

@@ -5,7 +5,6 @@
     band: Path,
     summary: "The bloodline picks your arcana, bloodline powers, bonus spells from 3rd level and bonus feats at 7th, 13th and 19th.",
     guide: "character-creation#bloodlines",
-    option_levels: ["dragon-disciple", "sorcerer"],
     options: [
         "sorcerer/bloodline/abyssal",
         "sorcerer/bloodline/arcane",

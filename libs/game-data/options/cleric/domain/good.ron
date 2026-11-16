@@ -5,6 +5,7 @@
     summary: "Touch of Good's sacred bonus and Holy weapons from 8th level; spells from Protection from Evil to Summon Monster IX.",
     guide: "character-creation#good-domain",
     prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral)]), Any([Not(PickedThrough("cleric/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)])]),
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/good/touch-of-good"]),
         (level: 8, features: ["cleric/domain/good/holy-lance"]),

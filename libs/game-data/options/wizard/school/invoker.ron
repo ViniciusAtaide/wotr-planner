@@ -4,6 +4,7 @@
     name: "Invoker",
     summary: "Evocation specialist: Intense Spells, Force Missile and Elemental Wall.",
     guide: "wizard#invoker",
+    header: (classes: {"wizard": 0}),
     levels: [
         (level: 1, features: ["wizard/school/invoker/force-missile", "wizard/school/invoker/intense-spells"]),
         (level: 8, features: ["wizard/school/invoker/elemental-wall"]),

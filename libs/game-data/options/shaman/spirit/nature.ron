@@ -4,6 +4,7 @@
     name: "Nature",
     summary: "Nature: Storm Burst concealment, Spirit of Nature at 8th, an animal companion at 16th, a restoring form change at 20th.",
     guide: "shaman#nature",
+    header: (classes: {"shaman": 0}, previous_levels: true),
     levels: [
         (level: 1, features: ["shaman/spirit/nature/storm-burst"]),
         (level: 8, features: ["shaman/spirit/nature/spirit-of-nature"]),

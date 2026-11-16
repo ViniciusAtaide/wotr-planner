@@ -5,7 +5,6 @@
     band: Spellbook,
     summary: "Spellbooks: Envy (Abjurer), Gluttony (Necromancer), Greed (Transmuter), Lust (Enchanter), Pride (Illusionist), Sloth (Conjurer), Wrath (Invoker).",
     guide: "wizard#thassilonian-specialist",
-    option_levels: ["wizard"],
     options: [],
     shared_options: [
         "wizard/school/abjurer",

@@ -5,6 +5,7 @@
     summary: "Deceiver path posing as a living god, with an oracle mystery, curse and revelations.",
     prerequisite: Atheist,
     guide: "arcanist#living-deity",
+    header: (classes: {"arcanist": 0}, archetypes: {"arcanist/magic-deceiver": 0}),
     levels: [
         (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/mysterious-gift"], selections: ["arcanist/magic-deceiver/mystery", "arcanist/magic-deceiver/revelation", "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/curse"]),
         (level: 2, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/pious-guile"]),

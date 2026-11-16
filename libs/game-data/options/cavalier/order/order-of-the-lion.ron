@@ -4,6 +4,7 @@
     name: "Order of the Lion",
     summary: "Order serving a lord: +1 dodge AC (+1 per 4 levels) against your challenged foe; Knowledge (World) becomes a class skill.",
     guide: "cavalier#order-of-the-lion",
+    header: (classes: {"cavalier": 0}),
     levels: [
         (level: 1, class_skills: ["knowledge-world"]),
         (level: 2, features: ["cavalier/order/order-of-the-lion/lions-call"]),

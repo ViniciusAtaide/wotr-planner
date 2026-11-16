@@ -1,0 +1,13 @@
+(
+    key: "sorcerer/bloodline-feats/infernal",
+    blueprint: "f19d9bfcbc1e3ea42bda754a03c40843",
+    name: "Infernal Bloodline Feats",
+    guide: "character-creation#infernal-bloodline",
+    is_selection: true,
+    components: [
+        Requires(condition: Has(Option("sorcerer/bloodline/infernal"))),
+    ],
+    levels: [
+        (level: 1, selections: ["sorcerer/bloodline/infernal/feats"]),
+    ],
+)

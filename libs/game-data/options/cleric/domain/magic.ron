@@ -4,6 +4,7 @@
     name: "Magic Domain",
     summary: "Hand of the Acolyte throws and Dispelling Touch from 8th level; spells from Color Spray to Clashing Rocks.",
     guide: "character-creation#magic-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/magic/hand-of-the-acolyte"]),
         (level: 8, features: ["cleric/domain/magic/dispelling-touch"]),

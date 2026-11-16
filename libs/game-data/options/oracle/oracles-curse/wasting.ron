@@ -4,6 +4,7 @@
     name: "Wasting",
     summary: "-4 on Charisma skills except Intimidate, +4 vs disease; immune to sickened at 5th, disease at 10th and nauseated at 15th.",
     guide: "oracle#wasting",
+    header: (classes: {"oracle": 0, "witch": 0}, archetypes: {"witch/stigmatized-witch": 0}, half_other_classes: true, previous_levels: true),
     levels: [
         (level: 1, features: ["oracle/oracles-curse/wasting/level-1"]),
         (level: 5, features: ["oracle/oracles-curse/wasting/level-5"]),

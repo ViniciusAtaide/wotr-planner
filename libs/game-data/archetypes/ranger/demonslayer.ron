@@ -9,7 +9,7 @@
         (level: 1, features: ["ranger/demonslayer/demonslayer-favored-enemy"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 3, features: ["ranger/demonslayer/demonologist", "ranger/favored-terrain"]),
         (level: 5, features: ["ranger/demonslayer/demonslayer-favored-enemy"]),
-        (level: 10, features: ["ranger/demonslayer/demonslayer-favored-enemy"], selections: ["ranger/combat-style-feats"]),
+        (level: 10, features: ["ranger/demonslayer/demonslayer-favored-enemy"], selections: ["ranger/combat-style-feats-10"]),
         (level: 11, features: ["ranger/demonslayer/fiendish-quarry"]),
         (level: 15, features: ["ranger/demonslayer/demonslayer-favored-enemy"]),
         (level: 19, features: ["ranger/demonslayer/improved-fiendish-quarry"]),

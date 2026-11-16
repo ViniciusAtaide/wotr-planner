@@ -288,7 +288,7 @@ impl<'a> Walker<'a> {
     }
 
     /// The slots of a Level-up, in checking order: the class row's Feature selections (filtered pools last, since
-    /// the others admit their options), its selections of feats (those taking an option's lists last, since they depend
+    /// the others admit their options), its selections of feats (those that nest lists last, since their lists depend
     /// on the selections), the race's (level 1), then the general slot (odd levels). A row numbers its selections of
     /// feats and its other selections apart, each in row order (ticket 301), so a link's slot ids are the ones the
     /// feat slots had.
@@ -304,7 +304,7 @@ impl<'a> Walker<'a> {
         };
         let mut selections = Vec::new();
         let mut class_slots = Vec::new();
-        let mut option_lists = Vec::new();
+        let mut nests = Vec::new();
         if let Some((class, _)) = catalog.class(&level_up.class)
             && let Some(entry) = self
                 .state
@@ -320,11 +320,8 @@ impl<'a> Walker<'a> {
                     SlotKind::Feat(selection.clone()),
                     feat(FeatSource::Class, index),
                 );
-                if catalog
-                    .selection(selection)
-                    .is_some_and(|selection| selection.option_lists.is_some())
-                {
-                    option_lists.push(kind);
+                if catalog.nests(selection) {
+                    nests.push(kind);
                 } else {
                     class_slots.push(kind);
                 }
@@ -349,7 +346,7 @@ impl<'a> Walker<'a> {
         slots.extend(selections);
         slots.extend(pools);
         slots.extend(class_slots);
-        slots.extend(option_lists);
+        slots.extend(nests);
         if level == 1 {
             for (index, selection) in self.race_slots().iter().enumerate() {
                 slots.push((
@@ -446,8 +443,8 @@ impl<'a> Walker<'a> {
     /// Mythic rank's or a later level's. Any other refusal at its turn is final, though the game's player could take
     /// the band's picks in another order: trying every order is left out. So a pick is still refused when another
     /// pick of its band whose slot comes first holds what it refuses (a `Not`, a `NoOtherOptionOfGroup`, an
-    /// `AlreadyHeld` or `MaxTimes`), or when its slot's list depends on the state (a selection of feats taking an
-    /// option's lists, [`Catalog::slot_lists`]) and the option that gives it is a later pick of the band
+    /// `AlreadyHeld` or `MaxTimes`), or when its slot's list depends on the state (a selection of feats that nests
+    /// lists, [`Catalog::slot_lists`]) and the option that gates its list is a later pick of the band
     /// (`NotAllowed`). The slots come back in the level's slot order, then the granted ones in the order granted.
     pub(super) fn fill_bands(
         &mut self,
@@ -555,7 +552,7 @@ impl<'a> Walker<'a> {
             Pending::Row(kind, _) => catalog.band(kind),
             Pending::Feat(feat) => (catalog.feat(feat))
                 .and_then(|feat| self.nested_selection(feat.selection.as_ref()?))
-                .map_or(Band::Features, Catalog::slot_band),
+                .map_or(Band::Features, |selection| catalog.slot_band(selection)),
         }
     }
 
@@ -574,7 +571,7 @@ impl<'a> Walker<'a> {
         key: &FeatureSelectionKey,
         source: Option<&GrantSource>,
     ) -> Option<SlotKind> {
-        let kind = Catalog::slot_kind(self.nested_selection(key)?);
+        let kind = self.engine.catalog.slot_kind(self.nested_selection(key)?);
         self.opens_slot(&kind, source).then_some(kind)
     }
 

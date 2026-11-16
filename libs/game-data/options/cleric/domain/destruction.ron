@@ -4,6 +4,7 @@
     name: "Destruction Domain",
     summary: "Destructive Smite and an aura of extra damage and auto-confirmed crits for everyone from 8th; spells up to Tsunami.",
     guide: "character-creation#destruction-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/destruction/destructive-smite"]),
         (level: 8, features: ["cleric/domain/destruction/destructive-aura"]),

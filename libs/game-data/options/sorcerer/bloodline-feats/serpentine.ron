@@ -1,0 +1,13 @@
+(
+    key: "sorcerer/bloodline-feats/serpentine",
+    blueprint: "76be9555a33d58a4bb419154540595df",
+    name: "Serpentine Bloodline Feats",
+    guide: "character-creation#serpentine-bloodline",
+    is_selection: true,
+    components: [
+        Requires(condition: Has(Option("sorcerer/bloodline/serpentine"))),
+    ],
+    levels: [
+        (level: 1, selections: ["sorcerer/bloodline/serpentine/feats"]),
+    ],
+)

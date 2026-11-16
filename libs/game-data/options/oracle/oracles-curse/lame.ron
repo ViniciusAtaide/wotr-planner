@@ -4,6 +4,7 @@
     name: "Lame",
     summary: "-10 feet speed but never slowed by encumbrance; immune to fatigue at 5th, not slowed by armor at 10th, immune to exhaustion at 15th.",
     guide: "oracle#lame",
+    header: (classes: {"oracle": 0, "witch": 0}, archetypes: {"witch/stigmatized-witch": 0}, half_other_classes: true, previous_levels: true),
     levels: [
         (level: 1, features: ["oracle/oracles-curse/lame/level-1"]),
         (level: 5, features: ["oracle/oracles-curse/lame/level-5"]),

@@ -184,7 +184,7 @@ impl Engine {
     }
 
     /// Whether a row's selection is one of feats, whose slot is a Feat slot
-    /// ([`FeatureSelection::offers_feats`]); `false` for one the data lacks.
+    /// ([`GameData::offers_feats`]); `false` for one the data lacks.
     pub fn offers_feats(&self, key: &FeatureSelectionKey) -> bool {
         self.catalog.offers_feats(key)
     }
@@ -437,7 +437,7 @@ pub struct Slot {
 /// What a slot accepts.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SlotKind {
-    /// A feat of a selection of feats ([`FeatureSelection::offers_feats`], ticket 301).
+    /// A feat of a selection of feats ([`GameData::offers_feats`], ticket 301).
     Feat(FeatureSelectionKey),
     /// An option of any other selection.
     Selection(FeatureSelectionKey),

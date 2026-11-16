@@ -48,6 +48,7 @@ mod pick_order;
 mod pick_values;
 mod prerequisites_as_components;
 mod proficiency;
+mod progression_headers;
 mod races;
 mod ranks_and_pools;
 mod repeating_talents;

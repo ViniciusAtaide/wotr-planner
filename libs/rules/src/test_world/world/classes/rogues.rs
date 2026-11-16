@@ -10,7 +10,7 @@ use crate::test_world::world::classes::{archetype_row, row};
 use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option,
 };
-use crate::test_world::world::{guide, list, option_list, plain_feature};
+use crate::test_world::world::{guide, list, plain_feature};
 
 /// Rogue: 3/4 BAB, good Reflex, Sneak Attack at odd levels, a rogue talent at even levels.
 pub(in crate::test_world::world) fn rogue() -> Class {
@@ -75,7 +75,6 @@ pub(in crate::test_world::world) fn rogue() -> Class {
             shared_options: BTreeSet::new(),
             option_levels: BTreeSet::new(),
             option_level_archetypes: BTreeMap::new(),
-            half_other_classes: false,
             skipped_levels: BTreeSet::new(),
             replaced_by: BTreeMap::new(),
             feat_lists_only: false,
@@ -224,7 +223,6 @@ pub(in crate::test_world::world) fn slayer() -> Class {
                 .collect(),
                 option_levels: BTreeSet::from([class("slayer")]),
                 option_level_archetypes: BTreeMap::new(),
-                half_other_classes: false,
                 skipped_levels: BTreeSet::new(),
                 replaced_by: BTreeMap::new(),
                 feat_lists_only: false,
@@ -238,18 +236,32 @@ pub(in crate::test_world::world) fn slayer() -> Class {
                 band: Band::Features,
             },
             slayer_style(),
+            slayer_style_feats(2, 2),
+            slayer_style_feats(6, 6),
+            slayer_style_feats(10, 6),
         ],
-        feat_lists: [2, 6, 10]
-            .map(|stage| {
-                option_list(
-                    &format!("slayer/combat-style-feats-{stage}"),
-                    "slayer/combat-style",
-                    Some(stage),
-                )
-            })
-            .into(),
+        feat_lists: vec![],
         levels,
         archetypes: vec![],
+    }
+}
+
+/// The slayer's combat style feat of a window (`stage`): the ranger's stage selection (`ranger_stage`) that the game's
+/// slayer talent grants (RangerStyleSelection2, 6 and 10), kept apart and labelled for the slayer, offering the same
+/// lists (ticket 304).
+fn slayer_style_feats(stage: u8, ranger_stage: u8) -> FeatureSelection {
+    FeatureSelection {
+        name: "slayer/combat-style feat".into(),
+        shared_options: ["archery", "crane"]
+            .into_iter()
+            .map(|style| option(&format!("ranger/combat-style-feats-{ranger_stage}/{style}")))
+            .collect(),
+        ..levelled_selection(
+            &format!("slayer/combat-style-feats-{stage}"),
+            &[],
+            vec![],
+            &[],
+        )
     }
 }
 

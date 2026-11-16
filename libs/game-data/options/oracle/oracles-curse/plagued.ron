@@ -4,6 +4,7 @@
     name: "Plagued",
     summary: "-1 on saves vs disease but immune to sickened; Pox Pustules at 5th, +2 to your disease DCs at 10th, disease immunity at 15th.",
     guide: "oracle#plagued",
+    header: (classes: {"oracle": 0, "witch": 0}, archetypes: {"witch/stigmatized-witch": 0}, half_other_classes: true, previous_levels: true),
     levels: [
         (level: 1, features: ["oracle/oracles-curse/plagued/level-1"]),
         (level: 5, features: ["oracle/oracles-curse/plagued/level-5"]),

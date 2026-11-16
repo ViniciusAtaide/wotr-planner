@@ -9,6 +9,7 @@
         Requires(condition: Has(Archetype("shaman/wildland-shaman")), group: Any),
         Requires(condition: Has(Option("shaman/spirit/battle")), group: Any),
     ],
+    header: (classes: {"shaman": 0}, previous_levels: true),
     levels: [
         (level: 8, chosen_feats: ["weapon-specialization"]),
         (level: 16, chosen_feats: ["greater-weapon-focus"]),

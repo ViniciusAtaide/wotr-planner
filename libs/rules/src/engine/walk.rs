@@ -332,8 +332,15 @@ struct Holding {
     /// replacement for a skipped one), with its source: a Path switch that drops the source takes the row back,
     /// so the option level gives it again when it reaches it.
     early: BTreeMap<u8, GrantSource>,
-    /// Option levels it never gets the rows of: its selection's skipped levels and the rows a pick replaced.
+    /// Option levels it never gets the rows of: its selection's skipped levels, the rows a pick replaced, and the
+    /// levels it passed over without its header's `previous_levels`.
     skipped: BTreeSet<u8>,
+    /// Whether it gets the rows of the levels it passes over at once ([`ProgressionHeader::previous_levels`]).
+    ///
+    /// [`ProgressionHeader::previous_levels`]: crate::ProgressionHeader::previous_levels
+    previous_levels: bool,
+    /// The highest option level it has reached.
+    reached: u8,
     /// Only its feat lists count (Crossblooded's second bloodline).
     lists_only: bool,
     /// Rows a lists-only holding has in full all the same, which a held feature's option row of the selection it's

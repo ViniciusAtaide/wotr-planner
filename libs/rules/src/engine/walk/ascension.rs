@@ -189,7 +189,6 @@ impl<'a> Walker<'a> {
         self.take_back_early_rows(|source| source.dropped_by(switch, None));
         for holding in gone {
             self.state.option_levels.remove(&holding.option);
-            self.state.option_feat_lists.remove(&holding.option);
         }
         for sheet in &mut self.ranks {
             if sheet.rank >= rank || sheet.status != RankStatus::Reached {

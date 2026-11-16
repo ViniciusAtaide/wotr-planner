@@ -1,0 +1,13 @@
+(
+    key: "sorcerer/bloodline-feats/abyssal",
+    blueprint: "7781831170d794a4d8f147a1326c35fd",
+    name: "Abyssal Bloodline Feats",
+    guide: "character-creation#abyssal-bloodline",
+    is_selection: true,
+    components: [
+        Requires(condition: Has(Option("sorcerer/bloodline/abyssal"))),
+    ],
+    levels: [
+        (level: 1, selections: ["sorcerer/bloodline/abyssal/feats"]),
+    ],
+)

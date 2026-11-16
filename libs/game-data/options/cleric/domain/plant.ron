@@ -4,6 +4,7 @@
     name: "Plant Domain",
     summary: "Enlarge Person rounds and Bramble Armor from 6th level; spells from Entangle to Communal Mind Blank.",
     guide: "character-creation#plant-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/plant/enlarge"]),
         (level: 6, features: ["cleric/domain/plant/bramble-armor"]),

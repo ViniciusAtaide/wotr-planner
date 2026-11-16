@@ -4,6 +4,7 @@
     name: "Time Manipulator",
     summary: "Deceiver path that speeds up time and restores spells and abilities.",
     guide: "arcanist#time-manipulator",
+    header: (classes: {"arcanist": 0}, archetypes: {"arcanist/magic-deceiver": 0}),
     levels: [
         (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/time-manipulator/advance-time"]),
         (level: 2, features: ["trick-magic"]),

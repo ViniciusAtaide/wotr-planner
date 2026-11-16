@@ -207,7 +207,7 @@ pub enum DataIssue {
     FeatListTooShort,
     /// A selection that offers feats and options both: a slot takes one kind (ticket 301).
     FeatsAndOptions,
-    /// A race's or subrace's selection, or an option row's feat list, that lists no feats.
+    /// A race's or subrace's selection that lists no feats.
     NotOfFeats(FeatureSelectionKey),
     /// A path rank row before the path is chosen (MR 1-2) with a slot: those rows are the first ascension's
     /// path-linked ability and its follow-ups, features only.
@@ -243,10 +243,14 @@ pub enum DataIssue {
     StoryNotRequired,
     /// Two rows of an option at one option level.
     DuplicateOptionRow(u8),
-    /// A selection offering an option with rows by option level, but naming no classes whose levels make one.
+    /// A selection offering an option with rows by option level, but neither the option's header nor the selection
+    /// names classes whose levels make one.
     OptionRowsWithoutLevels(SelectionOptionKey),
     /// A selection naming both classes whose levels make the option level and another source of it.
     LevelFromWithClasses,
+    /// A selection letting its options' headers go first (`option_headers_first`) that names no classes for the
+    /// others.
+    HeadersFirstWithoutClasses,
     /// An option whose level counts beside the other options held (`level_also_from`) on a selection not levelled
     /// by the other options held.
     LevelAlsoFromWithoutOtherOptions,
@@ -504,6 +508,9 @@ impl fmt::Display for DataProblem {
             DataIssue::LevelFromWithClasses => f.write_str(
                 "names classes whose levels make the option level and another source of it",
             ),
+            DataIssue::HeadersFirstWithoutClasses => f.write_str(
+                "lets its options' headers go first but names no classes for the options without one",
+            ),
             DataIssue::LevelAlsoFromWithoutOtherOptions => f.write_str(
                 "names an option whose level counts beside the other options held, but isn't levelled by them",
             ),
@@ -623,7 +630,7 @@ impl GameData {
             lists: self
                 .selections
                 .iter()
-                .filter(|selection| selection.offers_feats())
+                .filter(|selection| self.offers_feats(selection))
                 .map(|selection| (selection.key.clone(), selection.ignores_prerequisites))
                 .collect(),
             parameters: self
@@ -1068,20 +1075,16 @@ impl Checker {
         }
     }
 
-    /// A selection of feats (ticket 301): the feats it names, and enough of them to pick from, or the selection whose
-    /// options' lists it offers; never options beside them.
-    fn feat_selection(&mut self, selection: &FeatureSelection) {
+    /// A selection of feats (ticket 301): the feats it names, and enough of them to pick from, or the lists it nests
+    /// (`nests`, ticket 304); never options beside its feats.
+    fn feat_selection(&mut self, selection: &FeatureSelection, nests: bool) {
         let at = DataAt::FeatureSelection(selection.key.clone());
         self.names_each(&at, &selection.feats, DataAt::Feat);
         let beside_options = !selection.options.is_empty() || !selection.shared_options.is_empty();
-        if beside_options || (selection.option_lists.is_some() && !selection.feats.is_empty()) {
+        if beside_options && !selection.feats.is_empty() {
             self.problem(&at, DataIssue::FeatsAndOptions);
         }
-        if let Some(lists) = &selection.option_lists {
-            self.names(&at, DataAt::FeatureSelection(lists.selection.clone()));
-            if let Some(level) = lists.at_level {
-                self.level(&at, level);
-            }
+        if nests {
             return;
         }
         // A list of one parameterised feat is a bonus feat of the player's choosing: the pick names the value.
@@ -1349,16 +1352,22 @@ impl Checker {
                     );
                 }
             }
-            if selection.level_from.is_some() && selection.levels_by_class() {
+            let names_classes = !selection.option_levels.is_empty()
+                || !selection.option_level_archetypes.is_empty();
+            if selection.level_from.is_some() && names_classes {
                 self.problem(&selection_at, DataIssue::LevelFromWithClasses);
+            }
+            if selection.option_headers_first && !names_classes {
+                self.problem(&selection_at, DataIssue::HeadersFirstWithoutClasses);
             }
             if selection.level_also_from.is_some()
                 && selection.level_from != Some(LevelFrom::OtherOptions)
             {
                 self.problem(&selection_at, DataIssue::LevelAlsoFromWithoutOtherOptions);
             }
-            if selection.offers_feats() {
-                self.feat_selection(selection);
+            let nests = data.nests_feat_lists(selection);
+            if nests || !selection.feats.is_empty() {
+                self.feat_selection(selection, nests);
             }
         }
         for option in &data.options {
@@ -1379,6 +1388,10 @@ impl Checker {
             }
             self.names_each(&at, &option.replaces_row_of, DataAt::FeatureSelection);
             self.names_each(&at, &option.arcana, DataAt::Feature);
+            if let Some(header) = &option.header {
+                self.names_each(&at, header.classes.keys(), DataAt::Class);
+                self.names_each(&at, header.archetypes.keys(), DataAt::Archetype);
+            }
             self.names_each(
                 &at,
                 option.bab_from_ranks.as_ref().map(|bab| &bab.skill),
@@ -1426,15 +1439,6 @@ impl Checker {
                 if !levels.insert(row.level) {
                     self.problem(&at, DataIssue::DuplicateOptionRow(row.level));
                 }
-                if let Some(list) = &row.feat_list {
-                    self.named_lists.insert(list.clone());
-                    self.names(&at, DataAt::FeatureSelection(list.clone()));
-                    let listing = (self.selection_at.get(list))
-                        .is_none_or(|&i| !data.selections[i].feats.is_empty());
-                    if !listing {
-                        self.problem(&at, DataIssue::NotOfFeats(list.clone()));
-                    }
-                }
                 self.grants(&at, &row.features, &row.feats, &row.selections);
                 self.names_each(&at, &row.chosen_feats, DataAt::Feat);
                 self.names_each(&at, &row.class_skills, DataAt::Skill);
@@ -1450,15 +1454,18 @@ impl Checker {
     }
 
     /// A selection offering an option with rows names the classes whose levels make its option level.
+    /// (ticket 304: or the option's own header does). A selection that nests lists of feats never holds its options.
     fn option_levels(&mut self, data: &GameData) {
         let with_rows: HashSet<&SelectionOptionKey> = data
             .options
             .iter()
-            .filter(|option| !option.levels.is_empty())
+            .filter(|option| !option.levels.is_empty() && option.header.is_none())
             .map(|option| &option.key)
             .collect();
         for selection in &data.selections {
-            if selection.levels_by_class() || selection.level_from.is_some() {
+            let names_classes = !selection.option_levels.is_empty()
+                || !selection.option_level_archetypes.is_empty();
+            if names_classes || selection.level_from.is_some() || data.nests_feat_lists(selection) {
                 continue;
             }
             if let Some(option) = selection

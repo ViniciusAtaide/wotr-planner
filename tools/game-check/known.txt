@@ -69,6 +69,31 @@ option lists / * / selection mythic/extra-mythic-ability -> 293
 option lists / * / selection oracle/beneficial-curse -> 293
 option lists / * / selection slayer/extra-slayer-talent -> 293
 
+# From 304 (the progression header, decision Q4): the nested lists' gates. The game opens a bloodline's feat list
+# with the bloodline's requisite feature, which any bloodline of its kind grants (a bloodrager's, the Sage's, the
+# Empyreal's, the Sylvan's, a Tiefling's heritage), and the ranger's 10th-level style lists with the 6th-level one;
+# the planner writes the sorcerer's bloodline or the style held. RangerStyleSelection10 offers Skill Focus beside the
+# styles' lists. And the Lich's skeletal upgrades count the Lich's mythic class levels, which the planner has no class
+# for. 293 writes the game's.
+prerequisites / * / selection option sorcerer/bloodline-feats/abyssal -> 293
+prerequisites / * / selection option sorcerer/bloodline-feats/arcane -> 293
+prerequisites / * / selection option sorcerer/bloodline-feats/celestial -> 293
+prerequisites / * / selection option sorcerer/bloodline-feats/draconic -> 293
+prerequisites / * / selection option sorcerer/bloodline-feats/elemental -> 293
+prerequisites / * / selection option sorcerer/bloodline-feats/fey -> 293
+prerequisites / * / selection option sorcerer/bloodline-feats/infernal -> 293
+prerequisites / * / selection option sorcerer/bloodline-feats/serpentine -> 293
+prerequisites / * / selection option sorcerer/bloodline-feats/undead -> 293
+prerequisites / * / selection option ranger/combat-style-feats-10/archery -> 293
+prerequisites / * / selection option ranger/combat-style-feats-10/menacing -> 293
+prerequisites / * / selection option ranger/combat-style-feats-10/two-handed-weapon -> 293
+prerequisites / * / selection option ranger/combat-style-feats-10/two-weapon-combat -> 293
+prerequisites / * / selection option ranger/combat-style-feats-10/weapon-and-shield -> 293
+option lists / in game only / selection ranger/combat-style-feats-10 -> 293
+progression headers / a progression header / selection option lich/skeleton-upgrade/skeletal-barbarian-i -> 293
+progression headers / a progression header / selection option lich/skeleton-upgrade/skeletal-fighter-i -> 293
+progression headers / a progression header / selection option lich/skeleton-upgrade/skeletal-inquisitor-i -> 293
+
 # The difference tickets, 247–291 (filed 2026-11-15 from the first run's 3,908 findings not known before): each
 # section names the entries whose differences its ticket removes, one line per entry, or per kind or value where an
 # entry's findings belong to two tickets. A ticket that lands deletes its section: a line left behind matches nothing

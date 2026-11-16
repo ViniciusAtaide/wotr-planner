@@ -1,8 +1,19 @@
 (
-    why: "The game grants each bloodline's own feat selection from the bloodline's progression; the planner's one slot offers the held bloodline's list until nested selections (ticket 302).",
+    why: "The game grants each bloodline's own feat selection from the bloodline's progression, with no selection over them; the planner's one slot offers the lists of the bloodlines held, each nested as an option its bloodline gates (ticket 304).",
     entry: (
         key: "bloodrager/bloodline-feats",
         name: "Bloodline feat",
-        option_lists: (selection: "bloodrager/bloodline"),
+        options: [
+            "bloodrager/bloodline-feats/abyssal",
+            "bloodrager/bloodline-feats/arcane",
+            "bloodrager/bloodline-feats/celestial",
+            "bloodrager/bloodline-feats/draconic",
+            "bloodrager/bloodline-feats/elemental",
+            "bloodrager/bloodline-feats/fey",
+            "bloodrager/bloodline-feats/hag",
+            "bloodrager/bloodline-feats/infernal",
+            "bloodrager/bloodline-feats/serpentine",
+            "bloodrager/bloodline-feats/undead",
+        ],
     ),
 )

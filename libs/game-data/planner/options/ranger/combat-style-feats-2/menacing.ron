@@ -1,0 +1,13 @@
+(
+    why: "A style's 2nd-level feat list as an option of the planner's stage-2 selection (ticket 304): the game's is the style itself, RangerStyleSelection2's option, which the planner picks apart (`ranger/combat-style-feat`).",
+    entry: (
+        key: "ranger/combat-style-feats-2/menacing",
+        name: "Menacing Feats (from level 2)",
+        guide: "ranger#menacing-feats",
+        is_selection: true,
+        prerequisite: SelectionOption("ranger/combat-style-feat/menacing-feats"),
+        levels: [
+            (level: 1, selections: ["ranger/combat-style-feat/menacing-feats-2"]),
+        ],
+    ),
+)

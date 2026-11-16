@@ -678,7 +678,7 @@ fn a_style_slot_follows_the_style_picked_at_the_same_level_and_grows_with_it() {
     assert_eq!(ids, [selection_slot(2, 0), class_slot(2, 0)]);
     assert_eq!(
         sheet.slot(&class_slot(2, 0)).unwrap().kind,
-        SlotKind::Feat(feat_list("ranger/combat-style-feats"))
+        SlotKind::Feat(feat_list("ranger/combat-style-feats-2"))
     );
     assert_eq!(offered(&build, &class_slot(2, 0)), ["dodge", "toughness"]);
     // At 6 the style's next list, ignoring prerequisites (Great Cleave without Cleave).

@@ -116,7 +116,7 @@ fn the_selections_are_one_catalog_the_class_selections_then_each_paths() {
     let keys: Vec<&str> = data
         .selections
         .iter()
-        .filter(|selection| !selection.offers_feats())
+        .filter(|selection| !data.offers_feats(selection))
         .map(|selection| selection.key.as_str())
         .collect();
     let paths = [

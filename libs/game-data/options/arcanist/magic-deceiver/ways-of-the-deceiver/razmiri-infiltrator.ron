@@ -7,6 +7,7 @@
     components: [
         Requires(condition: Alignment([TrueNeutral, LawfulEvil, NeutralEvil, ChaoticEvil])),
     ],
+    header: (classes: {"arcanist": 0}, archetypes: {"arcanist/magic-deceiver": 0}),
     levels: [
         (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/acolyte-of-the-first-step", "arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/razmiri-mask"]),
         (level: 2, features: ["trick-magic"]),

@@ -4,9 +4,4 @@
     name: "Two-Handed Weapon Feats",
     summary: "Cleave, Power Attack, Intimidating Prowess; from 6th Cleaving Finish, Great Cleave; from 10th Dreadful Carnage, Critical Focus.",
     guide: "ranger#two-handed-weapon-feats",
-    levels: [
-        (level: 2, feat_list: "ranger/combat-style-feat/two-handed-weapon-feats-2"),
-        (level: 6, feat_list: "ranger/combat-style-feat/two-handed-weapon-feats-6"),
-        (level: 10, feat_list: "ranger/combat-style-feat/two-handed-weapon-feats-10"),
-    ],
 )

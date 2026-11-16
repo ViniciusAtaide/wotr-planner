@@ -4,6 +4,7 @@
     name: "Glory Domain",
     summary: "Touch of Glory, +2 channel DC against undead, Aura of Heroism from 8th; spells from Shield of Faith to Overwhelming Presence.",
     guide: "character-creation#glory-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/glory/touch-of-glory"]),
         (level: 8, features: ["cleric/domain/glory/aura-of-heroism"]),

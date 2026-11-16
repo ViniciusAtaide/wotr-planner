@@ -4,6 +4,7 @@
     name: "Battle",
     summary: "Battle: morale aura for allies, Enemies' Bane at 8th, Paragon of Battle at 16th, Pounce and more HP at 20th; bonus spells like Enlarge Person.",
     guide: "shaman#battle",
+    header: (classes: {"shaman": 0}, previous_levels: true),
     levels: [
         (level: 1, features: ["shaman/spirit/battle/battle-spirit"]),
         (level: 8, features: ["shaman/spirit/battle/enemies-bane", "shaman/spirit/battle/battle-spirit"]),

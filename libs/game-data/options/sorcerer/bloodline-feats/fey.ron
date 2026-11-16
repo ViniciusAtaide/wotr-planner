@@ -1,0 +1,13 @@
+(
+    key: "sorcerer/bloodline-feats/fey",
+    blueprint: "d7f233e417c490545b00f49c3940638c",
+    name: "Fey Bloodline Feats",
+    guide: "character-creation#fey-bloodline",
+    is_selection: true,
+    components: [
+        Requires(condition: Has(Option("sorcerer/bloodline/fey"))),
+    ],
+    levels: [
+        (level: 1, selections: ["sorcerer/bloodline/fey/feats"]),
+    ],
+)

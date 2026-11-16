@@ -42,6 +42,7 @@ pub fn check(pins: &Pins, dump: &Dump, data: &GameData, known: &Known) -> Result
     areas::class_tables::compare(&ctx, &mut out);
     areas::rows::compare_classes(&ctx, &mut out);
     areas::options::compare(&ctx, &mut out);
+    areas::headers::compare(&ctx, &mut out);
     areas::rows::compare_mythic(&ctx, &mut out);
     areas::items::compare(&ctx, &mut out);
     let unparsed = dump.unparsed();

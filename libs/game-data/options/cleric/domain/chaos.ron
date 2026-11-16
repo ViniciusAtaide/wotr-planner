@@ -5,6 +5,7 @@
     summary: "Touch of Chaos and Anarchic weapons from 8th level; spells from Protection from Law to Summon Monster IX.",
     guide: "character-creation#chaos-domain",
     prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("cleric/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)])]),
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/chaos/touch-of-chaos"]),
         (level: 8, features: ["cleric/domain/chaos/chaos-blade"]),

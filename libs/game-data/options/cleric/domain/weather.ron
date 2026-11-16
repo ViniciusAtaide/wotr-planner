@@ -4,6 +4,7 @@
     name: "Weather Domain",
     summary: "Storm Burst and Lightning Lord from 8th level; spells from Snowball to Tsunami.",
     guide: "character-creation#weather-domain",
+    header: (classes: {"arcanist": 0, "cleric": 0, "hunter": 0, "inquisitor": 0}, archetypes: {"arcanist/magic-deceiver": 0, "hunter/divine-hunter": -2}, previous_levels: true),
     levels: [
         (level: 1, features: ["cleric/domain/weather/storm-burst"]),
         (level: 8, features: ["cleric/domain/weather/lightning-lord"]),

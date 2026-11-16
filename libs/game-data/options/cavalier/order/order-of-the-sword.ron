@@ -4,6 +4,7 @@
     name: "Order of the Sword",
     summary: "Chivalric order: +1 morale to attack (+1 per 4 levels) against your challenged foe while mounted; Lore (Religion) a class skill.",
     guide: "cavalier#order-of-the-sword",
+    header: (classes: {"cavalier": 0}),
     levels: [
         (level: 1, class_skills: ["lore-religion"]),
         (level: 2, features: ["cavalier/order/order-of-the-sword/by-my-honor"]),
