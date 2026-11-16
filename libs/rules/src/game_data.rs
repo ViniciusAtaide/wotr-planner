@@ -1293,10 +1293,12 @@ pub struct FeatureSelection {
     /// (`BlueprintProgression.CalcLevel`).
     #[serde(default)]
     pub option_levels: BTreeSet<ClassKey>,
-    /// Archetypes whose class levels add to the option level, where the class itself counts only taken with one
-    /// of them (an oracle's curse: a witch's levels as a Stigmatized Witch, not a plain witch's).
+    /// Archetypes whose class levels add to the option level, each with the levels it adds to them (the game's
+    /// `ArchetypeWithLevel.AdditionalLevel`; a sum below 0 adds 0), where the class itself counts only taken with one
+    /// of them (an oracle's curse: a witch's levels as a Stigmatized Witch, not a plain witch's; a Divine Hunter's
+    /// domain: the hunter's levels less 2).
     #[serde(default)]
-    pub option_level_archetypes: BTreeSet<ArchetypeKey>,
+    pub option_level_archetypes: BTreeMap<ArchetypeKey, i8>,
     /// Set when half the levels of every other class add to the option level, rounded down: the classes neither in
     /// `option_levels` nor taken with one of `option_level_archetypes`, and the Mythic rank, which the game counts as
     /// the mythic classes' levels (an oracle's curse: `BlueprintProgression.CalcLevel` with `ForAllOtherClasses`).
@@ -1326,10 +1328,13 @@ pub struct FeatureSelection {
     /// another way in, among them). The game lists the rest greyed out; leaving them out is the planner's choice.
     #[serde(default)]
     pub filtered_by: Option<FeatureSelectionKey>,
-    /// How many option levels an option held through it lags behind the levels of its classes (the Separatist's
-    /// second domain: "Higher level abilities are delayed by two class levels").
+    /// How many option levels an option held through it lags behind the levels of its classes from its second row on:
+    /// its first row comes with the first level, as the Separatist's second domain's does, whose own progressions
+    /// (`LuckDomainProgressionSeparatist` 1f26551e7e61436c8ee188064038a896 and the others) grant the 1st-level power
+    /// at 1 and every later row two levels after the domain's ("Higher level abilities are delayed by two class
+    /// levels"). The option level is then the classes' levels less this, but at least 1.
     #[serde(default)]
-    pub levels_behind: u8,
+    pub later_rows_behind: u8,
     /// Where an option held through it gets its option level when the selection names no classes.
     #[serde(default)]
     pub level_from: Option<LevelFrom>,

@@ -245,7 +245,7 @@ Class(
             summary: "Pick a curse with a drawback and benefits that grow at 5th, 10th and 15th; its level is oracle level + 1 per two other class levels.",
             guide: "oracle#oracles-curse",
             option_levels: ["oracle", "witch"],
-            option_level_archetypes: ["witch/stigmatized-witch"],
+            option_level_archetypes: {"witch/stigmatized-witch": 0},
             half_other_classes: true,
             options: [
                 (
@@ -791,7 +791,7 @@ Class(
                     summary: "The Possessed Oracle\'s curse is always Powerless Prophecy, which advances as an oracle\'s curse does.",
                     guide: "oracle#possessed-oracle",
                     option_levels: ["oracle", "witch"],
-                    option_level_archetypes: ["witch/stigmatized-witch"],
+                    option_level_archetypes: {"witch/stigmatized-witch": 0},
                     half_other_classes: true,
                     options: [],
                     shared_options: [

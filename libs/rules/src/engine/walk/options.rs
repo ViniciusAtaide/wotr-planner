@@ -9,7 +9,6 @@ use crate::engine::{Slot, SlotKind};
 use crate::game_data::{FeatureSelection, LevelFrom, MythicRankRow, OptionRow};
 use crate::keys::{ClassKey, FeatureKey, FeatureSelectionKey, SelectionOptionKey};
 use crate::parameter::Parameter;
-use crate::state::ClassLevels;
 
 impl<'a> Walker<'a> {
     // ---- Options with rows --------------------------------------------------------------------------------
@@ -111,33 +110,32 @@ impl<'a> Walker<'a> {
                     .saturating_sub(source.rank)
             }),
         };
-        level.saturating_sub(selection.levels_behind)
+        lagging(level, selection.later_rows_behind)
     }
 
     /// The class levels that make the option level of an option held through `selection`, as the game's
     /// `BlueprintProgression.CalcLevel` adds them (WrathDecompiled 6ce4a6b): each class it names, unless that class has
-    /// one of its archetypes; each class taken with one of its archetypes; and half the other classes' levels, when it
-    /// counts them, rounded down. The other classes include the mythic ones, whose levels are the Mythic rank
-    /// (`UnitProgressionData.SetupLevelsIfNecessary`).
+    /// one of its archetypes; each class taken with one of its archetypes, plus the levels the archetype adds (a sum
+    /// below 0 adds 0); and half the other classes' levels, when it counts them, rounded down. The other classes
+    /// include the mythic ones, whose levels are the Mythic rank (`UnitProgressionData.SetupLevelsIfNecessary`).
     fn class_levels_of(&self, selection: &FeatureSelection) -> u8 {
         let catalog = &self.engine.catalog;
-        let by_archetype = |taken: &ClassLevels| {
-            taken
-                .archetype
-                .as_ref()
-                .is_some_and(|archetype| selection.option_level_archetypes.contains(archetype))
-        };
+        let archetypes = &selection.option_level_archetypes;
         let has_listed_archetype = |class: &ClassKey| {
-            !selection.option_level_archetypes.is_empty()
+            !archetypes.is_empty()
                 && catalog.class(class).is_some_and(|(class, _)| {
                     (class.archetypes.iter())
-                        .any(|archetype| selection.option_level_archetypes.contains(&archetype.key))
+                        .any(|archetype| archetypes.contains_key(&archetype.key))
                 })
         };
         let (mut own, mut others) = (0u8, self.state.mythic_rank);
         for taken in &self.state.classes {
             let named = selection.option_levels.contains(&taken.class);
-            if by_archetype(taken) || (named && !has_listed_archetype(&taken.class)) {
+            if let Some(&offset) =
+                (taken.archetype.as_ref()).and_then(|archetype| archetypes.get(archetype))
+            {
+                own = own.saturating_add(taken.level.saturating_add_signed(offset));
+            } else if named && !has_listed_archetype(&taken.class) {
                 own = own.saturating_add(taken.level);
             } else if !named {
                 others = others.saturating_add(taken.level);
@@ -479,5 +477,15 @@ impl<'a> Walker<'a> {
                 self.holdings[index].early.insert(row.level, source.clone());
             }
         }
+    }
+}
+
+/// An option level that lags `behind` the classes' `level` from its second row on
+/// ([`FeatureSelection::later_rows_behind`]).
+fn lagging(level: u8, behind: u8) -> u8 {
+    if level == 0 {
+        0
+    } else {
+        level.saturating_sub(behind).max(1)
     }
 }

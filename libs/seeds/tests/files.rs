@@ -1192,8 +1192,8 @@ fn reads_option_groups_arcanas_level_sources_and_picks_through_and_defaults_them
         Some(LevelFrom::OtherOptions)
     );
     assert_eq!(bloodline.level_from, None);
-    assert_eq!(selection("sorcerer/seeker/bloodline").levels_behind, 2);
-    assert_eq!(bloodline.levels_behind, 0);
+    assert_eq!(selection("sorcerer/seeker/bloodline").later_rows_behind, 2);
+    assert_eq!(bloodline.later_rows_behind, 0);
     // Once per option through a selection.
     assert!(selection("sorcerer/seeker/second-bloodline").once_per_option);
     assert!(!bloodline.once_per_option);
@@ -1203,7 +1203,7 @@ fn reads_option_groups_arcanas_level_sources_and_picks_through_and_defaults_them
     assert_eq!(
         power
             .option_level_archetypes
-            .iter()
+            .keys()
             .map(ArchetypeKey::as_str)
             .collect::<Vec<_>>(),
         ["sorcerer/seeker"]

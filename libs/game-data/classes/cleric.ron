@@ -701,7 +701,7 @@ Class(
             key: "cleric/separatist",
             blueprint: "67401c74ee094e82a2afd645a847f5cc",
             name: "Separatist",
-            summary: "Lord of Nothing DLC: takes a second domain from outside the deity's list, working two levels behind.",
+            summary: "Lord of Nothing DLC: takes a second domain from outside the deity's list; its later powers come two levels late and its numbers count two levels lower.",
             guide: "cleric#separatist",
             features: [
                 (key: "cleric/separatist/forbidden-rites", blueprint: "42b781e4375d499383b2602d90661283", name: "Forbidden Rites", summary: "A domain not on your deity's list (no opposed alignment domain), working as if you were two levels lower.", guide: "cleric#forbidden-rites"),
@@ -711,11 +711,11 @@ Class(
                     key: "cleric/separatist/domain",
                     blueprint: "42b781e4375d499383b2602d90661283",
                     name: "Domain (Separatist)",
-                    summary: "The Separatist's second domain, from outside the deity's list, with powers two levels behind.",
+                    summary: "The Separatist's second domain, from outside the deity's list: its 1st-level power at once, its later powers two levels late, and its numbers as if two levels lower.",
                     deity_domains: NotOffered,
                     guide: "cleric#forbidden-rites",
                     option_levels: ["cleric"],
-                    levels_behind: 2,
+                    later_rows_behind: 2,
                     options: [],
                     shared_options: [
                         "cleric/domain/air",

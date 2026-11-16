@@ -52,12 +52,21 @@ pub fn sorcerer_selection<'a>(
     data: &'a mut GameData,
     key: &str,
 ) -> &'a mut rules::FeatureSelection {
-    let sorcerer = class_mut(data, "sorcerer");
-    sorcerer
+    class_selection(data, "sorcerer", key)
+}
+
+/// A selection of a class or one of its archetypes, to change for a test.
+pub fn class_selection<'a>(
+    data: &'a mut GameData,
+    class: &str,
+    key: &str,
+) -> &'a mut rules::FeatureSelection {
+    let class = class_mut(data, class);
+    class
         .selections
         .iter_mut()
         .chain(
-            sorcerer
+            class
                 .archetypes
                 .iter_mut()
                 .flat_map(|archetype| &mut archetype.selections),

@@ -213,14 +213,15 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   the row (Divine Herbalist) or a lists-only holding (Crossblooded's second bloodline) gives none. Its selection says
   which classes' levels make the option level, `option_levels: ["dragon-disciple", "sorcerer"]` (an option taken
   late gets every row up to its level at once), with the game's two more terms where the option is its own
-  progression (the game's `BlueprintProgression`, as an oracle's curse is; ticket 243): `option_level_archetypes`
-  (a class that has one of them counts only taken with it, as a Stigmatized Witch's levels count for an oracle's
-  curse and a plain witch's don't) and `half_other_classes: true` (half the other classes' levels, the Mythic rank's
+  progression (the game's `BlueprintProgression`, as an oracle's curse is; ticket 243): `option_level_archetypes`, each
+  archetype with the levels it adds (`{"witch/stigmatized-witch": 0}`; a class that has one of them counts only taken
+  with it, as a Stigmatized Witch's levels count for an oracle's curse and a plain witch's don't; a Divine Hunter's
+  domain is `{"hunter/divine-hunter": -2}`, ticket 253) and `half_other_classes: true` (half the other classes' levels, the Mythic rank's
   among them, rounded down: `BlueprintProgression.CalcLevel`); an archetype that changes the grant has its own selection
   that shares the options it allows: `skipped_levels: [3, 9, 15]` (Seeker; its own rows replace them),
   `feat_lists_only: true` (Crossblooded's second bloodline: its lists and its `arcana`, the option's named
-  first-row feature, `arcana: "sorcerer/bloodline/abyssal/demonic-arcana"`), `levels_behind: 2` (the Separatist's
-  second domain, `cleric/separatist/domain`), only some options (Hag-Riven), or one option, which
+  first-row feature, `arcana: "sorcerer/bloodline/abyssal/demonic-arcana"`), `later_rows_behind: 2` (the Separatist's
+  second domain, `cleric/separatist/domain`: its first row at once, the later ones two levels late; ticket 253), only some options (Hag-Riven), or one option, which
   is then granted with no pick (a Sage Sorcerer's Arcane bloodline). `only_without_option: true` grants the
   selection only to a character holding none of its options (Dragon Disciple's Blood of Dragons). A bonus slot
   that picks from the held option's list is `OptionList(selection: "sorcerer/bloodline")`. The option features

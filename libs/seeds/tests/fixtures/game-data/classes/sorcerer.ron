@@ -104,7 +104,7 @@ Class(
             // A filtered pool, levelled as an oracle's curse is (ticket 243).
             filtered_by: "sorcerer/bloodline",
             option_levels: ["sorcerer"],
-            option_level_archetypes: ["sorcerer/seeker"],
+            option_level_archetypes: {"sorcerer/seeker": 0},
             half_other_classes: true,
             options: [(key: "sorcerer/power/surge", name: "Surge", guide: "sorcerer")],
         ),
@@ -133,7 +133,7 @@ Class(
                     option_levels: ["sorcerer"],
                     skipped_levels: [3],
                     replaced_by: {3: "sorcerer/bloodline/draconic/claws"},
-                    levels_behind: 2,
+                    later_rows_behind: 2,
                     options: [],
                 ),
                 (
