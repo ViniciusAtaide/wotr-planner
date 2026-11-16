@@ -8,9 +8,9 @@
 //! The scanner reads `//` comments and `"` strings. It does not read `/* */` comments (a text holding `/*` is
 //! refused), raw strings, character literals or CRLF line ends; none is in `libs/game-data/` today.
 //!
-//! [`apply`] writes a list of [`Change`]s to a data folder all or nothing: it refuses a file under `planner/` or a
-//! missing one, builds every new text before writing any, reads each written file back, runs the caller's check of
-//! the whole folder, and on any failure puts every touched file's bytes back.
+//! [`apply`] writes a list of [`Change`]s to a data folder: it refuses a file under `planner/`, a missing one, a
+//! field the importer doesn't own, and a refused span before it writes anything; then it writes each file, reads it
+//! back, runs the caller's check of the whole folder, and on any failure puts every written file's bytes back.
 
 pub mod span;
 
@@ -50,12 +50,17 @@ pub enum WriteError {
     /// A change on a planner-made file, which the importer never writes.
     Planner(PathBuf),
     Missing(PathBuf),
+    /// A change to a field the importer doesn't own in that folder (design §1.2's table).
+    NotOwned {
+        file: PathBuf,
+        field: &'static str,
+    },
     Span {
         file: PathBuf,
         field: &'static str,
         error: SpanError,
     },
-    /// The file as written differs from the file before in more than the written fields.
+    /// The file as written differs from the file before in more than the written field.
     ReadBack {
         file: PathBuf,
         field: &'static str,
@@ -65,6 +70,11 @@ pub enum WriteError {
     Io {
         file: PathBuf,
         error: io::Error,
+    },
+    /// The run failed (`cause`) and putting the files back failed too: these files are left as written.
+    RestoreFailed {
+        cause: Box<WriteError>,
+        files: Vec<PathBuf>,
     },
 }
 
@@ -79,16 +89,32 @@ impl fmt::Display for WriteError {
                 )
             }
             WriteError::Missing(file) => write!(f, "{}: no such entry file", file.display()),
+            WriteError::NotOwned { file, field } => write!(
+                f,
+                "{}: `{field}` is not a field the importer writes in this folder",
+                file.display()
+            ),
             WriteError::Span { file, field, error } => {
                 write!(f, "{}: `{field}`: {error}", file.display())
             }
             WriteError::ReadBack { file, field } => write!(
                 f,
-                "{}: after writing `{field}` the file differs in more than the written fields",
+                "{}: after writing `{field}` the file differs in more than the written field",
                 file.display()
             ),
             WriteError::Invalid(why) => write!(f, "the written data fails its check: {why}"),
             WriteError::Io { file, error } => write!(f, "{}: {error}", file.display()),
+            WriteError::RestoreFailed { cause, files } => {
+                let files: Vec<_> = files
+                    .iter()
+                    .map(|file| file.display().to_string())
+                    .collect();
+                write!(
+                    f,
+                    "{cause}; and these files could not be put back and are left as written: {}",
+                    files.join(", ")
+                )
+            }
         }
     }
 }
@@ -97,6 +123,10 @@ impl std::error::Error for WriteError {}
 
 /// The entry's file under the data folder: the folder of its kind (`prestige/` for a prestige class), then
 /// `<key>.ron`; the mythic ascension table and the skills are single files.
+///
+/// It does not detect a planner-made entry, whose file is `planner/<folder>/<key>.ron`: it has no blueprint, so the
+/// importer never reaches it by a blueprint, and a caller that holds such an entry passes the path it knows.
+/// [`apply`] refuses any `planner/` path.
 pub fn entry_file(data: &GameData, at: &DataAt) -> PathBuf {
     let folder = match at {
         DataAt::Progression => return PathBuf::from("progression.ron"),
@@ -128,11 +158,7 @@ pub fn entry_file(data: &GameData, at: &DataAt) -> PathBuf {
 
 /// The declared field order of the kind a file is of, for an insert's anchor.
 fn declared(file: &Path) -> &'static [&'static str] {
-    match file
-        .components()
-        .next()
-        .and_then(|part| part.as_os_str().to_str())
-    {
+    match folder(file) {
         Some("classes" | "prestige") => CLASS_FIELDS,
         Some("archetypes") => ARCHETYPE_FIELDS,
         Some("gear") => GEAR_FIELDS,
@@ -140,22 +166,95 @@ fn declared(file: &Path) -> &'static [&'static str] {
     }
 }
 
-/// Writes the changes under `dir`, all or nothing.
+/// The fields the importer writes in a folder (design §1.2's table): nothing else is changed, and a folder with no
+/// list here has none, until a later slice gives it one.
+fn owned(file: &Path) -> &'static [&'static str] {
+    match folder(file) {
+        Some("classes" | "prestige") => &[
+            "skill_points",
+            "bab",
+            "fort",
+            "reflex",
+            "will",
+            "save_exceptions",
+            "class_skills",
+            "levels",
+            "components",
+        ],
+        Some("archetypes") => &[
+            "skill_points",
+            "class_skills",
+            "bab",
+            "fort",
+            "reflex",
+            "will",
+            "levels",
+            "components",
+        ],
+        Some("gear") => &["components"],
+        _ => &[],
+    }
+}
+
+fn folder(file: &Path) -> Option<&str> {
+    file.components()
+        .next()
+        .and_then(|part| part.as_os_str().to_str())
+}
+
+/// Writes `text` to `path` through a temp file in the same folder and a rename over it, so a kill in the middle
+/// never leaves a truncated file.
+pub fn atomic_write(path: &Path, text: &str) -> io::Result<()> {
+    let name = path
+        .file_name()
+        .map_or_else(String::new, |n| n.to_string_lossy().into_owned());
+    let temp = path.with_file_name(format!(".{name}.tmp"));
+    fs::write(&temp, text)?;
+    fs::rename(&temp, path).inspect_err(|_| {
+        let _ = fs::remove_file(&temp);
+    })
+}
+
+/// One file's plan: its text before and after, and each change's step (the text before it, and after it).
+struct FilePlan<'a> {
+    file: PathBuf,
+    before: String,
+    after: String,
+    steps: Vec<(String, String, &'a Change)>,
+}
+
+/// Writes the changes under `dir`.
 ///
-/// Every file is checked and every new text built before any is written; a file under `planner/`, a missing one or
-/// a refused span stops the run with nothing written. After writing, each file is parsed as a `ron::Value` before
-/// and after: only the written fields may differ, and they must hold the written values. Then `validate` runs on
-/// `dir`. A failure of either restores every touched file's original bytes.
+/// Every file is checked and every new text built before any is written: a file under `planner/`, a missing one, a
+/// field outside [`owned`] or a refused span stops the run with nothing written. A file's changes apply in the order
+/// given, so of two changes to one field the later wins. After writing, each file is read back from the disk: it
+/// must hold the text built, and each change's step must differ from the text before it only in its field and the
+/// separators the writer adds or drops with it ([`read_back`]). Then `validate` runs on `dir`. A failure of either
+/// puts every written file's bytes back; one that can't be put back is named in [`WriteError::RestoreFailed`].
+///
+/// The set of files is not atomic: a kill between two files leaves the folder half written, and git is the
+/// recovery. Each file is replaced atomically ([`atomic_write`]), so none is left truncated.
 pub fn apply(
     dir: &Path,
     changes: &[Change],
     validate: impl Fn(&Path) -> Result<(), String>,
 ) -> Result<Applied, WriteError> {
+    apply_with(dir, changes, validate, atomic_write)
+}
+
+/// [`apply`] with the function that writes a file, so a test can make a write fail or land wrong. Restoring always
+/// uses [`atomic_write`].
+pub fn apply_with(
+    dir: &Path,
+    changes: &[Change],
+    validate: impl Fn(&Path) -> Result<(), String>,
+    write: impl Fn(&Path, &str) -> io::Result<()>,
+) -> Result<Applied, WriteError> {
     let mut by_file: BTreeMap<&Path, Vec<&Change>> = BTreeMap::new();
     for change in changes {
         by_file.entry(&change.file).or_default().push(change);
     }
-    let mut plan: Vec<(PathBuf, String, String, Vec<&Change>)> = Vec::new();
+    let mut plan: Vec<FilePlan> = Vec::new();
     for (file, changes) in by_file {
         if file.starts_with("planner") {
             return Err(WriteError::Planner(file.to_owned()));
@@ -164,50 +263,91 @@ pub fn apply(
         if !path.is_file() {
             return Err(WriteError::Missing(file.to_owned()));
         }
+        if let Some(change) = changes.iter().find(|c| !owned(file).contains(&c.field)) {
+            return Err(WriteError::NotOwned {
+                file: file.to_owned(),
+                field: change.field,
+            });
+        }
         let before = fs::read_to_string(&path).map_err(|error| WriteError::Io {
             file: file.to_owned(),
             error,
         })?;
         let mut after = before.clone();
-        for change in &changes {
-            after = span::write_field(&after, change.field, change.value.as_ref(), declared(file))
-                .map_err(|error| WriteError::Span {
-                    file: file.to_owned(),
-                    field: change.field,
-                    error,
-                })?;
+        let mut steps = Vec::new();
+        for change in changes {
+            let next =
+                span::write_field(&after, change.field, change.value.as_ref(), declared(file))
+                    .map_err(|error| WriteError::Span {
+                        file: file.to_owned(),
+                        field: change.field,
+                        error,
+                    })?;
+            steps.push((after, next.clone(), change));
+            after = next;
         }
-        plan.push((file.to_owned(), before, after, changes));
+        plan.push(FilePlan {
+            file: file.to_owned(),
+            before,
+            after,
+            steps,
+        });
     }
 
     let mut written: Vec<usize> = Vec::new();
     let result = (|| {
-        for (at, (file, before, after, changes)) in plan.iter().enumerate() {
-            if before == after {
+        for (at, file) in plan.iter().enumerate() {
+            if file.before == file.after {
                 continue;
             }
             written.push(at);
-            fs::write(dir.join(file), after).map_err(|error| WriteError::Io {
-                file: file.clone(),
+            let path = dir.join(&file.file);
+            write(&path, &file.after).map_err(|error| WriteError::Io {
+                file: file.file.clone(),
                 error,
             })?;
-            read_back(file, before, after, changes)?;
+            let first = file.steps.first().map_or("", |step| step.2.field);
+            match fs::read_to_string(&path) {
+                Ok(disk) if disk == file.after => {}
+                Ok(_) => {
+                    return Err(WriteError::ReadBack {
+                        file: file.file.clone(),
+                        field: first,
+                    });
+                }
+                Err(error) => {
+                    return Err(WriteError::Io {
+                        file: file.file.clone(),
+                        error,
+                    });
+                }
+            }
+            for (before, after, change) in &file.steps {
+                read_back(&file.file, before, after, change)?;
+            }
         }
         validate(dir).map_err(WriteError::Invalid)
     })();
-    if let Err(error) = result {
-        for at in written {
-            let (file, before, ..) = &plan[at];
-            // A restore that fails too is the lesser error: the one that led here is reported.
-            let _ = fs::write(dir.join(file), before);
-        }
-        return Err(error);
+    if let Err(cause) = result {
+        let failed: Vec<PathBuf> = written
+            .into_iter()
+            .filter(|at| atomic_write(&dir.join(&plan[*at].file), &plan[*at].before).is_err())
+            .map(|at| plan[at].file.clone())
+            .collect();
+        return Err(if failed.is_empty() {
+            cause
+        } else {
+            WriteError::RestoreFailed {
+                cause: Box::new(cause),
+                files: failed,
+            }
+        });
     }
     Ok(Applied {
         files: plan
             .into_iter()
-            .filter(|(_, before, after, _)| before != after)
-            .map(|(file, ..)| file)
+            .filter(|file| file.before != file.after)
+            .map(|file| file.file)
             .collect(),
     })
 }
@@ -231,89 +371,113 @@ fn fields(value: &ron::Value) -> Option<BTreeMap<String, &ron::Value>> {
         .collect()
 }
 
-/// The written text parsed, against the text before: the written fields hold the written values (or are gone) and
-/// every other field is as it was.
+/// One change's step: `after` is `before` with `change`'s field written, and nothing else moved.
+///
+/// - The two texts parse, every other field holds the same value and the written one holds the meant value
+///   (`ron::Value` reads every unit variant alike, so this checks structure only).
+/// - The written field's span is the change's text, up to white space and trailing commas.
+/// - The bytes between the fields are the same: the two texts are equal with the field's span cut out, and for an
+///   insert or a removal with the separators the writer adds or drops with it cut too. A dropped comment, a changed
+///   comma or changed white space fails.
 pub fn read_back(
     file: &Path,
     before_text: &str,
     after_text: &str,
-    changes: &[&Change],
+    change: &Change,
 ) -> Result<(), WriteError> {
-    let wrong = |field| WriteError::ReadBack {
+    let field = change.field;
+    let wrong = || WriteError::ReadBack {
         file: file.to_owned(),
         field,
     };
-    let first = changes.first().map_or("", |change| change.field);
     let (Some(before), Some(after)) = (parse(before_text), parse(after_text)) else {
-        return Err(wrong(first));
+        return Err(wrong());
     };
     let (Some(mut expected), Some(after)) = (fields(&before), fields(&after)) else {
-        return Err(wrong(first));
+        return Err(wrong());
     };
-    let expected_names: Vec<String> = expected.keys().cloned().collect();
-    // The last change to a field decides what it holds.
-    let mut owned: BTreeMap<&'static str, Option<ron::Value>> = BTreeMap::new();
-    for change in changes {
-        let value = match &change.value {
-            None => None,
-            Some(value) => {
-                let text = match value {
-                    Value::One(one) => one.clone(),
-                    Value::List(items) => format!("[{}]", items.join(", ")),
-                };
-                let parsed = parse(&format!("({}: {text})", change.field))
-                    .ok_or_else(|| wrong(change.field))?;
-                let held = fields(&parsed)
-                    .and_then(|map| map.get(change.field).map(|value| (*value).clone()));
-                Some(held.ok_or_else(|| wrong(change.field))?)
-            }
-        };
-        owned.insert(change.field, value);
-    }
-    let mut expected_owned: BTreeMap<String, Option<&ron::Value>> = BTreeMap::new();
-    for (field, value) in &owned {
-        expected.remove(*field);
-        expected_owned.insert((*field).to_owned(), value.as_ref());
-    }
-    for (field, value) in &expected {
-        if after.get(field) != Some(value) {
-            return Err(wrong(owned.keys().next().copied().unwrap_or(first)));
+    expected.remove(field);
+    let meant = match &change.value {
+        None => None,
+        Some(value) => {
+            let parsed = parse(&format!("({})", render_one(field, value))).ok_or_else(wrong)?;
+            let held = fields(&parsed).and_then(|map| map.get(field).map(|v| (*v).clone()));
+            Some(held.ok_or_else(wrong)?)
         }
+    };
+    if after.get(field).copied() != meant.as_ref() {
+        return Err(wrong());
     }
-    for (field, value) in &owned {
-        if after.get(*field).copied() != value.as_ref() {
-            return Err(wrong(field));
-        }
-    }
-    // `ron::Value` reads every unit variant alike, so the texts are compared too: an untouched field's span is
-    // the same bytes, a written one is the text the change meant, up to white space and trailing commas.
-    for name in expected_names {
-        if owned.contains_key(name.as_str()) {
-            continue;
-        }
-        let same = span::field_span(before_text, &name).map(|s| &before_text[s])
-            == span::field_span(after_text, &name).map(|s| &after_text[s]);
-        if !same {
-            return Err(wrong(owned.keys().next().copied().unwrap_or(first)));
-        }
-    }
-    for change in changes {
-        let meant = change
-            .value
-            .as_ref()
-            .map(|value| render_one(change.field, value));
-        let held = span::field_span(after_text, change.field).map(|s| normal(&after_text[s]));
-        if held != meant.map(|text| normal(&text)) {
-            return Err(wrong(change.field));
-        }
-    }
-    let extra = after
+    if after
         .keys()
-        .any(|name| !expected.contains_key(name) && !owned.contains_key(name.as_str()));
-    if extra {
-        return Err(wrong(first));
+        .any(|name| name != field && !expected.contains_key(name))
+        || expected
+            .iter()
+            .any(|(name, value)| after.get(name) != Some(value))
+    {
+        return Err(wrong());
     }
-    Ok(())
+    let before_span = span::field_span(before_text, field);
+    let after_span = span::field_span(after_text, field);
+    let meant_text = change
+        .value
+        .as_ref()
+        .map(|value| normal(&render_one(field, value)));
+    if after_span.as_ref().map(|s| normal(&after_text[s.clone()])) != meant_text {
+        return Err(wrong());
+    }
+    let same_between = match (before_span, after_span) {
+        (Some(b), Some(a)) => {
+            format!("{}{}", &before_text[..b.start], &before_text[b.end..])
+                == format!("{}{}", &after_text[..a.start], &after_text[a.end..])
+        }
+        (None, Some(a)) => cuts(after_text, &a).iter().any(|text| text == before_text),
+        (Some(b), None) => cuts(before_text, &b).iter().any(|text| text == after_text),
+        (None, None) => before_text == after_text,
+    };
+    if same_between { Ok(()) } else { Err(wrong()) }
+}
+
+/// The text with a field's span cut out together with what the writer adds or drops beside it: a trailing comma, the
+/// blanks after it, its line, the newline before it, the comma and blanks before it.
+fn cuts(text: &str, span: &std::ops::Range<usize>) -> Vec<String> {
+    let bytes = text.as_bytes();
+    let blank = |b: u8| b == b' ' || b == b'\t';
+    let line_start = text[..span.start].rfind('\n').map_or(0, |at| at + 1);
+    let alone_before = bytes[line_start..span.start].iter().all(|b| blank(*b));
+    let comma = (bytes.get(span.end) == Some(&b',')).then_some(span.end + 1);
+    let after_comma = comma.unwrap_or(span.end);
+    let blanks = bytes[after_comma..]
+        .iter()
+        .take_while(|b| blank(**b))
+        .count();
+    let line_end = text[after_comma..]
+        .find('\n')
+        .map(|at| after_comma + at + 1)
+        .filter(|end| text[after_comma..*end].trim().is_empty());
+    let before_ws = text[..span.start].trim_end().len();
+    let mut starts = vec![span.start];
+    if alone_before {
+        starts.push(line_start);
+        if line_start > 0 {
+            starts.push(line_start - 1);
+        }
+    }
+    if before_ws > 0 && bytes[before_ws - 1] == b',' {
+        starts.push(before_ws - 1);
+    }
+    let mut ends = vec![span.end, after_comma, after_comma + blanks];
+    ends.extend(line_end);
+    let mut out = Vec::new();
+    for start in &starts {
+        for end in &ends {
+            let cut = format!("{}{}", &text[..*start], &text[*end..]);
+            if !out.contains(&cut) {
+                out.push(cut);
+            }
+        }
+    }
+    out
 }
 
 /// A change's field as the text `name: value` the writer meant, on one line.

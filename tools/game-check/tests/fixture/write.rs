@@ -4,7 +4,7 @@
 use std::path::{Path, PathBuf};
 
 use game_check::write::span::Value;
-use game_check::write::{Change, WriteError, apply, entry_file, read_back};
+use game_check::write::{Change, WriteError, apply, apply_with, entry_file, read_back};
 use rules::DataAt;
 
 use crate::support::data_copy;
@@ -162,41 +162,240 @@ fn read_back_tells_unit_variants_apart() {
     let change = bab_change("Full");
     let file = Path::new("classes/warden.ron");
     // As written.
-    read_back(
-        file,
-        before,
-        "(key: \"w\", bab: Full, fort: Good)",
-        &[&change],
-    )
-    .unwrap();
+    read_back(file, before, "(key: \"w\", bab: Full, fort: Good)", &change).unwrap();
     // A buggy writer's text: another variant of the field.
-    let error = read_back(
-        file,
-        before,
-        "(key: \"w\", bab: Half, fort: Good)",
-        &[&change],
-    )
-    .unwrap_err();
+    let error =
+        read_back(file, before, "(key: \"w\", bab: Half, fort: Good)", &change).unwrap_err();
     assert!(
         matches!(error, WriteError::ReadBack { field: "bab", .. }),
         "{error}"
     );
     // Another field changed instead of the one meant: the field written is still the old one.
-    let error = read_back(
-        file,
-        before,
-        "(key: \"w\", bab: Poor, fort: Full)",
-        &[&change],
-    )
-    .unwrap_err();
+    let error =
+        read_back(file, before, "(key: \"w\", bab: Poor, fort: Full)", &change).unwrap_err();
     assert!(matches!(error, WriteError::ReadBack { .. }), "{error}");
     // A value that parses but sits in an unrelated field, the meant one gone.
     let error = read_back(
         file,
         before,
         "(key: \"w\", fort: Good, will: Full)",
-        &[&change],
+        &change,
     )
     .unwrap_err();
     assert!(matches!(error, WriteError::ReadBack { .. }), "{error}");
+}
+
+#[test]
+fn read_back_keeps_the_bytes_between_the_fields() {
+    let file = Path::new("classes/warden.ron");
+    let change = bab_change("Full");
+    let before = "(\n    key: \"w\",\n    // keep\n    bab: Poor,\n    fort: Good,\n)\n";
+    let good = "(\n    key: \"w\",\n    // keep\n    bab: Full,\n    fort: Good,\n)\n";
+    read_back(file, before, good, &change).unwrap();
+    for planted in [
+        "(\n    key: \"w\",\n    // kept\n    bab: Full,\n    fort: Good,\n)\n",
+        "(\n    key: \"w\",\n    bab: Full,\n    fort: Good,\n)\n",
+        "(\n    key: \"w\",\n    // keep\n    bab: Full\n    ,fort: Good,\n)\n",
+        "(\n    key: \"w\",\n    // keep\n    bab: Full,\n      fort: Good,\n)\n",
+    ] {
+        let error = read_back(file, before, planted, &change).unwrap_err();
+        assert!(matches!(error, WriteError::ReadBack { .. }), "{planted}");
+    }
+    // An insert and a removal with the writer's separators pass.
+    let removal = Change {
+        value: None,
+        ..bab_change("Full")
+    };
+    read_back(
+        file,
+        before,
+        "(\n    key: \"w\",\n    // keep\n    fort: Good,\n)\n",
+        &removal,
+    )
+    .unwrap();
+    read_back(
+        file,
+        "(\n    key: \"w\",\n    // keep\n    fort: Good,\n)\n",
+        good,
+        &change,
+    )
+    .unwrap();
+}
+
+fn all_files(dir: &Path) -> Vec<(PathBuf, String)> {
+    let mut out = Vec::new();
+    let mut stack = vec![dir.to_owned()];
+    while let Some(next) = stack.pop() {
+        for entry in std::fs::read_dir(&next).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                stack.push(path);
+            } else {
+                out.push((path.clone(), std::fs::read_to_string(&path).unwrap()));
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
+#[test]
+fn a_field_the_importer_does_not_own_is_refused_before_any_write() {
+    let dir = data_copy();
+    let before = all_files(dir.path());
+    for field in ["key", "nonsense", "name"] {
+        let error = apply(
+            dir.path(),
+            &[
+                change("gear/cloak-of-test.ron", "components", components("A")),
+                change("gear/headband-of-test.ron", field, components("B")),
+            ],
+            |_| Ok(()),
+        )
+        .unwrap_err();
+        assert!(
+            matches!(error, WriteError::NotOwned { .. }),
+            "{field}: {error}"
+        );
+    }
+    // A folder with no list owns nothing yet.
+    let error = apply(
+        dir.path(),
+        &[Change {
+            file: PathBuf::from("progression.ron"),
+            ..change("", "mythic_ascensions", components("A"))
+        }],
+        |_| Ok(()),
+    )
+    .unwrap_err();
+    assert!(matches!(error, WriteError::NotOwned { .. }), "{error}");
+    assert_eq!(all_files(dir.path()), before);
+}
+
+#[test]
+fn a_write_that_lands_wrong_is_a_read_back_failure_and_every_file_is_restored() {
+    let dir = data_copy();
+    let before = all_files(dir.path());
+    let error = apply_with(
+        dir.path(),
+        &[
+            change("gear/cloak-of-test.ron", "components", components("A")),
+            change("gear/headband-of-test.ron", "components", components("B")),
+        ],
+        |_| Ok(()),
+        |path, text| std::fs::write(path, text.replace("[B]", "[C]")),
+    )
+    .unwrap_err();
+    assert!(matches!(error, WriteError::ReadBack { .. }), "{error}");
+    assert_eq!(all_files(dir.path()), before);
+}
+
+#[test]
+fn a_write_that_fails_is_an_io_error_and_every_file_is_restored() {
+    let dir = data_copy();
+    let before = all_files(dir.path());
+    let error = apply_with(
+        dir.path(),
+        &[
+            change("gear/cloak-of-test.ron", "components", components("A")),
+            change("gear/headband-of-test.ron", "components", components("B")),
+        ],
+        |_| Ok(()),
+        |path, text| {
+            if path.ends_with("headband-of-test.ron") {
+                Err(std::io::Error::other("a planted failure"))
+            } else {
+                std::fs::write(path, text)
+            }
+        },
+    )
+    .unwrap_err();
+    assert!(matches!(error, WriteError::Io { .. }), "{error}");
+    assert_eq!(all_files(dir.path()), before);
+}
+
+#[cfg(unix)]
+#[test]
+fn a_restore_that_fails_names_the_files_left_written() {
+    use std::os::unix::fs::PermissionsExt;
+    let dir = data_copy();
+    let error = apply(
+        dir.path(),
+        &[change(
+            "gear/cloak-of-test.ron",
+            "components",
+            components("A"),
+        )],
+        |path| {
+            // The folder turns read-only, so the file can't be put back.
+            std::fs::set_permissions(path.join("gear"), std::fs::Permissions::from_mode(0o555))
+                .unwrap();
+            Err("a planted failure".to_owned())
+        },
+    )
+    .unwrap_err();
+    std::fs::set_permissions(
+        dir.path().join("gear"),
+        std::fs::Permissions::from_mode(0o755),
+    )
+    .unwrap();
+    let WriteError::RestoreFailed { cause, files } = error else {
+        panic!("not a restore failure: {error}");
+    };
+    assert!(matches!(*cause, WriteError::Invalid(_)));
+    assert_eq!(files, [PathBuf::from("gear/cloak-of-test.ron")]);
+}
+
+#[test]
+fn two_changes_to_one_field_apply_in_order_and_the_later_wins() {
+    let dir = data_copy();
+    apply(
+        dir.path(),
+        &[
+            change("gear/cloak-of-test.ron", "components", components("A")),
+            change("gear/cloak-of-test.ron", "components", components("B")),
+        ],
+        |_| Ok(()),
+    )
+    .unwrap();
+    let text = read(dir.path(), "gear/cloak-of-test.ron");
+    assert!(
+        text.contains("    B,\n") && !text.contains("    A,\n"),
+        "{text}"
+    );
+}
+
+#[test]
+fn a_write_that_parses_but_breaks_a_data_rule_is_rejected_by_the_real_check() {
+    let dir = data_copy();
+    let problems = |path: &Path| -> Result<Vec<String>, String> {
+        let data = seeds::read_game_data_files(path).map_err(|e| e.to_string())?;
+        Ok(data.check().iter().map(|p| format!("{p:?}")).collect())
+    };
+    let known = problems(dir.path()).unwrap();
+    let before = all_files(dir.path());
+    // The Stoic's Fortitude equal to its class's own is a data rule's refusal (an override that overrides nothing).
+    let stoic = Change {
+        at: DataAt::Archetype(rules::ArchetypeKey::new("warden/stoic")),
+        file: PathBuf::from("archetypes/warden/stoic.ron"),
+        field: "fort",
+        kind: "fort",
+        value: Some(Value::One("Good".into())),
+        old: String::new(),
+        new: String::new(),
+    };
+    let error = apply(dir.path(), &[stoic], |path| {
+        let now = problems(path)?;
+        match now.iter().find(|problem| !known.contains(problem)) {
+            Some(new) => Err(new.clone()),
+            None => Ok(()),
+        }
+    })
+    .unwrap_err();
+    assert!(matches!(error, WriteError::Invalid(_)), "{error}");
+    assert!(
+        error.to_string().contains("SaveProgressionSameAsClass"),
+        "{error}"
+    );
+    assert_eq!(all_files(dir.path()), before);
 }
