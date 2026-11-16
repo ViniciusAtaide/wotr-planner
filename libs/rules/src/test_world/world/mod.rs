@@ -147,6 +147,7 @@ fn list(key: &str, ignores_prerequisites: bool, feats: &[&str]) -> FeatList {
 
 fn plain_feature(key: &str, name: &str) -> Feature {
     Feature {
+        components: Vec::new(),
         key: feature(key),
         blueprint: None,
         name: name.into(),

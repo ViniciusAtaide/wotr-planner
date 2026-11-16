@@ -12,6 +12,7 @@ use super::{
 use crate::build::{Build, Faith, LevelUp, Pick, SlotId, has_ability_increase};
 use crate::choice::{Choice, Failure, Issue};
 use crate::codec::{StaleLink, decode_build};
+use crate::component::{Fact, Holder};
 use crate::game_data::Ability;
 use crate::keys::{
     ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey,
@@ -22,6 +23,7 @@ use crate::state::CharacterState;
 
 mod ascension;
 mod bonuses;
+mod components;
 mod cursor;
 mod gear;
 mod hold;
@@ -194,8 +196,9 @@ struct Walker<'a> {
     level_cap: u8,
     /// Set by a switch to a path without further ascensions.
     ascensions_over: bool,
-    /// The race's ability penalties applied at Build start, which Destiny Beyond Birth gives back.
-    racial_penalties: Vec<(Ability, u8)>,
+    /// The race's ability modifiers applied at Build start: Destiny Beyond Birth gives the penalties back, and a
+    /// component's base value of a score leaves them all out (ticket 295).
+    racial_modifiers: Vec<(Ability, i8)>,
     /// For each class and feature another class's levels count toward (Frost Power: witch, Major Hexes), how many
     /// grants of it those levels hold now: the class's rows past its own level that they reach.
     counted_features: BTreeMap<(ClassKey, FeatureKey), u8>,
@@ -234,6 +237,10 @@ struct Walker<'a> {
     bonus_keys_next: Vec<bonuses::BonusKey>,
     /// Set while the walk only answers whether a choice fails ([`holds`](Self::holds)).
     recheck: Option<RecheckWalk>,
+    /// The entries whose components apply, with what they hold (ticket 295).
+    components: components::HeldComponents,
+    /// The skill points the components' `SkillPoints` have given so far, over every level.
+    skill_points_given: u16,
     /// What the Build's gear adds, worked out at the Build start; nothing for a Build without gear.
     gear: gear::WornGear,
     /// The Mythic rank being taken, while one is: what gives the slots filled meanwhile.
@@ -336,7 +343,7 @@ impl<'a> Walker<'a> {
             ranks,
             level_cap: BASE_LEVEL_CAP,
             ascensions_over: false,
-            racial_penalties: Vec::new(),
+            racial_modifiers: Vec::new(),
             counted_features: BTreeMap::new(),
             class_skill_holds: BTreeMap::new(),
             holdings: Vec::new(),
@@ -354,6 +361,8 @@ impl<'a> Walker<'a> {
             bonus_keys: Vec::new(),
             bonus_keys_next: Vec::new(),
             recheck: None,
+            components: components::HeldComponents::default(),
+            skill_points_given: 0,
             gear: gear::WornGear::default(),
             ascending: None,
             rank_slots: Vec::new(),
@@ -592,13 +601,17 @@ impl<'a> Walker<'a> {
         for (ability, amount) in racial_amounts(catalog.racial_modifiers(start), start) {
             let score = scores.get_mut(ability);
             *score = score.saturating_add_signed(amount);
-            if amount < 0 {
-                self.racial_penalties.push((ability, amount.unsigned_abs()));
-            }
+            self.racial_modifiers.push((ability, amount));
         }
         self.state.base_ability_scores = scores;
         self.wear_gear();
         self.refresh_ability_scores();
+        // The race's components, or its subrace's in their place, as its ability modifiers are.
+        match (catalog.own_subrace(start), &start.race) {
+            (Some(subrace), _) => self.apply_components(|| Holder::Subrace(subrace.clone())),
+            (None, Some(race)) => self.apply_components(|| Holder::Fact(Fact::Race(race.clone()))),
+            (None, None) => {}
+        }
         if self.sheet {
             self.note_start_bonuses();
         }
@@ -624,6 +637,7 @@ impl<'a> Walker<'a> {
             return;
         };
         self.state.deity_domains = deity.domains.clone();
+        self.apply_components(|| Holder::Fact(Fact::Deity(key.clone())));
     }
 
     /// The background's skills become class skills and its feats are held from the start, as a class row's
@@ -650,6 +664,7 @@ impl<'a> Walker<'a> {
                 None,
             );
         }
+        self.apply_components(|| Holder::Background(key.clone()));
     }
 
     // ---- Level-up -----------------------------------------------------------------------------------------
@@ -673,6 +688,7 @@ impl<'a> Walker<'a> {
             self.refresh_ability_scores();
         }
         self.recompute_tables();
+        self.level_components();
         // Options' rows this level reaches, before any slot is filled.
         self.option_slots = 0;
         self.option_feat_slots = 0;

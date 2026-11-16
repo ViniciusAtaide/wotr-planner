@@ -21,6 +21,7 @@ const STAT_FOCUS: &str = "stat-focus";
 fn world_with_pick_values() -> GameData {
     let mut data = world();
     let metamagic = |key: &str, name: &str| Feat {
+        components: Vec::new(),
         key: feat(key),
         blueprint: None,
         name: name.into(),
@@ -50,6 +51,7 @@ fn world_with_pick_values() -> GameData {
     stat_focus.parameter = Some(ParameterKind::Stat);
     stat_focus.prerequisite = None;
     let ability = |key: &str, name: &str, parameter| MythicAbility {
+        components: Vec::new(),
         key: MythicAbilityKey::new(key),
         blueprint: None,
         name: name.into(),

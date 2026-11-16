@@ -12,6 +12,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::{Deserialize, Serialize};
 
 use crate::bonus::{ItemBonus, ItemInteractions};
+use crate::component::Component;
 use crate::gear::GearItem;
 use crate::keys::{
     ArchetypeKey, BackgroundKey, BlueprintGuid, ClassKey, DeityKey, FeatKey, FeatListKey,
@@ -411,6 +412,10 @@ pub struct Race {
     /// dwarf's Dwarven Waraxe), ticket 198.
     #[serde(default)]
     pub weapons_as_martial: BTreeSet<WeaponKey>,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 /// A subrace. The guide lists each subrace's own racial traits, so its ability modifiers and feat slots replace the
@@ -444,6 +449,10 @@ pub struct Subrace {
     /// Its exotic weapons treated as martial, in place of the race's: [`Race::weapons_as_martial`].
     #[serde(default)]
     pub weapons_as_martial: BTreeSet<WeaponKey>,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -497,6 +506,10 @@ pub struct Background {
     /// Sword)).
     #[serde(default)]
     pub feats_for: BTreeSet<FeatValue>,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 /// The groups the game lists backgrounds under.
@@ -576,6 +589,10 @@ pub struct Deity {
     pub favoured_weapons: BTreeSet<WeaponKey>,
     /// The domains it offers: options of [`DOMAIN_SELECTION`].
     pub domains: BTreeSet<SelectionOptionKey>,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 /// How the Build's deity limits what a Feature selection offers ([`FeatureSelection::deity_domains`]).
@@ -700,6 +717,10 @@ pub struct Feat {
     /// `None`: the guide lists no prerequisites, so there are none.
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 impl Feat {
@@ -832,6 +853,10 @@ pub struct Class {
     /// One row per Class level, 1 up to the class's last level with none missing. The number of rows is the
     /// class level cap. What taking the class grants is in row 1.
     pub levels: Vec<ClassLevelRow>,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 /// How many classes a prestige class's spellcasting advancement serves. Its rows say which spell types a level
@@ -914,6 +939,10 @@ pub struct Archetype {
     /// base class's row. Its rows name features by key, its own and the class's alike.
     #[serde(default)]
     pub levels: Vec<ArchetypeLevelRow>,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 /// One level where an archetype differs from its base class. Its grants replace the base row's in full (an
@@ -1171,6 +1200,10 @@ pub struct Feature {
     /// rank). See [`Engine::feature_step`](crate::Engine::feature_step).
     #[serde(default)]
     pub steps: Option<FeatureSteps>,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 /// Where a feature granted once rises: the levels its step reaches, on the level the game reads. The step follows
@@ -1304,6 +1337,10 @@ pub struct FeatureSelection {
     /// Where its picks come among a level-up's ([`Band`]): the game's band for the selection's group.
     #[serde(default)]
     pub band: Band,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 /// Where a selection's pick comes among a level-up's picks. The game applies a level-up's picks band by band, in this
@@ -1469,6 +1506,10 @@ pub struct SelectionOption {
     /// 212.
     #[serde(default)]
     pub bab_from_ranks: Option<BabFromRanks>,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 /// A base attack bonus that follows the ranks spent in a skill: "Your BAB is at least your Athletics rank. If your
@@ -1616,6 +1657,10 @@ pub struct MythicAbility {
     /// selection of one-rank features, one per metamagic; ticket 249).
     #[serde(default)]
     pub repeat: Repeat,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -1651,6 +1696,10 @@ pub struct MythicFeat {
     pub requires_proficiency: bool,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
+    /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
+    /// for none, and left out when written.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub components: Vec<Component>,
 }
 
 /// What the slot a mythic feat gives offers ([`MythicFeat::extra_pick`], [`SlotId::MythicExtra`](crate::SlotId)).

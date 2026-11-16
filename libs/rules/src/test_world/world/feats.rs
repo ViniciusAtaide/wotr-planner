@@ -53,6 +53,7 @@ pub(super) fn weapons() -> Vec<Weapon> {
 
 fn feat_row(key: &str, category: FeatCategory, prerequisite: Option<Prerequisite>) -> Feat {
     Feat {
+        components: Vec::new(),
         key: feat(key),
         blueprint: None,
         name: key.into(),

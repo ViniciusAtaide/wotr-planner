@@ -6,6 +6,11 @@ use std::collections::BTreeSet;
 
 use rustc_hash::{FxHashMap, FxHashSet};
 
+mod components;
+
+use components::Components;
+pub(super) use components::HolderKind;
+
 use super::{
     EffectiveRow, SlotKind, canonical_archetype_row, class_row, effective_rows, merged_row,
 };
@@ -48,6 +53,8 @@ pub(super) struct Catalog {
     without_alignment: FxHashMap<ClassKey, Option<Prerequisite>>,
     /// Where each item's bonuses are in `data.bonuses` ([`bonus_rows`](Self::bonus_rows)).
     bonus_rows: BonusRows,
+    /// The entries' components the walk evaluates (ticket 295).
+    components: Components,
 }
 
 /// The positions in `data.bonuses` of each item's bonuses, by the item's kind (`kind as usize`) then its key's text
@@ -94,7 +101,9 @@ pub(super) struct PickItem<'a> {
 impl Catalog {
     /// Indexes the game data, after putting it in canonical order.
     pub(super) fn new(data: CheckedGameData) -> Self {
-        let data = data.into_data().canonical();
+        let mut data = data.into_data();
+        let components = Components::compile(&mut data);
+        let data = data.canonical();
         let without_alignment = data
             .classes
             .iter()
@@ -113,6 +122,7 @@ impl Catalog {
             casting: Casting::new(&data),
             without_alignment,
             bonus_rows: BonusRows::new(&data),
+            components,
             data,
         };
         catalog.single_options = catalog
@@ -169,6 +179,15 @@ impl Catalog {
     pub(super) fn subrace(&self, key: &SubraceKey) -> Option<(&Race, &Subrace)> {
         let &(r, s) = self.indexes.subraces.get(key)?;
         Some((&self.data.races[r], &self.data.subraces[s]))
+    }
+
+    /// A Build start's subrace when it is one of its race's: what then stands in place of the race (its ability
+    /// modifiers, weapons, bonuses and components).
+    pub(super) fn own_subrace<'s>(&self, start: &'s BuildStart) -> Option<&'s SubraceKey> {
+        start.subrace.as_ref().filter(|key| {
+            self.subrace(key)
+                .is_some_and(|(owner, _)| start.race.as_ref() == Some(&owner.key))
+        })
     }
 
     /// The ability modifiers a Build start's race gives: its subrace's in place of the race's, when the subrace is

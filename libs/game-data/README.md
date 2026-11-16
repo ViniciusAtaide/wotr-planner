@@ -846,6 +846,38 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
 - A `//` comment line is allowed anywhere and is kept for readers only: the Crusader's bonus lists carry one saying
   they skip every prerequisite though the guide skips only BAB and fighter level (the user's decision).
 
+## Components
+
+Since ticket 295 an entry may also hold `components: [...]`: what it does in the game's terms, the game's own
+components (`AddFacts`, `PrerequisiteFeature`, `AddContextStatBonus`, `ContextRankConfig`, …) in our own words, with
+keys inside, never GUIDs (`rules::Component`, whose docs cite each kind's code). Every fact kind holds the field:
+feats, features, selections, options, mythic abilities and feats, races, subraces, backgrounds, deities, classes and
+archetypes. It is left out when empty, and no data file holds one yet: tickets 296 to 298 move the hand fields onto
+components, and 293 writes them from the blueprints.
+
+```ron
+components: [
+    Requires(condition: Has(Feat("power-attack"))),
+    Requires(condition: ClassLevel("fighter", 4), group: Any),
+    StatBonus(stat: Skill("mobility"), value: Rank((base: BaseStat(Skill("mobility")), progression: Custom([(9, 3), (100, 6)])))),
+    GrantAtClassLevel(fact: Feature("longbow-proficiency"), classes: ["cleric", "warpriest"], level: 1),
+]
+```
+
+- `Requires` compiles into the entry's `prerequisite` at load: an `All` of the `All` group's conditions with one
+  `Any` of the `Any` group's. Only an entry that is picked holds it (a feat, an option, a mythic ability or feat, a
+  class, an archetype).
+- The grants (`Grant`, `GrantAtClassLevel`, `GrantIf`, `GrantOnApply`, `RemoveOnApply`, `GrantWithValue`), the
+  stat bonuses with their values (`Flat`, `PerRank`, `Rank`, `Shared`), `ClassSkill`, `SkillPoints`, `Proficiency`
+  and `Flag` apply while the entry is held; `PrerequisiteClassLevels` and `PrerequisiteStat` change what a
+  prerequisite reads; `NoSelectionIf` (on a selection) takes its pick away. A granted selection is held and offers
+  no pick (as the game's `AddFacts`): only a row's selection does.
+- Defaults are left out (`group: All`, `descriptor: Untyped`, `multiplier: 1`, no `at_least` minimum, no `if`).
+- The check refuses an entry holding a hand field and the component kind that replaces it (`prerequisite` beside a
+  `Requires`, `ability_bonuses` beside an ability `StatBonus`, a `bonuses.ron` row beside a `StatBonus` to a save,
+  initiative or a skill, …), a component on an entry it means nothing on, a grant of a class, archetype, race or
+  deity, a rank progression's step of 0, and an `AtLeast` over deities only (the game's `IsDeity` rule).
+
 ## Checking against the game
 
 The game is the source of truth for rules (ticket 234). A data change is checked against it, never against the

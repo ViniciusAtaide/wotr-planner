@@ -11,6 +11,7 @@ use crate::test_world::builds::{feat, skill, weapon};
 /// for Armor Focus (Light)), a feat for one value (Aldori Swordsman's dueling sword), and None.
 pub(super) fn backgrounds() -> Vec<Background> {
     let background = |key: &str, group, skills: &[&str], feats: &[&str], note: &str| Background {
+        components: Vec::new(),
         key: BackgroundKey::new(key),
         blueprint: None,
         name: key.into(),

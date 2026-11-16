@@ -53,6 +53,7 @@ fn wisdom_12() -> Prerequisite {
 
 fn archetype(key: &str, prerequisite: Prerequisite) -> Archetype {
     Archetype {
+        components: Vec::new(),
         casting_ability: None,
         key: ArchetypeKey::new(key),
         class: ClassKey::new("monk"),

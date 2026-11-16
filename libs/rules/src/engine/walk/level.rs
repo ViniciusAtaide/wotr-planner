@@ -7,11 +7,12 @@ use super::judge::{Entry, class_entry};
 use super::{Deferred, GrantSource, Held, Pending, Walker};
 use crate::build::{Build, FeatSource, LevelUp, SlotId};
 use crate::choice::{Choice, Issue};
+use crate::component::{Fact, Holder};
 use crate::engine::catalog::Catalog;
 use crate::engine::{
     SkillPoints, Slot, SlotKind, advanced_spellcasting, class_level_cap, most_advanced,
 };
-use crate::game_data::{Ability, Band, Class, CountsToward, FeatSlot, Save};
+use crate::game_data::{Ability, Band, Class, CountsToward, FeatSlot, Save, SpellType};
 use crate::keys::{ClassKey, FeatKey, FeatureKey, FeatureSelectionKey};
 use crate::state::{CharacterState, ClassLevels};
 
@@ -137,6 +138,11 @@ impl<'a> Walker<'a> {
                         .unwrap_or_default(),
                     level: 1,
                 });
+                // The class's components and its archetype's, held from its first level on (ticket 295).
+                self.apply_components(|| Holder::Fact(Fact::Class(level_up.class.clone())));
+                if let Some(archetype) = choice.and_then(|choice| choice.archetype.as_ref()) {
+                    self.apply_components(|| Holder::Fact(Fact::Archetype(archetype.clone())));
+                }
                 self.state.classes.len() - 1
             }
         };
@@ -260,7 +266,9 @@ impl<'a> Walker<'a> {
         });
         // The score without gear, so the ranks stay valid whatever is worn.
         let intelligence = self.skill_point_scores().modifier(Ability::Intelligence);
-        let race_points = catalog.racial_skill_points(&self.build.start);
+        let race_points = catalog
+            .racial_skill_points(&self.build.start)
+            .saturating_add(self.component_skill_points(level));
         let available =
             (i16::from(class_points) + i16::from(intelligence)).max(1) + i16::from(race_points);
         let available = u8::try_from(available).unwrap_or(u8::MAX);
@@ -400,6 +408,13 @@ impl<'a> Walker<'a> {
                 .iter()
                 .chain(&defined.shared_options)
                 .any(|option| self.state.option_count(option) > 0)
+        {
+            return true;
+        }
+        // `NoSelectionIf`'s facts (`BlueprintFeatureSelection.IsSelectionProhibited`): one held, no pick.
+        if catalog
+            .no_selection_if(selection)
+            .is_some_and(|facts| facts.iter().any(|fact| fact.rank(&self.state) > 0))
         {
             return true;
         }
@@ -567,6 +582,9 @@ impl<'a> Walker<'a> {
         let (mut bab, mut fort, mut reflex, mut will) = (0u8, 0u8, 0u8, 0u8);
         let (mut arcane, mut divine, mut caster_level) = (0u8, 0u8, 0u8);
         let (mut spontaneous_arcane, mut spontaneous_divine) = (0u8, 0u8);
+        // A class's own spellbook, worked out only for data whose prerequisites read it (ticket 295).
+        let spellbooks = catalog.reads_spellbooks();
+        let (mut class_spell_levels, mut caster_types) = (BTreeMap::new(), BTreeSet::new());
         for entry in &state.classes {
             let Some((class, prestige)) = catalog.class(&entry.class) else {
                 continue;
@@ -589,8 +607,22 @@ impl<'a> Walker<'a> {
             let advanced =
                 advancing_levels(catalog, state, &entry.class, casts_arcane, casts_divine);
             let effective = entry.level.saturating_add(advanced);
+            if spellbooks {
+                if casts_arcane {
+                    caster_types.insert(SpellType::Arcane);
+                }
+                if casts_divine {
+                    caster_types.insert(SpellType::Divine);
+                }
+            }
             if let Some(row) = catalog.row(class, archetype, effective.min(class_level_cap(class)))
             {
+                // A class with a spellbook (it casts at some level) is there from its first level, at 0 before its
+                // first spell level: `Spellbook.GetMaxSpellLevel` of a row listing level 0 (ticket 295).
+                if spellbooks && (casts_arcane || casts_divine) {
+                    let own = row.spell_levels.arcane.max(row.spell_levels.divine);
+                    class_spell_levels.insert(entry.class.clone(), own);
+                }
                 arcane = arcane.max(row.spell_levels.arcane);
                 divine = divine.max(row.spell_levels.divine);
                 if catalog.spontaneous(class, archetype) {
@@ -629,6 +661,8 @@ impl<'a> Walker<'a> {
         state.spontaneous_arcane_spell_level = spontaneous_arcane;
         state.spontaneous_divine_spell_level = spontaneous_divine;
         state.caster_level = caster_level;
+        state.class_spell_levels = class_spell_levels;
+        state.caster_types = caster_types;
     }
 }
 

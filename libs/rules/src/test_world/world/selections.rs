@@ -14,6 +14,7 @@ pub(super) fn selection_option(
     prerequisite: Option<Prerequisite>,
 ) -> SelectionOption {
     SelectionOption {
+        components: Vec::new(),
         key: option(key),
         blueprint: None,
         name: key.rsplit('/').next().unwrap_or(key).into(),

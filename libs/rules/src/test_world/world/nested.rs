@@ -138,6 +138,7 @@ pub fn flatten(nested: Nested, data: &mut GameData) {
         data.feat_lists.extend(race.feat_lists);
         for subrace in race.subraces {
             data.subraces.push(crate::Subrace {
+                components: Vec::new(),
                 key: subrace.key,
                 race: race.key.clone(),
                 blueprint: subrace.blueprint,
@@ -152,6 +153,7 @@ pub fn flatten(nested: Nested, data: &mut GameData) {
             });
         }
         data.races.push(crate::Race {
+            components: Vec::new(),
             key: race.key,
             blueprint: race.blueprint,
             name: race.name,
@@ -198,6 +200,7 @@ fn class_into(class: Class, data: &mut GameData) -> crate::Class {
             data,
         );
         data.archetypes.push(crate::Archetype {
+            components: Vec::new(),
             key: archetype.key,
             class: class.key.clone(),
             blueprint: archetype.blueprint,
@@ -216,6 +219,7 @@ fn class_into(class: Class, data: &mut GameData) -> crate::Class {
         });
     }
     crate::Class {
+        components: Vec::new(),
         key: class.key,
         blueprint: class.blueprint,
         name: class.name,
@@ -251,6 +255,7 @@ fn owned_into(
 fn selections_into(selections: Vec<FeatureSelection>, data: &mut GameData) {
     for selection in selections {
         data.selections.push(crate::FeatureSelection {
+            components: Vec::new(),
             key: selection.key,
             blueprint: selection.blueprint,
             name: selection.name,
