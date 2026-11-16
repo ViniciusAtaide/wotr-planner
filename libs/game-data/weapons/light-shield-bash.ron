@@ -1,0 +1,1 @@
+(key: "light-shield-bash", blueprint: "1fd965e522502fe479fdd423cca07684", name: "Light Shield Bash", proficiency: Martial, stats: (damage: (count: 1, sides: 3), threat: 20, multiplier: 2, handedness: Light, finesse: true))

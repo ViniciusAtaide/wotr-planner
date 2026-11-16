@@ -1,0 +1,14 @@
+(
+    key: "banshee-blast",
+    blueprint: "d42c6d3f29e07b6409d670792d72bc82",
+    name: "Banshee Blast",
+    school: Necromancy,
+    guide: "wizard-spells#banshee-blast-necromancy",
+    summary: "Deals 1d4 per caster level (max 15d4), halved by Reflex; creatures that fail it must pass a Will save or be panicked for 1 round per caster level.",
+    target: "All creatures within a 30' cone",
+    duration: "1 round / level",
+    saving_throw: "Reflex half (damage); Will negates (fear)",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear, Death, Sonic],
+    casting_time: Standard,
+)

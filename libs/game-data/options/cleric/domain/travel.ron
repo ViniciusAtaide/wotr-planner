@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/travel",
+    blueprint: "d169dd2de3630b749a2363c028bb6e7b",
+    name: "Travel Domain",
+    summary: "+10 feet speed, Agile Feet and Dimensional Hop from 8th level; spells from Longstrider to Elemental Swarm.",
+    guide: "character-creation#travel-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/travel/agile-feet"]),
+        (level: 8, features: ["cleric/domain/travel/dimensional-hop"]),
+    ],
+)

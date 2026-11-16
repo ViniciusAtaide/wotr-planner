@@ -1,0 +1,18 @@
+(
+    key: "shifter/dragonblood-shifter",
+    class: "shifter",
+    blueprint: "2d5b06e413a9408cbd5bb999b5a4cc4a",
+    name: "Dragonblood Shifter",
+    summary: "Shifter who swaps beast aspects for draconic ones and eventually becomes a dragon.",
+    guide: "shifter#dragonblood-shifter",
+    levels: [
+        (level: 1, features: ["shifter/dragonblood-shifter/draconic-aspect-selection", "shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 4),
+        (level: 5),
+        (level: 9, features: ["shifter/dragonblood-shifter/wyrmshifter"]),
+        (level: 10),
+        (level: 14, features: ["shifter/dragonblood-shifter/improved-wyrmshifter"]),
+        (level: 15),
+        (level: 20, selections: ["shifter/dragonblood-shifter/greater-wyrmshifter"]),
+    ],
+)

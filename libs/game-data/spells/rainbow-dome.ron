@@ -1,0 +1,13 @@
+(
+    key: "rainbow-dome",
+    blueprint: "1130f3e7d6a4bb444bbedc3e20dcd1dd",
+    name: "Rainbow Dome",
+    school: Enchantment,
+    guide: "azata#rainbow-dome-enchantment",
+    summary: "Allies inside a 10 ft dome are immune to one damage type you choose: fire, acid, cold, electricity or sonic.",
+    target: "Target point within medium range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

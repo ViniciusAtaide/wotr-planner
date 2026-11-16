@@ -1,0 +1,12 @@
+(
+    key: "kineticist/dark-elementalist",
+    class: "kineticist",
+    blueprint: "f12f18ae8842425489d29f302e69134c",
+    name: "Dark Elementalist",
+    summary: "Kineticist using Int instead of Con, with good Will and poor Fortitude and Reflex, who sheds Burn by harvesting souls.",
+    guide: "kineticist#dark-elementalist",
+    class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "use-magic-device"],
+    levels: [
+        (level: 1, features: ["kineticist/dark-elementalist/dark-studies", "kineticist/dark-elementalist/soul-power", "kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["kineticist/element"]),
+    ],
+)

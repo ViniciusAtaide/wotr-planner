@@ -1,0 +1,14 @@
+(
+    key: "seamantle",
+    blueprint: "7ef49f184922063499b8f1346fb7f521",
+    name: "Seamantle",
+    school: Conjuration,
+    guide: "wizard-spells#seamantle-conjuration",
+    summary: "A water column makes you immune to fire and, against foes without Freedom of Movement, gives +8 cover bonus to AC and +4 on Reflex saves.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

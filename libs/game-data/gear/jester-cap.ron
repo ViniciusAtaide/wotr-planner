@@ -1,0 +1,16 @@
+(
+    key: "jester-cap",
+    blueprint: "d3e3a641c5dd40dd971bd1c587d7f6a8",
+    name: "Jester Cap",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 6, kind: Enhancement),
+        (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+        (target: Ability(Charisma), amount: 6, kind: Enhancement),
+    ],
+    always_on: [
+        "Persuasion (Bluff) +5 competence",
+        "Spell DC +2 (fused spells)",
+    ],
+)

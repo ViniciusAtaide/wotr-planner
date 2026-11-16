@@ -1,0 +1,14 @@
+(
+    key: "crystal-mind",
+    blueprint: "4733d8dd549ff544395f1684ec73c392",
+    name: "Crystal Mind",
+    school: Abjuration,
+    guide: "aeon#crystal-mind-abjuration",
+    summary: "Ends rage, fear, confusion, emotion and morale effects on the target, which is then immune to fear and emotion effects for the duration.",
+    target: "One friendly creature within close range",
+    duration: "1 round / rank",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,11 @@
+(
+    key: "sorcerer/power",
+    name: "Power",
+    guide: "sorcerer",
+    // A filtered pool, levelled as an oracle's curse is (ticket 243).
+    filtered_by: "sorcerer/bloodline",
+    option_levels: ["sorcerer"],
+    option_level_archetypes: {"sorcerer/seeker": 0},
+    half_other_classes: true,
+    options: ["sorcerer/power/surge"],
+)

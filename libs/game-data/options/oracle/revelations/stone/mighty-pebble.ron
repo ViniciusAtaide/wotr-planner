@@ -1,0 +1,1 @@
+(key: "oracle/revelations/stone/mighty-pebble", blueprint: "b29d13f63f371664e9ae25bd65e5c463", name: "Mighty Pebble", summary: "Ranged touch for 1d6 bludgeoning per two levels with splash to adjacent foes; 1/day, +1 at 5th and every 5 levels.", guide: "oracle#mighty-pebble", prerequisite: SelectionOption("oracle/mystery/stone"))

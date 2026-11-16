@@ -1,0 +1,14 @@
+(
+    key: "rift-of-ruin",
+    blueprint: "dd3dacafcf40a0145a5824c838e2698d",
+    name: "Rift of Ruin",
+    school: Conjuration,
+    guide: "wizard-spells#rift-of-ruin-conjuration",
+    summary: "Opens a 60 ft pit to the Abyss: those in it take 6d6 falling, then 6d6 random damage a round (save halves); DC 35 to climb out; double damage when it closes.",
+    target: "Target point within long range, 10' burst",
+    duration: "1 round + 1 round / level",
+    saving_throw: "Reflex negates",
+    spell_resistance: false,
+    descriptors: [Evil, Chaos],
+    casting_time: Standard,
+)

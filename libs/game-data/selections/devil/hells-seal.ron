@@ -1,0 +1,14 @@
+(
+    key: "devil/hells-seal",
+    blueprint: "b6798b29d36982b4786a32dfd81a914f",
+    name: "Hell\'s Seal",
+    summary: "Place a seal on an ally MR times a day; each ally can hold only one seal at a time.",
+    guide: "other-mythic-paths#hells-seal",
+    options: [
+        "devil/hells-seal/seal-of-burning-flames",
+        "devil/hells-seal/seal-of-devouring-flames",
+        "devil/hells-seal/seal-of-fear-eater",
+        "devil/hells-seal/seal-of-fire-eating",
+        "devil/hells-seal/seal-of-reflective-mind",
+    ],
+)

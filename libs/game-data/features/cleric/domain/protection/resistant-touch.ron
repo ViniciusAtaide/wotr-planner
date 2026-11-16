@@ -1,0 +1,1 @@
+(key: "cleric/domain/protection/resistant-touch", blueprint: "a05a8959c594daa40a1c5add79566566", name: "Resistant Touch", summary: "+1 resistance on saves (+1 per five levels); a touch lends that bonus to an ally for 1 minute, 3 + Wis times a day.", guide: "character-creation#protection-domain")

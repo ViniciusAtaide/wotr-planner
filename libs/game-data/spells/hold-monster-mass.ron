@@ -1,0 +1,14 @@
+(
+    key: "hold-monster-mass",
+    blueprint: "7f4b66a2b1fdab142904a263c7866d46",
+    name: "Hold Monster, Mass",
+    school: Enchantment,
+    guide: "wizard-spells#hold-monster-mass-enchantment",
+    summary: "Enemies in the area are paralysed if they fail the save, and each round they can save again to end it.",
+    target: "All enemies within 30' of humanoid creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

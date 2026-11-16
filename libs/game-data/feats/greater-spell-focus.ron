@@ -1,0 +1,1 @@
+(key: "greater-spell-focus", blueprint: "5b04b45b228461c43bad768eb0f7c7bf", name: "Greater Spell Focus", summary: "+1 more to the save DCs of spells from a school you have Spell Focus in.", category: Magic, guide: "feats#greater-spell-focus", parameter: SpellSchool, repeat: PerValue, prerequisite: FeatForSameValue("spell-focus"))

@@ -1,0 +1,10 @@
+(
+    key: "oracle/mystery/life",
+    blueprint: "a5458a1c316d1f24e8d9770f4fc179fa",
+    name: "Life",
+    summary: "Life: healing spells from Remove Sickness to Mass Heal plus Heroic Invocation, revelations like Channel, and broad condition immunity at 20th.",
+    guide: "oracle#life",
+    levels: [
+        (level: 20, features: ["oracle/mystery/life/life-final-revelation"]),
+    ],
+)

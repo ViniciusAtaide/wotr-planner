@@ -1,0 +1,14 @@
+(
+    key: "mind-blank-communal",
+    blueprint: "87a29febd010993419f2a4a9bee11cfc",
+    name: "Mind Blank, Communal",
+    school: Abjuration,
+    guide: "wizard-spells#mind-blank-communal-abjuration",
+    summary: "Your whole party adds a +8 resistance bonus to saving throws versus every mind-affecting spell or effect.",
+    target: "Personal",
+    duration: "4 hours",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

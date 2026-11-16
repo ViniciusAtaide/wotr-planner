@@ -1,0 +1,17 @@
+(
+    key: "witch/hag-of-gyronna",
+    class: "witch",
+    blueprint: "411fa458481e44f0855d47a19358874b",
+    prerequisite: Deity("gyronna"),
+    name: "Hag of Gyronna",
+    summary: "Lord of Nothing witch of Gyronna with a fixed patron, fear and dispel powers and a hag companion, but fewer hexes.",
+    guide: "witch#hag-of-gyronna",
+    levels: [
+        (level: 1, features: ["witch/familiar", "witch-cantrips", "witch/hag-of-gyronna/dark-pact"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex"]),
+        (level: 2, features: ["witch/hag-of-gyronna/curdle-thoughts"]),
+        (level: 8, features: ["witch/hag-of-gyronna/sunder-hope"]),
+        (level: 12, features: ["witch/hag-of-gyronna/hag-crony"]),
+        (level: 14, features: ["witch/hag-of-gyronna/sunder-hope"], selections: ["witch/hex"]),
+        (level: 20, features: ["witch/hag-of-gyronna/sunder-hope"], selections: ["witch/hex"]),
+    ],
+)

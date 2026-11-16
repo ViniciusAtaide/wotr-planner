@@ -1,0 +1,11 @@
+(
+    key: "wizard/school/enchanter",
+    blueprint: "252363458703f144788af49ef04d0803",
+    name: "Enchanter",
+    summary: "Enchantment specialist: Enchanting Smile, Dazing Touch and Aura of Despair.",
+    guide: "wizard#enchanter",
+    levels: [
+        (level: 1, features: ["wizard/school/enchanter/dazing-touch", "wizard/school/enchanter/enchanting-smile"]),
+        (level: 8, features: ["wizard/school/enchanter/aura-of-despair"]),
+    ],
+)

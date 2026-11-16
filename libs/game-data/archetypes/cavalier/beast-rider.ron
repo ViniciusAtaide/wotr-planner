@@ -1,0 +1,11 @@
+(
+    key: "cavalier/beast-rider",
+    class: "cavalier",
+    blueprint: "d287fbf2495ff2e4d88d5c49217bf173",
+    name: "Beast Rider",
+    summary: "Cavalier who can take any animal companion as a mount, losing heavy armour proficiency.",
+    guide: "cavalier#beast-rider",
+    levels: [
+        (level: 1, features: ["cavalier/beast-rider/animal-companion-beast-rider", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)], selections: ["cavalier/order"]),
+    ],
+)

@@ -1,0 +1,14 @@
+(
+    key: "water-torrent",
+    blueprint: "cd7b6981218a0274c916db0a2fc29855",
+    name: "Water Torrent",
+    school: Conjuration,
+    guide: "azata#water-torrent-conjuration",
+    summary: "Enemies take 6d6 bludgeoning and on a failed Fortitude save are knocked down, slowed and bludgeoning-vulnerable; allies shed blindness, poison and more.",
+    target: "All creatures within a 30' cone",
+    duration: "1d6 rounds",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

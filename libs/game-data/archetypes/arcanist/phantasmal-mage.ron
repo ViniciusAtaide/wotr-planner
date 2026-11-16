@@ -1,0 +1,16 @@
+(
+    key: "arcanist/phantasmal-mage",
+    class: "arcanist",
+    blueprint: "e9d0ee69305049fe8400a066010dbcd1",
+    name: "Phantasmal Mage",
+    summary: "Gnome-only illusion arcanist who adds metamagic to illusions but can't raise caster level with the reservoir; fewer exploits.",
+    guide: "arcanist#phantasmal-mage",
+    prerequisite: Race("gnome"),
+    levels: [
+        (level: 1, features: ["arcane-reservoir", "arcanist/consume-spells", "arcanist/phantasmal-mage/arcane-metamagic", "arcanist-cantrips"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
+        (level: 5, features: ["arcanist/phantasmal-mage/arcane-metamagic-i"]),
+        (level: 11, features: ["arcanist/phantasmal-mage/arcane-metamagic-ii"], selections: ["arcanist/greater-exploits"]),
+        (level: 17, features: ["arcanist/phantasmal-mage/arcane-metamagic-iii"]),
+        (level: 20, features: ["arcanist/phantasmal-mage/metamagic-supremacy"]),
+    ],
+)

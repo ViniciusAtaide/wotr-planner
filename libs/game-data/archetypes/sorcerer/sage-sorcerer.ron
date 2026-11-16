@@ -1,0 +1,21 @@
+(
+    key: "sorcerer/sage-sorcerer",
+    class: "sorcerer",
+    blueprint: "00b990c8be2117e45ae6514ee4ef561c",
+    name: "Sage Sorcerer",
+    summary: "Intelligence-based sorcerer with the Arcane bloodline's powers and an Arcane Bolt instead of the arcane bond.",
+    guide: "sorcerer#sage-sorcerer",
+    casting_ability: Intelligence,
+    levels: [
+        (level: 1, features: ["sorcerer/sage-sorcerer/arcane-arcana", "sorcerer/sage-sorcerer/arcane-bolt", "sorcerer/sage-sorcerer/cantrips", "arcane-bloodline-class-skill", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/sage-sorcerer/bloodline"]),
+        (level: 3, features: ["sorcerer/sage-sorcerer/bloodline-spell-magic-missile"]),
+        (level: 5, features: ["sorcerer/sage-sorcerer/bloodline-spell-invisibility"]),
+        (level: 7, features: ["sorcerer/sage-sorcerer/bloodline-spell-dispel-magic"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 9, features: ["sorcerer/sage-sorcerer/bloodline-spell-dimension-door", "sorcerer/sage-sorcerer/bonus-spell"]),
+        (level: 11, features: ["sorcerer/sage-sorcerer/bloodline-spell-break-enchantment"]),
+        (level: 13, features: ["sorcerer/sage-sorcerer/bloodline-spell-true-seeing", "sorcerer/sage-sorcerer/bonus-spell"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 15, features: ["sorcerer/sage-sorcerer/bloodline-spell-banishment"]),
+        (level: 17, features: ["sorcerer/sage-sorcerer/bloodline-spell-power-word-stun", "sorcerer/sage-sorcerer/bonus-spell"]),
+        (level: 19, features: ["sorcerer/sage-sorcerer/bloodline-spell-clashing-rocks"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+    ],
+)

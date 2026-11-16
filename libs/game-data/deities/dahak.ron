@@ -1,0 +1,9 @@
+(
+    key: "dahak",
+    blueprint: "8f7118d68f6e44dea94dddb51f38cbdd",
+    name: "Dahak",
+    guide: "character-creation#deities",
+    alignments: [ChaoticNeutral, NeutralEvil, ChaoticEvil],
+    favoured_weapons: ["heavy-flail"],
+    domains: ["cleric/domain/chaos", "cleric/domain/destruction", "cleric/domain/evil", "cleric/domain/scalykind", "cleric/domain/trickery"],
+)

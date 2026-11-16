@@ -1,0 +1,8 @@
+(
+    key: "exotic-weapon-proficiency",
+    name: "Exotic Weapon Proficiency",
+    category: Weapon,
+    guide: "feats#exotic-weapon-proficiency",
+    parameter: ExoticWeapon,
+    prerequisite: BaseAttackBonus(1),
+)

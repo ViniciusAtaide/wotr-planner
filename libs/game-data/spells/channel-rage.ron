@@ -1,0 +1,14 @@
+(
+    key: "channel-rage",
+    blueprint: "25f741db26e3e27428c4fcb5e60a4ab9",
+    name: "Channel Rage",
+    school: Transmutation,
+    guide: "demon#channel-rage-transmutation",
+    summary: "Shares your Demonic Rage with the target; it can only be cast while you are raging.",
+    target: "Only friendly creature within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

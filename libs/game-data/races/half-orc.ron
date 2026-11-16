@@ -1,0 +1,10 @@
+(
+    key: "half-orc",
+    blueprint: "1dc20e195581a804890ddc74218bfd8e",
+    name: "Half-Orc",
+    summary: "Orc Ferocity (as Diehard); +2 Persuasion to intimidate and +2 Perception; greataxe and falchion proficiency, orc double axe as a martial weapon.",
+    guide: "character-creation#half-orc",
+    ability_modifiers: [Chosen(amount: 2)],
+    weapons: ["falchion", "greataxe"],
+    weapons_as_martial: ["orc-double-axe"],
+)

@@ -1,0 +1,21 @@
+(
+    key: "sorcerer/overwhelming-mage",
+    class: "sorcerer",
+    blueprint: "734917ec8b8542378c1d35519439d67f",
+    name: "Overwhelming Mage",
+    summary: "Gives up bonus feats for Overwhelming Penetration (+1 to +4 against spell resistance) and Overwhelming Spell at 6th level.",
+    guide: "sorcerer#overwhelming-mage",
+    levels: [
+        (level: 1, features: ["sorcerer-cantrips", "sorcerer/overwhelming-mage/overwhelming-penetration", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], selections: ["sorcerer/bloodline"]),
+        (level: 3, features: ["sorcerer/overwhelming-mage/bloodline-spell-lvl-1"]),
+        (level: 5, features: ["sorcerer/overwhelming-mage/bloodline-spell-lvl-2"]),
+        (level: 6, features: ["sorcerer/overwhelming-mage/overwhelming-spell"]),
+        (level: 7, features: ["sorcerer/overwhelming-mage/bloodline-spell-lvl-3", "sorcerer/overwhelming-mage/overwhelming-penetration"]),
+        (level: 9, features: ["sorcerer/overwhelming-mage/bloodline-spell-lvl-4"]),
+        (level: 11, features: ["sorcerer/overwhelming-mage/bloodline-spell-lvl-5"]),
+        (level: 13, features: ["sorcerer/overwhelming-mage/bloodline-spell-lvl-6", "sorcerer/overwhelming-mage/overwhelming-penetration"]),
+        (level: 15, features: ["sorcerer/overwhelming-mage/bloodline-spell-lvl-7"]),
+        (level: 17, features: ["sorcerer/overwhelming-mage/bloodline-spell-lvl-8"]),
+        (level: 19, features: ["sorcerer/overwhelming-mage/bloodline-spell-lvl-9", "sorcerer/overwhelming-mage/overwhelming-penetration"]),
+    ],
+)

@@ -1,0 +1,14 @@
+(
+    key: "dragonkind-i",
+    blueprint: "f767399367df54645ac620ef7b2062bb",
+    name: "Dragonkind I",
+    school: Transmutation,
+    guide: "wizard-spells#dragonkind-i-transmutation",
+    summary: "You become a Medium dragon: +4 Strength, +2 Constitution, +4 natural armour, a 1d8 bite, 1d6 claws, 1d4 wings and a 6d8 breath once a day.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

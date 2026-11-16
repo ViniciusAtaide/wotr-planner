@@ -1,0 +1,4 @@
+(
+    why: "Not among StalwartDefenderDefensivePowerSelection's options in the game: a difference the game check reports.",
+    entry: (key: "stalwart-defender/defensive-powers/mighty-resilience", name: "Mighty Resilience", summary: "In stance, one critical hit or sneak attack deals only its normal damage; needs 6th level.", guide: "prestige-classes#mighty-resilience", prerequisite: ClassLevel(class: "stalwart-defender", level: 6)),
+)

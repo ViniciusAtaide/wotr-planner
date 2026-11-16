@@ -1,0 +1,1 @@
+(key: "destructive-dispel", blueprint: "d298e64e14398e848a54db5a2619ba42", name: "Destructive Dispel", summary: "A foe you dispel with a targeted dispel is stunned until your next turn (Fort DC 10 + half CL + casting stat), or sickened 1 round on a save.", category: Magic, guide: "feats#destructive-dispel")

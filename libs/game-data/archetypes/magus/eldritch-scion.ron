@@ -1,0 +1,18 @@
+(
+    key: "magus/eldritch-scion",
+    class: "magus",
+    blueprint: "d078b2ef073f2814c9e338a789d97b73",
+    name: "Eldritch Scion",
+    summary: "Spontaneous Cha-based magus with a sorcerer bloodline's spells and powers and an Eldritch Pool; spells known as a bard.",
+    guide: "magus#eldritch-scion",
+    casting_ability: Charisma,
+    spontaneous: Some(true),
+    levels: [
+        (level: 1, features: ["detect-magic", "magus/eldritch-scion/eldritch-pool", "magus/magus-proficiencies", "magus/spell-combat"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"], selections: ["magus/eldritch-scion/bloodline"]),
+        (level: 4),
+        (level: 8),
+        (level: 11, feat_slots: [General]),
+        (level: 14, features: ["magus/improved-spell-combat"]),
+        (level: 18, features: ["magus/greater-spell-combat"], selections: ["magus/magus-arcana"]),
+    ],
+)

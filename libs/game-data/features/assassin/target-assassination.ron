@@ -1,0 +1,1 @@
+(key: "assassin/target-assassination", blueprint: "d86609703c0b37445828a23140385721", name: "Target Assassination", summary: "Full-round attack at -2 on a marked foe that can't see you: it dies on a failed Fort save (DC 10 + level + Int), else takes a crit; shaken 1d4 rounds.", guide: "prestige-classes#target-assassination")

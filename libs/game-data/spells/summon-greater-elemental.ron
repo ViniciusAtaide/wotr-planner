@@ -1,0 +1,14 @@
+(
+    key: "summon-greater-elemental",
+    blueprint: "8eb769e3b583f594faabe1cfdb0bb696",
+    name: "Summon Greater Elemental",
+    school: Conjuration,
+    guide: "wizard-spells#summon-greater-elemental-conjuration",
+    summary: "Summons a greater elemental: fire, water, air or earth.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

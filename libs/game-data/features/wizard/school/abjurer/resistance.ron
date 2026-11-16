@@ -1,0 +1,1 @@
+(key: "wizard/school/abjurer/resistance", blueprint: "1abe070e7a00ddd48b8a141d71f79e70", name: "Resistance", summary: "Resistance 5 to an energy type chosen when you prepare spells, 10 at 11th, immunity at 20th.", guide: "wizard#resistance", daily_choice: true)

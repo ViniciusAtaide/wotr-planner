@@ -1,0 +1,14 @@
+(
+    key: "bulls-strength-mass",
+    blueprint: "6a234c6dcde7ae94e94e9c36fd1163a7",
+    name: "Bull's Strength, Mass",
+    school: Transmutation,
+    guide: "wizard-spells#bulls-strength-mass-transmutation",
+    summary: "Allies in the burst gain +4 enhancement to Strength.",
+    target: "All allies within 30' burst, centred on target creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

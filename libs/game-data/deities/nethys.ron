@@ -1,0 +1,9 @@
+(
+    key: "nethys",
+    blueprint: "6262cfce7c31626458325ca0909de997",
+    name: "Nethys",
+    guide: "character-creation#deities",
+    alignments: [NeutralGood, LawfulNeutral, TrueNeutral, ChaoticNeutral, NeutralEvil],
+    favoured_weapons: ["quarterstaff"],
+    domains: ["cleric/domain/destruction", "cleric/domain/knowledge", "cleric/domain/magic", "cleric/domain/protection", "cleric/domain/rune"],
+)

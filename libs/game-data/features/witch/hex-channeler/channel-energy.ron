@@ -1,0 +1,1 @@
+(key: "witch/hex-channeler/channel-energy", blueprint: "c464ab12993745c44a7d21f386562cb6", name: "Channel Energy", summary: "From 2nd level, channels energy for 1d6, 3 + Cha times a day; each new hex can instead add +1d6.", guide: "witch#channel-energy")

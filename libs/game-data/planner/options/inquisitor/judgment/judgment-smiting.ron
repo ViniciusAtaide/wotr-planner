@@ -1,0 +1,4 @@
+(
+    why: "An ability of JudgmentFeature in the game, not a feature of its own.",
+    entry: (key: "inquisitor/judgment/judgment-smiting", name: "Judgment - Smiting", summary: "Weapons count as magic for DR, also as your alignment from 6th level and as adamantine from 10th.", guide: "inquisitor#judgment-smiting"),
+)

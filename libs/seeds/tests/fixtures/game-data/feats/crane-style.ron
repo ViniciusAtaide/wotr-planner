@@ -1,0 +1,8 @@
+(
+    // Simplified: the game's Crane Style also needs Improved Unarmed Strike.
+    key: "crane-style",
+    name: "Crane Style",
+    category: UnarmedCombat,
+    guide: "feats#crane-style",
+    prerequisite: Feat("dodge"),
+)

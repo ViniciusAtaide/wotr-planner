@@ -1,0 +1,10 @@
+(
+    key: "manual-of-gainful-exercise-2",
+    blueprint: "7a7b1dfa67aa4544aa468d0558b1f667",
+    name: "Manual of Gainful Exercise +2",
+    slot: Usable,
+    guide: "items#equipable-and-consumable",
+    bonuses: [
+        (target: Ability(Strength), amount: 2, kind: Inherent),
+    ],
+)

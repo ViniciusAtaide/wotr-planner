@@ -1,0 +1,1 @@
+(key: "kineticist/wild-talents/fires-fury", blueprint: "641d15b6c3d3017409e352c558fb0090", name: "Fire\'s Fury", summary: "Fire and composite fire blasts deal +1 more damage per point of Elemental Overflow (up to +6 at 18th).", guide: "kineticist#fires-fury", prerequisite: All([ClassLevel(class: "kineticist", level: 2), SelectionOption("kineticist/element/fire")]))

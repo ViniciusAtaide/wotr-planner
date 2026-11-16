@@ -1,0 +1,1 @@
+(key: "fighter/titan-fighter/bonus-feats-2", blueprint: "9c3e4b49b9f243f080c0432d2a1e5cbf", name: "Massive Attacks", guide: "fighter#massive-attacks", ignores_prerequisites: true, feats: ["double-slice", "shield-bash", "two-weapon-fighting"])

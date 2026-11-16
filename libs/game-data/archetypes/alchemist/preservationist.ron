@@ -1,0 +1,16 @@
+(
+    key: "alchemist/preservationist",
+    class: "alchemist",
+    blueprint: "d218568445cf0524e889a2dfce97d76f",
+    name: "Preservationist",
+    summary: "Alchemist who adds Summon Nature's Ally extracts, losing poison resistance and Persistent Mutagen.",
+    guide: "alchemist#preservationist",
+    levels: [
+        (level: 2, features: ["alchemist/preservationist/bottled-ally-i"], selections: ["alchemist/discovery"]),
+        (level: 5, features: ["alchemist/preservationist/bottled-ally-ii"]),
+        (level: 8, features: ["alchemist/preservationist/bottled-ally-iii"], selections: ["alchemist/discovery"]),
+        (level: 10, features: ["alchemist/preservationist/bottled-ally-iv"], selections: ["alchemist/discovery"]),
+        (level: 14, features: ["alchemist/preservationist/bottled-ally-v"], selections: ["alchemist/discovery"]),
+        (level: 18, features: ["alchemist/preservationist/bottled-ally-vi"]),
+    ],
+)

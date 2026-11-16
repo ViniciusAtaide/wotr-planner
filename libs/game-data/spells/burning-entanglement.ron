@@ -1,0 +1,14 @@
+(
+    key: "burning-entanglement",
+    blueprint: "8a76293f5ab8485da95ef6293a11358c",
+    name: "Burning Entanglement",
+    school: Evocation,
+    guide: "druid-spells#burning-entanglement-evocation",
+    summary: "As Entangle; entangled creatures take 4d6 fire each turn and others in the area 2d6 (halved on a Reflex save), and attacks in the area have 20% miss chance.",
+    target: "Target point within long range, 40' burst",
+    duration: "1 round / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [Fire, MovementImpairing],
+    casting_time: Standard,
+)

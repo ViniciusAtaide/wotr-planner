@@ -1,0 +1,14 @@
+(
+    key: "hungry-pit",
+    blueprint: "f63f4d1806b78604a952b3958892ce1c",
+    name: "Hungry Pit",
+    school: Conjuration,
+    guide: "wizard-spells#hungry-pit-conjuration",
+    summary: "Opens a pit 10 ft deep per two caster levels (max 100 ft); falling in deals 1d6 per 10 ft, then 4d6 bludgeoning each round inside; climbing out is DC 35.",
+    target: "Target point within medium range, 10' burst",
+    duration: "1 round + 1 round / level",
+    saving_throw: "Reflex negates",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

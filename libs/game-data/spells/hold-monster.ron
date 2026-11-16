@@ -1,0 +1,14 @@
+(
+    key: "hold-monster",
+    blueprint: "41e8a952da7a5c247b3ec1c2dbb73018",
+    name: "Hold Monster",
+    school: Enchantment,
+    guide: "wizard-spells#hold-monster-enchantment",
+    summary: "A living creature that fails is paralysed, with a new save each round to end it.",
+    target: "One enemy creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

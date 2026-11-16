@@ -1,0 +1,14 @@
+(
+    key: "repurpose",
+    blueprint: "de5f875a5f98d99459e45e6af8ce5dcd",
+    name: "Repurpose",
+    school: Necromancy,
+    guide: "lich#repurpose-necromancy",
+    summary: "The target takes 1d6 each round, and if it dies meanwhile it rises as an undead servant of yours.",
+    target: "Creature within medium range",
+    duration: "1 round / 2 caster levels",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

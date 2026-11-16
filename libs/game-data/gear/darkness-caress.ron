@@ -1,0 +1,15 @@
+(
+    key: "darkness-caress",
+    blueprint: "39755fa97553462ca91a6109e5e1e393",
+    name: "Darkness Caress",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 8, kind: Enhancement),
+        (target: Ability(Wisdom), amount: 8, kind: Enhancement),
+        (target: Ability(Charisma), amount: 8, kind: Enhancement),
+    ],
+    always_on: [
+        "Adds Cha bonus to ranged weapon damage",
+    ],
+)

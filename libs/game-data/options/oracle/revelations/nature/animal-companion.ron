@@ -1,0 +1,1 @@
+(key: "oracle/revelations/nature/animal-companion", blueprint: "0234d0dd1cead22428e71a2500afa2e1", name: "Animal Companion", summary: "Gives you a horse or wolf animal companion.", guide: "oracle#animal-companion", prerequisite: SelectionOption("oracle/mystery/nature"))

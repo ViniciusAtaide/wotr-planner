@@ -1,0 +1,14 @@
+(
+    key: "summon-elder-elemental",
+    blueprint: "8a7f8c1223bda1541b42fd0320cdbe2b",
+    name: "Summon Elder Elemental",
+    school: Conjuration,
+    guide: "wizard-spells#summon-elder-elemental-conjuration",
+    summary: "Summons an elder elemental: fire, water, air or earth.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

@@ -1,0 +1,14 @@
+(
+    key: "bestow-curse-greater",
+    blueprint: "6101d0f0720927e4ca413de7b3c4b7e5",
+    name: "Bestow Curse, Greater",
+    school: Necromancy,
+    guide: "wizard-spells#bestow-curse-greater-necromancy",
+    summary: "Curses the target with your pick: -12 Con; -12 Str and Dex; -12 Int, Wis and Cha; or -8 on attacks, saves, ability and skill checks.",
+    target: "One creature within touch range",
+    duration: "Permanent",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [Curse],
+    casting_time: Standard,
+)

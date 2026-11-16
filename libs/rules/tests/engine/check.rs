@@ -73,7 +73,7 @@ fn level_rows_run_from_1_with_none_missing() {
 #[test]
 fn an_archetype_row_is_at_one_of_its_class_levels_once() {
     let mut data = world();
-    let armiger = &mut class_mut(&mut data, "fighter").archetypes[0];
+    let armiger = first_archetype_mut(&mut data, "fighter");
     // Rows are kept only where the archetype differs, so gaps are fine; outside 1..=20 or twice isn't.
     armiger.levels[0].level = 0;
     let mut row_21 = armiger.levels[1].clone();
@@ -96,7 +96,7 @@ fn an_archetype_row_differs_from_the_base_row() {
     let fighter = class_mut(&mut data, "fighter");
     let base_3 = fighter.levels[2].clone();
     let base_5 = fighter.levels[4].clone();
-    let armiger = &mut fighter.archetypes[0];
+    let armiger = first_archetype_mut(&mut data, "fighter");
     // Level 3: the fighter's grants, written in another order, and no spell levels of its own.
     armiger.levels.push(ArchetypeLevelRow {
         feats_for: Default::default(),
@@ -129,7 +129,7 @@ fn an_archetype_row_differs_from_the_base_row() {
     });
     // Level 9: the fighter's grants plus a granted feat, which is a difference.
     let base_9 = fighter_level(&data, 9);
-    class_mut(&mut data, "fighter").archetypes[0]
+    first_archetype_mut(&mut data, "fighter")
         .levels
         .push(ArchetypeLevelRow {
             feats_for: Default::default(),
@@ -153,8 +153,7 @@ fn an_archetype_row_differs_from_the_base_row() {
 #[test]
 fn a_spell_override_stays_in_range() {
     let mut data = world();
-    let rogue = class_mut(&mut data, "rogue");
-    rogue.archetypes[0].levels[19].spell_levels = Some(SpellLevels {
+    first_archetype_mut(&mut data, "rogue").levels[19].spell_levels = Some(SpellLevels {
         arcane: 10,
         divine: 0,
     });
@@ -219,7 +218,7 @@ fn a_save_exception_differs_from_the_formula_at_one_of_the_class_levels() {
 fn an_archetype_save_progression_differs_from_its_classs() {
     let mut data = world();
     // Fighter: good Fortitude, poor Reflex and Will.
-    let armiger = &mut class_mut(&mut data, "fighter").archetypes[0];
+    let armiger = first_archetype_mut(&mut data, "fighter");
     armiger.fort = Some(SaveProgression::Good);
     armiger.reflex = Some(SaveProgression::Good);
     armiger.will = Some(SaveProgression::Poor);
@@ -241,14 +240,13 @@ fn an_archetype_save_progression_differs_from_its_classs() {
 #[test]
 fn only_base_classes_have_archetypes() {
     let mut data = world();
-    let armiger = data.classes[1].archetypes[0].clone();
-    class_mut(&mut data, "arcane-trickster")
-        .archetypes
-        .push(rules::Archetype {
-            key: ArchetypeKey::new("arcane-trickster/x"),
-            levels: vec![],
-            ..armiger
-        });
+    let armiger = first_archetype_mut(&mut data, "fighter").clone();
+    data.archetypes.push(rules::Archetype {
+        key: ArchetypeKey::new("arcane-trickster/x"),
+        class: ClassKey::new("arcane-trickster"),
+        levels: vec![],
+        ..armiger
+    });
     assert_eq!(
         issues(&data),
         [(
@@ -310,91 +308,67 @@ fn keys_are_unique_within_each_kind() {
 #[test]
 fn different_kinds_may_share_a_key() {
     let mut data = world();
-    let rogue = class_mut(&mut data, "rogue");
-    let mut talents_feature = rogue.features[0].clone();
+    let mut talents_feature = feature_mut(&mut data, "rogue/sneak-attack").clone();
     talents_feature.key = FeatureKey::new("rogue/rogue-talents");
-    rogue.features.push(talents_feature);
-    assert_eq!(
-        rogue.selections[0].key,
-        FeatureSelectionKey::new("rogue/rogue-talents")
-    );
+    data.features.push(talents_feature);
+    selection_mut(&mut data, "rogue/rogue-talents");
 
     assert_eq!(issues(&data), []);
 }
 
-/// What a class, archetype or path owns has a key that starts with the owner's key and a `/`.
+/// A key says nothing of an owner (ticket 244): a feature, selection or feat list may be keyed outside the class,
+/// archetype or path whose rows grant it, as a collapsed entry is (`sneak-attack`). An archetype names its class, a
+/// subrace its race, and those must be known.
 #[test]
-fn owned_keys_start_with_their_owners_key() {
+fn a_key_needs_no_owner_but_an_archetype_and_a_subrace_name_theirs() {
     let mut data = world();
-    let fighter = class_mut(&mut data, "fighter");
-    fighter.features[0].key = FeatureKey::new("power-attack");
-    // An archetype's own: under the archetype's key, not just the class's.
-    let mut stray = fighter.features[0].clone();
-    stray.key = FeatureKey::new("fighter/stray");
-    fighter.archetypes[0].features.push(stray);
-    fighter.archetypes[0].selections[0].key = FeatureSelectionKey::new("fighter/order");
-    for option in &mut fighter.archetypes[0].selections[0].options {
-        option.key = SelectionOptionKey::new(option.key.as_str().replace("armiger/", ""));
-    }
-    let trickster = data
-        .mythic_paths
-        .iter_mut()
-        .find(|p| p.key.as_str() == "trickster")
-        .unwrap();
-    trickster.features[0].key = FeatureKey::new("tricksters/tricks");
-    let monk = class_mut(&mut data, "monk");
-    monk.feat_lists[0].key = FeatListKey::new("monk-bonus-feats");
-    for row in &mut monk.levels {
-        for slot in &mut row.feat_slots {
-            *slot = FeatSlot::OneOf {
-                list: FeatListKey::new("monk-bonus-feats"),
-            };
+    let renamed = |data: &mut GameData, from: &str, to: &str| {
+        for row in data.all_classes_mut().flat_map(|class| &mut class.levels) {
+            for feature in &mut row.features {
+                if feature.as_str() == from {
+                    *feature = FeatureKey::new(to);
+                }
+            }
         }
-    }
+        for row in data.archetypes.iter_mut().flat_map(|a| &mut a.levels) {
+            for feature in &mut row.features {
+                if feature.as_str() == from {
+                    *feature = FeatureKey::new(to);
+                }
+            }
+        }
+        feature_mut(data, from).key = FeatureKey::new(to);
+    };
+    renamed(&mut data, "fighter/bravery", "bravery");
+    assert_eq!(issues(&data), []);
+
+    first_archetype_mut(&mut data, "fighter").class = ClassKey::new("no-such-class");
+    data.subraces[0].race = RaceKey::new("no-such-race");
+    let subrace = data.subraces[0].key.clone();
     assert_eq!(
-        issues_but_unknown_keys(&data),
+        issues(&data),
         [
             (
-                DataAt::Feature(FeatureKey::new("fighter/stray")),
-                DataIssue::KeyOutsideItsOwner
+                DataAt::Subrace(subrace),
+                DataIssue::UnknownKey(DataAt::Race(RaceKey::new("no-such-race")))
             ),
             (
-                DataAt::Feature(FeatureKey::new("power-attack")),
-                DataIssue::KeyOutsideItsOwner
-            ),
-            (
-                DataAt::Feature(FeatureKey::new("tricksters/tricks")),
-                DataIssue::KeyOutsideItsOwner
-            ),
-            (
-                DataAt::FeatureSelection(FeatureSelectionKey::new("fighter/order")),
-                DataIssue::KeyOutsideItsOwner
-            ),
-            (
-                DataAt::FeatList(FeatListKey::new("monk-bonus-feats")),
-                DataIssue::KeyOutsideItsOwner
+                at_armiger(),
+                DataIssue::UnknownKey(DataAt::Class(ClassKey::new("no-such-class")))
             ),
         ]
-    );
-    assert_eq!(
-        DataProblem {
-            at: DataAt::Feature(FeatureKey::new("power-attack")),
-            issue: DataIssue::KeyOutsideItsOwner,
-        }
-        .to_string(),
-        "feature power-attack: the key doesn't start with its owner's key"
     );
 }
 
 #[test]
 fn a_feat_list_holds_two_feats_or_more_and_some_slot_names_it() {
     let mut data = world();
-    let monk = class_mut(&mut data, "monk");
-    monk.feat_lists[0].feats = BTreeSet::from([FeatKey::new("dodge")]);
-    let mut unused = monk.feat_lists[0].clone();
+    let bonus_feats = feat_list_mut(&mut data, "monk/bonus-feats");
+    bonus_feats.feats = BTreeSet::from([FeatKey::new("dodge")]);
+    let mut unused = bonus_feats.clone();
     unused.key = FeatListKey::new("monk/unused");
     unused.feats = BTreeSet::from([FeatKey::new("dodge"), FeatKey::new("toughness")]);
-    monk.feat_lists.push(unused);
+    data.feat_lists.push(unused);
     let at = |key: &str| DataAt::FeatList(FeatListKey::new(key));
     assert_eq!(
         issues(&data),
@@ -414,16 +388,13 @@ fn a_feat_list_holds_two_feats_or_more_and_some_slot_names_it() {
 }
 
 #[test]
-fn feat_list_keys_are_unique_across_owners() {
+fn feat_list_keys_are_unique() {
     let mut data = world();
-    let copy = class_mut(&mut data, "monk").feat_lists[0].clone();
-    class_mut(&mut data, "wizard").feat_lists.push(copy.clone());
+    let copy = feat_list_mut(&mut data, "monk/bonus-feats").clone();
+    data.feat_lists.push(copy.clone());
     assert_eq!(
         issues(&data),
-        [
-            (DataAt::FeatList(copy.key.clone()), DataIssue::DuplicateKey),
-            (DataAt::FeatList(copy.key), DataIssue::KeyOutsideItsOwner),
-        ]
+        [(DataAt::FeatList(copy.key), DataIssue::DuplicateKey)]
     );
 }
 
@@ -438,60 +409,62 @@ fn a_prestige_class_cant_reuse_a_base_class_key() {
     );
 }
 
+/// Each option is one selection's own, whatever its key: one no selection defines, or two do, is a problem.
 #[test]
-fn a_selection_options_key_starts_with_its_selection_key() {
+fn an_option_is_one_selections_own() {
     let mut data = world();
-    let talents = &mut class_mut(&mut data, "rogue").selections[0];
-    talents.options[0].key = SelectionOptionKey::new("fighter/stray");
-    // Sharing only the text before the `/` isn't enough.
-    talents.options[1].key = SelectionOptionKey::new("rogue/rogue-talents-x");
+    let mut stray = option_mut(&mut data, "rogue/rogue-talents/fast-stealth").clone();
+    stray.key = SelectionOptionKey::new("fighter/stray");
+    data.options.push(stray);
+    let trick = SelectionOptionKey::new("rogue/rogue-talents/combat-trick");
+    selection_mut(&mut data, "wizard/school")
+        .options
+        .insert(trick.clone());
+    let found = issues_but_unknown_keys(&data);
     assert_eq!(
-        issues_but_unknown_keys(&data),
+        found,
         [
             (
                 DataAt::SelectionOption(SelectionOptionKey::new("fighter/stray")),
-                DataIssue::OptionOutsideItsSelection
+                DataIssue::OptionNotDefinedOnce(0)
             ),
             (
-                DataAt::SelectionOption(SelectionOptionKey::new("rogue/rogue-talents-x")),
-                DataIssue::OptionOutsideItsSelection
+                DataAt::SelectionOption(trick),
+                DataIssue::OptionNotDefinedOnce(2)
             ),
         ]
     );
+    assert_eq!(
+        DataProblem {
+            at: DataAt::SelectionOption(SelectionOptionKey::new("fighter/stray")),
+            issue: DataIssue::OptionNotDefinedOnce(0),
+        }
+        .to_string(),
+        "selection option fighter/stray: 0 selections define the option among their own options; one must"
+    );
 }
 
-/// A selection shares another selection's options, never its own (the schema's CHECK on
-/// `selection_shared_option`): an own option is offered already.
+/// A selection shares another selection's options, never its own: an own option is offered already.
 #[test]
 fn a_selection_shares_only_other_selections_options() {
     let mut data = world();
-    let talents = &mut class_mut(&mut data, "slayer").selections[0];
+    let talents = selection_mut(&mut data, "slayer/slayer-talents");
     talents.shared_options.insert(SelectionOptionKey::new(
         "slayer/slayer-talents/slayer-camouflage",
     ));
-    // Any key under the selection's own counts, even one that isn't an option.
+    // A key under the selection's own that isn't one of its options is only an unknown key.
     talents
         .shared_options
         .insert(SelectionOptionKey::new("slayer/slayer-talents/ghost"));
-    // Sharing only the text before the `/` is fine.
-    talents
-        .shared_options
-        .insert(SelectionOptionKey::new("slayer/slayer-talents-x/other"));
     let at = DataAt::FeatureSelection(FeatureSelectionKey::new("slayer/slayer-talents"));
     assert_eq!(
         issues_but_unknown_keys(&data),
-        [
-            (
-                at.clone(),
-                DataIssue::SharesOwnOption(SelectionOptionKey::new("slayer/slayer-talents/ghost"))
-            ),
-            (
-                at,
-                DataIssue::SharesOwnOption(SelectionOptionKey::new(
-                    "slayer/slayer-talents/slayer-camouflage"
-                ))
-            ),
-        ]
+        [(
+            at,
+            DataIssue::SharesOwnOption(SelectionOptionKey::new(
+                "slayer/slayer-talents/slayer-camouflage"
+            ))
+        )]
     );
 }
 
@@ -568,7 +541,7 @@ fn only_class_levels_and_a_paths_own_ranks_grant_bonus_list_slots() {
     };
     let mut data = world();
     // A class's and an archetype's level rows may grant one.
-    class_mut(&mut data, "fighter").archetypes[0].levels[4]
+    first_archetype_mut(&mut data, "fighter").levels[4]
         .feat_slots
         .push(bonus_list.clone());
     assert_eq!(issues(&data), []);
@@ -633,12 +606,7 @@ fn a_path_rank_may_name_its_own_bonus_list_only() {
 #[test]
 fn a_list_of_every_feat_names_none_of_its_own() {
     let mut data = world();
-    let dragon = data
-        .mythic_paths
-        .iter_mut()
-        .find(|p| p.key.as_str() == "gold-dragon")
-        .unwrap();
-    dragon.feat_lists[0]
+    feat_list_mut(&mut data, "gold-dragon/dragon-feats")
         .feats
         .insert(rules::FeatKey::new("dodge"));
     let at = DataAt::FeatList(FeatListKey::new("gold-dragon/dragon-feats"));
@@ -709,11 +677,7 @@ fn a_switch_is_open_from_paths_chosen_at_mr_3_only() {
 }
 
 fn rogue_talent_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::SelectionOption {
-    class_mut(data, "rogue").selections[0]
-        .options
-        .iter_mut()
-        .find(|o| o.key.as_str() == key)
-        .unwrap()
+    option_mut(data, key)
 }
 
 fn at_feat(key: &str) -> DataAt {
@@ -841,7 +805,7 @@ fn a_one_feat_list_is_a_bonus_feat_of_the_players_choosing() {
     // The rogue's Skill Focus list holds one feat: fine, the pick names the skill. One unparameterised feat isn't.
     let mut data = world();
     assert_eq!(issues(&data), []);
-    class_mut(&mut data, "rogue").feat_lists[0].feats = BTreeSet::from([FeatKey::new("dodge")]);
+    feat_list_mut(&mut data, "rogue/skill-focus").feats = BTreeSet::from([FeatKey::new("dodge")]);
     assert_eq!(
         issues(&data),
         [(
@@ -927,8 +891,7 @@ fn a_story_condition_is_required_not_one_of_several() {
 #[test]
 fn an_option_has_one_row_per_option_level() {
     let mut data = world();
-    let bloodlines = sorcerer_selection(&mut data, "sorcerer/bloodline");
-    let abyssal = &mut bloodlines.options[0];
+    let abyssal = option_mut(&mut data, "sorcerer/bloodline/abyssal");
     let first = abyssal.levels[0].clone();
     abyssal.levels.push(first);
     assert_eq!(
@@ -961,12 +924,7 @@ fn a_selection_offering_options_with_rows_names_the_classes_whose_levels_count()
 fn a_filtered_pool_may_offer_options_of_its_own_and_shared_ones() {
     // The Dual-Cursed Oracle's revelations: the oracle's, shared, and two of its own.
     let mut data = world();
-    let cleric = class_mut(&mut data, "cleric");
-    let revelation = cleric
-        .selections
-        .iter_mut()
-        .find(|selection| selection.key.as_str() == "cleric/revelation")
-        .unwrap();
+    let revelation = selection_mut(&mut data, "cleric/revelation");
     revelation.shared_options.insert(SelectionOptionKey::new(
         "cleric/fire-revelations/fire-breath",
     ));
@@ -976,16 +934,7 @@ fn a_filtered_pool_may_offer_options_of_its_own_and_shared_ones() {
 #[test]
 fn an_options_arcana_is_one_of_its_rows_features() {
     let mut data = world();
-    let bloodline = class_mut(&mut data, "sorcerer")
-        .selections
-        .iter_mut()
-        .find(|selection| selection.key.as_str() == "sorcerer/bloodline")
-        .unwrap();
-    let arcane = bloodline
-        .options
-        .iter_mut()
-        .find(|option| option.key.as_str() == "sorcerer/bloodline/arcane")
-        .unwrap();
+    let arcane = option_mut(&mut data, "sorcerer/bloodline/arcane");
     arcane.arcana = Some(FeatureKey::new("sorcerer/bloodline/abyssal/arcana"));
     assert_eq!(
         issues(&data),
@@ -999,13 +948,7 @@ fn an_options_arcana_is_one_of_its_rows_features() {
 #[test]
 fn an_option_that_sets_the_bab_by_ranks_names_a_skill_the_data_has() {
     let mut data = world();
-    let option = data
-        .mythic_paths
-        .iter_mut()
-        .flat_map(|path| &mut path.selections)
-        .flat_map(|selection| &mut selection.options)
-        .find(|option| option.key.as_str() == "trickster/tricks/athletics-3")
-        .unwrap();
+    let option = option_mut(&mut data, "trickster/tricks/athletics-3");
     option.bab_from_ranks.as_mut().unwrap().skill = skill("cooking");
     assert_eq!(
         issues(&data),
@@ -1020,7 +963,7 @@ fn an_option_that_sets_the_bab_by_ranks_names_a_skill_the_data_has() {
 fn a_selection_has_one_source_of_option_levels() {
     // Impossible Domain's levels come from the other domains held, not from classes as well.
     let mut data = world();
-    let selection = cleric_selection(&mut data, "cleric/impossible-domain");
+    let selection = selection_mut(&mut data, "cleric/impossible-domain");
     selection.option_levels.insert(ClassKey::new("cleric"));
     assert_eq!(
         issues(&data),
@@ -1064,18 +1007,11 @@ fn an_option_rows_feat_list_counts_as_named() {
     // The bloodline lists are named only by option rows, and no problem says they're unused.
     let data = world();
     assert!(
-        data.feat_lists()
+        data.feat_lists
+            .iter()
             .any(|list| list.key.as_str() == "sorcerer/bloodline/abyssal-feats")
     );
     assert_eq!(issues(&data), []);
-}
-
-fn cleric_selection<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::FeatureSelection {
-    class_mut(data, "cleric")
-        .selections
-        .iter_mut()
-        .find(|selection| selection.key.as_str() == key)
-        .unwrap()
 }
 
 #[test]
@@ -1085,7 +1021,7 @@ fn an_option_rows_chosen_feat_takes_the_options_chosen_value() {
     ));
     // Another kind of value than Weapon Focus's (a weapon): no value of the pick fits it.
     let mut data = world();
-    let mastery = &mut cleric_selection(&mut data, "cleric/fire-revelations").options[3];
+    let mastery = option_mut(&mut data, "cleric/fire-revelations/weapon-mastery");
     mastery.levels[0]
         .chosen_feats
         .insert(FeatKey::new("skill-focus"));
@@ -1098,7 +1034,7 @@ fn an_option_rows_chosen_feat_takes_the_options_chosen_value() {
     );
     // An option whose pick names no value.
     let mut data = world();
-    let mastery = &mut cleric_selection(&mut data, "cleric/fire-revelations").options[3];
+    let mastery = option_mut(&mut data, "cleric/fire-revelations/weapon-mastery");
     mastery.chosen_feat = None;
     assert_eq!(
         issues(&data),
@@ -1113,18 +1049,16 @@ fn an_option_rows_chosen_feat_takes_the_options_chosen_value() {
 fn an_option_rows_bonus_slot_names_its_list() {
     let mut data = world();
     // An unused list is a problem; naming it from an option row's slot uses it.
-    class_mut(&mut data, "cleric")
-        .feat_lists
-        .push(rules::FeatList {
-            key: FeatListKey::new("cleric/war-feats"),
-            blueprint: None,
-            name: "War feats".into(),
-            guide: Some(rules::GuideRef::new("cleric")),
-            ignores_prerequisites: false,
-            every_feat: false,
-            skips_proficiency: false,
-            feats: BTreeSet::from([FeatKey::new("toughness"), FeatKey::new("dodge")]),
-        });
+    data.feat_lists.push(rules::FeatList {
+        key: FeatListKey::new("cleric/war-feats"),
+        blueprint: None,
+        name: "War feats".into(),
+        guide: Some(rules::GuideRef::new("cleric")),
+        ignores_prerequisites: false,
+        every_feat: false,
+        skips_proficiency: false,
+        feats: BTreeSet::from([FeatKey::new("toughness"), FeatKey::new("dodge")]),
+    });
     assert_eq!(
         issues(&data),
         [(
@@ -1132,7 +1066,7 @@ fn an_option_rows_bonus_slot_names_its_list() {
             DataIssue::UnusedFeatList
         )]
     );
-    let war = &mut cleric_selection(&mut data, "cleric/domain").options[1];
+    let war = option_mut(&mut data, "cleric/domain/war");
     war.levels[1].feat_slots = vec![FeatSlot::OneOf {
         list: FeatListKey::new("cleric/war-feats"),
     }];
@@ -1149,11 +1083,7 @@ fn mythic_feat_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Myth
 }
 
 fn slayer_talent_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::SelectionOption {
-    class_mut(data, "slayer").selections[0]
-        .options
-        .iter_mut()
-        .find(|o| o.key.as_str() == key)
-        .unwrap()
+    option_mut(data, key)
 }
 
 #[test]
@@ -1298,12 +1228,12 @@ fn a_race_may_name_its_own_bonus_list_only() {
 fn a_subrace_may_name_its_races_bonus_list_only() {
     // The world's Adaptable half-elf names its race's Adaptability list; the elf's Blightborn may not.
     let mut data = world();
-    let elf = data
-        .races
+    let blightborn = data
+        .subraces
         .iter_mut()
-        .find(|r| r.key.as_str() == "elf")
+        .find(|s| s.key.as_str() == "elf/blightborn")
         .unwrap();
-    elf.subraces[0].feat_slots.push(FeatSlot::OneOf {
+    blightborn.feat_slots.push(FeatSlot::OneOf {
         list: FeatListKey::new("half-elf/adaptability"),
     });
     assert_eq!(
@@ -1320,7 +1250,7 @@ fn an_option_levelled_alongside_the_others_needs_other_options() {
     // Impossible Domain's False God way counts beside the other domains held; a selection levelled any other way
     // has no other options for it to count beside.
     let mut data = world();
-    let selection = cleric_selection(&mut data, "cleric/impossible-domain");
+    let selection = selection_mut(&mut data, "cleric/impossible-domain");
     selection.level_from = None;
     selection.option_levels.insert(ClassKey::new("cleric"));
     assert_eq!(
@@ -1335,7 +1265,7 @@ fn an_option_levelled_alongside_the_others_needs_other_options() {
 #[test]
 fn a_replacement_belongs_to_a_skipped_level() {
     let mut data = world();
-    let selection = cleric_selection(&mut data, "cleric/impossible-domain");
+    let selection = selection_mut(&mut data, "cleric/impossible-domain");
     selection.replaced_by.insert(
         7,
         rules::FeatureKey::new("sorcerer/bloodline/arcane/apotheosis"),
@@ -1352,18 +1282,9 @@ fn a_replacement_belongs_to_a_skipped_level() {
 #[test]
 fn a_replacement_is_on_no_row_of_its_class() {
     let mut data = world();
-    let class = data
-        .all_classes_mut()
-        .find(|class| {
-            !class.selections.is_empty() && class.levels.iter().any(|row| !row.features.is_empty())
-        })
-        .unwrap();
-    let feature = class
-        .levels
-        .iter()
-        .find_map(|row| row.features.first().cloned())
-        .unwrap();
-    let selection = class.selections.first_mut().unwrap();
+    // The rogue's talents, which its rows grant, given at 7 in place of a row: Sneak Attack, on its rows.
+    let feature = FeatureKey::new("rogue/sneak-attack");
+    let selection = selection_mut(&mut data, "rogue/rogue-talents");
     let key = selection.key.clone();
     selection.skipped_levels.insert(7);
     selection.replaced_by.insert(7, feature.clone());
@@ -1427,14 +1348,6 @@ fn deity_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Deity {
         .unwrap()
 }
 
-fn priest_selection<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::FeatureSelection {
-    class_mut(data, "priest")
-        .selections
-        .iter_mut()
-        .find(|s| s.key.as_str() == key)
-        .unwrap()
-}
-
 #[test]
 fn a_deity_key_is_used_once() {
     let mut data = world();
@@ -1466,7 +1379,7 @@ fn a_deitys_domains_and_a_blessings_domain_are_domains() {
     deity_mut(&mut data, "fist")
         .domains
         .insert(revelation.clone());
-    priest_selection(&mut data, "priest/blessing").options[0].domain = Some(revelation.clone());
+    option_mut(&mut data, "priest/blessing/fire").domain = Some(revelation.clone());
     assert_eq!(
         sorted(issues(&data)),
         [
@@ -1483,7 +1396,7 @@ fn a_deitys_domains_and_a_blessings_domain_are_domains() {
 fn a_deity_limited_selection_offers_only_options_with_a_domain() {
     let mut data = world();
     // The Seeker's creeds are neither domains nor stand for one.
-    class_mut(&mut data, "seeker").selections[0].deity_domains = Some(rules::DeityDomains::Offered);
+    selection_mut(&mut data, "seeker/creed").deity_domains = Some(rules::DeityDomains::Offered);
     assert_eq!(
         issues(&data),
         [(
@@ -1497,12 +1410,8 @@ fn a_deity_limited_selection_offers_only_options_with_a_domain() {
 fn a_deity_offering_names_a_domain() {
     let mut data = world();
     let revelation = SelectionOptionKey::new("cleric/fire-revelations/fire-breath");
-    class_mut(&mut data, "priest")
-        .archetypes
-        .iter_mut()
-        .find(|a| a.key.as_str() == "priest/apostle")
-        .unwrap()
-        .prerequisite = Some(Prerequisite::DeityOffers(revelation.clone()));
+    archetype_mut(&mut data, "priest/apostle").prerequisite =
+        Some(Prerequisite::DeityOffers(revelation.clone()));
     assert_eq!(
         issues(&data),
         [(
@@ -1536,7 +1445,7 @@ fn unknown(at: DataAt, missing: DataAt) -> (DataAt, DataIssue) {
 fn every_feat_named_is_one_the_data_has() {
     let mut data = world();
     let typo = || FeatKey::new("dodgee");
-    class_mut(&mut data, "monk").feat_lists[0]
+    feat_list_mut(&mut data, "monk/bonus-feats")
         .feats
         .insert(typo());
     class_mut(&mut data, "fighter").levels[0]
@@ -1585,7 +1494,7 @@ fn every_feature_selection_and_option_named_is_one_the_data_has() {
     class_mut(&mut data, "fighter").levels[1]
         .selections
         .push(selection());
-    class_mut(&mut data, "slayer").selections[0]
+    selection_mut(&mut data, "slayer/slayer-talents")
         .shared_options
         .insert(option());
     rogue_talent_mut(&mut data, "rogue/rogue-talents/resiliency").replaces_row_of =
@@ -1642,7 +1551,7 @@ fn every_class_race_deity_skill_weapon_and_mythic_pick_named_is_one_the_data_has
         value: rules::Parameter::Weapon(weapon()),
     });
     class_mut(&mut data, "wizard").class_skills.insert(skill());
-    class_mut(&mut data, "rogue").selections[0]
+    selection_mut(&mut data, "rogue/rogue-talents")
         .option_levels
         .insert(ClassKey::new("sorcerr"));
     data.backgrounds[0].class_skills.insert(skill());
@@ -1714,10 +1623,8 @@ fn every_feat_list_and_slot_selection_named_is_one_the_data_has() {
         at_level: None,
         label: None,
     });
-    let bloodline = class_mut(&mut data, "sorcerer")
-        .selections
-        .iter_mut()
-        .flat_map(|selection| &mut selection.options)
+    let bloodline = own_options_mut(&mut data, "sorcerer/bloodline")
+        .into_iter()
         .find(|option| option.levels.iter().any(|row| row.feat_list.is_some()))
         .unwrap();
     let row = bloodline
@@ -1940,7 +1847,7 @@ fn every_key_is_lowercase_slugs() {
 fn a_selection_is_not_filtered_by_itself_and_only_a_paths_is_levelled_by_mythic_ranks() {
     let mut data = world();
     let key = FeatureSelectionKey::new("cleric/impossible-domain");
-    let selection = cleric_selection(&mut data, key.as_str());
+    let selection = selection_mut(&mut data, key.as_str());
     selection.filtered_by = Some(key.clone());
     selection.level_from = Some(rules::LevelFrom::MythicRanks);
     selection.level_also_from = None;
@@ -1965,7 +1872,7 @@ fn a_selection_is_not_filtered_by_itself_and_only_a_paths_is_levelled_by_mythic_
 fn a_feature_has_one_ability_bonus_of_each_kind() {
     use rules::{Ability, AbilityBonus};
     let mut data = world();
-    let feature = &mut class_mut(&mut data, "fighter").features[0];
+    let feature = feature_mut(&mut data, "fighter/bravery");
     feature.ability_bonuses = vec![
         AbilityBonus::Fixed {
             ability: Ability::Strength,
@@ -2047,7 +1954,7 @@ fn a_blueprint_is_32_lowercase_hex_digits() {
     ));
     data.feats[0].blueprint = good.clone();
     data.feats[1].blueprint = good.clone();
-    data.classes[0].features[0].blueprint = good;
+    feature_mut(&mut data, "fighter/bravery").blueprint = good;
     assert_eq!(
         issues(&data),
         [],
@@ -2065,11 +1972,11 @@ fn a_blueprint_is_32_lowercase_hex_digits() {
         let mut data = world();
         let guid = Some(rules::BlueprintGuid::new(bad));
         data.feats[0].blueprint = guid.clone();
-        data.classes[0].features[0].blueprint = guid.clone();
+        feature_mut(&mut data, "fighter/bravery").blueprint = guid.clone();
         data.gear[0].blueprint = guid;
         let malformed = [
             DataAt::Feat(data.feats[0].key.clone()),
-            DataAt::Feature(data.classes[0].features[0].key.clone()),
+            DataAt::Feature(FeatureKey::new("fighter/bravery")),
             DataAt::Gear(data.gear[0].key.clone()),
         ]
         .map(|at| (at, DataIssue::MalformedBlueprint));

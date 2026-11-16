@@ -1,0 +1,13 @@
+(
+    key: "shaman/spirit/bones",
+    blueprint: "65b5e7f17a1b928418fc9e8a6b55eafa",
+    name: "Bones",
+    summary: "Bones: Touch of the Grave, Shard Soul DR and burst at 8th, incorporeal Shedding Form at 16th, Power Word Kill at 20th.",
+    guide: "shaman#bones",
+    levels: [
+        (level: 1, features: ["shaman/spirit/bones/touch-of-the-grave"]),
+        (level: 8, features: ["shaman/spirit/bones/shard-soul"]),
+        (level: 16, features: ["shaman/spirit/bones/shedding-form"]),
+        (level: 20, features: ["shaman/spirit/bones/manifestation-bones"]),
+    ],
+)

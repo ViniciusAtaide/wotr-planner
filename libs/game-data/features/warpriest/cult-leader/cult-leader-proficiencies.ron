@@ -1,0 +1,1 @@
+(key: "warpriest/cult-leader/cult-leader-proficiencies", blueprint: "c12afa02355cd8142981980d37a77556", name: "Cult Leader Proficiencies", summary: "Simple weapons, rapiers, shortswords, shortbows, light armour and light shields; no free Weapon Focus.", guide: "warpriest#cult-leader-proficiencies", weapons: ["rapier", "short-bow", "short-sword"])

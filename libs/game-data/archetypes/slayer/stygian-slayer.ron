@@ -1,0 +1,17 @@
+(
+    key: "slayer/stygian-slayer",
+    class: "slayer",
+    blueprint: "598f461cd7885304e8bae040122cb249",
+    name: "Stygian Slayer",
+    summary: "Slayer with light armour, invisibility and an incorporeal mist form.",
+    guide: "slayer#stygian-slayer",
+    levels: [
+        (level: 1, features: ["studied-target"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
+        (level: 4, features: ["slayer/stygian-slayer/invisibiliy"]),
+        (level: 8, features: ["slayer/stygian-slayer/invisibiliy"], selections: ["slayer/slayer-talents"]),
+        (level: 10, features: ["studied-target", "advanced-talents", "slayer/stygian-slayer/shadowy-mist-form"]),
+        (level: 12, features: ["sneak-attack", "slayer/stygian-slayer/invisibiliy"], selections: ["slayer/slayer-talents"]),
+        (level: 16, features: ["slayer/stygian-slayer/invisibiliy"], selections: ["slayer/slayer-talents"]),
+        (level: 20, features: ["slayer/master-slayer", "studied-target", "slayer/stygian-slayer/invisibiliy"], selections: ["slayer/slayer-talents"]),
+    ],
+)

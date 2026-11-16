@@ -1,0 +1,1 @@
+(key: "wizard/school/abjurer/protective-ward", blueprint: "4e63d38f5f48a474eaf1ce0521bb7e87", name: "Protective Ward", summary: "Standard action, 3 + Int times a day: a 10' field giving allies +1 deflection AC, +1 per five levels.", guide: "wizard#protective-ward")

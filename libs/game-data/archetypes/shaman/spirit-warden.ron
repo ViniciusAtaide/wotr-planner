@@ -1,0 +1,15 @@
+(
+    key: "shaman/spirit-warden",
+    class: "shaman",
+    blueprint: "a6ab54dbe2cc9314a8ad62863fbc64c4",
+    name: "Spirit Warden",
+    summary: "Hunts evil spirits: extra necromancy spells, +2 Intimidate, channel against undead and +4 vs death effects; two fewer hexes.",
+    guide: "shaman#spirit-warden",
+    levels: [
+        (level: 1, features: ["shaman/spirit-animal", "shaman-orisons", "shaman/spirit-warden/restless-magic", "shaman/spirit-warden/unnatural-mien"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"], selections: ["shaman/spirit"]),
+        (level: 2, features: ["shaman/spirit-warden/rebuke-spirits"]),
+        (level: 10, features: ["shaman/spirit-warden/laugh-at-death"]),
+        (level: 12, features: ["shaman/spirit-warden/wandering-spirit-greater-ability"], selections: ["shaman/hex"]),
+        (level: 20, features: ["shaman/spirit-warden/wandering-spirit-true-ability"], selections: ["shaman/hex"]),
+    ],
+)

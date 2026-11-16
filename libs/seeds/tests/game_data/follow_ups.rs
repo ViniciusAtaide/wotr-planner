@@ -485,11 +485,8 @@ fn destiny_beyond_birth_removes_a_dwarfs_charisma_penalty() {
 #[ignore = "waits on ticket 282: the game gives the Razmiri Infiltrator LN, TN, CN, LE, NE and CE"]
 fn the_razmiri_infiltrator_is_any_alignment_but_good() {
     let way = DATA
-        .classes
+        .options
         .iter()
-        .flat_map(|c| &c.archetypes)
-        .flat_map(|a| &a.selections)
-        .flat_map(|s| &s.options)
         .find(|o| {
             o.key.as_str() == "arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator"
         })
@@ -521,9 +518,8 @@ fn the_tortured_crusader_gets_3_skill_points_and_its_own_class_skills() {
     let sheet = engine().evaluate(&crusader);
     // Intelligence 10: no modifier.
     assert_eq!(sheet.levels[0].skill_points.available, 3);
-    let archetype = class("paladin")
-        .archetypes
-        .iter()
+    let archetype = DATA
+        .archetypes_of(&class("paladin").key)
         .find(|a| a.key.as_str() == "paladin/tortured-crusader")
         .unwrap();
     assert_eq!(

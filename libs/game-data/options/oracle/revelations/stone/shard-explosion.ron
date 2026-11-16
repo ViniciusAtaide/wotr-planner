@@ -1,0 +1,1 @@
+(key: "oracle/revelations/stone/shard-explosion", blueprint: "650b9b5efa60c5d4ea25faad3d346fcf", name: "Shard Explosion", summary: "Swift action: 1d6 piercing per two levels within 10 feet (Reflex halves) and 20% concealment; 1/day, +1 at 5th and every 5 levels.", guide: "oracle#shard-explosion", prerequisite: SelectionOption("oracle/mystery/stone"))

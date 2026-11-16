@@ -1,0 +1,18 @@
+(
+    key: "arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator",
+    blueprint: "cd96109ca30b45dcb6d7390945c8487d",
+    name: "Razmiri Infiltrator",
+    summary: "Neutral or evil deceiver path built around a Razmiri mask that grows stronger with level.",
+    guide: "arcanist#razmiri-infiltrator",
+    prerequisite: Any([Alignment(TrueNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
+    levels: [
+        (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/acolyte-of-the-first-step", "arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/razmiri-mask"]),
+        (level: 2, features: ["trick-magic"]),
+        (level: 3, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/priest-of-the-third-step"]),
+        (level: 4, features: ["spell-fabrication"]),
+        (level: 8, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/herald-of-the-eighth-step"]),
+        (level: 12, features: ["fool-resistance", "arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/mask-of-the-twelfth-step"]),
+        (level: 15, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/vision-of-the-fifteenth-step"]),
+        (level: 20, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/most-trusted-follower"]),
+    ],
+)

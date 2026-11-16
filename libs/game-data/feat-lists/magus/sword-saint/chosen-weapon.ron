@@ -1,0 +1,1 @@
+(key: "magus/sword-saint/chosen-weapon", blueprint: "3130e3083845b7b4fa2ac5b6f1a1ae6e", name: "Chosen Weapon", guide: "magus#chosen-weapon", ignores_prerequisites: true, skips_proficiency: true, feats: ["weapon-focus"])

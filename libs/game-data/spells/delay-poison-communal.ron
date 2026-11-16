@@ -1,0 +1,14 @@
+(
+    key: "delay-poison-communal",
+    blueprint: "04e820e1ce3a66f47a50ad5074d3ae40",
+    name: "Delay Poison, Communal",
+    school: Conjuration,
+    guide: "cleric-spells#delay-poison-communal-conjuration",
+    summary: "Allies in the area are immune to poison for the duration, and any poison already on them stops taking effect.",
+    target: "All allies within 30'",
+    duration: "1 hour",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

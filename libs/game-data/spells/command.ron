@@ -1,0 +1,14 @@
+(
+    key: "command",
+    blueprint: "feb70aab86cc17f4bb64432c83737ac2",
+    name: "Command",
+    school: Enchantment,
+    guide: "cleric-spells#command-enchantment",
+    summary: "If the target fails its save, you make it approach you, flee, fall prone or halt in place for 1 round.",
+    target: "One enemy creature within close range",
+    duration: "1 round",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

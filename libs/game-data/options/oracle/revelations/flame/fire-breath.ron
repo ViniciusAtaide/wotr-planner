@@ -1,0 +1,1 @@
+(key: "oracle/revelations/flame/fire-breath", blueprint: "5b664b58c911bc944b1572fccf0e7f5f", name: "Fire Breath", summary: "Standard action: 15-foot cone of 1d4 fire per class level (Reflex halves); 1/day, +1 use at 5th and every 5 levels.", guide: "oracle#fire-breath", prerequisite: SelectionOption("oracle/mystery/flame"))

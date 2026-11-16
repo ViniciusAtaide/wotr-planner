@@ -1,0 +1,17 @@
+// Necklace.
+(
+    key: "amulet-of-alchemical-knowledge",
+    blueprint: "a6e396af75134189805e02f73c61b17b",
+    name: "Amulet of Alchemical Knowledge",
+    slot: Necklace,
+    guide: "items-lord-of-nothing#necklaces",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 2, kind: Alchemical),
+    ],
+    always_on: [
+        "Saves +4 alchemical vs poison",
+    ],
+    other_effects: [
+        "+3 bombs a day.",
+    ],
+)

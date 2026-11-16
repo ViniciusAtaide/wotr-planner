@@ -1,0 +1,1 @@
+(key: "sorcerer/bloodline-ascendance", blueprint: "ce85aee1726900641ab53ede61ac5c19", name: "Bloodline Ascendance", summary: "Grants the 20th-level ability of your bloodline.", guide: "mythic-paths#bloodline-ascendance", option_row: (selection: "sorcerer/bloodline", level: 20))

@@ -1,0 +1,14 @@
+(
+    key: "veil-of-heaven",
+    blueprint: "72d9f5adda6387a40a63c49d7781bbbf",
+    name: "Veil of Heaven",
+    school: Abjuration,
+    guide: "paladin#veil-of-heaven-abjuration",
+    summary: "You gain a +2 sacred bonus to AC and saves against evil outsiders; dismissing it as a swift action deals 1d8 + 1 per caster level to evil outsiders within 5 ft.",
+    target: "Personal",
+    duration: "10 minutes / level",
+    saving_throw: "Will half",
+    spell_resistance: false,
+    descriptors: [Good],
+    casting_time: Standard,
+)

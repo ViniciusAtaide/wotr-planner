@@ -1,0 +1,14 @@
+(
+    key: "heroic-invocation",
+    blueprint: "43740dab07286fe4aa00a6ee104ce7c1",
+    name: "Heroic Invocation",
+    school: Enchantment,
+    guide: "wizard-spells#heroic-invocation-enchantment",
+    summary: "Allies in the area gain 2d8+4 temporary HP, +4 morale on attack and damage rolls, and immunity to fear and charm effects.",
+    target: "All allies within 30' centred on target point within close range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: FullRound,
+)

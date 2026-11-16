@@ -1,0 +1,1 @@
+(key: "penetrating-strike", blueprint: "308cd7dc4f10efd428f531bbf4f2823d", name: "Penetrating Strike", summary: "Damage reduction up to 5 points doesn't apply to hits from your Weapon Focus weapons.", category: Weapon, guide: "feats#penetrating-strike", prerequisite: All([Feat("weapon-focus"), ClassLevel(class: "fighter", level: 12)]))

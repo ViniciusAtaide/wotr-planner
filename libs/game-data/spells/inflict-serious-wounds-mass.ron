@@ -1,0 +1,13 @@
+(
+    key: "inflict-serious-wounds-mass",
+    blueprint: "820170444d4d2a14abc480fcbdb49535",
+    name: "Inflict Serious Wounds, Mass",
+    school: Necromancy,
+    guide: "cleric-spells#inflict-serious-wounds-mass-necromancy",
+    summary: "Creatures in the area take 3d8 + 1 per caster level (Will half); undead are healed that much instead.",
+    target: "All creatures within 30' of target point within close range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

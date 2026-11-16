@@ -1,0 +1,14 @@
+(
+    key: "beast-shape-ii",
+    blueprint: "5d4028eb28a106d4691ed1b92bbb1915",
+    name: "Beast Shape II",
+    school: Transmutation,
+    guide: "wizard-spells#beast-shape-ii-transmutation",
+    summary: "You turn into a Medium leopard with +2 Strength, +2 natural armour, two 1d3 claws and a 1d6 bite.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "guidance",
+    blueprint: "c3a8f31778c3980498d8f00c980be5f5",
+    name: "Guidance",
+    school: Divination,
+    guide: "cleric-spells#guidance-divination",
+    summary: "Grants the target +1 on one attack roll, saving throw or skill check.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

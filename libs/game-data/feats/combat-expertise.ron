@@ -1,0 +1,1 @@
+(key: "combat-expertise", blueprint: "4c44724ffa8844f4d9bedb5bb27d144a", name: "Combat Expertise", summary: "Take -1 to melee attacks and manoeuvre checks for +1 dodge AC; both grow by 1 at BAB 4 and every 4 after.", category: Miscellaneous, guide: "feats#combat-expertise", prerequisite: AbilityScore(ability: Intelligence, score: 13))

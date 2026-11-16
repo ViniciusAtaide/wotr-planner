@@ -1,0 +1,13 @@
+(
+    key: "optimistic-smile",
+    blueprint: "163c7697cf606334e9d7745c547d3b47",
+    name: "Optimistic Smile",
+    school: Enchantment,
+    guide: "azata#optimistic-smile-enchantment",
+    summary: "Clears fear, confusion, compulsion, shaken and frightened from party members and makes them immune to fear for the rest of the combat.",
+    target: "All creatures within a 30' burst centred on target creature",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

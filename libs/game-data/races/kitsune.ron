@@ -1,0 +1,8 @@
+(
+    key: "kitsune",
+    blueprint: "fd188bb7bb0002e49863aec93bfb9d99",
+    name: "Kitsune",
+    summary: "+1 DC to enchantment spells; Light 3 times a day with Charisma 11+; +2 Perception and Mobility; can take human form.",
+    guide: "character-creation#kitsune",
+    ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Dexterity, amount: 2), Fixed(ability: Charisma, amount: 2)],
+)

@@ -1,0 +1,1 @@
+(key: "fighter/defender-of-the-hearth/shield-block", blueprint: "08ef60cbb8324d13a8524ba552fa579e", name: "Shield Block", summary: "With a heavy or tower shield, the first hit against you deals 20% less damage; +1 attack covered at 5th and every 5 levels (max 5).", guide: "fighter#shield-block")

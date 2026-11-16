@@ -1,0 +1,1 @@
+(key: "mythic-brew-potions", blueprint: "a155dc95e3fb2d44481c76bc4aea26b9", name: "Mythic Brew Potions", summary: "Craft potions of up to 6th level while camping.", group: Magic, guide: "mythic-paths#mythic-brew-potions", prerequisite: Feat("brew-potions"))

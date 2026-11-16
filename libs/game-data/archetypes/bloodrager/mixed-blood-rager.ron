@@ -1,0 +1,23 @@
+(
+    key: "bloodrager/mixed-blood-rager",
+    class: "bloodrager",
+    blueprint: "10d92d54d19e4a59b5bbd4259ec0974f",
+    name: "Mixed-Blood Rager",
+    summary: "Picks a bloodline (two from 4th level) every day and gains its abilities, but casts no spells and gets no bloodline feats.",
+    guide: "bloodrager#mixed-blood-rager",
+    levels: [
+        (level: 1, features: ["bloodrager/bloodrage", "bloodrager/mixed-blood-rager/bloodline-ability", "fast-movement", "bloodrager/mixed-blood-rager/mixed-bloodline"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 4, features: ["bloodrager/mixed-blood-rager/bloodline-ability", "bloodrager/mixed-blood-rager/second-mixed-bloodline"]),
+        (level: 6),
+        (level: 7, features: ["damage-reduction"]),
+        (level: 8, features: ["bloodrager/mixed-blood-rager/bloodline-ability"]),
+        (level: 9),
+        (level: 10, features: ["damage-reduction"]),
+        (level: 12, features: ["bloodrager/mixed-blood-rager/bloodline-ability"]),
+        (level: 13, features: ["damage-reduction"]),
+        (level: 15),
+        (level: 16, features: ["bloodrager/mixed-blood-rager/bloodline-ability", "damage-reduction"]),
+        (level: 18),
+        (level: 20, features: ["bloodrager/mighty-bloodrage", "bloodrager/mixed-blood-rager/bloodline-ability"]),
+    ],
+)

@@ -1,0 +1,4 @@
+(
+    why: "The game has one kinetic blast weapon per type, none of them primary.",
+    entry: (key: "kinetic-blast", name: "Kinetic Blast"),
+)

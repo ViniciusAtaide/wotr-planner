@@ -1,0 +1,14 @@
+(
+    key: "dictum",
+    blueprint: "302ab5e241931a94881d323a7844ae8f",
+    name: "Dictum",
+    school: Evocation,
+    guide: "cleric-spells#dictum-evocation",
+    summary: "Non-lawful creatures within 40 ft are staggered, paralysed or killed as HD fall below your caster level (killed: over 10 below); Will negates.",
+    target: "All creatures within 40' of caster",
+    duration: "Varies",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [Law, Sonic],
+    casting_time: Standard,
+)

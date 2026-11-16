@@ -1,0 +1,9 @@
+(
+    key: "headband-of-alluring-charisma-6",
+    blueprint: "66fa9c56ef410104a9a3d7fb3c78d140",
+    name: "Headband of Alluring Charisma +6",
+    slot: Headwear,
+    bonuses: [
+        (target: Ability(Charisma), amount: 6, kind: Enhancement),
+    ],
+)

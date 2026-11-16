@@ -1,0 +1,1 @@
+(key: "full-reservoir", blueprint: "b3f5fd67399a2a54ea4ddd97206b4c82", name: "Full Reservoir", summary: "After resting, your arcane reservoir refills by your class level + 3.", group: Class, guide: "mythic-paths#full-reservoir", prerequisite: Any([Feature(feature: "arcane-reservoir", count: 1), Feature(feature: "slayer/arcane-enforcer/arcane-reservoir", count: 1)]))

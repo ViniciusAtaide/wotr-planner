@@ -1,0 +1,1 @@
+(key: "light-crossbow", blueprint: "d525e7a6d8d5aa648a976ac41194b8d0", name: "Light Crossbow", proficiency: Simple, stats: (damage: (count: 1, sides: 8), threat: 19, multiplier: 2, handedness: TwoHanded, ranged: Projectile))

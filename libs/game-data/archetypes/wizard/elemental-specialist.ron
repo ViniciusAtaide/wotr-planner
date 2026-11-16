@@ -1,0 +1,11 @@
+(
+    key: "wizard/elemental-specialist",
+    class: "wizard",
+    blueprint: "c4a866cef5134632a8a3ef5696f45a5b",
+    name: "Elemental Specialist",
+    summary: "Evocation specialist focused on one element, with three opposition schools.",
+    guide: "wizard#elemental-specialist",
+    levels: [
+        (level: 1, features: ["arcane-bond", "wizard-cantrips", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/elemental-specialist/focused-element", "wizard/elemental-specialist/school"]),
+    ],
+)

@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/destruction",
+    blueprint: "dd5e75a02e4563e44a0931c6f46fb0a7",
+    name: "Destruction",
+    summary: "Minor: an ally adds half your level to damage for 1 minute. Major (10th): an ally gets +4 to confirm crits; crits and sneak attacks on it fail 50% of the time.",
+    guide: "warpriest#destruction",
+    domain: "cleric/domain/destruction",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/destruction/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/destruction/major-blessing"]),
+    ],
+)

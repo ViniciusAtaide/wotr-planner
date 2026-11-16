@@ -1,0 +1,15 @@
+(
+    key: "life-infuser",
+    blueprint: "e5d3c2148c854b5ba5d56390f8fcc72c",
+    name: "Life Infuser",
+    slot: Armour,
+    guide: "items#unique-armour",
+    bonuses: [
+        (target: Ability(Constitution), amount: 8, kind: Armour),
+        (target: Ability(Strength), amount: 8, kind: Armour),
+    ],
+    always_on: [
+        "A +5 breastplate",
+        "Moderate fortification",
+    ],
+)

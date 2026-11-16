@@ -1,0 +1,14 @@
+(
+    key: "winds-of-the-fall",
+    blueprint: "af2ed41c7894b934c9a9ca5048af3f58",
+    name: "Winds of the Fall",
+    school: Conjuration,
+    guide: "azata#winds-of-the-fall-conjuration",
+    summary: "Creatures take 1d10 slashing per 2 caster levels and are intoxicated, rolling twice and taking the worse, 1 round per caster level (1 round if they save).",
+    target: "All creatures within a 30' cone",
+    duration: "1 round / level",
+    saving_throw: "Will partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

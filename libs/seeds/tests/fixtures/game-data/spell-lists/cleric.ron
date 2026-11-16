@@ -1,0 +1,9 @@
+(
+    key: "cleric",
+    name: "Cleric Spells",
+    guide: "cleric-spells",
+    owner: Class("cleric"),
+    entries: [
+        (level: 1, spell: "bless"),
+    ],
+)

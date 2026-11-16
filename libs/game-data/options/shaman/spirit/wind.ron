@@ -1,0 +1,13 @@
+(
+    key: "shaman/spirit/wind",
+    blueprint: "eae7cee2a5da93442a7563dfeda33432",
+    name: "Wind",
+    summary: "Wind: Shocking Touch, electricity resistance and a line at 8th, air elemental form at 16th, free electricity metamagic at 20th.",
+    guide: "shaman#wind",
+    levels: [
+        (level: 1, features: ["shaman/spirit/wind/shocking-touch"]),
+        (level: 8, features: ["shaman/spirit/wind/spark-soul"]),
+        (level: 16, features: ["shaman/spirit/wind/elemental-form-wind"]),
+        (level: 20, features: ["shaman/spirit/wind/manifestation-wind"]),
+    ],
+)

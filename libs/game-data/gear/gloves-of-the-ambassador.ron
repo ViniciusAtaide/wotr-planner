@@ -1,0 +1,13 @@
+// Gloves.
+(
+    key: "gloves-of-the-ambassador",
+    blueprint: "beb4001a6c9da474da29a8c5ece30572",
+    name: "Gloves of the Ambassador",
+    slot: Gloves,
+    guide: "items#gloves",
+    bonuses: [
+        (target: Ability(Charisma), amount: 2, kind: Enhancement),
+        (target: Skill("knowledge-world"), amount: 5, kind: Competence),
+        (target: Skill("persuasion"), amount: 5, kind: Competence),
+    ],
+)

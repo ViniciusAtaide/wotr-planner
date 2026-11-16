@@ -1,0 +1,4 @@
+(
+    why: "An ability of BloodInfusionFeature in the game, not a feature of its own.",
+    entry: (key: "wizard/cruromancer/blood-infusion/focused-infusion", name: "Focused Infusion", summary: "The infused spell's DC rises by 1.", guide: "wizard#focused-infusion"),
+)

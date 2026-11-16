@@ -1,0 +1,1 @@
+(key: "oracle/revelations/life/channel", blueprint: "ade57ae9bbe55c142a012c2453b3088c", name: "Channel", summary: "Channel positive energy as a cleric of your level, 1 + Charisma modifier times a day.", guide: "oracle#channel", prerequisite: SelectionOption("oracle/mystery/life"))

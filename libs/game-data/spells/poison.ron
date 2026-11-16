@@ -1,0 +1,14 @@
+(
+    key: "poison",
+    blueprint: "2a6eda8ef30379142a4b75448fb214a3",
+    name: "Poison",
+    school: Necromancy,
+    guide: "cleric-spells#poison-necromancy",
+    summary: "The target takes 1d3 Constitution damage each round for 6 rounds; a Fortitude save in any round negates that damage and ends the poison.",
+    target: "One enemy creature within touch range",
+    duration: "6 rounds",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Poison],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "tsunami",
+    blueprint: "d8144161e352ca846a73cf90e85bf9ac",
+    name: "Tsunami",
+    school: Conjuration,
+    guide: "wizard-spells#tsunami-conjuration",
+    summary: "Deals 24d6 bludgeoning (Fortitude half); one failing a manoeuvre, Athletics or Mobility check is knocked prone and swept off, unless it has Freedom of Movement.",
+    target: "All creatures along a 50' line",
+    duration: "1 round",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

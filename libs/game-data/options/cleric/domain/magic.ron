@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/magic",
+    blueprint: "8f90e7129b0f3b742921c2c9c9bd64fc",
+    name: "Magic Domain",
+    summary: "Hand of the Acolyte throws and Dispelling Touch from 8th level; spells from Color Spray to Clashing Rocks.",
+    guide: "character-creation#magic-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/magic/hand-of-the-acolyte"]),
+        (level: 8, features: ["cleric/domain/magic/dispelling-touch"]),
+    ],
+)

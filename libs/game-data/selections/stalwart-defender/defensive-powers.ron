@@ -1,0 +1,17 @@
+(
+    key: "stalwart-defender/defensive-powers",
+    blueprint: "2cd91c501bda80b47ac2df0d51b02973",
+    name: "Defensive Powers",
+    summary: "Every even class level adds a power that only works during Defensive Stance.",
+    guide: "prestige-classes#defensive-powers",
+    options: [
+        "stalwart-defender/defensive-powers/clear-mind",
+        "stalwart-defender/defensive-powers/fearless-defense",
+        "stalwart-defender/defensive-powers/immobile",
+        "stalwart-defender/defensive-powers/increased-damage-reduction",
+        "stalwart-defender/defensive-powers/internal-fortitude",
+        "stalwart-defender/defensive-powers/mighty-resilience",
+        "stalwart-defender/defensive-powers/renewed-defense",
+        "stalwart-defender/defensive-powers/roused-defense",
+    ],
+)

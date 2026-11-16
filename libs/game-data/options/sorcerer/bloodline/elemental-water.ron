@@ -1,0 +1,17 @@
+(
+    key: "sorcerer/bloodline/elemental-water",
+    blueprint: "7c692e90592257a4e901d12ae6ec1e41",
+    name: "Elemental (Water)",
+    summary: "Water bloodline (cold): Elemental Ray, resistance from 3rd, Elemental Blast at 9th, maneuver immunity at 15th, Elemental Body at 20th; Mobility class skill.",
+    guide: "sorcerer#elemental",
+    prerequisite: NoOtherOptionOfGroup(Elemental),
+    group: Elemental,
+    arcana: "sorcerer/bloodline/elemental/elemental-arcana",
+    levels: [
+        (level: 1, features: ["sorcerer/bloodline/elemental/elemental-arcana", "sorcerer/bloodline/elemental/elemental-ray"], feat_list: "sorcerer/bloodline/elemental/feats", class_skills: ["mobility"]),
+        (level: 3, features: ["sorcerer/bloodline/elemental/elemental-resistances"]),
+        (level: 9, features: ["sorcerer/bloodline/elemental/elemental-blast", "sorcerer/bloodline/elemental/elemental-resistances"]),
+        (level: 15, features: ["sorcerer/bloodline/elemental/elemental-movement-water"]),
+        (level: 20, features: ["sorcerer/bloodline/elemental/elemental-body"]),
+    ],
+)

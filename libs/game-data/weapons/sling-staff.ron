@@ -1,0 +1,1 @@
+(key: "sling-staff", blueprint: "25da2dc95ed4a6b419608c678f2a9cc3", name: "Sling Staff", proficiency: Exotic, stats: (damage: (count: 1, sides: 8), threat: 20, multiplier: 3, handedness: TwoHanded, ranged: ProjectileWithStrength))

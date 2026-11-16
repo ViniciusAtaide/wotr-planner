@@ -1,0 +1,13 @@
+(
+    key: "holy-smite",
+    blueprint: "ad5ed5ea4ec52334a94e975a64dad336",
+    name: "Holy Smite",
+    school: Evocation,
+    guide: "cleric-spells#holy-smite-evocation",
+    summary: "Evil creatures are blinded 1 round and take 1d8 per two caster levels (max 5d8), evil outsiders 1d6 per level (max 10d6); neutral half, not blinded.",
+    target: "All creatures within 20' of target creature within medium range",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [Good],
+    casting_time: Standard,
+)

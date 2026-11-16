@@ -1,0 +1,1 @@
+(key: "quarterstaff", blueprint: "629736dabac7f9f4a819dc854eaed2d6", name: "Quarterstaff", proficiency: Simple, stats: (damage: (count: 1, sides: 6), threat: 20, multiplier: 2, handedness: TwoHanded))

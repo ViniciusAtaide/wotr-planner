@@ -3,7 +3,6 @@
 
 use rules::{Engine, GameData, GuideRef, Prerequisite};
 
-use crate::planner::all_selections;
 use crate::shapes::{Hit, Kind, Matched, SearchResult};
 use crate::similar::{FLOOR, closeness, words};
 use crate::spells::{descriptor_names, list_category, school_name};
@@ -113,7 +112,7 @@ impl SearchIndex {
                     },
                     &class.prerequisite,
                 );
-                for archetype in &class.archetypes {
+                for archetype in data.archetypes_of(&class.key) {
                     add(
                         Hit {
                             kind: Kind::Archetype,
@@ -215,8 +214,13 @@ impl SearchIndex {
                 &feat.prerequisite,
             );
         }
-        for selection in all_selections(data) {
-            for option in &selection.options {
+        let options: std::collections::HashMap<_, _> = data
+            .options
+            .iter()
+            .map(|option| (&option.key, option))
+            .collect();
+        for selection in &data.selections {
+            for option in selection.options.iter().filter_map(|key| options.get(key)) {
                 add(
                     Hit {
                         kind: Kind::SelectionOption,

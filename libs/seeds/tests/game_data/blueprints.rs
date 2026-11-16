@@ -23,7 +23,7 @@ fn entries_name_their_game_blueprint() {
         ),
         // SneakAttack
         (
-            DataAt::Feature(FeatureKey::new("rogue/sneak-attack")),
+            DataAt::Feature(FeatureKey::new("sneak-attack")),
             "9b9eac6709e1c084cb18c3a366e0ec87",
         ),
         // EldritchScoundrelArchetype

@@ -21,7 +21,7 @@ use crate::codec::LinkKeys;
 use crate::game_data::{
     Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, ArchetypeLevelRow, Background,
     Class, ClassLevelRow, Deity, FeatCategory, FeatList, FeatSlot, FeatValue, Race, Skill,
-    SpellLevels, StepLevel,
+    SpellLevels, StepLevel, Subrace,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
@@ -85,9 +85,19 @@ impl Engine {
         }
     }
 
-    /// Every race, with its subraces, in key order: the race picker's list.
+    /// Every race, in key order: the race picker's list.
     pub fn races(&self) -> &[Race] {
         &self.catalog.data().races
+    }
+
+    /// A subrace by key, with the race it belongs to.
+    pub fn subrace(&self, key: &SubraceKey) -> Option<(&Race, &Subrace)> {
+        self.catalog.subrace(key)
+    }
+
+    /// A race's subraces, in key order.
+    pub fn subraces_of(&self, race: &RaceKey) -> impl Iterator<Item = &Subrace> {
+        self.catalog.subraces_of(race)
     }
 
     /// Every background, in key order: the background picker's list.

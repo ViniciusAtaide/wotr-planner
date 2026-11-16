@@ -1,0 +1,1 @@
+(key: "cleric/domain/charm/dazing-touch", blueprint: "4847d450fbef9b444abcc3a82337b426", name: "Dazing Touch", summary: "Melee touch dazes a creature with no more HD than your level for 1 round; 3 + Wisdom modifier uses a day.", guide: "character-creation#charm-domain")

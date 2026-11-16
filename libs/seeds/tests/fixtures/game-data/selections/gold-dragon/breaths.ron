@@ -1,0 +1,6 @@
+(
+    key: "gold-dragon/breaths",
+    name: "Breaths",
+    guide: "gold-dragon#improved-gold-dragon-breath",
+    options: ["gold-dragon/breaths/empowered", "gold-dragon/breaths/annihilating"],
+)

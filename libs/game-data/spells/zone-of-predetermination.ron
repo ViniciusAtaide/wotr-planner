@@ -1,0 +1,14 @@
+(
+    key: "zone-of-predetermination",
+    blueprint: "756f1d07f9ae29448888ecf016fa40a7",
+    name: "Zone of Predetermination",
+    school: Abjuration,
+    guide: "aeon#zone-of-predetermination-abjuration",
+    summary: "Every creature in the burst rolls 11 on every die.",
+    target: "All creatures within a 20' burst centred on caster",
+    duration: "1 round / 4 caster levels",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

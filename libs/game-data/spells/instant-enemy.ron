@@ -1,0 +1,14 @@
+(
+    key: "instant-enemy",
+    blueprint: "42c78009dd5cb8e429b27c13d92152b7",
+    name: "Instant Enemy",
+    school: Enchantment,
+    guide: "ranger#instant-enemy-enchantment",
+    summary: "Makes the target count as your favoured enemy.",
+    target: "One enemy creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Swift,
+)

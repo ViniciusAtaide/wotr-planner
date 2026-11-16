@@ -1,0 +1,14 @@
+(
+    key: "power-word-kill",
+    blueprint: "2f8a67c483dfa0f439b293e094ca9e3c",
+    name: "Power Word Kill",
+    school: Enchantment,
+    guide: "wizard-spells#power-word-kill-enchantment",
+    summary: "Kills a creature with 100 HP or less; one with more is unaffected.",
+    target: "One enemy creature within close range",
+    duration: "Varies",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Death],
+    casting_time: Standard,
+)

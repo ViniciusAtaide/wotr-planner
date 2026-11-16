@@ -1,0 +1,14 @@
+(
+    key: "pernicious-poison",
+    blueprint: "dee3074b2fbfb064b80b973f9b56319e",
+    name: "Pernicious Poison",
+    school: Necromancy,
+    guide: "wizard-spells#pernicious-poison-necromancy",
+    summary: "The target takes -4 on saves against poison.",
+    target: "One enemy creature within touch range",
+    duration: "10 minutes / level",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Poison],
+    casting_time: Standard,
+)

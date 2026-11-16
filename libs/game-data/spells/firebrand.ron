@@ -1,0 +1,14 @@
+(
+    key: "firebrand",
+    blueprint: "98734a2665c18cd4db71878b0532024a",
+    name: "Firebrand",
+    school: Transmutation,
+    guide: "wizard-spells#firebrand-transmutation",
+    summary: "Allies become immune to fire and add 1d6 fire damage to melee hits; an ally can end it early to throw a 6d6 fire ranged touch attack.",
+    target: "All allies within 30' burst, centred on target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

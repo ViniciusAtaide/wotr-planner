@@ -1,0 +1,14 @@
+(
+    key: "vampiric-shadow-shield",
+    blueprint: "a34921035f2a6714e9be5ca76c5e34b5",
+    name: "Vampiric Shadow Shield",
+    school: Necromancy,
+    guide: "wizard-spells#vampiric-shadow-shield-necromancy",
+    summary: "Creatures that hit you in melee take 1d6 + 1 per caster level (max 15) negative energy damage, and you heal 25% of it.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,7 @@
+(
+    key: "sorcerer/abyssal-powers/mastery",
+    name: "Mastery",
+    guide: "sorcerer#abyssal",
+    chosen_feat: "weapon-focus",
+    levels: [(level: 3, chosen_feats: ["weapon-specialization"], feats: ["toughness"])],
+)

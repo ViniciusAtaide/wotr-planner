@@ -1,0 +1,14 @@
+(
+    key: "resist-energy",
+    blueprint: "21ffef7791ce73f468b6fca4d9371e8b",
+    name: "Resist Energy",
+    school: Abjuration,
+    guide: "wizard-spells#resist-energy-abjuration",
+    summary: "Resistance 10 to one energy type of your choice, rising to 20 at 7th level and 30 at 11th.",
+    target: "One friendly creature within touch range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

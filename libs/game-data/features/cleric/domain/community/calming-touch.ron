@@ -1,0 +1,1 @@
+(key: "cleric/domain/community/calming-touch", blueprint: "102d61a114786894bb2b30568943ef1f", name: "Calming Touch", summary: "Touch heals 1d6 + class level and removes fatigued, shaken and sickened; 3 + Wisdom modifier uses a day.", guide: "character-creation#community-domain")

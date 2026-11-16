@@ -1,0 +1,14 @@
+(
+    key: "shout-greater",
+    blueprint: "fd0d3840c48cafb44bb29e8eb74df204",
+    name: "Shout, Greater",
+    school: Evocation,
+    guide: "wizard-spells#shout-greater-evocation",
+    summary: "Deals 10d6 sonic damage and stuns for 1 round; creatures that save take half and aren't stunned.",
+    target: "All creatures within a 60' cone",
+    duration: "1 round",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Stunned, Sonic],
+    casting_time: Standard,
+)

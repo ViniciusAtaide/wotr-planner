@@ -1,0 +1,14 @@
+(
+    key: "deep-slumber",
+    blueprint: "7658b74f626c56a49939d9c20580885e",
+    name: "Deep Slumber",
+    school: Enchantment,
+    guide: "wizard-spells#deep-slumber-enchantment",
+    summary: "Puts living creatures in the area to sleep, helpless, up to 10 HD in total.",
+    target: "Target point within close range, 10' burst",
+    duration: "1 minute / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Sleep],
+    casting_time: FullRound,
+)

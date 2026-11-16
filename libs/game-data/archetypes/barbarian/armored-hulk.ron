@@ -1,0 +1,19 @@
+(
+    key: "barbarian/armored-hulk",
+    class: "barbarian",
+    blueprint: "48277b221b6ba6e40affb1e9b49faf36",
+    name: "Armored Hulk",
+    summary: "Barbarian who gains heavy armour proficiency and moves faster in armour, losing Uncanny Dodge and Danger Sense.",
+    guide: "barbarian#armored-hulk",
+    levels: [
+        (level: 1, features: ["barbarian/armored-hulk/indomitable-stance", "barbarian/rage"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 2, features: ["barbarian/armored-hulk/armored-swiftness"], selections: ["barbarian/rage-power"]),
+        (level: 3, features: ["barbarian/armored-hulk/resilience-of-steel"]),
+        (level: 5, features: ["barbarian/armored-hulk/improved-armored-swiftness"]),
+        (level: 6, features: ["barbarian/armored-hulk/resilience-of-steel"], selections: ["barbarian/rage-power"]),
+        (level: 9, features: ["barbarian/armored-hulk/resilience-of-steel"]),
+        (level: 12, features: ["barbarian/armored-hulk/resilience-of-steel"], selections: ["barbarian/rage-power"]),
+        (level: 15, features: ["barbarian/armored-hulk/resilience-of-steel"]),
+        (level: 18, features: ["barbarian/armored-hulk/resilience-of-steel"], selections: ["barbarian/rage-power"]),
+    ],
+)

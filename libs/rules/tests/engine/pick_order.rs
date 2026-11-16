@@ -134,13 +134,8 @@ fn a_path_bands_pick_still_comes_before_its_levels_feats() {
     // The sorcerer's bloodline is a Path-band selection (the game's SorcererBloodlineSelection, group BloodLine), so
     // its pick comes before the level's feats: one needing a feat picked at its level is refused, naming that slot.
     let mut data = world();
-    let bloodline = sorcerer_selection(&mut data, "sorcerer/bloodline");
-    bloodline.band = Band::Path;
-    let arcane = bloodline
-        .options
-        .iter_mut()
-        .find(|o| o.key == option("sorcerer/bloodline/arcane"))
-        .unwrap();
+    sorcerer_selection(&mut data, "sorcerer/bloodline").band = Band::Path;
+    let arcane = option_mut(&mut data, "sorcerer/bloodline/arcane");
     arcane.prerequisite = Some(Prerequisite::Feat(feat("toughness")));
     let engine = engine_on(data);
     let mut build = build("human", &["sorcerer"]);

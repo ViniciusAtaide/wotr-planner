@@ -1,0 +1,14 @@
+(
+    key: "blessing-of-luck-and-resolve-mass",
+    blueprint: "462c21cebf7820c40a87f5e4d03e17cf",
+    name: "Blessing of Luck and Resolve, Mass",
+    school: Enchantment,
+    guide: "cleric-spells#blessing-of-luck-and-resolve-mass-enchantment",
+    summary: "Allies in the burst gain a +2 morale bonus on saves against fear; an ally who fails a save may end its blessing to reroll that save with +4.",
+    target: "Target within close range, 30' burst",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

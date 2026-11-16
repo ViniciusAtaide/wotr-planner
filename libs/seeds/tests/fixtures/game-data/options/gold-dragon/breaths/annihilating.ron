@@ -1,0 +1,1 @@
+(key: "gold-dragon/breaths/annihilating", name: "Annihilating Breath", guide: "gold-dragon#annihilating-breath", prerequisite: All([MythicRank(9), Story(VowOfDahak)]))

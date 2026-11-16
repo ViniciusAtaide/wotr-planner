@@ -1,0 +1,14 @@
+(
+    key: "icy-prison",
+    blueprint: "65e8d23aef5e7784dbeb27b1fca40931",
+    name: "Icy Prison",
+    school: Evocation,
+    guide: "wizard-spells#icy-prison-evocation",
+    summary: "Encases the target in ice: paralysed, or entangled on a Reflex save, taking 1 cold per caster level each round until a Fortitude save breaks it free.",
+    target: "One enemy creature within medium range",
+    duration: "1 minute / level",
+    saving_throw: "Special",
+    spell_resistance: true,
+    descriptors: [Cold],
+    casting_time: Standard,
+)

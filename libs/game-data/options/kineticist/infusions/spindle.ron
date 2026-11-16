@@ -1,0 +1,1 @@
+(key: "kineticist/infusions/spindle", blueprint: "c4f4a62a325f7c14dbcace3ce34782b5", name: "Spindle", summary: "Form, 2 Burn: a spindle up to 30' hits creatures in two adjacent squares; full damage for energy, half for physical (Reflex negates).", guide: "kineticist#spindle", prerequisite: ClassLevel(class: "kineticist", level: 4))

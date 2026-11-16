@@ -1,0 +1,14 @@
+(
+    key: "flare-burst",
+    blueprint: "39a602aa80cc96f4597778b6d4d49c0a",
+    name: "Flare Burst",
+    school: Evocation,
+    guide: "wizard-spells#flare-burst-evocation",
+    summary: "Dazzles the target and all creatures within 10 ft of it for 1 minute; each can resist with a Fortitude save.",
+    target: "One enemy creature within close range, 10' burst",
+    duration: "1 minute",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

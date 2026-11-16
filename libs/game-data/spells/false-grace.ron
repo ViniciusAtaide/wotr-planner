@@ -1,0 +1,14 @@
+(
+    key: "false-grace",
+    blueprint: "d6b8099f8c7be8f4492b14da84dc06d4",
+    name: "False Grace",
+    school: Necromancy,
+    guide: "lich#false-grace-necromancy",
+    summary: "Allies within 30 ft gain 3d10 + caster level temporary HP.",
+    target: "All creatures within a 30' burst centred on caster",
+    duration: "1 hour / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

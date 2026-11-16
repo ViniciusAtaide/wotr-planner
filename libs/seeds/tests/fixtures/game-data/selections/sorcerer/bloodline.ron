@@ -1,0 +1,7 @@
+(
+    key: "sorcerer/bloodline",
+    name: "Bloodline",
+    guide: "character-creation#bloodlines",
+    option_levels: ["fighter", "sorcerer"],
+    options: ["sorcerer/bloodline/abyssal", "sorcerer/bloodline/draconic-red"],
+)

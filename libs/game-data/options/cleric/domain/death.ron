@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/death",
+    blueprint: "710d8c959e7036448b473ffa613cdeba",
+    name: "Death Domain",
+    summary: "Bleeding Touch and Death's Embrace from 8th level; necromancy from Cause Fear to Wail of the Banshee.",
+    guide: "character-creation#death-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/death/bleeding-touch"]),
+        (level: 8, features: ["deaths-embrace"]),
+    ],
+)

@@ -1,0 +1,14 @@
+(
+    key: "protection-from-alignment",
+    blueprint: "433b1faf4d02cc34abb0ade5ceda47c4",
+    name: "Protection from Alignment",
+    school: Abjuration,
+    guide: "wizard-spells#protection-from-alignment-abjuration",
+    summary: "The target gets +2 deflection AC and +2 resistance on saves against attacks by creatures of the chosen alignment.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

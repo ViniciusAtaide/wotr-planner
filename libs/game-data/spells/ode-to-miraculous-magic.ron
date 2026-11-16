@@ -1,0 +1,14 @@
+(
+    key: "ode-to-miraculous-magic",
+    blueprint: "f1a0dd9c0b6f9654fb025875dc4b905d",
+    name: "Ode to Miraculous Magic",
+    school: Enchantment,
+    guide: "azata#ode-to-miraculous-magic-enchantment",
+    summary: "Your party gains +4 morale on checks to beat spell resistance, and the DCs of its spells with Will saves rise by 2.",
+    target: "Personal",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

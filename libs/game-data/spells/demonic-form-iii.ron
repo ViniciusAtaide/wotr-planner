@@ -1,0 +1,14 @@
+(
+    key: "demonic-form-iii",
+    blueprint: "42eef01ee83faaf4e9ad79f15bface6b",
+    name: "Demonic Form III",
+    school: Transmutation,
+    guide: "demon#demonic-form-iii-transmutation",
+    summary: "You can turn into a glabrezu, vrock or nalfeshnee demon.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

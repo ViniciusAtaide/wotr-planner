@@ -1,0 +1,14 @@
+(
+    key: "bless",
+    blueprint: "90e59f4a4ada87243b7b3535a06d0638",
+    name: "Bless",
+    school: Enchantment,
+    guide: "cleric-spells#bless-enchantment",
+    summary: "Allies in the area gain a +1 morale bonus on attacks and on saves against fear effects.",
+    target: "All allies within 30'",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

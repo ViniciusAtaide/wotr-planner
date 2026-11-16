@@ -1,0 +1,1 @@
+(key: "light-pick", blueprint: "da922f4cdb60ef548a2ec0168620568a", name: "Light Pick", proficiency: Martial, stats: (damage: (count: 1, sides: 4), threat: 20, multiplier: 4, handedness: Light, finesse: true))

@@ -1,0 +1,14 @@
+(
+    key: "serenity",
+    blueprint: "d316d3d94d20c674db2c24d7de96f6a7",
+    name: "Serenity",
+    school: Enchantment,
+    guide: "wizard-spells#serenity-enchantment",
+    summary: "Creatures that fail take 3d6 damage each round they try to harm another creature.",
+    target: "All creatures within 30' burst, centred on target creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Emotion],
+    casting_time: Standard,
+)

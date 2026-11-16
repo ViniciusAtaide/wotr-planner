@@ -1,0 +1,6 @@
+(
+    key: "toughness",
+    name: "Toughness",
+    category: Miscellaneous,
+    guide: "feats#toughness",
+)

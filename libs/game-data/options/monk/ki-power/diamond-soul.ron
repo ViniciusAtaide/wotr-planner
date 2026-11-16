@@ -1,0 +1,1 @@
+(key: "monk/ki-power/diamond-soul", blueprint: "01182bcee8cb41640b7fa1b1ad772421", name: "Diamond Soul", summary: "From 14th level, permanent spell resistance of level + 10.", guide: "monk#diamond-soul", prerequisite: ClassLevel(class: "monk", level: 14))

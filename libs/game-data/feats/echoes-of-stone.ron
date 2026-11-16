@@ -1,0 +1,1 @@
+(key: "echoes-of-stone", blueprint: "70d3ac68dad02074791f58c8ba09d42f", name: "Echoes of Stone", summary: "Underground: +4 Perception and +2 initiative.", category: Racial, guide: "feats#echoes-of-stone", prerequisite: Race("oread"))

@@ -1,0 +1,18 @@
+(
+    key: "inquisitor/tactical-leader",
+    class: "inquisitor",
+    blueprint: "639b74fd2f48d474e965c596b1649095",
+    name: "Tactical Leader",
+    summary: "Inquisitor who shares teamwork feats and judgment bonuses with allies, with fewer teamwork feats.",
+    guide: "inquisitor#tactical-leader",
+    levels: [
+        (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/tactical-leader/leaders-words", "inquisitor-orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/domain", "inquisitor/judgment"]),
+        (level: 3, features: ["inquisitor/tactical-leader/swift-tactician"], feat_slots: [Category(Teamwork)]),
+        (level: 6, features: ["inquisitor/tactical-leader/swift-tactician"]),
+        (level: 9, features: ["inquisitor/tactical-leader/swift-tactician"], feat_slots: [Category(Teamwork)]),
+        (level: 12, features: ["inquisitor/greater-bane", "inquisitor/tactical-leader/swift-tactician"]),
+        (level: 14, features: ["inquisitor/tactical-leader/battle-acumen"]),
+        (level: 15, features: ["inquisitor/tactical-leader/swift-tactician"]),
+        (level: 18, features: ["inquisitor/tactical-leader/swift-tactician"], feat_slots: [Category(Teamwork)]),
+    ],
+)

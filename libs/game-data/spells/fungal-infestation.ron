@@ -1,0 +1,14 @@
+(
+    key: "fungal-infestation",
+    blueprint: "73f8182ddd684a57a7f9678e516209a3",
+    name: "Fungal Infestation",
+    school: Necromancy,
+    guide: "druid-spells#fungal-infestation-necromancy",
+    summary: "The target takes 1d3 Charisma damage and 1d6 bleed per physical hit; if it dies, those within 15 ft take 1d8 negative per 2 levels (max 10d8) and may catch it.",
+    target: "One creature within close range",
+    duration: "Permanent",
+    saving_throw: "Fortitude",
+    spell_resistance: true,
+    descriptors: [Disease],
+    casting_time: Standard,
+)

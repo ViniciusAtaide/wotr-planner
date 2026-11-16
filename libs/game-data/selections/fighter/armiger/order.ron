@@ -1,0 +1,16 @@
+(
+    key: "fighter/armiger/order",
+    blueprint: "e31d849e4eb2578458419c9df622270f",
+    name: "Order",
+    summary: "Joins one of seven Hellknight orders, each granting its own bonus.",
+    guide: "fighter#order",
+    options: [
+        "fighter/armiger/order/order-of-the-chain",
+        "fighter/armiger/order/order-of-the-gate",
+        "fighter/armiger/order/order-of-the-godclaw",
+        "fighter/armiger/order/order-of-the-nail",
+        "fighter/armiger/order/order-of-the-pyre",
+        "fighter/armiger/order/order-of-the-rack",
+        "fighter/armiger/order/order-of-the-scourge",
+    ],
+)

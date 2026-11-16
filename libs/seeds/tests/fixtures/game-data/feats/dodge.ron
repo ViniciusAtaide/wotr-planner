@@ -1,0 +1,7 @@
+(
+    key: "dodge",
+    name: "Dodge",
+    category: Miscellaneous,
+    guide: "feats#dodge",
+    prerequisite: AbilityScore(ability: Dexterity, score: 13),
+)

@@ -1,0 +1,14 @@
+(
+    key: "oath-of-peace",
+    blueprint: "cb3d70cc98b5f1540bddfff6f9667f73",
+    name: "Oath of Peace",
+    school: Abjuration,
+    guide: "paladin#oath-of-peace-abjuration",
+    summary: "As long as you hold off attacking, you have +5 sacred to AC and saves plus DR 10/evil.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

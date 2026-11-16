@@ -1,0 +1,14 @@
+(
+    key: "ill-omen",
+    blueprint: "ca577309cedc4f1daf6fe5795fb2619b",
+    name: "Ill Omen",
+    school: Enchantment,
+    guide: "witch#ill-omen-enchantment",
+    summary: "The target rolls twice and keeps the worse on its next d20 roll, plus one more such roll per five caster levels (max 5 rolls at 20th).",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Curse],
+    casting_time: Standard,
+)

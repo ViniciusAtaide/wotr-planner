@@ -1,0 +1,14 @@
+(
+    key: "frightful-aspect",
+    blueprint: "e788b02f8d21014488067bdd3ba7b325",
+    name: "Frightful Aspect",
+    school: Transmutation,
+    guide: "wizard-spells#frightful-aspect-transmutation",
+    summary: "You gain +6 Str, +4 Con, +6 natural armour, DR 10/magic, SR 10 + half caster level; foes within 30 ft are shaken, and a melee hit frightens them 1d4 rounds.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

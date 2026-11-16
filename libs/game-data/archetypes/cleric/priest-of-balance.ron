@@ -1,0 +1,14 @@
+(
+    key: "cleric/priest-of-balance",
+    class: "cleric",
+    blueprint: "a4560e3fb5d247d68fb1a2738fcc0855",
+    name: "Priest of Balance",
+    summary: "Neutral cleric of a neutral deity who channels both positive and negative energy with one domain, alternating to strengthen each.",
+    guide: "cleric#priest-of-balance",
+    prerequisite: All([Any([Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral)]), Not(DeityOffers("cleric/domain/good")), Not(DeityOffers("cleric/domain/evil"))]),
+    levels: [
+        (level: 1, features: ["cleric/cleric-proficiencies", "cleric/priest-of-balance/channel-negative-energy", "channel-positive-energy", "cleric/priest-of-balance/energy-equilibrium"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cleric/domain"]),
+        (level: 11, features: ["cleric/priest-of-balance/empowered-equilibrium"]),
+        (level: 16, features: ["cleric/priest-of-balance/quickened-equilibrium"]),
+    ],
+)

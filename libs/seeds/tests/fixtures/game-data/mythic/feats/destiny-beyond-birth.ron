@@ -1,0 +1,9 @@
+(
+    // A `Not` prerequisite: not from character level 11.
+    key: "destiny-beyond-birth",
+    name: "Destiny Beyond Birth",
+    group: Miscellaneous,
+    guide: "mythic-paths#destiny-beyond-birth",
+    removes_racial_penalty: true,
+    prerequisite: Not(CharacterLevel(11)),
+)

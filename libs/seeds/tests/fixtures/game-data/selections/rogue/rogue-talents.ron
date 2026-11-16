@@ -1,0 +1,6 @@
+(
+    key: "rogue/rogue-talents",
+    name: "Rogue Talents",
+    guide: "rogue#rogue-talents",
+    options: ["rogue/rogue-talents/combat-trick", "rogue/rogue-talents/crippling-strike", "rogue/rogue-talents/weapon-focus", "rogue/rogue-talents/resiliency", "rogue/rogue-talents/weapon-training"],
+)

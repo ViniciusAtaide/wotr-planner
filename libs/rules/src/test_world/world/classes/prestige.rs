@@ -2,6 +2,7 @@
 
 use std::collections::BTreeSet;
 
+use crate::test_world::world::nested::{Class, FeatureSelection};
 use crate::*;
 
 use crate::test_world::builds::{class, feature, option, skill};

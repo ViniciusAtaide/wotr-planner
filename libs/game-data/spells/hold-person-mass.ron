@@ -1,0 +1,14 @@
+(
+    key: "hold-person-mass",
+    blueprint: "defbbeaef79eda64abc645036228a31b",
+    name: "Hold Person, Mass",
+    school: Enchantment,
+    guide: "wizard-spells#hold-person-mass-enchantment",
+    summary: "Enemies in the area are paralysed if they fail the save, rolling a new save each round to break free.",
+    target: "All enemies within 30' of humanoid creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

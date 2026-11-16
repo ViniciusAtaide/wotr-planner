@@ -1,0 +1,14 @@
+(
+    key: "wizard/scroll-savant",
+    class: "wizard",
+    blueprint: "f43c78692a4e10d43a38bd6aedf53c1b",
+    name: "Scroll Savant",
+    summary: "Wizard skilled with scrolls, with Use Magic Device as a class skill and fewer bonus feats.",
+    guide: "wizard#scroll-savant",
+    class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "use-magic-device"],
+    levels: [
+        (level: 1, features: ["arcane-bond", "wizard-cantrips", "wizard/scroll-savant/scroll-focus", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], selections: ["wizard/school"]),
+        (level: 5, features: ["wizard/scroll-savant/scroll-specialization"]),
+        (level: 10, features: ["wizard/scroll-savant/scroll-mastery"]),
+    ],
+)

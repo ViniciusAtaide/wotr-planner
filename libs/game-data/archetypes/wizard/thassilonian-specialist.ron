@@ -1,0 +1,11 @@
+(
+    key: "wizard/thassilonian-specialist",
+    class: "wizard",
+    blueprint: "55a8ce15e30d71547a44c69bb2e8a84f",
+    name: "Thassilonian Specialist",
+    summary: "Wizard with two extra slots per spell level for one school, and two schools forbidden entirely.",
+    guide: "wizard#thassilonian-specialist",
+    levels: [
+        (level: 1, features: ["arcane-bond", "wizard-cantrips", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/thassilonian-specialist/school"]),
+    ],
+)

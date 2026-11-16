@@ -1,0 +1,1 @@
+(key: "gold-dragon/improved-gold-dragon-breath/enlightening-breath", blueprint: "0351c6c95adc48b3b39073167094cd19", name: "Enlightening Breath", summary: "Rank 9, uncorrupted: the breath removes negative levels and all ability damage from allies in the area.", guide: "gold-dragon#enlightening-breath", prerequisite: All([MythicRank(9), Story(Uncorrupted)]))

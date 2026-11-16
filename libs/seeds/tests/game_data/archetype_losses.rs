@@ -229,14 +229,30 @@ fn shortfalls(base: &[ClassLevelRow], rows: &[ArchetypeLevelRow]) -> ByLevel {
     shortfalls
 }
 
-/// The display names of the class's and the archetype's features and selections, by key.
+/// The display names of the features and selections the class's and the archetype's rows grant, by key.
 fn names(class: &Class, archetype: &Archetype) -> BTreeMap<String, String> {
-    let features = class.features.iter().chain(&archetype.features);
-    let selections = class.selections.iter().chain(&archetype.selections);
-    features
-        .map(|f| (f.key.to_string(), f.name.clone()))
-        .chain(selections.map(|s| (s.key.to_string(), s.name.clone())))
-        .collect()
+    let rows = class
+        .levels
+        .iter()
+        .map(|row| (&row.features, &row.selections))
+        .chain(
+            archetype
+                .levels
+                .iter()
+                .map(|row| (&row.features, &row.selections)),
+        );
+    let (features, selections): (Vec<_>, Vec<_>) = rows.unzip();
+    let features = features
+        .into_iter()
+        .flatten()
+        .filter_map(|key| DATA.feature(key))
+        .map(|f| (f.key.to_string(), f.name.clone()));
+    let selections = selections
+        .into_iter()
+        .flatten()
+        .filter_map(|key| DATA.selection(key))
+        .map(|s| (s.key.to_string(), s.name.clone()));
+    features.chain(selections).collect()
 }
 
 /// A value in the data files' notation.
@@ -480,7 +496,7 @@ fn archetypes_with_lists(
     lists: &[Losses],
 ) -> impl Iterator<Item = (&'static Class, &'static Archetype, Option<&Losses>)> {
     DATA.classes.iter().flat_map(move |class| {
-        class.archetypes.iter().map(move |archetype| {
+        DATA.archetypes_of(&class.key).map(move |archetype| {
             let list = lists.iter().find(|l| l.archetype == archetype.key);
             (class, archetype, list)
         })
@@ -597,7 +613,7 @@ fn every_archetype_has_one_list_and_every_list_names_an_archetype() {
     let known: BTreeSet<&ArchetypeKey> = DATA
         .classes
         .iter()
-        .flat_map(|class| class.archetypes.iter().map(|a| &a.key))
+        .flat_map(|class| DATA.archetypes_of(&class.key).map(|a| &a.key))
         .collect();
     let mut seen = BTreeSet::new();
     for list in &lists {

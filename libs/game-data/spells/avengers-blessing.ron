@@ -1,0 +1,14 @@
+(
+    key: "avengers-blessing",
+    blueprint: "b8d3dd15ce1232d499d7813f570eed56",
+    name: "Avenger's Blessing",
+    school: Enchantment,
+    guide: "angel#avengers-blessing-enchantment",
+    summary: "The target gains Greater Heroism, Divine Power and Holy Aura together.",
+    target: "One friendly creature within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

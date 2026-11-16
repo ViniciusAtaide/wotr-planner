@@ -63,7 +63,8 @@ fn a_slot_naming_a_list_the_data_lacks_is_a_data_mistake() {
 #[test]
 fn every_feat_list_of_the_data_is_listed_once() {
     let keys: Vec<String> = world()
-        .feat_lists()
+        .feat_lists
+        .iter()
         .map(|list| list.key.to_string())
         .collect();
     assert_eq!(

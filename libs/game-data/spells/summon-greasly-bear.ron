@@ -1,0 +1,14 @@
+(
+    key: "summon-greasly-bear",
+    blueprint: "7be54b9c2801db041b39ed78167b4438",
+    name: "Summon Greasly Bear",
+    school: Conjuration,
+    guide: "trickster#summon-greasly-bear-conjuration",
+    summary: "Has the effect of a Grease spell at the target point.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: Standard,
+)

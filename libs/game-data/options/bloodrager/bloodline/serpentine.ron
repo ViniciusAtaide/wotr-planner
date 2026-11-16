@@ -1,0 +1,15 @@
+(
+    key: "bloodrager/bloodline/serpentine",
+    blueprint: "f5b06b67f04949f4c8d88fd3bbc0771e",
+    name: "Serpentine",
+    summary: "Serpent bloodline: poisoned bite, natural armor, Dazing Glare at 8th, +5 ft reach at 12th, hydra form at 16th.",
+    guide: "bloodrager#serpentine-bloodrager",
+    levels: [
+        (level: 1, features: ["bloodrager/bloodline/serpentine/serpentine-fang"], feat_list: "bloodrager/bloodline/serpentine/feats"),
+        (level: 4, features: ["bloodrager/bloodline/serpentine/serpentine-resistances"]),
+        (level: 8, features: ["bloodrager/bloodline/serpentine/dazing-glare", "bloodrager/bloodline/serpentine/serpentine-resistances"]),
+        (level: 12, features: ["bloodrager/bloodline/serpentine/serpentine-elasticity", "bloodrager/bloodline/serpentine/serpentine-resistances"]),
+        (level: 16, features: ["bloodrager/bloodline/serpentine/serpentine-form", "bloodrager/bloodline/serpentine/serpentine-resistances"]),
+        (level: 20, features: ["bloodrager/bloodline/serpentine/serpentine-body", "bloodrager/bloodline/serpentine/serpentine-resistances"]),
+    ],
+)

@@ -1,0 +1,15 @@
+(
+    key: "cavalier/cavalier-of-the-paw",
+    class: "cavalier",
+    blueprint: "8d95dc9edd5740aeadb5906198a9925a",
+    name: "Cavalier of the Paw",
+    summary: "Halfling cavalier with a dog or wolf mount and no order.",
+    guide: "cavalier#cavalier-of-the-paw",
+    prerequisite: Race("halfling"),
+    levels: [
+        (level: 1, features: ["cavalier-mount", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)]),
+        (level: 2, features: ["cavalier/cavalier-of-the-paw/danger-ward"]),
+        (level: 8, features: ["cavalier/cavalier-of-the-paw/canine-ferocity"], feat_slots: [Category(MountedCombat)]),
+        (level: 15, features: ["banner", "cavalier/cavalier-of-the-paw/giant-slayer", "cavalier/tactician"]),
+    ],
+)

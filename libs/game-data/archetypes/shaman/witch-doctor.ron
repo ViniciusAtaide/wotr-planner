@@ -1,0 +1,14 @@
+(
+    key: "shaman/witch-doctor",
+    class: "shaman",
+    blueprint: "96c2b16450cc98548a0e82f743fbee80",
+    name: "Witch Doctor",
+    summary: "Heals with Channel Energy from 4th level and dispels curses on allies with Counter Curse at 8th, but has fewer hexes.",
+    guide: "shaman#witch-doctor",
+    levels: [
+        (level: 4, features: ["shaman/wandering-spirit", "shaman/witch-doctor/channel-energy"]),
+        (level: 8, features: ["shaman/witch-doctor/counter-curse"]),
+        (level: 12, features: ["shaman/witch-doctor/wandering-spirit-greater-ability"], selections: ["shaman/hex"]),
+        (level: 20, features: ["shaman/witch-doctor/wandering-spirit-true-ability"], selections: ["shaman/hex"]),
+    ],
+)

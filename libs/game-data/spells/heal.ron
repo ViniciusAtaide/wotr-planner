@@ -1,0 +1,13 @@
+(
+    key: "heal",
+    blueprint: "5da172c4c89f9eb4cbb614f3a67357d3",
+    name: "Heal",
+    school: Conjuration,
+    guide: "cleric-spells#heal-conjuration",
+    summary: "Heals 1d10 HP per caster level (max 150) and every affliction except negative levels and permanent ability drain; on undead it works like Harm.",
+    target: "One friendly creature within touch range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [Cure],
+    casting_time: Standard,
+)

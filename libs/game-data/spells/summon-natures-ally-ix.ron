@@ -1,0 +1,14 @@
+(
+    key: "summon-natures-ally-ix",
+    blueprint: "a7469ef84ba50ac4cbf3d145e3173f8e",
+    name: "Summon Nature's Ally IX",
+    school: Conjuration,
+    guide: "druid-spells#summon-natures-ally-ix-conjuration",
+    summary: "You summon 1d4+1 mastodons, 1d3 nereids or one hamadryad.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

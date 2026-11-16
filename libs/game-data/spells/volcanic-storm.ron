@@ -1,0 +1,14 @@
+(
+    key: "volcanic-storm",
+    blueprint: "16ce660837fb2544e96c3b7eaad73c63",
+    name: "Volcanic Storm",
+    school: Evocation,
+    guide: "wizard-spells#volcanic-storm-evocation",
+    summary: "Falling rock deals 3d6 bludgeoning and 2d6 fire, and the area becomes difficult terrain with -4 on Perception for the duration.",
+    target: "All creatures within 40' burst, centred on target point within long range",
+    duration: "1 round / level",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

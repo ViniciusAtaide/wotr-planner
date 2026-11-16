@@ -1,0 +1,14 @@
+(
+    key: "angelic-aspect",
+    blueprint: "75a10d5a635986641bfbcceceec87217",
+    name: "Angelic Aspect",
+    school: Transmutation,
+    guide: "wizard-spells#angelic-aspect-transmutation",
+    summary: "You gain acid and cold resistance 10, DR 5/evil, +2 deflection to AC and saves against evil creatures, and your weapons count as good for DR.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Good],
+    casting_time: Standard,
+)

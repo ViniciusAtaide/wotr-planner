@@ -1,0 +1,4 @@
+(
+    why: "A placeholder for the held bloodline's spell at this spell level: the game has one blueprint per bloodline and grants the held one's.",
+    entry: (key: "sorcerer/overwhelming-mage/bloodline-spell-lvl-8", name: "Bloodline spell - Lvl 8", summary: "Adds your bloodline's 8th-level bonus spell to your spells known.", guide: "sorcerer#overwhelming-mage"),
+)

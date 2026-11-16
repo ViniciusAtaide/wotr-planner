@@ -1,0 +1,13 @@
+(
+    key: "banishment",
+    blueprint: "d361391f645db984bbf58907711a146a",
+    name: "Banishment",
+    school: Abjuration,
+    guide: "wizard-spells#banishment-abjuration",
+    summary: "Sends extraplanar creatures that fail the save back to their home planes, up to 2 HD of creatures per caster level in all.",
+    target: "Target point within close range, 30' burst",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

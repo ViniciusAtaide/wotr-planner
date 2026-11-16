@@ -1,0 +1,1 @@
+(key: "favorite-metamagic", blueprint: "503fb196aa222b24cb6cfdc9a284e838", name: "Favorite Metamagic", summary: "The chosen metamagic costs one spell level less.", group: Magic, guide: "mythic-paths#favorite-metamagic", parameter: Metamagic, repeat: PerValue)

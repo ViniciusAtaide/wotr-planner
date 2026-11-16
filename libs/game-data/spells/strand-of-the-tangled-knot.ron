@@ -1,0 +1,14 @@
+(
+    key: "strand-of-the-tangled-knot",
+    blueprint: "c9a44aa36957416db24aee8c4e3b6f59",
+    name: "Strand of the Tangled Knot",
+    school: Abjuration,
+    guide: "cleric-spells#strand-of-the-tangled-knot-abjuration",
+    summary: "The next attack against you takes -10, and a critical hit from it counts as a normal hit.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

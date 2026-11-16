@@ -1,0 +1,21 @@
+(
+    key: "magus/bladebound",
+    class: "magus",
+    blueprint: "9b3915d38c7d4b6495415b38571e9d53",
+    name: "Bladebound",
+    summary: "Magus (Dance of Masks DLC) bonded to a sentient black blade that can fight on its own; fewer arcana and bonus feats.",
+    guide: "magus#bladebound",
+    levels: [
+        (level: 1, features: ["magus/arcane-pool", "magus/bladebound/black-blade", "magus/magus-proficiencies", "magus/spell-combat"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
+        (level: 3, features: ["magus/bladebound/sharpening-the-black-blade"]),
+        (level: 5, features: ["arcane-weapon-2", "magus/bladebound/black-blade", "magus/bladebound/changeable-gist"]),
+        (level: 6, features: ["magus/bladebound/sharpening-the-black-blade"], selections: ["magus/magus-arcana"]),
+        (level: 9, features: ["arcane-weapon-3", "magus/bladebound/black-blade", "magus/bladebound/sharpening-the-black-blade"], selections: ["magus/magus-arcana"]),
+        (level: 12, features: ["magus/bladebound/independent-ego", "magus/bladebound/sharpening-the-black-blade"]),
+        (level: 13, features: ["arcane-heavy-armor", "arcane-weapon-4", "magus/bladebound/black-blade"], feats: ["armor-proficiency-heavy-armor"]),
+        (level: 15, features: ["magus/bladebound/sharpening-the-black-blade"], selections: ["magus/magus-arcana"]),
+        (level: 17, features: ["arcane-weapon-5", "magus/bladebound/black-blade"], feat_slots: [General]),
+        (level: 18, features: ["magus/bladebound/sharpening-the-black-blade"]),
+        (level: 19, features: ["magus/bladebound/life-drinker", "magus/greater-spell-access"]),
+    ],
+)

@@ -1,0 +1,18 @@
+(
+    key: "mangling-frenzy",
+    blueprint: "5d855652aad04a9cad2fb1e70735ac7e",
+    name: "Mangling Frenzy",
+    slot: Belt,
+    guide: "items#belts",
+    bonuses: [
+        (target: Ability(Strength), amount: 4, kind: Enhancement),
+        (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+        (target: Ability(Constitution), amount: 4, kind: Enhancement),
+    ],
+    always_on: [
+        "DR 3/-",
+    ],
+    other_effects: [
+        "Critical hit while raging: +4d6 slashing damage.",
+    ],
+)

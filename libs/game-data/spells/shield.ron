@@ -1,0 +1,14 @@
+(
+    key: "shield",
+    blueprint: "ef768022b0785eb43a18969903c537c4",
+    name: "Shield",
+    school: Abjuration,
+    guide: "wizard-spells#shield-abjuration",
+    summary: "Conjures a shield that gives you +4 to AC as a shield bonus.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

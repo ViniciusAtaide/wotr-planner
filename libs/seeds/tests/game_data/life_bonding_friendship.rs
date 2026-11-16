@@ -44,16 +44,12 @@ fn superpowers() -> SlotKind {
 fn life_bonding_friendship_gives_a_teamwork_feat_slot_at_its_rows_1_and_2_and_no_other_superpower_has_rows()
  {
     let selection = DATA
-        .mythic_paths
-        .iter()
-        .flat_map(|path| &path.selections)
-        .find(|selection| selection.key.as_str() == "azata/superpowers")
+        .selection(&rules::FeatureSelectionKey::new("azata/superpowers"))
         .expect("the superpowers");
     assert_eq!(selection.level_from, Some(LevelFrom::MythicRanks));
     assert!(selection.option_levels.is_empty());
-    let with_rows: Vec<&str> = selection
-        .options
-        .iter()
+    let with_rows: Vec<&str> = DATA
+        .options_of(selection)
         .filter(|option| !option.levels.is_empty())
         .map(|option| option.key.as_str())
         .collect();
@@ -76,7 +72,8 @@ fn life_bonding_friendship_gives_a_teamwork_feat_slot_at_its_rows_1_and_2_and_no
     }
     // No other path selection is levelled by Mythic rank.
     let by_rank: Vec<&str> = DATA
-        .selections()
+        .selections
+        .iter()
         .filter(|selection| selection.level_from == Some(LevelFrom::MythicRanks))
         .map(|selection| selection.key.as_str())
         .collect();

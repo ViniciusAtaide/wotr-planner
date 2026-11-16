@@ -1,0 +1,14 @@
+(
+    key: "shield-from-demonkind",
+    blueprint: "b75ff0546bf948948adb68336e2b475d",
+    name: "Shield from Demonkind",
+    school: Abjuration,
+    guide: "angel#shield-from-demonkind-abjuration",
+    summary: "The target gains +2 deflection to AC, +1 more per six caster levels, and demons that attack it take 1d6 plus 1 for every two caster levels.",
+    target: "One friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "school-mastery", blueprint: "ac830015569352b458efcdfae00a948c", name: "School Mastery", summary: "Pick a school: your spells from it gain +1 caster level.", group: Magic, guide: "mythic-paths#school-mastery", parameter: SpellSchool, repeat: PerValue)

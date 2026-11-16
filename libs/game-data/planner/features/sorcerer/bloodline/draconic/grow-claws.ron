@@ -1,0 +1,4 @@
+(
+    why: "The game has one blueprint per dragon colour, element, energy, form or bloodline, none of them primary; the planner holds one entry for whichever is held.",
+    entry: (key: "sorcerer/bloodline/draconic/grow-claws", name: "Grow Claws", summary: "Free action: two 1d4 claw attacks, magic at 5th, 1d6 at 7th, +1d6 of your element at 11th; usable 3 + Charisma modifier times a day.", guide: "character-creation#grow-claws-draconic"),
+)

@@ -1,0 +1,13 @@
+(
+    key: "purging-finale",
+    blueprint: "c411f9aa46b84efcbca1954c4cb16023",
+    name: "Purging Finale",
+    school: Conjuration,
+    guide: "bard#purging-finale-conjuration",
+    summary: "Ends your active bardic performance to remove one condition from the ally: dazzled, exhausted, paralysed, shaken or stunned.",
+    target: "One ally within close range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,18 @@
+(
+    key: "hunter/divine-hunter",
+    class: "hunter",
+    blueprint: "f996f0a18e5d945459e710ee3a6dd485",
+    prerequisite: Worships,
+    name: "Divine Hunter",
+    summary: "Hunter devoted to a deity: a domain and Lore (Religion) as a class skill, losing teamwork feats.",
+    guide: "hunter#divine-hunter",
+    levels: [
+        (level: 1, features: ["hunter/animal-companion", "hunter/animal-focus", "hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["hunter/divine-hunter/domain"]),
+        (level: 3, selections: ["hunter/divine-hunter/otherworldly-companion"]),
+        (level: 6),
+        (level: 9),
+        (level: 12),
+        (level: 15),
+        (level: 18),
+    ],
+)

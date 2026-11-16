@@ -1,0 +1,1 @@
+(key: "aeon/enforcing-gaze/enforcing-gaze-normalize-size", blueprint: "c90b37a7f4894ac5a27f506aba5760b5", name: "Enforcing Gaze - Normalize Size", summary: "Rank 5: allies become Medium, dropping size penalties but keeping bonuses except reach; failing enemies become Medium and lose size bonuses.", guide: "aeon#enforcing-gaze-normalize-size", prerequisite: MythicRank(5))

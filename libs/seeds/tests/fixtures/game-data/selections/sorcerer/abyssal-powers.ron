@@ -1,0 +1,9 @@
+(
+    key: "sorcerer/abyssal-powers",
+    name: "Abyssal Powers",
+    guide: "sorcerer#abyssal",
+    level_from: OtherOptions,
+    // Ticket 35: an option held elsewhere counts beside the other options (a Living Deity's way).
+    level_also_from: "sorcerer/seeker/choice/power",
+    options: ["sorcerer/abyssal-powers/rage", "sorcerer/abyssal-powers/fear", "sorcerer/abyssal-powers/mastery"],
+)

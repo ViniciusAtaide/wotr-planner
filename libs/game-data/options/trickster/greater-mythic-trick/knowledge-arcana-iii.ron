@@ -1,0 +1,1 @@
+(key: "trickster/greater-mythic-trick/knowledge-arcana-iii", blueprint: "5e26c673173e423881e318d2f0ae84f0", name: "Knowledge (Arcana) III", summary: "Each item you identify gains one more random major effect.", guide: "trickster#knowledge-arcana-iii", prerequisite: SelectionOption("trickster/improved-mythic-trick/knowledge-arcana-ii"))

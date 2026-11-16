@@ -1,0 +1,13 @@
+(
+    key: "unholy-blight",
+    blueprint: "a02cf51787df937489ef5d4cf5970335",
+    name: "Unholy Blight",
+    school: Evocation,
+    guide: "cleric-spells#unholy-blight-evocation",
+    summary: "Good creatures are sickened 1d4 rounds and take 1d8 per two caster levels (max 5d8), good outsiders 1d6 per level (max 10d6); neutral half, not sickened.",
+    target: "All creatures within 20' of target creature within medium range",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [Evil],
+    casting_time: Standard,
+)

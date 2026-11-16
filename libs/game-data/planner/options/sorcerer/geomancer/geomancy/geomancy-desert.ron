@@ -1,0 +1,4 @@
+(
+    why: "An ability of Geomancy in the game, not a feature of its own.",
+    entry: (key: "sorcerer/geomancer/geomancy/geomancy-desert", name: "Geomancy: Desert", summary: "Enemies within 30 feet take 1d6 slashing per spell level and, failing Reflex, are blinded for 1d4 rounds.", guide: "sorcerer#geomancy-desert"),
+)

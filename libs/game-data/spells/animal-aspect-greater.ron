@@ -1,0 +1,14 @@
+(
+    key: "animal-aspect-greater",
+    blueprint: "c9c56af3b25be3942aa0ffd12f11cf35",
+    name: "Animal Aspect, Greater",
+    school: Transmutation,
+    guide: "wizard-spells#animal-aspect-greater-transmutation",
+    summary: "Improves Animal Aspect: gorilla +2 Perception and +1 Fortitude, monkey +4 Mobility, raccoon +4 Trickery and Stealth, raptor +30 ft speed.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

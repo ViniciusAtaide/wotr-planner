@@ -1,0 +1,14 @@
+(
+    key: "protection-from-arrows",
+    blueprint: "c28de1f98a3f432448e52e5d47c73208",
+    name: "Protection from Arrows",
+    school: Abjuration,
+    guide: "wizard-spells#protection-from-arrows-abjuration",
+    summary: "DR 10/magic against ranged weapons, until it has stopped 10 damage per caster level (max 100).",
+    target: "One friendly creature within touch range",
+    duration: "1 hour / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

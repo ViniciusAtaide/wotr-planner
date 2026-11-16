@@ -1,0 +1,1 @@
+(key: "wizard/school/invoker/force-missile", blueprint: "f9501f0df27af5446b705b5da255469a", name: "Force Missile", summary: "Standard action, 3 + Int times a day: an unerring 30' dart for 1d4 force + 1 per two levels.", guide: "wizard#force-missile")

@@ -31,13 +31,14 @@ fn reversed(mut data: GameData) -> GameData {
     data.classes.reverse();
     for class in data.all_classes_mut() {
         class.levels.reverse();
-        for selection in &mut class.selections {
-            selection.options.reverse();
-        }
-        for archetype in &mut class.archetypes {
-            archetype.levels.reverse();
-        }
     }
+    data.archetypes.reverse();
+    for archetype in &mut data.archetypes {
+        archetype.levels.reverse();
+    }
+    data.features.reverse();
+    data.selections.reverse();
+    data.options.reverse();
     data.mythic_abilities.reverse();
     data.mythic_feats.reverse();
     data.mythic_paths.reverse();

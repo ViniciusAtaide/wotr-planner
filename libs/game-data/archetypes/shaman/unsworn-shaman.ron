@@ -1,0 +1,21 @@
+(
+    key: "shaman/unsworn-shaman",
+    class: "shaman",
+    blueprint: "556590a43467a27459ac1a80324c9f9f",
+    name: "Unsworn Shaman",
+    summary: "Bonds only with wandering spirits (two from 6th level) and daily minor spirits for hexes, with no permanent hexes.",
+    guide: "shaman#unsworn-shaman",
+    levels: [
+        (level: 1, features: ["shaman/spirit-animal", "shaman/unsworn-shaman/minor-spirit", "shaman-orisons"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "simple-weapon-proficiency"]),
+        (level: 2, features: ["shaman/wandering-spirit"]),
+        (level: 4, features: ["shaman/unsworn-shaman/minor-spirit"]),
+        (level: 6, features: ["shaman/unsworn-shaman/wandering-spirit-2"]),
+        (level: 8, features: ["shaman/unsworn-shaman/minor-spirit"]),
+        (level: 10, features: ["shaman/unsworn-shaman/wandering-spirit-greater-ability"]),
+        (level: 12, features: ["shaman/unsworn-shaman/minor-spirit"]),
+        (level: 14, features: ["shaman/unsworn-shaman/wandering-spirit-2-greater-ability"]),
+        (level: 16, features: ["shaman/unsworn-shaman/minor-spirit"]),
+        (level: 18, features: ["shaman/unsworn-shaman/wandering-spirit-true-ability"]),
+        (level: 20, features: ["shaman/unsworn-shaman/minor-spirit", "shaman/unsworn-shaman/wandering-spirit-2-true-ability"]),
+    ],
+)

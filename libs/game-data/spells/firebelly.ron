@@ -1,0 +1,14 @@
+(
+    key: "firebelly",
+    blueprint: "b065231094a21d14dbf1c3832f776871",
+    name: "Firebelly",
+    school: Abjuration,
+    guide: "cleric-spells#firebelly-abjuration",
+    summary: "You gain fire resistance 5 and, as a standard action, can breathe a 15 ft cone of flame for 1d4 fire damage (Reflex half), costing 1 minute of the duration.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

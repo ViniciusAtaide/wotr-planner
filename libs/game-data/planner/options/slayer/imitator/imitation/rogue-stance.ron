@@ -1,0 +1,4 @@
+(
+    why: "An ability of ImitationFeature in the game, not a feature of its own.",
+    entry: (key: "slayer/imitator/imitation/rogue-stance", name: "Rogue Stance", summary: "1d6 sneak attack +1d6 per 3 levels (max 7d6), Evasion at 4th and Uncanny Dodge at 8th.", guide: "slayer#rogue-stance"),
+)

@@ -1,0 +1,1 @@
+(key: "volley-fire", blueprint: "c4b555225f565bb40a855c1bfeeff07e", name: "Volley Fire", summary: "+1 to ranged attacks for each ally with this feat who shot at a foe within 15 ft of your target since your last turn, up to +4.", category: Teamwork, guide: "feats#volley-fire", prerequisite: Feat("point-blank-shot"))

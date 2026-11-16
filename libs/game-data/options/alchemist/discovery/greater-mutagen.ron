@@ -1,0 +1,1 @@
+(key: "alchemist/discovery/greater-mutagen", blueprint: "76c61966afdd82048911f3d63c6fe0bc", name: "Greater Mutagen", summary: "Mutagen gives +4 natural armour, +6 to one physical score and +4 to another, with -2 to two mental scores.", guide: "alchemist#greater-mutagen", prerequisite: ClassLevel(class: "alchemist", level: 12))

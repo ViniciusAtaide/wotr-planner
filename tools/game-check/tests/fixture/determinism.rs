@@ -1,7 +1,6 @@
 //! The same dump and data give the same bytes, whatever order the records and entries come in.
 
 use game_check::{Known, check};
-use rules::FeatureSelection;
 
 use crate::support::{binz, dump, planner, records, report};
 
@@ -19,31 +18,26 @@ fn a_shuffled_dump_and_data_give_a_byte_identical_report() {
     data.gear.reverse();
     data.mythic_abilities.reverse();
     data.mythic_feats.reverse();
+    data.features.reverse();
+    data.feat_lists.reverse();
+    // A selection's shared options are a set: reversing the selections moves an option's own selection to the other
+    // side of the one that shares it.
+    data.selections.reverse();
+    data.options.reverse();
     for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
-        class.archetypes.reverse();
-        class.features.reverse();
-        class.feat_lists.reverse();
-        // A selection's shared options are a set: reversing the selections moves an option's own selection to
-        // the other side of the one that shares it.
-        reverse_selections(&mut class.selections);
         for row in &mut class.levels {
             row.features.reverse();
             row.feat_slots.reverse();
             row.selections.reverse();
         }
-        for archetype in &mut class.archetypes {
-            archetype.features.reverse();
-            reverse_selections(&mut archetype.selections);
-            archetype.feat_lists.reverse();
-            archetype.levels.reverse();
-        }
     }
+    for archetype in &mut data.archetypes {
+        archetype.levels.reverse();
+    }
+    data.archetypes.reverse();
     data.classes.reverse();
     data.prestige_classes.reverse();
     for path in &mut data.mythic_paths {
-        path.features.reverse();
-        path.feat_lists.reverse();
-        reverse_selections(&mut path.selections);
         path.ranks.reverse();
         for row in &mut path.ranks {
             row.features.reverse();
@@ -55,13 +49,6 @@ fn a_shuffled_dump_and_data_give_a_byte_identical_report() {
     let shuffled = check(&pins, &dump, &data, &Known::default()).unwrap();
     assert_eq!(shuffled.text(), expected.text());
     assert!(!expected.text().is_empty());
-}
-
-fn reverse_selections(selections: &mut [FeatureSelection]) {
-    selections.reverse();
-    for selection in selections {
-        selection.options.reverse();
-    }
 }
 
 #[test]

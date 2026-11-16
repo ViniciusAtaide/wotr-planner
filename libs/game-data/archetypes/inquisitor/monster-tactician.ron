@@ -1,0 +1,22 @@
+(
+    key: "inquisitor/monster-tactician",
+    class: "inquisitor",
+    blueprint: "cdaabf4b146c9ba42ab7d05abe3b48c4",
+    name: "Monster Tactician",
+    summary: "Inquisitor who summons monsters as a spell-like ability instead of using judgments.",
+    guide: "inquisitor#monster-tactician",
+    levels: [
+        (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor-orisons", "inquisitor/monster-tactician/summon-monster", "inquisitor/monster-tactician/summon-monster-i", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/domain"]),
+        (level: 3, features: ["inquisitor/monster-tactician/summon-monster-ii", "inquisitor/solo-tactics"], feat_slots: [Category(Teamwork)]),
+        (level: 5, features: ["inquisitor/bane", "inquisitor/monster-tactician/summon-monster-iii", "inquisitor/monster-tactician/summon-tactics"]),
+        (level: 7, features: ["inquisitor/monster-tactician/summon-monster-iv"]),
+        (level: 8),
+        (level: 9, features: ["inquisitor/monster-tactician/summon-monster-v"], feat_slots: [Category(Teamwork)]),
+        (level: 11, features: ["inquisitor/monster-tactician/summon-monster-vi", "inquisitor/stalwart"]),
+        (level: 13, features: ["inquisitor/monster-tactician/summon-monster-vii"]),
+        (level: 15, features: ["inquisitor/monster-tactician/summon-monster-viii"], feat_slots: [Category(Teamwork)]),
+        (level: 16),
+        (level: 17, features: ["inquisitor/monster-tactician/summon-monster-ix"]),
+        (level: 20),
+    ],
+)

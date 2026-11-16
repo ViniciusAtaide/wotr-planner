@@ -1,0 +1,14 @@
+(
+    key: "enervation",
+    blueprint: "f34fb78eaaec141469079af124bcfa0f",
+    name: "Enervation",
+    school: Necromancy,
+    guide: "wizard-spells#enervation-necromancy",
+    summary: "On a ranged touch hit, the target loses 1d4 levels; several castings stack.",
+    target: "One enemy creature within close range",
+    duration: "1 hour / level",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [NegativeLevel],
+    casting_time: Standard,
+)

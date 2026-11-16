@@ -1,0 +1,15 @@
+(
+    key: "alchemist/reanimator",
+    class: "alchemist",
+    blueprint: "5faf2921393d422d94467174d029e4cd",
+    name: "Reanimator",
+    summary: "Lord of Nothing alchemist who learns undead creation extracts, with weaker bombs.",
+    guide: "alchemist#reanimator",
+    levels: [
+        (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/mutagen", "bomb", "alchemist/reanimator/corpse-studying"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "throw-anything"]),
+        (level: 5, features: ["alchemist/reanimator/simple-reanimation", "alchemist/reanimator/corpse-studying"]),
+        (level: 11, features: ["alchemist/reanimator/improved-reanimation", "alchemist/reanimator/corpse-studying"]),
+        (level: 15, features: ["alchemist/reanimator/greater-reanimation"]),
+        (level: 17, features: ["alchemist/reanimator/corpse-studying"]),
+    ],
+)

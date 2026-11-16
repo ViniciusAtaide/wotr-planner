@@ -1,0 +1,13 @@
+(
+    key: "sound-burst",
+    blueprint: "c3893092a333b93499fd0a21845aa265",
+    name: "Sound Burst",
+    school: Evocation,
+    guide: "cleric-spells#sound-burst-evocation",
+    summary: "Creatures in the burst take 1d8 sonic damage and are stunned for 1 round unless they make a Fortitude save.",
+    target: "10' burst centred on target point within close range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Sonic],
+    casting_time: Standard,
+)

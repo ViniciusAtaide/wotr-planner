@@ -1,0 +1,14 @@
+(
+    key: "restoration",
+    blueprint: "f2115ac1148256b4ba20788f7e966830",
+    name: "Restoration",
+    school: Conjuration,
+    guide: "cleric-spells#restoration-conjuration",
+    summary: "Heals all temporary ability damage and all drain to one ability score, dispels temporary negative levels or one permanent one, and ends fatigue and exhaustion.",
+    components: "Diamond Dust x2",
+    target: "One friendly creature within close range",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: FullRound,
+)

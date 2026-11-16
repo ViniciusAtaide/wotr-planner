@@ -1,0 +1,1 @@
+(key: "druid/elemental-rampager/elemental-damage", blueprint: "c8befb3ccd6a46af99ef2b9aac255f6f", name: "Elemental Damage", summary: "Natural attacks deal +1d6 of your chosen element, 2d6 at 11th and 3d6 at 20th.", guide: "druid#elemental-damage")

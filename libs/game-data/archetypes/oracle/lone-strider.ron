@@ -1,0 +1,15 @@
+(
+    key: "oracle/lone-strider",
+    class: "oracle",
+    blueprint: "8f205adfab73b3c4c8c93d251a3cef02",
+    name: "Lone Strider",
+    summary: "Mobile loner: Recluse's Stride and Fade from Memory instead of two revelations, and a limited choice of mysteries.",
+    guide: "oracle#lone-strider",
+    levels: [
+        (level: 1, features: ["oracle/additional-spells", "oracle/lone-strider/recluses-stride"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/lone-strider/mystery", "oracle/oracles-curse"]),
+        (level: 5, features: ["oracle/lone-strider/recluses-stride"]),
+        (level: 7, features: ["oracle/lone-strider/fade-from-memory"]),
+        (level: 10, features: ["oracle/lone-strider/recluses-stride"]),
+        (level: 14, features: ["oracle/lone-strider/fade-from-memory"]),
+    ],
+)

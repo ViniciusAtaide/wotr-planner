@@ -1,0 +1,1 @@
+(key: "cleric/domain/protection/aura-of-protection", blueprint: "e2e9d41bfa7aa364592b9d57dd74c9db", name: "Aura of Protection", summary: "From 8th level, allies within 30 feet get +1 deflection (+1 per 4 levels) and resist 5 (10 at 14th) to all energy; class level rounds a day.", guide: "character-creation#protection-domain")

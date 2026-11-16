@@ -1,0 +1,4 @@
+(
+    why: "The archetype removes MagusProficiencies and adds none; the planner holds what remains as an entry.",
+    entry: (key: "magus/sword-saint/sword-saint-proficiencies", name: "Sword Saint Proficiencies", summary: "Only simple weapons and the chosen weapon; no armour, and arcane spell failure when wearing it.", guide: "magus#sword-saint-proficiencies"),
+)

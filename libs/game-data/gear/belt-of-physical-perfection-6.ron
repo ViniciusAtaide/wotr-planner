@@ -1,0 +1,12 @@
+(
+    key: "belt-of-physical-perfection-6",
+    blueprint: "2b400628f960a8a43bc2f085d84788cf",
+    name: "Belt of Physical Perfection +6",
+    slot: Belt,
+    guide: "items#belts",
+    bonuses: [
+        (target: Ability(Strength), amount: 6, kind: Enhancement),
+        (target: Ability(Dexterity), amount: 6, kind: Enhancement),
+        (target: Ability(Constitution), amount: 6, kind: Enhancement),
+    ],
+)

@@ -1,0 +1,1 @@
+(key: "cleric/domain/death/bleeding-touch", blueprint: "9809efa15e5f9ad478594479af575a5d", name: "Bleeding Touch", summary: "Touch deals 1d6 a round for half your class level in rounds; 3 + Wisdom modifier uses a day.", guide: "character-creation#death-domain")

@@ -1,0 +1,14 @@
+(
+    key: "elemental-body-ii",
+    blueprint: "6d437be73b459594ab103acdcae5b9e2",
+    name: "Elemental Body II",
+    school: Transmutation,
+    guide: "wizard-spells#elemental-body-ii-transmutation",
+    summary: "You turn into a Medium elemental of your choice (air, earth, fire or water).",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

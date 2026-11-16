@@ -1,0 +1,1 @@
+(key: "heavy-crossbow", blueprint: "36d0551b8a28587438a47fcbbf53c083", name: "Heavy Crossbow", proficiency: Simple, stats: (damage: (count: 1, sides: 10), threat: 19, multiplier: 2, handedness: TwoHanded, ranged: Projectile))

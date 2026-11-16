@@ -1,0 +1,14 @@
+(
+    key: "dragon-smite",
+    blueprint: "a508fd48695440cd8216526a859ecb53",
+    name: "Dragon Smite",
+    school: Abjuration,
+    guide: "gold-dragon#dragon-smite-abjuration",
+    summary: "Enemies within 30 ft of the touched creature take extra damage equal to half your Charisma modifier from attacks by you and your allies.",
+    target: "Enemies within 30', centred on a creature in touch range",
+    duration: "1 round",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

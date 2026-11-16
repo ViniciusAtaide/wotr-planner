@@ -1,0 +1,15 @@
+(
+    key: "shapechange",
+    blueprint: "22b9044aa229815429d57d0a30e4b739",
+    name: "Shapechange",
+    school: Transmutation,
+    guide: "wizard-spells#shapechange-transmutation",
+    summary: "Works as Dragonkind III, Beast Shape IV or Elemental Body IV by the form you pick, and once a round you may shift to another form as a free action.",
+    components: "Jade",
+    target: "Personal",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Free,
+)

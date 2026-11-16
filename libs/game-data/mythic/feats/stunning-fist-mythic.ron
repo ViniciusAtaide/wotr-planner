@@ -1,0 +1,1 @@
+(key: "stunning-fist-mythic", blueprint: "31b963575ee4a92409216ce534c99dd4", name: "Stunning Fist (Mythic)", summary: "Stunning Fist\'s DC rises by half your mythic rank.", group: Melee, guide: "mythic-paths#stunning-fist-mythic", prerequisite: Any([Feat("stunning-fist"), Feature(feature: "monk/stunning-fist", count: 1)]))

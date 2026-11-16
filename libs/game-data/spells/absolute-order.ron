@@ -1,0 +1,14 @@
+(
+    key: "absolute-order",
+    blueprint: "b1723a0239d428243a1be2299696eb85",
+    name: "Absolute Order",
+    school: Enchantment,
+    guide: "aeon#absolute-order-enchantment",
+    summary: "As Command on enemies in the burst; each turn they may save again, and one that breaks free takes 2d6 divine damage per caster level.",
+    target: "All enemies within a 30' burst centred on target enemy within close range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

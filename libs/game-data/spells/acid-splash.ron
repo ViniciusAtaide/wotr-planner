@@ -1,0 +1,13 @@
+(
+    key: "acid-splash",
+    blueprint: "0c852a2405dd9f14a8bbcfaf245ff823",
+    name: "Acid Splash",
+    school: Conjuration,
+    guide: "wizard-spells#acid-splash-conjuration",
+    summary: "Hit with a ranged touch attack to deal 1d3 acid damage.",
+    target: "One creature within close range",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Acid],
+    casting_time: Standard,
+)

@@ -45,8 +45,8 @@ async fn real_data_the_sheet_says_a_feature_gained_twice_at_a_level_twice() {
     // gained, so the line leaves it out.
     let level = &sheet["levels"][8]["features"];
     assert_eq!(
-        feature(level, "trickster/sneak-attack"),
-        &json!({ "key": "trickster/sneak-attack", "name": "Sneak Attack (Trickster)", "times": 2 })
+        feature(level, "sneak-attack"),
+        &json!({ "key": "sneak-attack", "name": "Sneak Attack", "times": 2 })
     );
     assert_eq!(
         feature(level, "trickster/sneaky-quack"),
@@ -55,7 +55,7 @@ async fn real_data_the_sheet_says_a_feature_gained_twice_at_a_level_twice() {
     // So does MR 3's own row: one entry, not the same entry twice.
     let rank = &sheet["ranks"][2]["features"];
     assert_eq!(rank.as_array().unwrap().len(), 3, "{rank}");
-    assert_eq!(feature(rank, "trickster/sneak-attack")["times"], 2);
+    assert_eq!(feature(rank, "sneak-attack")["times"], 2);
 }
 
 #[tokio::test]
@@ -73,10 +73,7 @@ async fn real_data_compare_sees_a_feature_gained_twice_against_none() {
         .find(|diff| diff["rank"] == 3)
         .unwrap_or_else(|| panic!("no rank 3 in {compared}"));
     // The Trickster's list carries the count; the other Build has none of them.
-    assert_eq!(
-        feature(&rank["only"][0], "trickster/sneak-attack")["times"],
-        2
-    );
+    assert_eq!(feature(&rank["only"][0], "sneak-attack")["times"], 2);
     assert_eq!(rank["only"][1], json!([]));
 }
 
@@ -211,5 +208,51 @@ async fn real_data_a_feature_granted_after_its_step_level_is_gained_with_no_step
             (8, json!({ "key": KEY, "name": name, "step": 3 })),
         ],
         "{validated}"
+    );
+}
+
+/// A human of `levels` levels of one class, with `path` if any.
+async fn one_class(client: &Client, class: &str, levels: u8, path: Option<&str>) -> Value {
+    let mut choices = Map::new();
+    for (address, value) in [
+        ("start.race", json!("human")),
+        ("start.faith", json!("atheism")),
+        ("start.alignment", json!("chaotic-good")),
+    ] {
+        choices.insert(address.to_owned(), value);
+    }
+    if let Some(path) = path {
+        choices.insert("mythic.path".to_owned(), json!(path));
+    }
+    for level in 1..=levels {
+        choices.insert(format!("level.{level}.class"), json!({ "class": class }));
+    }
+    client.ok("validate", json!({ "choices": choices })).await["build"].clone()
+}
+
+/// A feature several classes grant, whose name another feature shares, is named for the Build's own class (ticket
+/// 244, review): a Rogue's Uncanny Dodge is the Rogue's, a Barbarian's the Barbarian's. A Mythic rank's feature is
+/// named for the Build's path. Game: UncannyDodgeChecker 8f800ed6ce8c42e8a01fd8f3e990c459 is granted by
+/// RogueProgression b57b2a75a5abcaf47a01cf84672b50e9 at 4 and BarbarianProgression 74ad9fbd930a1d84aaf9a230f29f8f12 at
+/// 2; War Sight's Uncanny Dodge (OracleRevelationWarSight7 374008ffbe3d8884aa79077766fa3f3f) shares its name.
+#[tokio::test]
+async fn real_data_the_sheet_names_a_shared_feature_for_the_builds_own_holder() {
+    let client = Client::start().await;
+    let rogue = one_class(&client, "rogue", 20, Some("angel")).await;
+    let sheet = client.ok("sheet", json!({ "build": rogue })).await;
+    assert_eq!(
+        feature(&sheet["levels"][3]["features"], "uncanny-dodge")["name"],
+        "Uncanny Dodge (Rogue)"
+    );
+    // The Angel's Wings at MR 8 share their name with the Demon's, the Devil's and the Gold Dragon's.
+    assert_eq!(
+        feature(&sheet["ranks"][7]["features"], "angel/wings")["name"],
+        "Wings (Angel)"
+    );
+    let barbarian = one_class(&client, "barbarian", 2, None).await;
+    let sheet = client.ok("sheet", json!({ "build": barbarian })).await;
+    assert_eq!(
+        feature(&sheet["levels"][1]["features"], "uncanny-dodge")["name"],
+        "Uncanny Dodge (Barbarian)"
     );
 }

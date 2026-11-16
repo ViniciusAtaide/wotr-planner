@@ -1,0 +1,13 @@
+(
+    key: "disrupt-undead",
+    blueprint: "652739779aa05504a9ad5db1db6d02ae",
+    name: "Disrupt Undead",
+    school: Necromancy,
+    guide: "wizard-spells#disrupt-undead-necromancy",
+    summary: "A ranged touch attack against an undead creature deals 1d6 energy damage.",
+    target: "One enemy creature within close range",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "inquisitor/inquisitor-proficiencies", blueprint: "e59db96fa83cefd4a9a8f211500d9522", favoured_weapon_proficiency: true, name: "Inquisitor Proficiencies", summary: "Simple weapons, longbow, shortbow and your deity's favoured weapon; light and medium armour and shields.", guide: "inquisitor#inquisitor-proficiencies", weapons: ["long-bow", "short-bow"])

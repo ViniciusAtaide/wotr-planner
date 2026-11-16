@@ -1,0 +1,9 @@
+(
+    key: "shelyn",
+    blueprint: "b382afa31e4287644b77a8b30ed4aa0b",
+    name: "Shelyn",
+    guide: "character-creation#deities",
+    alignments: [LawfulGood, NeutralGood, ChaoticGood, TrueNeutral],
+    favoured_weapons: ["glaive"],
+    domains: ["cleric/domain/air", "cleric/domain/charm", "cleric/domain/good", "cleric/domain/luck", "cleric/domain/protection"],
+)

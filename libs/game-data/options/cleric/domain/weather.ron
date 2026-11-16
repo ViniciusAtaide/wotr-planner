@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/weather",
+    blueprint: "c18a821ee662db0439fb873165da25be",
+    name: "Weather Domain",
+    summary: "Storm Burst and Lightning Lord from 8th level; spells from Snowball to Tsunami.",
+    guide: "character-creation#weather-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/weather/storm-burst"]),
+        (level: 8, features: ["cleric/domain/weather/lightning-lord"]),
+    ],
+)

@@ -1,0 +1,14 @@
+(
+    key: "find-traps",
+    blueprint: "4709274b2080b6444a3c11c6ebbe2404",
+    name: "Find Traps",
+    school: Divination,
+    guide: "cleric-spells#find-traps-divination",
+    summary: "You gain an insight bonus on Perception checks equal to half your caster level (max +10).",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

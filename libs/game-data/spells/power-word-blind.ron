@@ -1,0 +1,14 @@
+(
+    key: "power-word-blind",
+    blueprint: "261e1788bfc5ac1419eec68b1d485dbc",
+    name: "Power Word Blind",
+    school: Enchantment,
+    guide: "wizard-spells#power-word-blind-enchantment",
+    summary: "Blinds a creature permanently at 50 HP or less, for 1d4+1 minutes at 51-100 HP, or for 1d4+1 rounds at 101-200; above 200 HP it has no effect.",
+    target: "One enemy creature within close range",
+    duration: "Varies",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

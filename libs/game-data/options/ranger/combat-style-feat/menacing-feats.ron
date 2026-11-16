@@ -1,0 +1,12 @@
+(
+    key: "ranger/combat-style-feat/menacing-feats",
+    blueprint: "1c5988e90e0657645972e7b28ba4ce8b",
+    name: "Menacing Feats",
+    summary: "Dazzling Display, Power Attack, Intimidating Prowess; from 6th Cornugon Smash, Shatter Defenses; from 10th Dreadful Carnage, Improved Critical.",
+    guide: "ranger#menacing-feats",
+    levels: [
+        (level: 2, feat_list: "ranger/combat-style-feat/menacing-feats-2"),
+        (level: 6, feat_list: "ranger/combat-style-feat/menacing-feats-6"),
+        (level: 10, feat_list: "ranger/combat-style-feat/menacing-feats-10"),
+    ],
+)

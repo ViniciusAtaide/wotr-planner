@@ -1,0 +1,14 @@
+(
+    key: "reduce-person-mass",
+    blueprint: "2427f2e3ca22ae54ea7337bbab555b16",
+    name: "Reduce Person, Mass",
+    school: Transmutation,
+    guide: "wizard-spells#reduce-person-mass-transmutation",
+    summary: "Allies shrink one size: +2 Dexterity and +1 to attack rolls and AC, but a -2 size penalty to Strength.",
+    target: "All allies within 15' burst, centred on target point within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: FullRound,
+)

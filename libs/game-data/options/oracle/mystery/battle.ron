@@ -1,0 +1,11 @@
+(
+    key: "oracle/mystery/battle",
+    blueprint: "6b8e676943cb91648b21b7ca72fbb833",
+    name: "Battle",
+    summary: "Battle: Perception as a class skill, Enlarge Person to Overwhelming Presence, martial revelations, and Pounce at 20th.",
+    guide: "oracle#battle",
+    levels: [
+        (level: 1, class_skills: ["perception"]),
+        (level: 20, features: ["oracle/mystery/battle/battle-final-revelation"]),
+    ],
+)

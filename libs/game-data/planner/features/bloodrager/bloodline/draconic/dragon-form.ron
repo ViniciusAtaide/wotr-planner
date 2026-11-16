@@ -1,0 +1,4 @@
+(
+    why: "The game has one blueprint per dragon colour, element, energy, form or bloodline, none of them primary; the planner holds one entry for whichever is held.",
+    entry: (key: "bloodrager/bloodline/draconic/dragon-form", name: "Dragon Form", summary: "From 16th level, entering bloodrage can turn you into your dragon, as Dragonkind II.", guide: "bloodrager#dragon-form"),
+)

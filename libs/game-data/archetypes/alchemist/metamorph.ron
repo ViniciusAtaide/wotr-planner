@@ -1,0 +1,20 @@
+(
+    key: "alchemist/metamorph",
+    class: "alchemist",
+    blueprint: "ac242ddeaa05af449bfc5230231fab84",
+    name: "Metamorph",
+    summary: "Alchemist who changes shape into beast and dragon forms instead of using bombs; adds Stealth as a class skill.",
+    guide: "alchemist#metamorph",
+    class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "perception", "stealth", "trickery", "use-magic-device"],
+    levels: [
+        (level: 1, features: ["alchemist/alchemist-proficiencies", "alchemist/mutagen"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency"]),
+        (level: 3, features: ["alchemist/metamorph/adaptive-physiology"]),
+        (level: 4, features: ["alchemist/metamorph/shapechanger-beast-shape-i"], selections: ["alchemist/discovery"]),
+        (level: 6, features: ["alchemist/metamorph/adaptive-physiology"], selections: ["alchemist/discovery"]),
+        (level: 9, features: ["alchemist/metamorph/shapechanger-beast-shape-ii"]),
+        (level: 11, features: ["alchemist/metamorph/shapechanger-beast-shape-iii"]),
+        (level: 13, features: ["alchemist/metamorph/shapechanger-beast-shape-iv-dragonkind-i"]),
+        (level: 15, features: ["alchemist/metamorph/shapechanger-dragonkind-ii"]),
+        (level: 18, features: ["alchemist/metamorph/adaptive-physiology"], selections: ["alchemist/discovery"]),
+    ],
+)

@@ -1,0 +1,1 @@
+(key: "final-feint", blueprint: "32429740d6a5470aaaa02f20d61e43d3", name: "Final Feint", summary: "Feints now last the whole round: the foe has no Dex bonus against any of your melee attacks.", category: Weapon, guide: "feats#final-feint", prerequisite: All([Feat("combat-expertise"), Feat("feint"), AbilityScore(ability: Intelligence, score: 13), BaseAttackBonus(6)]))

@@ -1,0 +1,13 @@
+(
+    key: "warpriest/blessings/chaos-domain",
+    blueprint: "528e316f9f092954b9e38d3a82b1634a",
+    name: "Chaos Domain",
+    summary: "Minor: an ally's attacks deal +1d6 to lawful foes and count as chaotic. Major (10th): summon an ally as Summon Monster IV, rising to IX at 20th.",
+    guide: "warpriest#chaos-domain",
+    domain: "cleric/domain/chaos",
+    prerequisite: All([Any([Not(PickedThrough("warpriest/blessings")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(ChaoticGood), Alignment(ChaoticNeutral), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers("cleric/domain/chaos")])]),
+    levels: [
+        (level: 1, features: ["warpriest/blessings/chaos-domain/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/chaos-domain/major-blessing"]),
+    ],
+)

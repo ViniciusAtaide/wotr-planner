@@ -1,0 +1,13 @@
+(
+    key: "controlled-fireball",
+    blueprint: "f72f8f03bf0136c4180cd1d70eb773a5",
+    name: "Controlled Fireball",
+    school: Evocation,
+    guide: "wizard-spells#controlled-fireball-evocation",
+    summary: "Deals 1d6 per caster level (max 10d6) to creatures in the burst, but allies caught in it take none.",
+    target: "Target point within long range, 20' burst",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

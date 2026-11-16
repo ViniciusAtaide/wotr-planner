@@ -1,0 +1,13 @@
+(
+    key: "skald/battle-singer",
+    class: "skald",
+    blueprint: "db942e7040084ea289c6be2bfeb3d0a8",
+    name: "Battle Singer",
+    summary: "Skald whose song becomes three sonic damage verses, with fewer rage powers.",
+    guide: "skald#battle-singer",
+    levels: [
+        (level: 3, features: ["skald/battle-singer/battle-song-first-verse"]),
+        (level: 9, features: ["skald/battle-singer/battle-song-second-verse", "skald/damage-reduction"]),
+        (level: 15, features: ["skald/battle-singer/battle-song-final-verse"]),
+    ],
+)

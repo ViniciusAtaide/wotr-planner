@@ -1,0 +1,13 @@
+(
+    key: "restore-undead",
+    blueprint: "a9dbff7a630003d4eafa6c9dd203cb7e",
+    name: "Restore Undead",
+    school: Necromancy,
+    guide: "lich#restore-undead-necromancy",
+    summary: "Fully heals every allied undead in the burst.",
+    target: "All allies within a 100' burst centred on caster",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

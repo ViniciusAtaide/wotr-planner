@@ -1,0 +1,4 @@
+(
+    why: "An ability of ImitationFeature in the game, not a feature of its own.",
+    entry: (key: "slayer/imitator/imitation/barbarian-stance", name: "Barbarian Stance", summary: "Temporary HP equal to class level, Uncanny Dodge from 4th and DR 1/- from 7th (+1 per 3 levels, max 5/-).", guide: "slayer#barbarian-stance"),
+)

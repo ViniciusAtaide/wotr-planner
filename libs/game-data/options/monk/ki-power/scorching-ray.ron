@@ -1,0 +1,1 @@
+(key: "monk/ki-power/scorching-ray", blueprint: "16612cc8d88ef83458d05fd063709af7", name: "Scorching Ray", summary: "From 4th level, spend 2 ki points to cast Scorching Ray.", guide: "monk", prerequisite: ClassLevel(class: "monk", level: 4))

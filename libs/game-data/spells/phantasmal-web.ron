@@ -1,0 +1,13 @@
+(
+    key: "phantasmal-web",
+    blueprint: "12fb4a4c22549c74d949e2916a2f0b6a",
+    name: "Phantasmal Web",
+    school: Illusion,
+    guide: "wizard-spells#phantasmal-web-illusion",
+    summary: "Creatures failing a Will save are caught as by Web, and each later round must pass a Fortitude save or be nauseated.",
+    target: "All enemies within 30' of target point within medium range",
+    saving_throw: "Will disbelief, Fortitude partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting],
+    casting_time: Standard,
+)

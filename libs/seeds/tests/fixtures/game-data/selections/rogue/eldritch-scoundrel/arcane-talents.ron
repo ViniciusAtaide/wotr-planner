@@ -1,0 +1,10 @@
+(
+    key: "rogue/eldritch-scoundrel/arcane-talents",
+    name: "Arcane Talents",
+    guide: "rogue#arcane-talents",
+    options: ["rogue/eldritch-scoundrel/arcane-talents/minor-magic"],
+    shared_options: [
+        "rogue/rogue-talents/combat-trick",
+        "rogue/rogue-talents/crippling-strike",
+    ],
+)

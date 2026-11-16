@@ -1,0 +1,14 @@
+(
+    key: "waves-of-ecstasy",
+    blueprint: "1e2d1489781b10a45a3b70192bba9be3",
+    name: "Waves of Ecstasy",
+    school: Enchantment,
+    guide: "wizard-spells#waves-of-ecstasy-enchantment",
+    summary: "Creatures that fail the save are stunned 1 round and staggered for the duration; those that succeed are staggered 1 round.",
+    target: "All creatures within a 30' cone",
+    duration: "1 round / level",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Emotion],
+    casting_time: Standard,
+)

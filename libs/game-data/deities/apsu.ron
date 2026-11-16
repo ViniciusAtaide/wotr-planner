@@ -1,0 +1,9 @@
+(
+    key: "apsu",
+    blueprint: "772e2673945e4583a804ae01f67efea0",
+    name: "Apsu",
+    guide: "character-creation#deities",
+    alignments: [LawfulGood, NeutralGood, LawfulNeutral],
+    favoured_weapons: ["quarterstaff"],
+    domains: ["cleric/domain/artifice", "cleric/domain/good", "cleric/domain/law", "cleric/domain/scalykind", "cleric/domain/travel"],
+)

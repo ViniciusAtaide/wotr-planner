@@ -1,0 +1,13 @@
+(
+    key: "flay-for-purpose",
+    blueprint: "a5481866babd5214bb3ccf0710fe4d20",
+    name: "Flay for Purpose",
+    school: Necromancy,
+    guide: "lich#flay-for-purpose-necromancy",
+    summary: "As Repurpose with 2d6 damage per round, and a failed Fortitude save adds 10 damage per caster level.",
+    target: "One enemy creature within medium range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

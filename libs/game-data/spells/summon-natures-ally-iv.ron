@@ -1,0 +1,14 @@
+(
+    key: "summon-natures-ally-iv",
+    blueprint: "c83db50513abdf74ca103651931fac4b",
+    name: "Summon Nature's Ally IV",
+    school: Conjuration,
+    guide: "druid-spells#summon-natures-ally-iv-conjuration",
+    summary: "You summon 1d4+1 giant frogs, 1d3 leopards or one dire boar.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

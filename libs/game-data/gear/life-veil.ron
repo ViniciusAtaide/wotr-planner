@@ -1,0 +1,13 @@
+(
+    key: "life-veil",
+    blueprint: "138f2b7ce23a4fa4fa3d633c1d3a0ae3",
+    name: "Life Veil",
+    slot: Necklace,
+    guide: "items#necklaces",
+    bonuses: [
+        (target: Ability(Constitution), amount: 6, kind: Enhancement),
+    ],
+    other_effects: [
+        "Twice a day: Cure Serious Wounds at caster level 5 (cleric).",
+    ],
+)

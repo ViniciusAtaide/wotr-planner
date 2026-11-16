@@ -1,0 +1,19 @@
+(
+    key: "rogue/underground-chemist",
+    class: "rogue",
+    blueprint: "b4f5741d42c4cb04abf5ab3fe33f6fc5",
+    name: "Underground Chemist",
+    summary: "Rogue who throws splash weapons with Intelligence to damage, losing Evasion.",
+    guide: "rogue#underground-chemist",
+    levels: [
+        (level: 1, features: ["rogue/rogue-proficiencies", "sneak-attack", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "brew-potions", "simple-weapon-proficiency", "weapon-finesse"]),
+        (level: 2, features: ["rogue/underground-chemist/chemical-weapons"], feats: ["throw-anything"], selections: ["rogue/rogue-talents"]),
+        (level: 4, features: ["rogue/debilitating-injury", "uncanny-dodge", "rogue/underground-chemist/precise-splash-weapons"]),
+        (level: 10, features: ["advanced-talents", "rogue/underground-chemist/discovery"], selections: ["rogue/underground-chemist/discovery"]),
+        (level: 12, features: ["rogue/danger-sense"], selections: ["rogue/underground-chemist/discovery"]),
+        (level: 14, selections: ["rogue/underground-chemist/discovery"]),
+        (level: 16, selections: ["rogue/underground-chemist/discovery"]),
+        (level: 18, features: ["rogue/danger-sense"], selections: ["rogue/underground-chemist/discovery"]),
+        (level: 20, features: ["rogue/master-strike"], selections: ["rogue/underground-chemist/discovery"]),
+    ],
+)

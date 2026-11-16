@@ -1,0 +1,14 @@
+(
+    key: "beast-shape-i",
+    blueprint: "61a7ed778dd93f344a5dacdbad324cc9",
+    name: "Beast Shape I",
+    school: Transmutation,
+    guide: "wizard-spells#beast-shape-i-transmutation",
+    summary: "You turn into a Medium wolf: +2 Strength, +2 natural AC, +20 ft speed and a 1d6 bite that can trip as a free action on a hit.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

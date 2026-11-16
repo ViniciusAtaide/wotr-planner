@@ -1,0 +1,14 @@
+(
+    key: "edict-of-nonresistance",
+    blueprint: "dfe3594aed8907248958a25614aa5281",
+    name: "Edict of Nonresistance",
+    school: Enchantment,
+    guide: "aeon#edict-of-nonresistance-enchantment",
+    summary: "If the target fails its save, it is dazed for 1 round per caster level.",
+    target: "One enemy creature within close range",
+    duration: "1 round / caster level",
+    saving_throw: "Will negates",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Swift,
+)

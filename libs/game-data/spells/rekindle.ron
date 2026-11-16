@@ -1,0 +1,13 @@
+(
+    key: "rekindle",
+    blueprint: "1b76573f991543145897702b7edc4d7a",
+    name: "Rekindle",
+    school: Conjuration,
+    guide: "angel#rekindle-conjuration",
+    summary: "As Resurrection, but on every ally in the burst.",
+    target: "All allies within a 30' burst centred on the caster",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

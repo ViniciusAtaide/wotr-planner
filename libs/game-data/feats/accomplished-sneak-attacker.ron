@@ -1,0 +1,1 @@
+(key: "accomplished-sneak-attacker", blueprint: "9f0187869dc23744292c0e5bb364464e", name: "Accomplished Sneak Attacker", summary: "Sneak attack gains a die (1d6), up to a cap of half your character level in dice.", category: Class, guide: "feats#accomplished-sneak-attacker", prerequisite: Feature(feature: "sneak-attack", count: 1))

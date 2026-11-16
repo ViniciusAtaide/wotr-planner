@@ -1,0 +1,1 @@
+(key: "improved-precise-shot", blueprint: "46f970a6b9b5d2346b10892673fe6e74", name: "Improved Precise Shot", summary: "Only total concealment can make your ranged attacks miss by chance.", category: Ranged, guide: "feats#improved-precise-shot", prerequisite: All([Feat("point-blank-shot"), Feat("precise-shot"), AbilityScore(ability: Dexterity, score: 19), BaseAttackBonus(11)]))

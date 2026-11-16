@@ -1,0 +1,15 @@
+(
+    key: "witch/elemental-witch",
+    class: "witch",
+    blueprint: "d7c7cdbc760041fabaedc1623a53a431",
+    name: "Elemental Witch",
+    summary: "Witch limited to the Elements or Winter patron who gains an at-will elemental ray.",
+    guide: "witch#elemental-witch",
+    levels: [
+        (level: 1, features: ["witch-cantrips", "witch/elemental-witch/elemental-patron", "witch/elemental-witch/elemental-ray", "witch/familiar"], feats: ["simple-weapon-proficiency"]),
+        (level: 10, features: ["major-hexes"]),
+        (level: 11, features: ["witch/elemental-witch/elemental-ray"]),
+        (level: 14),
+        (level: 18, features: ["grand-hexes"]),
+    ],
+)

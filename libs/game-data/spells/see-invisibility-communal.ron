@@ -1,0 +1,14 @@
+(
+    key: "see-invisibility-communal",
+    blueprint: "1a045f845778dc54db1c2be33a8c3c0a",
+    name: "See Invisibility, Communal",
+    school: Divination,
+    guide: "wizard-spells#see-invisibility-communal-divination",
+    summary: "You and nearby allies see invisible creatures.",
+    target: "All allies within 25'",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

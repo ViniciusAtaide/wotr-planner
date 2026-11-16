@@ -1,0 +1,1 @@
+(key: "alchemist/incense-synthesizer/incense-fog/incense-fog-clarifying-incense", blueprint: "c16dc187fd12ac54f83007ec4c0a676a", name: "Incense Fog - Clarifying Incense", summary: "Allies in the fog get +2 to saves against mind-affecting effects; can be taken three times.", guide: "alchemist#incense-fog-clarifying-incense", repeat: Times(3))

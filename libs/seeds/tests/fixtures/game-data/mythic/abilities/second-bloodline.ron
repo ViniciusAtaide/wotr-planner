@@ -1,0 +1,8 @@
+(
+    key: "second-bloodline",
+    name: "Second Bloodline",
+    group: Class,
+    guide: "mythic-paths#second-bloodline",
+    prerequisite: SpontaneousSpellLevel(spell_type: Arcane, level: 1),
+    selections: ["sorcerer/bloodline"],
+)

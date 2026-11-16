@@ -1,0 +1,18 @@
+(
+    key: "bloodrager/primalist",
+    class: "bloodrager",
+    blueprint: "4d588290ed0736e4f8cd3f4c3beacd69",
+    name: "Primalist",
+    summary: "At 4th level and every four levels after, can take two rage powers instead of the bloodline ability.",
+    guide: "bloodrager#primalist",
+    levels: [
+        (level: 4, features: ["bloodrager/primalist/primal-choices"], selections: ["bloodrager/primalist/primal-choices"]),
+        (level: 7, features: ["bloodrager/primalist/bloodline-spell-1st", "damage-reduction"]),
+        (level: 8, selections: ["bloodrager/primalist/primal-choices"]),
+        (level: 10, features: ["bloodrager/primalist/bloodline-spell-2nd", "damage-reduction"]),
+        (level: 12, feat_slots: [OptionList(selection: "bloodrager/bloodline")], selections: ["bloodrager/primalist/primal-choices"]),
+        (level: 13, features: ["bloodrager/primalist/bloodline-spell-3rd", "damage-reduction"]),
+        (level: 16, features: ["bloodrager/primalist/bloodline-spell-4th", "damage-reduction"], selections: ["bloodrager/primalist/primal-choices"]),
+        (level: 20, features: ["bloodrager/mighty-bloodrage"], selections: ["bloodrager/primalist/primal-choices"]),
+    ],
+)

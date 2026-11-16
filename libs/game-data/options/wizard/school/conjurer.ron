@@ -1,0 +1,11 @@
+(
+    key: "wizard/school/conjurer",
+    blueprint: "567801abe990faf4080df566fadcd038",
+    name: "Conjurer",
+    summary: "Conjuration specialist: Summoner's Charm, Acid Dart and Dimensional Steps.",
+    guide: "wizard#conjurer",
+    levels: [
+        (level: 1, features: ["wizard/school/conjurer/acid-dart", "wizard/school/conjurer/summoners-charm"]),
+        (level: 8, features: ["wizard/school/conjurer/dimensional-steps"]),
+    ],
+)

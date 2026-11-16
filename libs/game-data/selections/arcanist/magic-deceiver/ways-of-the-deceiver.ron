@@ -1,0 +1,16 @@
+(
+    key: "arcanist/magic-deceiver/ways-of-the-deceiver",
+    blueprint: "f0310af68c7142cda950d61244cb0cff",
+    name: "Ways of the Deceiver",
+    summary: "At 1st level, choose Fake Celebrity, Living Deity, Magic Inventor, Razmiri Infiltrator, Time Manipulator or Way of the Charlatan.",
+    guide: "arcanist#ways-of-the-deceiver",
+    option_levels: ["arcanist"],
+    options: [
+        "arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity",
+        "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity",
+        "arcanist/magic-deceiver/ways-of-the-deceiver/magic-inventor",
+        "arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator",
+        "arcanist/magic-deceiver/ways-of-the-deceiver/time-manipulator",
+        "arcanist/magic-deceiver/ways-of-the-deceiver/way-of-the-charlatan",
+    ],
+)

@@ -1,0 +1,14 @@
+(
+    key: "invisibility-almost-greater",
+    blueprint: "8dcb9c02148a704489948eaf84ab04bf",
+    name: "Invisibility, Almost Greater",
+    school: Illusion,
+    guide: "trickster#invisibility-almost-greater-illusion",
+    summary: "The target turns invisible; each attack it makes adds a cumulative 5% chance of ending the invisibility.",
+    target: "One friendly creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "summon-monster-viii",
+    blueprint: "d3ac756a229830243a72e84f3ab050d0",
+    name: "Summon Monster VIII",
+    school: Conjuration,
+    guide: "wizard-spells#summon-monster-viii-conjuration",
+    summary: "Summons 1d4+1 Axiomites or Soul Eaters, 1d3 Bogeymen, or a Frost Giant or Movanic Deva (the Deva only if you aren't evil).",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

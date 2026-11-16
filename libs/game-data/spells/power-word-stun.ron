@@ -1,0 +1,14 @@
+(
+    key: "power-word-stun",
+    blueprint: "f958ef62eea5050418fb92dfa944c631",
+    name: "Power Word Stun",
+    school: Enchantment,
+    guide: "wizard-spells#power-word-stun-enchantment",
+    summary: "Stuns a creature with 50 HP or less for 4d4 rounds, 51-100 HP for 2d4 rounds, or 101-150 HP for 1d4 rounds; above 150 HP it has no effect.",
+    target: "One enemy creature within close range",
+    duration: "Varies",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Stunned],
+    casting_time: Standard,
+)

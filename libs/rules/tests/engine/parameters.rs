@@ -405,15 +405,7 @@ fn engine_with(change: impl FnOnce(&mut GameData)) -> Engine {
 }
 
 fn rogue_talent_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut SelectionOption {
-    data.classes
-        .iter_mut()
-        .find(|class| class.key.as_str() == "rogue")
-        .unwrap()
-        .selections[0]
-        .options
-        .iter_mut()
-        .find(|option| option.key.as_str() == key)
-        .unwrap()
+    option_mut(data, key)
 }
 
 /// Why the pick in `slot` can't be taken, for a Build only that pick makes impossible, by `engine`.
@@ -497,12 +489,7 @@ fn an_option_taken_again_grants_its_rows_slot_again() {
             feat_slots: vec![FeatSlot::CombatFeat],
             ..OptionLevelRow::default()
         }];
-        data.classes
-            .iter_mut()
-            .find(|class| class.key.as_str() == "rogue")
-            .unwrap()
-            .selections[0]
-            .option_levels = [class("rogue")].into();
+        selection_mut(data, "rogue/rogue-talents").option_levels = [class("rogue")].into();
     });
     let trick_slot = |level| SlotId::OptionFeat { level, index: 0 };
     let mut build = build("elf", &times("rogue", 4));
@@ -988,16 +975,7 @@ fn an_option_once_per_value_repeats_for_another_value_of_its_own() {
     // value, with no chosen feat.
     let talent = "slayer/slayer-talents/battle-master";
     let engine = engine_with(|data| {
-        let slayer = data
-            .classes
-            .iter_mut()
-            .find(|class| class.key.as_str() == "slayer")
-            .unwrap();
-        let option = slayer.selections[0]
-            .options
-            .iter_mut()
-            .find(|option| option.key.as_str() == talent)
-            .unwrap();
+        let option = option_mut(data, talent);
         option.repeat = Repeat::PerValue;
     });
     let mut build = build("elf", &times("slayer", 6));

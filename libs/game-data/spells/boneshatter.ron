@@ -1,0 +1,14 @@
+(
+    key: "boneshatter",
+    blueprint: "f2f1efac32ea2884e84ecaf14657298b",
+    name: "Boneshatter",
+    school: Necromancy,
+    guide: "wizard-spells#boneshatter-necromancy",
+    summary: "Deals 1d6 per caster level (max 15d6) and leaves the target exhausted; a successful save halves it and leaves the target fatigued instead.",
+    target: "One enemy creature within close range",
+    duration: "1 minute per level",
+    saving_throw: "Fortitude half",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

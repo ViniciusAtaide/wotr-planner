@@ -1,0 +1,13 @@
+(
+    key: "wracking-ray",
+    blueprint: "1cde0691195feae45bab5b83ea3f221e",
+    name: "Wracking Ray",
+    school: Necromancy,
+    guide: "wizard-spells#wracking-ray-necromancy",
+    summary: "On a ranged touch hit, the target takes 1d4 damage to both Strength and Dexterity for every 3 caster levels (max 5d4), halved by a save.",
+    target: "One enemy creature within medium range",
+    saving_throw: "Fortitude half",
+    spell_resistance: true,
+    descriptors: [ChannelNegativeEnergyHarm],
+    casting_time: Standard,
+)

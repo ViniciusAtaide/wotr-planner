@@ -1,0 +1,14 @@
+(
+    key: "wizard/cruromancer",
+    class: "wizard",
+    blueprint: "8789dcfc6f8e4fe49d80b90472ea6993",
+    name: "Cruromancer",
+    summary: "Dhampir-only necromancer who powers necromancy spells with their own blood; no arcane bond.",
+    guide: "wizard#cruromancer",
+    prerequisite: Race("dhampir"),
+    levels: [
+        (level: 1, features: ["wizard-cantrips", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/cruromancer/blood-infusion", "wizard/cruromancer/school"]),
+        (level: 5, features: ["wizard/cruromancer/commanding-infusion"]),
+        (level: 20, features: ["wizard/cruromancer/perfect-infusion"], feat_slots: [Category(Magic)]),
+    ],
+)

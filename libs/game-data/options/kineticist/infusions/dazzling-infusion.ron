@@ -1,0 +1,1 @@
+(key: "kineticist/infusions/dazzling-infusion", blueprint: "037460f7ae3e21943b237007f2b1a5d5", name: "Dazzling Infusion", summary: "Substance, 1 Burn, fire blasts: a target hit past SR is dazzled for 1 minute (Will negates).", guide: "kineticist#dazziing-infusion", prerequisite: All([ClassLevel(class: "kineticist", level: 2), SelectionOption("kineticist/element/fire")]))

@@ -1,0 +1,16 @@
+(
+    key: "alchemist/grenadier",
+    class: "alchemist",
+    blueprint: "6af888a7800b3e949a40f558ff204aae",
+    name: "Grenadier",
+    summary: "Alchemist with bomb improvements and a lesser poison resistance (max +4).",
+    guide: "alchemist#grenadier",
+    levels: [
+        (level: 1, features: ["alchemist/alchemist-proficiencies", "bomb", "alchemist/mutagen"], feats: ["armor-proficiency-light-armor", "brew-potions", "martial-weapons-proficiency", "simple-weapon-proficiency", "throw-anything"]),
+        (level: 2, features: ["alchemist/grenadier/alchemical-weapon", "alchemist/grenadier/precise-bomb"], selections: ["alchemist/discovery"]),
+        (level: 5, features: ["alchemist/poison-resistance"]),
+        (level: 6, features: ["alchemist/grenadier/alchemical-weapon-swift", "alchemist/grenadier/directed-blast"], selections: ["alchemist/discovery"]),
+        (level: 10, features: ["alchemist/grenadier/staggering-blast"], selections: ["alchemist/discovery"]),
+        (level: 15, features: ["alchemist/grenadier/alchemical-weapon-free"]),
+    ],
+)

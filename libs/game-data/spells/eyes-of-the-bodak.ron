@@ -1,0 +1,14 @@
+(
+    key: "eyes-of-the-bodak",
+    blueprint: "e9c9a61b81a297942a326c91da2af8ca",
+    name: "Eyes of the Bodak",
+    school: Necromancy,
+    guide: "lich#eyes-of-the-bodak-necromancy",
+    summary: "Each round, enemies within 30 ft gain a negative level.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

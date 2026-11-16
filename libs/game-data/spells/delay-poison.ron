@@ -1,0 +1,14 @@
+(
+    key: "delay-poison",
+    blueprint: "b48b4c5ffb4eab0469feba27fc86a023",
+    name: "Delay Poison",
+    school: Conjuration,
+    guide: "cleric-spells#delay-poison-conjuration",
+    summary: "The target is immune to poison for the duration, and any poison already on it stops taking effect.",
+    target: "One friendly creature within close range",
+    duration: "1 hour / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

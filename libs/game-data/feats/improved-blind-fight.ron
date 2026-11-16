@@ -1,0 +1,1 @@
+(key: "improved-blind-fight", blueprint: "4f1a78b02ac71bd4fa7d6e011d6f8ce0", name: "Improved Blind Fight", summary: "Only total concealment affects your melee (miss can be rerolled); invisible foes within 30 ft get no ranged edge.", category: Miscellaneous, guide: "feats#improved-blind-fight", prerequisite: All([Feat("blind-fight"), SkillRanks(skill: "perception", ranks: 10)]))

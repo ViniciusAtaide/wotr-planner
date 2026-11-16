@@ -1,0 +1,16 @@
+(
+    key: "oracle/purifier",
+    class: "oracle",
+    blueprint: "c9df67160a77ecd4a97928f2455545d7",
+    name: "Purifier",
+    summary: "Aasimar only: channels against evil outsiders and gains armor training, with fewer revelations and no added cure or inflict spells.",
+    guide: "oracle#purifier",
+    prerequisite: Race("aasimar"),
+    levels: [
+        (level: 1, feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/mystery", "oracle/oracles-curse", "oracle/revelations"]),
+        (level: 3),
+        (level: 5, features: ["oracle/purifier/sacred-scourge"]),
+        (level: 7, features: ["oracle/purifier/celestial-armor"]),
+        (level: 11, features: ["oracle/purifier/sin-eater"], feats: ["armor-proficiency-heavy-armor"]),
+    ],
+)

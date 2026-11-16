@@ -1,0 +1,14 @@
+(
+    key: "pox-pustules",
+    blueprint: "bc153808ef4884a4594bc9bec2299b69",
+    name: "Pox Pustules",
+    school: Necromancy,
+    guide: "druid-spells#pox-pustules-necromancy",
+    summary: "The target is sickened and takes a -4 penalty to Dexterity.",
+    target: "One enemy creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Disease],
+    casting_time: Standard,
+)

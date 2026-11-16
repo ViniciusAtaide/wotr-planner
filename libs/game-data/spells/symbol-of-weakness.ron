@@ -1,0 +1,14 @@
+(
+    key: "symbol-of-weakness",
+    blueprint: "8b02310b46e54de1ae9ba7161831938d",
+    name: "Symbol of Weakness",
+    school: Necromancy,
+    guide: "wizard-spells#symbol-of-weakness-necromancy",
+    summary: "Places a rune that, once triggered, stays active 10 minutes per caster level and deals 3d6 Strength damage to creatures within 30 ft, each at most once a day.",
+    target: "Target point within long range",
+    duration: "Until triggered",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: FullRound,
+)

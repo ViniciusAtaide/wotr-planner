@@ -1,0 +1,12 @@
+(
+    key: "oracle/revelations/stone/stone-stability",
+    blueprint: "4244aa481ad9a604db8442c02712c1e0",
+    name: "Stone Stability",
+    summary: "+4 CMD against bull rush and trip; Trip as a bonus feat at 5th and Greater Trip at 10th.",
+    prerequisite: SelectionOption("oracle/mystery/stone"),
+    guide: "oracle#stone-stability",
+    levels: [
+        (level: 5, feats: ["trip"]),
+        (level: 10, feats: ["greater-trip"]),
+    ],
+)

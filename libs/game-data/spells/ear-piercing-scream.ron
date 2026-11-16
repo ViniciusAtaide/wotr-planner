@@ -1,0 +1,14 @@
+(
+    key: "ear-piercing-scream",
+    blueprint: "8e7cfa5f213a90549aadd18f8f6f4664",
+    name: "Ear Piercing Scream",
+    school: Evocation,
+    guide: "wizard-spells#ear-piercing-scream-evocation",
+    summary: "Deals 1d6 sonic damage per two caster levels (max 5d6) and dazes for 1 round; a save halves the damage and avoids the daze.",
+    target: "One enemy creature within close range",
+    duration: "1 round (dazed)",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Sonic],
+    casting_time: Standard,
+)

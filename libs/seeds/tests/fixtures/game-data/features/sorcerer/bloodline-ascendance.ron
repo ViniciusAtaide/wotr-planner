@@ -1,0 +1,6 @@
+(
+    key: "sorcerer/bloodline-ascendance",
+    name: "Bloodline Ascendance",
+    guide: "mythic-paths#bloodline-ascendance",
+    option_row: (selection: "sorcerer/bloodline", level: 3),
+)

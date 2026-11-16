@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/travel",
+    blueprint: "87641a8efec53d64d853ecc436234dce",
+    name: "Travel",
+    summary: "Minor: ignore difficult terrain for 1 round. Major (10th): teleport up to 20' as a move action.",
+    guide: "warpriest#travel",
+    domain: "cleric/domain/travel",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/travel/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/travel/major-blessing"]),
+    ],
+)

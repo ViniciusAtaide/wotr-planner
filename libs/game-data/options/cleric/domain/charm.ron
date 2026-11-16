@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/charm",
+    blueprint: "b5c056787d1bf544588ec3a150ed0b3b",
+    name: "Charm Domain",
+    summary: "Dazing Touch and swift Charm Person from 8th level; spells from Hypnotism to Dominate Monster.",
+    guide: "character-creation#charm-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/charm/dazing-touch"]),
+        (level: 8, features: ["cleric/domain/charm/charming-smile"]),
+    ],
+)

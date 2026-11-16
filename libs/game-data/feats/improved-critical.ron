@@ -1,0 +1,1 @@
+(key: "improved-critical", blueprint: "f4201c85a991369408740c6888362e20", name: "Improved Critical", summary: "Doubles the threat range of the chosen weapon type, before other threat-range effects.", category: Weapon, guide: "feats#improved-critical", parameter: Weapon, requires_proficiency: true, repeat: PerValue, prerequisite: BaseAttackBonus(8))

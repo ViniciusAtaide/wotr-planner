@@ -1,0 +1,16 @@
+(
+    key: "heart-of-ice",
+    blueprint: "a113c68406d74e37951717e417840bfa",
+    name: "Heart of Ice",
+    slot: Belt,
+    guide: "items-lord-of-nothing#belts",
+    bonuses: [
+        (target: Ability(Constitution), amount: 4, kind: Enhancement),
+    ],
+    always_on: [
+        "AC +4 armour",
+    ],
+    other_effects: [
+        "Once a day: casts Ice Cascade.",
+    ],
+)

@@ -1,0 +1,1 @@
+(key: "bard/bard-proficiencies", blueprint: "fa3d3b2211a51994785d85e753f612d3", name: "Bard Proficiencies", summary: "Simple weapons, longsword, rapier, short sword, shortbow, light armour and shields.", guide: "bard#bard-proficiencies", weapons: ["longsword", "rapier", "short-bow", "short-sword"])

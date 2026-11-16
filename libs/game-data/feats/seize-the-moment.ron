@@ -1,0 +1,1 @@
+(key: "seize-the-moment", blueprint: "1191ef3065e6f8e4f9fbe1b7e3c0f760", name: "Seize the Moment", summary: "Gives you an attack of opportunity whenever an ally with this feat crits a foe you threaten.", category: Teamwork, guide: "feats#seize-the-moment", prerequisite: Feat("combat-reflexes"))

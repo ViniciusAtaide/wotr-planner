@@ -1,0 +1,1 @@
+(key: "kineticist/kinetic-sharpshooter/kinetic-sharpshooter-proficiencies", blueprint: "80f7afbee34145459ac5c77f3aac51c5", name: "Kinetic Sharpshooter Proficiencies", summary: "Proficient with light and heavy crossbows, shortbows and longbows.", guide: "kineticist#kinetic-sharpshooter-proficiencies", weapons: ["heavy-crossbow", "light-crossbow", "long-bow", "short-bow"])

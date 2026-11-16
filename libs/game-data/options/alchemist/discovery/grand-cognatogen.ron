@@ -1,0 +1,1 @@
+(key: "alchemist/discovery/grand-cognatogen", blueprint: "af4a320648eb5724889d6ff6255090b2", name: "Grand Cognatogen", summary: "A reversed Grand Mutagen; when it ends, 2 ability damage to all three physical scores.", guide: "alchemist#grand-cognatogen", prerequisite: All([ClassLevel(class: "alchemist", level: 16), SelectionOption("alchemist/discovery/greater-cognatogen")]))

@@ -1,0 +1,14 @@
+(
+    key: "sorcerer/sylvan-sorcerer/bloodline",
+    blueprint: "24bef8d1bee12274686f6da6ccbc8914",
+    name: "Bloodline (Sylvan Sorcerer)",
+    band: Path,
+    summary: "The Sylvan Sorcerer's fixed bloodline, built on the Fey one.",
+    guide: "sorcerer#sylvan-sorcerer",
+    option_levels: ["dragon-disciple", "sorcerer"],
+    skipped_levels: [1],
+    options: [],
+    shared_options: [
+        "sorcerer/bloodline/fey",
+    ],
+)

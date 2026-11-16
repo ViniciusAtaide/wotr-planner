@@ -1,0 +1,13 @@
+(
+    key: "gnawing-magic",
+    blueprint: "a86b5de9761e4b06bbd15516af2a255a",
+    name: "Gnawing Magic",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 6, kind: Enhancement),
+    ],
+    other_effects: [
+        "Spell on an enemy: +1 on spell resistance checks for you, -1 to the target's attacks, damage and saves for 3 rounds, stacking to 4.",
+    ],
+)

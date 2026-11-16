@@ -1,0 +1,1 @@
+(key: "alchemist/incense-synthesizer/incense-fog/incense-fog-toxic-incense", blueprint: "8241699d20232084380fec8152434f2a", name: "Incense Fog - Toxic Incense", summary: "Enemies in the fog take -2 to saves against poison; can be taken three times.", guide: "alchemist#incense-fog-toxic-incense", repeat: Times(3))

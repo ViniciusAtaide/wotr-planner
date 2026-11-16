@@ -1,0 +1,13 @@
+(
+    key: "warpriest/blessings/evil-domain",
+    blueprint: "f38f3abf6ca3a07499a61f96e342bb16",
+    name: "Evil Domain",
+    summary: "Minor: an ally's attacks deal +1d6 to good foes and count as evil. Major (10th): summon an ally as Summon Monster IV, rising to IX at 20th.",
+    guide: "warpriest#evil-domain",
+    domain: "cleric/domain/evil",
+    prerequisite: All([Any([Not(PickedThrough("warpriest/blessings")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers("cleric/domain/evil")])]),
+    levels: [
+        (level: 1, features: ["warpriest/blessings/evil-domain/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/evil-domain/major-blessing"]),
+    ],
+)

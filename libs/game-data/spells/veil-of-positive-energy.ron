@@ -1,0 +1,14 @@
+(
+    key: "veil-of-positive-energy",
+    blueprint: "6bb0533cd457d1f4eaccc73ab7680fb2",
+    name: "Veil of Positive Energy",
+    school: Abjuration,
+    guide: "paladin#veil-of-positive-energy-abjuration",
+    summary: "You gain a +2 sacred bonus to AC and saves against undead; dismissing it as a swift action deals 1d8 + 1 per caster level to undead within 5 ft.",
+    target: "Personal",
+    duration: "10 minutes / level",
+    saving_throw: "Will half",
+    spell_resistance: false,
+    descriptors: [Good],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "shaman/hex/bone-ward", blueprint: "96a99ea4866da4b4cbd51b81f1a61a72", name: "Bone Ward", summary: "Bones: a warded ally gets +2 deflection to AC for class level rounds; +3 for a minute at 8th, +4 for an hour at 16th.", guide: "shaman#bone-ward", prerequisite: SelectionOption("shaman/spirit/bones"))

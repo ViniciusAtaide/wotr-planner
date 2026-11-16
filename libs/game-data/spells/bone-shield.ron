@@ -1,0 +1,14 @@
+(
+    key: "bone-shield",
+    blueprint: "0093fc0098c984c43ac239d1211d1311",
+    name: "Bone Shield",
+    school: Abjuration,
+    guide: "lich#bone-shield-abjuration",
+    summary: "You can't be critically hit and gain a +6 shield bonus to AC.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

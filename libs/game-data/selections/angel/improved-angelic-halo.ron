@@ -1,0 +1,15 @@
+(
+    key: "angel/improved-angelic-halo",
+    blueprint: "bdbc41e2bad92a640bd58acf74e2af8b",
+    name: "Improved Angelic Halo",
+    summary: "At ranks 5, 7 and 9, add one improvement to Angelic Halo.",
+    guide: "angel#improved-angelic-halo",
+    options: [
+        "angel/improved-angelic-halo/blinding-light",
+        "angel/improved-angelic-halo/burning-bright",
+        "angel/improved-angelic-halo/flame-of-life",
+        "angel/improved-angelic-halo/piercing-rays",
+        "angel/improved-angelic-halo/solar-winds",
+        "angel/improved-angelic-halo/unfailing-beacon",
+    ],
+)

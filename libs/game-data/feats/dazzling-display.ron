@@ -1,0 +1,1 @@
+(key: "dazzling-display", blueprint: "bcbd674ec70ff6f4894bb5f07b6f4095", name: "Dazzling Display", summary: "Try to demoralise everyone hostile within 30 ft at once, using Persuasion and a full-round action.", category: Weapon, guide: "feats#dazzling-display", prerequisite: Feat("weapon-focus"))

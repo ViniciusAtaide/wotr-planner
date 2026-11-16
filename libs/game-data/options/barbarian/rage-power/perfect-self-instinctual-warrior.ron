@@ -1,0 +1,1 @@
+(key: "barbarian/rage-power/perfect-self-instinctual-warrior", blueprint: "07777880a89d434c896660e4a521df92", name: "Perfect Self (Instinctual Warrior)", guide: "barbarian#rage-power-instinctual-warrior", prerequisite: All([ClassLevel(class: "barbarian", level: 20), Archetype("barbarian/instinctual-warrior")]))

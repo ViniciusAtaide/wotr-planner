@@ -1,0 +1,23 @@
+(
+    key: "monk/sohei",
+    class: "monk",
+    blueprint: "fad7c56737ed12e42aacc330acc86428",
+    name: "Sohei",
+    summary: "Mounted monk with a horse, weapon training and martial weapons, losing most unarmed bonuses.",
+    guide: "monk#sohei",
+    class_skills: ["athletics", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth"],
+    levels: [
+        (level: 1, features: ["monk/ac-bonus", "monk/sohei/devoted-guardian", "monk/sohei/flurry-of-blows-sohei", "monk/sohei/monastic-mount", "monk/sohei/sohei-proficiencies"], feats: ["armor-proficiency-light-armor", "improved-unarmed-strike", "martial-weapons-proficiency", "simple-weapon-proficiency"], feat_slots: [OneOf(list: "monk/sohei/bonus-feats-1")]),
+        (level: 2, features: ["evasion"], feat_slots: [OneOf(list: "monk/sohei/bonus-feats-1")]),
+        (level: 3, features: ["monk/ki-pool", "monk/ki-power-extra-attack", "monk/ki-strike-magic"]),
+        (level: 4, features: ["monk/sohei/ki-weapon", "monk/still-mind"]),
+        (level: 6, features: ["monk/sohei/weapon-training"], feat_slots: [OneOf(list: "monk/sohei/bonus-feats-6")], selections: ["monk/ki-power"]),
+        (level: 8, features: ["monk/sohei/ki-weapon"], selections: ["monk/ki-power"]),
+        (level: 10, features: ["monk/ki-strike-lawful"], feat_slots: [OneOf(list: "monk/sohei/bonus-feats-10")], selections: ["monk/ki-power"]),
+        (level: 12, features: ["monk/sohei/ki-weapon", "monk/sohei/weapon-training"], selections: ["monk/ki-power"]),
+        (level: 14, feat_slots: [OneOf(list: "monk/sohei/bonus-feats-10")], selections: ["monk/ki-power"]),
+        (level: 16, features: ["monk/ki-strike-adamantine", "monk/sohei/ki-weapon"], selections: ["monk/ki-power"]),
+        (level: 18, features: ["monk/sohei/weapon-training"], feat_slots: [OneOf(list: "monk/sohei/bonus-feats-10")], selections: ["monk/ki-power"]),
+        (level: 20, features: ["monk/ki-power-perfect-self", "monk/sohei/ki-weapon"], selections: ["monk/ki-power"]),
+    ],
+)

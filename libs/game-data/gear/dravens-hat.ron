@@ -1,0 +1,17 @@
+(
+    key: "dravens-hat",
+    blueprint: "0160c8eabe704db41b6309af0d26a8e0",
+    name: "Draven's Hat",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 2, kind: Profane),
+    ],
+    always_on: [
+        "Slow and Haste spells are quickened",
+    ],
+    other_effects: [
+        "Once a day: any spell can be quickened.",
+        "Good characters cannot wear it.",
+    ],
+)

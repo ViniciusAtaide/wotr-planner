@@ -1,0 +1,13 @@
+(
+    key: "waves-of-exhaustion",
+    blueprint: "3e4d3b9a5bd03734d9b053b9067c2f38",
+    name: "Waves of Exhaustion",
+    school: Necromancy,
+    guide: "wizard-spells#waves-of-exhaustion-necromancy",
+    summary: "Every living creature in the cone becomes exhausted.",
+    target: "All creatures within a 50' cone",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

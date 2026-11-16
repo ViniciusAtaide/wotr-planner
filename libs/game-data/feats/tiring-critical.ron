@@ -1,0 +1,1 @@
+(key: "tiring-critical", blueprint: "12c1b556df3b667458ae200bfb38ccb8", name: "Tiring Critical", summary: "Your critical hits leave the target fatigued.", category: Weapon, guide: "feats#tiring-critical", prerequisite: All([Feat("critical-focus"), BaseAttackBonus(13)]))

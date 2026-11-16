@@ -1,0 +1,1 @@
+(key: "deflect-arrows", blueprint: "2c61fdbf242866f4e93c3e1477fb96b5", name: "Deflect Arrows", summary: "Once a round, with a hand free, a ranged attack that would hit you is deflected at no action cost.", category: UnarmedCombat, guide: "feats#deflect-arrows", prerequisite: All([Feat("improved-unarmed-strike"), AbilityScore(ability: Dexterity, score: 13)]))

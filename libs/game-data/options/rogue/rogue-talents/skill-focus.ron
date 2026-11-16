@@ -1,0 +1,1 @@
+(key: "rogue/rogue-talents/skill-focus", blueprint: "c9629ef9eebb88b479b2fbc5e836656a", name: "Skill Focus", summary: "Gains the Skill Focus feat.", guide: "rogue#skill-focus", chosen_feat: "skill-focus", repeat: PerValue)

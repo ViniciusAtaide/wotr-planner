@@ -1,0 +1,13 @@
+(
+    key: "cavalier/order/order-of-the-sword",
+    blueprint: "e7c6d3b394fcbb44ab8dfe7e8646dfad",
+    name: "Order of the Sword",
+    summary: "Chivalric order: +1 morale to attack (+1 per 4 levels) against your challenged foe while mounted; Lore (Religion) a class skill.",
+    guide: "cavalier#order-of-the-sword",
+    levels: [
+        (level: 1, class_skills: ["lore-religion"]),
+        (level: 2, features: ["cavalier/order/order-of-the-sword/by-my-honor"]),
+        (level: 8, features: ["cavalier/order/order-of-the-sword/mounted-combat-feat", "cavalier/order/order-of-the-sword/mounted-mastery"]),
+        (level: 15, features: ["cavalier/order/order-of-the-sword/knights-challenge"]),
+    ],
+)

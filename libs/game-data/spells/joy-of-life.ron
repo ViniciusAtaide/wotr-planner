@@ -1,0 +1,14 @@
+(
+    key: "joy-of-life",
+    blueprint: "50497d3b8d0b40e4682fd643f5080f45",
+    name: "Joy of Life",
+    school: Abjuration,
+    guide: "azata#joy-of-life-abjuration",
+    summary: "Restores companions' spells of 5th level and lower, and the party's attacks deal holy damage.",
+    target: "All allies within a 60' burst centred on caster",
+    duration: "1 round / 2 levels",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

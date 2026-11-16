@@ -1,0 +1,14 @@
+(
+    key: "fortress-of-the-faithful",
+    blueprint: "102e38aec2c921745a9f5c5e049d6526",
+    name: "Fortress of the Faithful",
+    school: Abjuration,
+    guide: "angel#fortress-of-the-faithful-abjuration",
+    summary: "As Aegis of the Faithful, but on every ally in the burst.",
+    target: "All allies within a 20' burst centred on the caster",
+    duration: "1 hour",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

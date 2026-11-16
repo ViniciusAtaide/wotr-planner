@@ -1,0 +1,1 @@
+(key: "lightning-reflexes-mythic", blueprint: "4e56fcc942a9f0645a2e01c071453647", name: "Lightning Reflexes (Mythic)", summary: "Roll Reflex saves twice and keep the better result.", group: Miscellaneous, guide: "mythic-paths#lightning-reflexes-mythic", prerequisite: Feat("lightning-reflexes"))

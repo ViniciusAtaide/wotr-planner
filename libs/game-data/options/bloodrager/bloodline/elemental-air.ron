@@ -1,0 +1,17 @@
+(
+    key: "bloodrager/bloodline/elemental-air",
+    blueprint: "777bc77d3dc652c488a20d1a7b0b95e5",
+    name: "Elemental (Air)",
+    summary: "Air (electricity): Elemental Strikes, resistance at 4th, +10 ft speed at 8th, 2d6 strikes at 12th, elemental form at 16th.",
+    guide: "bloodrager#elemental-bloodrager",
+    prerequisite: NoOtherOptionOfGroup(BloodragerElemental),
+    group: BloodragerElemental,
+    levels: [
+        (level: 1, features: ["bloodrager/bloodline/elemental/elemental-strikes"], feat_list: "bloodrager/bloodline/elemental/feats"),
+        (level: 4, features: ["bloodrager/bloodline/elemental/elemental-resistance"]),
+        (level: 8, features: ["bloodrager/bloodline/elemental/elemental-movement"]),
+        (level: 12, features: ["bloodrager/bloodline/elemental/power-of-the-elements"]),
+        (level: 16, features: ["bloodrager/bloodline/elemental/elemental-form"]),
+        (level: 20, features: ["bloodrager/bloodline/elemental/elemental-body"]),
+    ],
+)

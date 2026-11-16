@@ -1,0 +1,7 @@
+(
+    key: "augment-summoning",
+    name: "Augment Summoning",
+    category: Magic,
+    guide: "feats#augment-summoning",
+    prerequisite: FeatFor(feat: "spell-focus", value: SpellSchool(Conjuration)),
+)

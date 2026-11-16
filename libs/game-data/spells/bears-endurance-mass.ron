@@ -1,0 +1,14 @@
+(
+    key: "bears-endurance-mass",
+    blueprint: "f6bcea6db14f0814d99b54856e918b92",
+    name: "Bear's Endurance, Mass",
+    school: Transmutation,
+    guide: "wizard-spells#bears-endurance-mass-transmutation",
+    summary: "Allies in the burst gain +4 enhancement to Constitution.",
+    target: "All allies within 30' burst, centred on target creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,13 @@
+(
+    key: "belt-of-the-venerated-champion",
+    blueprint: "87c5f3e1b5a01d0448d550b727f45cb4",
+    name: "Belt of the Venerated Champion",
+    slot: Belt,
+    guide: "items#belts",
+    bonuses: [
+        (target: Ability(Constitution), amount: 6, kind: Enhancement),
+    ],
+    other_effects: [
+        "Against evil creatures: +2 on Fortitude saves and +1 insight to AC.",
+    ],
+)

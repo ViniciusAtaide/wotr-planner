@@ -1,0 +1,14 @@
+(
+    key: "arbitrament",
+    blueprint: "0f5bd128c76dd374b8cb9111e3b5186b",
+    name: "Arbitrament",
+    school: Evocation,
+    guide: "cleric-spells#arbitrament-evocation",
+    summary: "LG, CG, LE and CE creatures within 40 ft with HD at most your caster level are sickened, staggered, nauseated or killed, worse the lower their HD; Will negates.",
+    target: "All creatures within 40' of caster",
+    duration: "Varies",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [Sonic],
+    casting_time: Standard,
+)

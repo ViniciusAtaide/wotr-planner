@@ -1,0 +1,15 @@
+(
+    key: "ranger/flamewarden",
+    class: "ranger",
+    blueprint: "300917c3479d27d47b4b4b52b1762e8d",
+    name: "Flamewarden",
+    summary: "Ranger with fire powers instead of an animal companion.",
+    guide: "ranger#flamewarden",
+    levels: [
+        (level: 4, features: ["ranger/flamewarden/spellcasting", "ranger/flamewarden/touch-of-flame"]),
+        (level: 9, features: ["evasion", "ranger/flamewarden/stoking-the-embers"]),
+        (level: 12, features: ["ranger/flamewarden/burning-renewal", "ranger/flamewarden/touch-of-flame"]),
+        (level: 16, features: ["ranger/flamewarden/phoenix-blast", "improved-evasion"]),
+        (level: 20, features: ["ranger/favored-enemy", "ranger/flamewarden/phoenix-rising"]),
+    ],
+)

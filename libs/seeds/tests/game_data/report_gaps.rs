@@ -71,15 +71,9 @@ fn the_totem_rage_powers_are_exclusive_one_line_per_character() {
         }
     }
     let rage_power = DATA
-        .classes
-        .iter()
-        .find(|class| class.key.as_str() == "barbarian")
-        .unwrap()
-        .selections
-        .iter()
-        .find(|selection| selection.key.as_str() == "barbarian/rage-power")
+        .selection(&rules::FeatureSelectionKey::new("barbarian/rage-power"))
         .unwrap();
-    for option in &rage_power.options {
+    for option in DATA.options_of(rage_power) {
         if !option.key.as_str().contains("-totem") {
             assert_eq!(ruled_out(option.prerequisite.as_ref()), BTreeSet::new());
         }
@@ -161,7 +155,7 @@ fn an_eldritch_scoundrel_holds_the_rogues_own_sneak_attack_at_1_3_7_11_15_and_19
             sheet
                 .at(level)
                 .unwrap()
-                .feature_count(&FeatureKey::new("rogue/sneak-attack"))
+                .feature_count(&FeatureKey::new("sneak-attack"))
         })
         .collect();
     assert_eq!(
@@ -207,8 +201,7 @@ fn bloodline_feats(bloodlines: &[&str]) -> BTreeSet<String> {
         .iter()
         .flat_map(|bloodline| {
             let key = format!("sorcerer/bloodline/{bloodline}/feats");
-            class("sorcerer")
-                .feat_lists
+            DATA.feat_lists
                 .iter()
                 .find(|list| list.key.as_str() == key)
                 .unwrap_or_else(|| panic!("no list {key}"))

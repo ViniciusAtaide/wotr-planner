@@ -1,0 +1,1 @@
+(key: "cleric/domain/darkness/touch-of-darkness", blueprint: "9dc5863168155854fa8daf4a780f6663", name: "Touch of Darkness", summary: "Touch gives a creature a 20% miss chance for half your class level in rounds; 3 + Wisdom modifier uses a day.", guide: "character-creation#darkness-domain")

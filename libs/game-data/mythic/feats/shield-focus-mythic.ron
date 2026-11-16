@@ -1,0 +1,1 @@
+(key: "shield-focus-mythic", blueprint: "502434c044c16304a92901a0b25d5216", name: "Shield Focus (Mythic)", summary: "Touch AC includes your shield bonus plus the shield\'s enhancement bonus.", group: ArmourAndShield, guide: "mythic-paths#shield-focus-mythic", prerequisite: Feat("shield-focus"))

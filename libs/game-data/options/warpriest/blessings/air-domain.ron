@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/air-domain",
+    blueprint: "e1ff99dc3aeaa064e8eecde51c1c4773",
+    name: "Air Domain",
+    summary: "Minor: an ally's ranged attacks don't provoke for 1 minute. Major (10th): an ally flies for 1 minute and adds your level as electricity damage on charges.",
+    guide: "warpriest#air-domain",
+    domain: "cleric/domain/air",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/air-domain/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/air-domain/major-blessing"]),
+    ],
+)

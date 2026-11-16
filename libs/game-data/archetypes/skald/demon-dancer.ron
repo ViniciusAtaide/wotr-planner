@@ -1,0 +1,17 @@
+(
+    key: "skald/demon-dancer",
+    class: "skald",
+    blueprint: "9c46c4e4303e5da40b63faa6df18e2c2",
+    name: "Demon Dancer",
+    summary: "Skald with Fiend Totem powers whose Inspired Rage gives allies a bite and, from 7th, +1 attack and damage that hurts them if they switch targets.",
+    guide: "skald#demon-dancer",
+    levels: [
+        (level: 3, features: ["skald/demon-dancer/fiendish-maw"]),
+        (level: 6, features: ["skald/demon-dancer/fiend-totem", "skald/song-of-strength"]),
+        (level: 7, features: ["skald/demon-dancer/demonic-conquest", "skald/demon-dancer/fiendish-maw", "lore-master", "skald/raging-song-move-action"], selections: ["rogue/rogue-talents"]),
+        (level: 9, features: ["skald/damage-reduction"]),
+        (level: 10, features: ["dirge-of-doom", "skald/demon-dancer/fiend-totem-greater"]),
+        (level: 12, features: ["skald/demon-dancer/fiendish-maw"], selections: ["barbarian/rage-power", "rogue/rogue-talents"]),
+        (level: 17, features: ["skald/demon-dancer/fiendish-maw"], selections: ["rogue/rogue-talents"]),
+    ],
+)

@@ -59,17 +59,7 @@ fn strings(keys: &[&str]) -> BTreeSet<String> {
 /// The world with `skills` as the class skills of `bloodline`'s row at `level` (added if it has none there).
 fn world_with_row_skills(bloodline: &str, level: u8, skills: &[&str]) -> GameData {
     let mut data = world();
-    let sorcerer = data
-        .classes
-        .iter_mut()
-        .find(|c| c.key.as_str() == "sorcerer")
-        .unwrap();
-    let option = sorcerer
-        .selections
-        .iter_mut()
-        .flat_map(|selection| selection.options.iter_mut())
-        .find(|option| option.key.as_str() == bloodline)
-        .unwrap();
+    let option = option_mut(&mut data, bloodline);
     let row = match option.levels.iter().position(|row| row.level == level) {
         Some(index) => &mut option.levels[index],
         None => {

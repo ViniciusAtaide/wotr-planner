@@ -1,0 +1,18 @@
+// Glasses.
+(
+    key: "goggles-of-ferocious-pact",
+    blueprint: "76d219c4b02f2d64bbf15363565647c3",
+    name: "Goggles of Ferocious Pact",
+    slot: Glasses,
+    guide: "items#glasses",
+    bonuses: [
+        (target: Ability(Wisdom), amount: 2, kind: Enhancement),
+        (target: Save(Will), amount: 3),
+        (target: Save(Fortitude), amount: -2),
+        (target: Skill("persuasion"), amount: -5),
+    ],
+    always_on: [
+        "AC -2",
+        "Damage +4",
+    ],
+)

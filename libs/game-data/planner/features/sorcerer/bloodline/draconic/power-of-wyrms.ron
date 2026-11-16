@@ -1,0 +1,4 @@
+(
+    why: "The game has one blueprint per dragon colour, element, energy, form or bloodline, none of them primary; the planner holds one entry for whichever is held.",
+    entry: (key: "sorcerer/bloodline/draconic/power-of-wyrms", name: "Power of Wyrms", summary: "At 20th level: immunity to paralysis, sleep and your bloodline's energy type, plus 60-foot blindsense.", guide: "character-creation#power-of-wyrms"),
+)

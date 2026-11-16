@@ -1,0 +1,20 @@
+(
+    key: "trickster/improved-mythic-trick",
+    blueprint: "5cd96c3460844fc458dc3e1656dafa42",
+    name: "Improved Mythic Trick",
+    summary: "At ranks 4, 6, 8 and 9, raise one of your first-tier mythic tricks to its second tier.",
+    guide: "trickster#improved-mythic-trick",
+    options: [
+        "trickster/improved-mythic-trick/athletics-ii",
+        "trickster/improved-mythic-trick/knowledge-arcana-ii",
+        "trickster/improved-mythic-trick/knowledge-world-ii",
+        "trickster/improved-mythic-trick/lore-nature-ii",
+        "trickster/improved-mythic-trick/lore-religion-ii",
+        "trickster/improved-mythic-trick/mobility-ii",
+        "trickster/improved-mythic-trick/perception-ii",
+        "trickster/improved-mythic-trick/persuasion-ii",
+        "trickster/improved-mythic-trick/reuse-magic-device",
+        "trickster/improved-mythic-trick/stealth-ii",
+        "trickster/improved-mythic-trick/trickery-ii",
+    ],
+)

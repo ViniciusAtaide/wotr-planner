@@ -1,0 +1,14 @@
+(
+    key: "expeditious-retreat",
+    blueprint: "4f8181e7a7f1d904fbaea64220e83379",
+    name: "Expeditious Retreat",
+    school: Transmutation,
+    guide: "wizard-spells#expeditious-retreat-transmutation",
+    summary: "Your base speed rises by 30 ft.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

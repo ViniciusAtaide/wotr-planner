@@ -1,0 +1,1 @@
+(key: "shaman/unsworn-shaman/minor-spirit", blueprint: "66ac87c379d8fd241b2e6bd3b4ae8774", name: "Minor Spirit", summary: "Each day pick a basic shaman or witch hex, one more every fourth level; from 2nd, a wandering spirit's hex instead.", guide: "shaman#minor-spirit", daily_choice: true)

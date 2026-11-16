@@ -1,0 +1,14 @@
+(
+    key: "equal-force",
+    blueprint: "47c80ed8e725ede4d91f06eddcc3e75a",
+    name: "Equal Force",
+    school: Abjuration,
+    guide: "aeon#equal-force-abjuration",
+    summary: "The target's attacks at full BAB take -2, while its attacks at BAB -10 or lower gain +5.",
+    target: "One friendly creature within close range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

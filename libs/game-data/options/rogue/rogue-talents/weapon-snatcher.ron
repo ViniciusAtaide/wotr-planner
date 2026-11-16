@@ -1,0 +1,1 @@
+(key: "rogue/rogue-talents/weapon-snatcher", blueprint: "ffced614e1f95e34d99df77debbc4207", name: "Weapon Snatcher", summary: "Uses a Trickery check instead of a combat manoeuvre check to disarm.", guide: "rogue#weapon-snatcher", prerequisite: Feature(feature: "advanced-talents", count: 1))

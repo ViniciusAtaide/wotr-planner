@@ -1,0 +1,14 @@
+(
+    key: "overwhelming-presence",
+    blueprint: "41cf93453b027b94886901dbfc680cb9",
+    name: "Overwhelming Presence",
+    school: Enchantment,
+    guide: "wizard-spells#overwhelming-presence-enchantment",
+    summary: "Enemies who fail the save prostrate themselves, saving each round; breaking free costs 1d6 Wisdom damage and 1d4 rounds staggered (1 round if saved at once).",
+    target: "All enemies within 30' burst centred on target creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

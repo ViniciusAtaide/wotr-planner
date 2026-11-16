@@ -1,0 +1,7 @@
+(
+    key: "extra-ki",
+    name: "Extra Ki",
+    category: Class,
+    guide: "feats#extra-ki",
+    repeat: Unlimited,
+)

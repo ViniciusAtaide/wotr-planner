@@ -1,0 +1,1 @@
+(key: "kineticist/element/earth/wild-talent-feats", blueprint: "28bd446d8aeab1341acc8d2fba91e455", name: "Wild Talent Bonus Feats (Earth)", guide: "kineticist#elemental-focus-earth", ignores_prerequisites: true, feats: ["endurance", "great-fortitude", "greater-trip", "improved-great-fortitude", "trip"])

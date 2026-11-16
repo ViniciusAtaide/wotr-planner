@@ -1,0 +1,1 @@
+(key: "kineticist/infusions/synaptic-infusion", blueprint: "53c80f136f2bf65409d358f28b0c5bb4", name: "Synaptic Infusion", summary: "Substance, 2 Burn, electric blasts: the target is staggered for 1 round (Will negates).", guide: "kineticist#synaptic-infusion", prerequisite: All([ClassLevel(class: "kineticist", level: 6), SelectionOption("kineticist/element/air")]))

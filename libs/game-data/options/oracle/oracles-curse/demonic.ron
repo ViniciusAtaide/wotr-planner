@@ -1,0 +1,13 @@
+(
+    key: "oracle/oracles-curse/demonic",
+    blueprint: "a565a4eb482424548ad2bcc1b6f6ff61",
+    name: "Demonic",
+    summary: "-3 Persuasion for diplomacy, +2 Bluff and Intimidate; +4 vs fear at 5th, poison immunity at 10th, chaotic evil weapons at 15th.",
+    guide: "oracle#demonic",
+    levels: [
+        (level: 1, features: ["oracle/oracles-curse/demonic/level-1"], class_skills: ["persuasion"]),
+        (level: 5, features: ["oracle/oracles-curse/demonic/level-5"]),
+        (level: 10, features: ["oracle/oracles-curse/demonic/level-10"]),
+        (level: 15, features: ["oracle/oracles-curse/demonic/level-15"]),
+    ],
+)

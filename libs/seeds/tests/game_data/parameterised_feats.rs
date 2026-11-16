@@ -506,9 +506,10 @@ fn rage_powers_discoveries_incense_and_mutations_repeat_as_the_guide_says() {
     // The two whose repeat differs from the game's wait in their own tests: New Strain in
     // plague_mutation_new_strain_repeats_four_times, the rogue's Weapon Focus talent in repeating_talents.rs.
     const WAITING: [&str; 2] = [NEW_STRAIN, "rogue/rogue-talents/weapon-focus"];
-    let options: HashMap<&str, Repeat> = DATA
-        .class_selections()
-        .flat_map(|selection| &selection.options)
+    let options: HashMap<&str, Repeat> = all_class_grants()
+        .selections
+        .into_iter()
+        .flat_map(|selection| DATA.options_of(selection))
         .filter(|option| option.repeat != Repeat::Once && !WAITING.contains(&option.key.as_str()))
         .map(|option| (option.key.as_str(), option.repeat))
         .collect();

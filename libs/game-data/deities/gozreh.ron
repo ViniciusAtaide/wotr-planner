@@ -1,0 +1,9 @@
+(
+    key: "gozreh",
+    blueprint: "4af983eec2d821b40a3065eb5e8c3a72",
+    name: "Gozreh",
+    guide: "character-creation#deities",
+    alignments: [NeutralGood, LawfulNeutral, TrueNeutral, ChaoticNeutral, NeutralEvil],
+    favoured_weapons: ["trident"],
+    domains: ["cleric/domain/air", "cleric/domain/animal", "cleric/domain/plant", "cleric/domain/water", "cleric/domain/weather"],
+)

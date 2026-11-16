@@ -1,0 +1,9 @@
+(
+    key: "zon-kuthon",
+    blueprint: "f7eed400baa66a744ad361d4df0e6f1b",
+    name: "Zon-Kuthon",
+    guide: "character-creation#deities",
+    alignments: [LawfulNeutral, LawfulEvil, NeutralEvil],
+    favoured_weapons: ["flail"],
+    domains: ["cleric/domain/darkness", "cleric/domain/death", "cleric/domain/destruction", "cleric/domain/evil", "cleric/domain/law"],
+)

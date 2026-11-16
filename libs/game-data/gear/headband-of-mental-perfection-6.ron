@@ -1,0 +1,12 @@
+(
+    key: "headband-of-mental-perfection-6",
+    blueprint: "6d7992679c557c842887c8bba08a12c8",
+    name: "Headband of Mental Perfection +6",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 6, kind: Enhancement),
+        (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+        (target: Ability(Charisma), amount: 6, kind: Enhancement),
+    ],
+)

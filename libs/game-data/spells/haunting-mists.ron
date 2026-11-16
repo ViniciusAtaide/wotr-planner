@@ -1,0 +1,14 @@
+(
+    key: "haunting-mists",
+    blueprint: "ed22aa8751c049fa915dabfa29712c08",
+    name: "Haunting Mists",
+    school: Illusion,
+    guide: "wizard-spells#haunting-mists-illusion",
+    summary: "Mist gives total concealment (50% miss chance); creatures inside that fail a Will save take 1d2 Wisdom damage and are shaken 1d4 rounds.",
+    target: "Target point within close range, 20' burst",
+    duration: "1 round / level",
+    saving_throw: "Will partial",
+    spell_resistance: false,
+    descriptors: [Fear],
+    casting_time: Standard,
+)

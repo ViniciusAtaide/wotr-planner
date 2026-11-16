@@ -1,0 +1,11 @@
+(
+    key: "oracle/maneuver-mastery/disarm",
+    blueprint: "8142f89d36cc52243ad1cfd48ce8f655",
+    name: "Disarm",
+    summary: "Disarm uses your class level instead of BAB for CMB; its Improved feat at 7th level and Greater feat at 11th.",
+    guide: "oracle#maneuver-mastery",
+    levels: [
+        (level: 7, feats: ["disarm"]),
+        (level: 11, feats: ["greater-disarm"]),
+    ],
+)

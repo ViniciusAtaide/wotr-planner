@@ -1,0 +1,11 @@
+(
+    key: "sorcerer",
+    name: "Sorcerer Spells",
+    guide: "wizard-spells",
+    owner: Class("sorcerer"),
+    used_by: [Archetype("rogue/eldritch-scoundrel")],
+    entries: [
+        (level: 0, spell: "dismiss-spell"),
+        (level: 5, spell: "hold-monster"),
+    ],
+)

@@ -1,0 +1,11 @@
+(
+    key: "kineticist/psychokineticist",
+    class: "kineticist",
+    blueprint: "f2847dd4b12fffd41beaa3d7120d27ad",
+    name: "Psychokineticist",
+    summary: "Kineticist using Wisdom in place of Constitution.",
+    guide: "kineticist#psychokineticist",
+    levels: [
+        (level: 1, features: ["kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast", "kineticist/psychokineticist/emotional-intensity", "kineticist/psychokineticist/mind-burn"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["kineticist/element"]),
+    ],
+)

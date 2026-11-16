@@ -1,0 +1,14 @@
+(
+    key: "headband-of-the-wise-negotiator",
+    blueprint: "7c1eadbabbfb8fb4cb6578d44c109469",
+    name: "Headband of the Wise Negotiator",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Charisma), amount: 4, kind: Enhancement),
+        (target: Ability(Wisdom), amount: 4, kind: Enhancement),
+    ],
+    always_on: [
+        "Saves +4 vs mind-affecting",
+    ],
+)

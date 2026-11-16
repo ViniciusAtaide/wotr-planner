@@ -1,0 +1,1 @@
+(key: "gold-dragon/dragon-might", name: "Dragon Might", guide: "gold-dragon#dragon-might", ability_bonuses: [Fixed(ability: Strength, amount: 2), Fixed(ability: Constitution, amount: 2)], bab_at_least_mythic_rank_plus: 15, skill_ranks_at_least_mythic_rank: true)

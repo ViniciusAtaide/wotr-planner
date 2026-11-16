@@ -1,0 +1,21 @@
+(
+    key: "bloodrager/reformed-fiend",
+    class: "bloodrager",
+    blueprint: "d55163eed9214367820654f0ebe0ff69",
+    name: "Reformed Fiend",
+    summary: "Good tiefling with the Abyssal or Infernal bloodline: bonus attack and damage against evil while raging, and DR/evil.",
+    guide: "bloodrager#reformed-fiend",
+    prerequisite: All([Any([Alignment(LawfulGood), Alignment(NeutralGood), Alignment(ChaoticGood)]), Race("tiefling")]),
+    levels: [
+        (level: 1, features: ["bloodrager/bloodrage", "fast-movement"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["bloodrager/reformed-fiend/bloodline"]),
+        (level: 5, features: ["bloodrager/reformed-fiend/hatred-against-evil", "improved-uncanny-dodge"]),
+        (level: 7, features: ["bloodrager/reformed-fiend/bloodline-spell-1st", "bloodrager/reformed-fiend/damage-reduction-reformed-fiend"]),
+        (level: 10, features: ["bloodrager/reformed-fiend/bloodline-spell-2nd", "bloodrager/reformed-fiend/damage-reduction-reformed-fiend", "bloodrager/reformed-fiend/hatred-against-evil"]),
+        (level: 11, features: ["bloodrager/greater-bloodrage", "bloodrager/reformed-fiend/way-of-redemption"]),
+        (level: 13, features: ["bloodrager/reformed-fiend/bloodline-spell-3rd", "bloodrager/reformed-fiend/damage-reduction-reformed-fiend"]),
+        (level: 15, features: ["bloodrager/reformed-fiend/hatred-against-evil"], feat_slots: [OptionList(selection: "bloodrager/bloodline")]),
+        (level: 16, features: ["bloodrager/reformed-fiend/bloodline-spell-4th", "bloodrager/reformed-fiend/damage-reduction-reformed-fiend"]),
+        (level: 19, features: ["bloodrager/reformed-fiend/damage-reduction-reformed-fiend"]),
+        (level: 20, features: ["bloodrager/mighty-bloodrage", "bloodrager/reformed-fiend/hatred-against-evil"]),
+    ],
+)

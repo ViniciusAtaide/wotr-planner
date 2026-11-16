@@ -1,0 +1,13 @@
+(
+    key: "destruction",
+    blueprint: "3b646e1db3403b940bf620e01d2ce0c7",
+    name: "Destruction",
+    school: Necromancy,
+    guide: "cleric-spells#destruction-necromancy",
+    summary: "Deals 10 damage per caster level, or 10d6 if the target makes its Fortitude save.",
+    target: "One enemy creature within close range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Death],
+    casting_time: Standard,
+)

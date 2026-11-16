@@ -1,0 +1,17 @@
+(
+    key: "magus/arcane-rider",
+    class: "magus",
+    blueprint: "2dff80a045794cb9b5452fe7b66b79d7",
+    name: "Arcane Rider",
+    summary: "Mounted magus whose arcane pool also empowers their horse; loses medium and heavy armour and Spell Recall.",
+    guide: "magus#arcane-rider",
+    levels: [
+        (level: 1, features: ["magus/arcane-pool", "magus/arcane-rider/arcane-mount", "magus/magus-proficiencies", "magus/spell-combat"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
+        (level: 4),
+        (level: 7),
+        (level: 8, features: ["magus/arcane-rider/dimensional-ride", "magus/improved-spell-combat"]),
+        (level: 11, feat_slots: [General]),
+        (level: 13, features: ["arcane-weapon-4"]),
+        (level: 14, features: ["magus/arcane-rider/greater-dimensional-ride", "magus/greater-spell-combat"]),
+    ],
+)

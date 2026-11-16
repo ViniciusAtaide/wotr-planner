@@ -64,18 +64,12 @@ fn monk_of(archetype: &str, levels: usize) -> Build {
 #[test]
 fn ki_powers_are_a_selection_of_14_with_their_level() {
     let monk = class("monk");
-    let selection = monk
-        .selections
-        .iter()
-        .find(|selection| selection.key.as_str() == KI_POWER)
+    let selection = DATA
+        .selection(&rules::FeatureSelectionKey::new(KI_POWER))
         .expect("the ki power selection");
     // Game: MonkKiPowerSelection 3049386713ff04245a38b32483362551: these 14 options.
     assert_eq!(selection.name, "Ki Power");
-    let keys: BTreeSet<String> = selection
-        .options
-        .iter()
-        .map(|o| o.key.to_string())
-        .collect();
+    let keys: BTreeSet<String> = selection.options.iter().map(|o| o.to_string()).collect();
     let expected: BTreeSet<String> = KI_POWERS.iter().map(|(name, _)| ki_power(name)).collect();
     assert_eq!(keys, expected);
     // Game: each row's blueprint in KI_POWERS.
@@ -90,7 +84,7 @@ fn ki_powers_are_a_selection_of_14_with_their_level() {
         );
     }
     assert!(
-        monk.features
+        DATA.features
             .iter()
             .all(|feature| feature.key.as_str() != KI_POWER)
     );
@@ -99,9 +93,8 @@ fn ki_powers_are_a_selection_of_14_with_their_level() {
         monk.levels
             .iter()
             .all(|row| !row.features.contains(&feature))
-            && monk
-                .archetypes
-                .iter()
+            && DATA
+                .archetypes_of(&monk.key)
                 .flat_map(|a| &a.levels)
                 .all(|row| !row.features.contains(&feature))
     );
@@ -159,7 +152,7 @@ fn every_monk_archetype_picks_a_ki_power_at_its_tables_levels() {
         assert!(possible(&filled), "{archetype} filled");
     }
     // Game: MonkClass e8f21e5b58e0569468e420ebea456124 lists 8 archetypes.
-    assert_eq!(class("monk").archetypes.len(), 8);
+    assert_eq!(DATA.archetypes_of(&class("monk").key).count(), 8);
 }
 
 /// The game's Drunken Master picks from its own list of 12 ki powers, which has neither Diamond Body nor Diamond Soul.
@@ -290,9 +283,8 @@ fn a_traditional_monk_gains_its_fixed_ki_powers_and_picks_none() {
     // MonkProgression 8a91753b978e3b34b9425419179aafd6.
     assert!(holds(sheet.at(8).unwrap(), "monk/stunning-fist-sicken"));
     assert!(holds(sheet.at(10).unwrap(), "monk/ki-strike-lawful"));
-    let traditional = class("monk")
-        .archetypes
-        .iter()
+    let traditional = DATA
+        .archetypes_of(&class("monk").key)
         .find(|a| a.key.as_str() == "monk/traditional-monk")
         .unwrap();
     for level in [6, 10, 14] {

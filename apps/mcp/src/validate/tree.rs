@@ -202,12 +202,18 @@ impl Given {
                 class == needed
             }
             (Given::Class(class), Prerequisite::Feature { feature, .. }) => {
+                // The class's rows or one of its archetypes' grant it.
                 data.class(class).is_some_and(|class| {
-                    class.features.iter().any(|f| &f.key == feature)
-                        || class
-                            .archetypes
-                            .iter()
-                            .any(|archetype| archetype.features.iter().any(|f| &f.key == feature))
+                    class
+                        .levels
+                        .iter()
+                        .any(|row| row.features.contains(feature))
+                        || data.archetypes_of(&class.key).any(|archetype| {
+                            archetype
+                                .levels
+                                .iter()
+                                .any(|row| row.features.contains(feature))
+                        })
                 })
             }
             (Given::Archetype(archetype), Prerequisite::Archetype(needed)) => archetype == needed,

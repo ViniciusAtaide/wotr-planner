@@ -1,0 +1,1 @@
+(key: "metamagic-bolster-spell", blueprint: "fbf5d9ce931f47f3a0c818b3f8ef8414", name: "Metamagic (Bolster Spell)", summary: "+1 spell level: the spell deals +2 damage per die, and 2 damage per die to every enemy within 5 ft of its targets.", category: Magic, guide: "feats#metamagic-bolster-spell")

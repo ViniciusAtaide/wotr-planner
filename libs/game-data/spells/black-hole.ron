@@ -1,0 +1,14 @@
+(
+    key: "black-hole",
+    blueprint: "ea036c023f074c6c964d858607d123b3",
+    name: "Black Hole",
+    school: Conjuration,
+    guide: "aeon#black-hole-conjuration",
+    summary: "Huge or smaller creatures within 20 ft must pass a Reflex save to escape; any that fail must pass a Fortitude save or be disintegrated.",
+    target: "All enemies within a 20' burst centred on target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "See below",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,13 @@
+(
+    key: "arcana-theft",
+    blueprint: "b5f4ea77492d4f23ad3a6f429cbfa35e",
+    name: "Arcana Theft",
+    school: Abjuration,
+    guide: "arcanist#arcana-theft-abjuration",
+    summary: "A targeted Dispel Magic delivered by melee touch; any effect it dispels from the target passes to you.",
+    target: "One enemy creature within touch range",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

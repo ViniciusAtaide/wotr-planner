@@ -1,0 +1,1 @@
+(key: "oracle/revelations/battle/battlecry", blueprint: "9a67248ce68bd5f47a36d240ff8196e4", name: "Battlecry", summary: "Standard action: allies within 100 feet get +1 morale (+2 at 10th) to attack, skills and saves for Cha modifier rounds; 1/day, +1 per 5 levels.", guide: "oracle#battlecry", prerequisite: SelectionOption("oracle/mystery/battle"))

@@ -1,0 +1,7 @@
+(
+    key: "sorcerer/school",
+    name: "School",
+    guide: "character-creation#school-power",
+    level_from: GrantingOption,
+    options: ["sorcerer/school/evocation", "sorcerer/school/necromancy"],
+)

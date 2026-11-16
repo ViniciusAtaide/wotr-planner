@@ -1,0 +1,1 @@
+(key: "swarm-that-walks/devour", blueprint: "af8f79138da3a04429dd4a48d8098e6d", name: "Devour", summary: "Eat corpses to grow your swarm: each size step costs 100 x the next size in devoured CR (12,000 CR in all for size 15).", guide: "other-mythic-paths#devour")

@@ -158,7 +158,7 @@ fn the_selections_outside_the_features_band_are_the_games() {
         ("lich/skeleton-upgrade", Band::Path),
     ];
     let expected: BTreeMap<&str, Band> = expected.into_iter().collect();
-    let actual: BTreeMap<&str, Band> = (DATA.selections())
+    let actual: BTreeMap<&str, Band> = (DATA.selections.iter())
         .filter(|selection| selection.band != Band::Features)
         .map(|selection| (selection.key.as_str(), selection.band))
         .collect();
@@ -167,7 +167,7 @@ fn the_selections_outside_the_features_band_are_the_games() {
     // Game: SorcererBonusFeat d6dd06f454b34014ab0903cb1ed2ade3 (WizardFeat); RogueTalentSelection
     // c074a5d615200494b8f2a9c845799d93 (RogueTalent)
     let band = |key: &str| {
-        (DATA.selections())
+        (DATA.selections.iter())
             .find(|selection| selection.key.as_str() == key)
             .unwrap_or_else(|| panic!("no selection {key}"))
             .band

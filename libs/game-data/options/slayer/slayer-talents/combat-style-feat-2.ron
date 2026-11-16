@@ -1,0 +1,11 @@
+(
+    key: "slayer/slayer-talents/combat-style-feat-2",
+    blueprint: "c6d0da9124735a44f93ac31df803b9a9",
+    name: "Combat Style Feat (2nd or 4th level)",
+    summary: "A Ranger combat style feat taken as a slayer talent at 2nd or 4th level.",
+    guide: "slayer#slayer-talents",
+    prerequisite: All([Not(ClassLevel(class: "slayer", level: 6)), ClassLevel(class: "slayer", level: 2)]),
+    levels: [
+        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style", at_level: 2)], selections: ["slayer/combat-style"]),
+    ],
+)

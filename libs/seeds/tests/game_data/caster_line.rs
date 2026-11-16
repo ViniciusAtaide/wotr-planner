@@ -243,7 +243,8 @@ fn every_class_that_casts_has_its_casting_ability() {
     assert_eq!(ability("fighter"), None);
     assert_eq!(ability("dragon-disciple"), None);
     let archetype = |key: &str| {
-        DATA.archetypes()
+        DATA.archetypes
+            .iter()
             .find(|archetype| archetype.key.as_str() == key)
             .unwrap_or_else(|| panic!("no archetype {key}"))
             .casting_ability

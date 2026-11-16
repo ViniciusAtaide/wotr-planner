@@ -1,0 +1,14 @@
+(
+    key: "divine-power",
+    blueprint: "ef16771cb05d1344989519e87f25b3c5",
+    name: "Divine Power",
+    school: Evocation,
+    guide: "cleric-spells#divine-power-evocation",
+    summary: "You gain caster level in temp HP, an extra full-AB attack on full attacks, and +1 luck per three levels on attacks, damage, Strength checks and Strength skills.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

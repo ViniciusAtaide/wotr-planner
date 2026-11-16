@@ -1,0 +1,4 @@
+(
+    why: "A placeholder for the held bloodline's spell at this spell level: the game has one blueprint per bloodline and grants the held one's.",
+    entry: (key: "sorcerer/seeker-sorcerer/bloodline-spell-lvl-3", name: "Bloodline spell - Lvl 3", summary: "Adds your bloodline's 3rd-level bonus spell to your spells known.", guide: "sorcerer#seeker-sorcerer"),
+)

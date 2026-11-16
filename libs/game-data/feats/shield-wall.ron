@@ -1,0 +1,1 @@
+(key: "shield-wall", blueprint: "8976de442862f82488a4b138a0a89907", name: "Shield Wall", summary: "With a shield next to an ally who has this feat, your shield AC rises by +1 (ally's buckler or light shield) or +2 (heavy or tower).", category: Teamwork, guide: "feats#shield-wall", prerequisite: Feat("shield-proficiency"))

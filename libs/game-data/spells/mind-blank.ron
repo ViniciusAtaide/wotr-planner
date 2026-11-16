@@ -1,0 +1,14 @@
+(
+    key: "mind-blank",
+    blueprint: "df2a0ba6b6dcecf429cbb80a56fee5cf",
+    name: "Mind Blank",
+    school: Abjuration,
+    guide: "wizard-spells#mind-blank-abjuration",
+    summary: "The target adds a +8 resistance bonus to its saving throws versus every mind-affecting spell or effect.",
+    target: "One friendly creature within close range",
+    duration: "24 hours",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

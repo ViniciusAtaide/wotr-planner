@@ -1,0 +1,13 @@
+(
+    key: "burning-hands",
+    blueprint: "4783c3709a74a794dbe7c8e7e0b1b038",
+    name: "Burning Hands",
+    school: Evocation,
+    guide: "wizard-spells#burning-hands-evocation",
+    summary: "Creatures in the cone take 1d4 fire damage per caster level, up to 5d4.",
+    target: "15' cone",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Fire],
+    casting_time: Standard,
+)

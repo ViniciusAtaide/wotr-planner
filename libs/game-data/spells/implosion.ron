@@ -1,0 +1,14 @@
+(
+    key: "implosion",
+    blueprint: "78abd9a61abf4c80a8a8cf05ff55f033",
+    name: "Implosion",
+    school: Evocation,
+    guide: "cleric-spells#implosion-evocation",
+    summary: "Each round you can implode a creature for 10 damage per caster level (Fortitude negates); a new target costs a move action, each only once; incorporeal immune.",
+    target: "One enemy creature within close range",
+    duration: "1 round / 2 levels",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Divine],
+    casting_time: Standard,
+)

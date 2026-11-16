@@ -1,0 +1,1 @@
+(key: "back-to-back", blueprint: "c920f2cd2244d284aa69a146aeefcb2c", name: "Back to Back", summary: "+2 AC against the foes flanking you, as long as an ally with this feat stands beside you.", category: Teamwork, guide: "feats#back-to-back", prerequisite: SkillRanks(skill: "perception", ranks: 3))

@@ -1,0 +1,19 @@
+(
+    key: "alchemist/incense-synthesizer/incense-fog",
+    blueprint: "73d5950937bf0aa428e82c54c968f7e6",
+    name: "Incense Fog",
+    summary: "15-foot fog giving allies +1 attack and weapon damage for 3 + half level + Int rounds a day; a new incense at 3rd and every 3 levels.",
+    guide: "alchemist#incense-fog",
+    options: [
+        "alchemist/incense-synthesizer/incense-fog/incense-fog-clarifying-incense",
+        "alchemist/incense-synthesizer/incense-fog/incense-fog-greater-sacred-incense",
+        "alchemist/incense-synthesizer/incense-fog/incense-fog-improved-incense",
+        "alchemist/incense-synthesizer/incense-fog/incense-fog-increased-range",
+        "alchemist/incense-synthesizer/incense-fog/incense-fog-neutralizing-incense",
+        "alchemist/incense-synthesizer/incense-fog/incense-fog-rallying-incense",
+        "alchemist/incense-synthesizer/incense-fog/incense-fog-sacred-incense",
+        "alchemist/incense-synthesizer/incense-fog/incense-fog-thick-fog",
+        "alchemist/incense-synthesizer/incense-fog/incense-fog-toxic-incense",
+        "alchemist/incense-synthesizer/incense-fog/incense-fog-unsettling-fog",
+    ],
+)

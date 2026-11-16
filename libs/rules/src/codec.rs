@@ -252,9 +252,9 @@ impl LinkKeys {
         let mut keys = Self::default();
         for race in &data.races {
             keys.insert(KeyKind::Race, race.key.as_str());
-            for subrace in &race.subraces {
-                keys.insert(KeyKind::Subrace, subrace.key.as_str());
-            }
+        }
+        for subrace in &data.subraces {
+            keys.insert(KeyKind::Subrace, subrace.key.as_str());
         }
         for background in &data.backgrounds {
             keys.insert(KeyKind::Background, background.key.as_str());
@@ -271,7 +271,7 @@ impl LinkKeys {
         for class in data.all_classes() {
             keys.insert(KeyKind::Class, class.key.as_str());
         }
-        for archetype in data.archetypes() {
+        for archetype in &data.archetypes {
             keys.insert(KeyKind::Archetype, archetype.key.as_str());
         }
         for path in &data.mythic_paths {
@@ -280,7 +280,7 @@ impl LinkKeys {
         for feat in &data.feats {
             keys.insert(KeyKind::Feat, feat.key.as_str());
         }
-        for option in data.selections().flat_map(|selection| &selection.options) {
+        for option in &data.options {
             keys.insert(KeyKind::SelectionOption, option.key.as_str());
             // An option's old keys read as the option (Combat Healer (Life) as Combat Healer).
             for alias in &option.aliases {

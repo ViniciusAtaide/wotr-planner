@@ -1,0 +1,11 @@
+(
+    key: "oracle/maneuver-mastery/bull-rush",
+    blueprint: "485bfaffc5d906241ac2fb4529175279",
+    name: "Bull Rush",
+    summary: "Bull Rush uses your class level instead of BAB for CMB; its Improved feat at 7th level and Greater feat at 11th.",
+    guide: "oracle#maneuver-mastery",
+    levels: [
+        (level: 7, feats: ["bull-rush"]),
+        (level: 11, feats: ["greater-bull-rush"]),
+    ],
+)

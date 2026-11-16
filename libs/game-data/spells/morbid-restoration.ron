@@ -1,0 +1,13 @@
+(
+    key: "morbid-restoration",
+    blueprint: "8baeffb9caf081e449ce52bf7bdd6236",
+    name: "Morbid Restoration",
+    school: Transmutation,
+    guide: "demon#morbid-restoration-transmutation",
+    summary: "Heals the target 2d8 + 1 per caster level, plus 1d8 for each dead creature within 30 ft.",
+    target: "Only friendly creature within medium range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -134,19 +134,14 @@ impl Declared {
         address: &Address,
         value: &'a ChoiceValue,
     ) {
-        let data = &planner.data;
         let not_an_ability =
             |key: &str| format!("`{key}` isn't an ability: one of str, dex, con, int, wis, cha.");
         match (address, value) {
             (Address::Race, ChoiceValue::Key(key)) => {
                 let key = key_text(key);
                 // A subrace's key names its race too.
-                let subrace = data.races.iter().find_map(|race| {
-                    race.subraces
-                        .iter()
-                        .find(|subrace| subrace.key.as_str() == key)
-                        .map(|subrace| (race.key.clone(), subrace.key.clone()))
-                });
+                let subrace = (planner.engine.subrace(&SubraceKey::new(key.clone())))
+                    .map(|(race, subrace)| (race.key.clone(), subrace.key.clone()));
                 let start = &mut self.build.start;
                 match subrace {
                     Some((race, subrace)) => {
@@ -170,11 +165,7 @@ impl Declared {
                     _ => {
                         let start = &mut self.build.start;
                         if start.race.is_none() {
-                            start.race = data
-                                .races
-                                .iter()
-                                .find(|race| race.subraces.iter().any(|s| s.key == key))
-                                .map(|race| race.key.clone());
+                            start.race = (planner.engine.subrace(&key)).map(|(race, _)| race.key.clone());
                         }
                         start.subrace = Some(key);
                     }

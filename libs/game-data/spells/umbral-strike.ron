@@ -1,0 +1,14 @@
+(
+    key: "umbral-strike",
+    blueprint: "474ed0aa656cc38499cc9a073d113716",
+    name: "Umbral Strike",
+    school: Necromancy,
+    guide: "wizard-spells#umbral-strike-necromancy",
+    summary: "A ranged touch ray deals 1d6 per caster level (half cold, half negative energy) and blinds 1 round per level; a save halves it and stops the blindness.",
+    target: "One enemy creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

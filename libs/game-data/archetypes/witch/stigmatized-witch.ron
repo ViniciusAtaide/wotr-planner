@@ -1,0 +1,14 @@
+(
+    key: "witch/stigmatized-witch",
+    class: "witch",
+    blueprint: "c5f6e53e71059fb4d802ce81a277a12d",
+    name: "Stigmatized Witch",
+    summary: "Spontaneous Charisma-based witch with an oracle curse instead of a patron; 3 skill points per level.",
+    guide: "witch#stigmatized-witch",
+    casting_ability: Charisma,
+    skill_points: 3,
+    spontaneous: Some(true),
+    levels: [
+        (level: 1, features: ["witch/familiar", "witch-cantrips"], feats: ["simple-weapon-proficiency"], selections: ["witch/hex", "witch/stigmatized-witch/curse"]),
+    ],
+)

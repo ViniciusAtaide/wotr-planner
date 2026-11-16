@@ -1,0 +1,15 @@
+(
+    why: "No blueprint by name or display name in the game.",
+    entry: (
+        key: "burst-of-nettles",
+        name: "Burst of Nettles",
+        school: Conjuration,
+        guide: "druid-spells#burst-of-nettles-conjuration",
+        summary: "Creatures in the area take 3d6 damage now and 1d6 acid next round; a Reflex save halves the first hit and avoids the second.",
+        target: "Target point within close range, 10' burst",
+        saving_throw: "Reflex half",
+        spell_resistance: true,
+        descriptors: [Acid],
+        casting_time: Standard,
+    ),
+)

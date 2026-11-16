@@ -1,0 +1,1 @@
+(key: "wizard/wizard-proficiencies", blueprint: "a98d7cc4e30fe6c4bb3a2c2f69acc3fe", name: "Wizard Proficiencies", summary: "Club, dagger, heavy and light crossbow and quarterstaff.", guide: "wizard#wizard-proficiencies", weapons: ["club", "dagger", "heavy-crossbow", "light-crossbow", "quarterstaff"])

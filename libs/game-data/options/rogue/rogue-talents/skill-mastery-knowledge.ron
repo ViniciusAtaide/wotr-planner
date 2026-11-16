@@ -1,0 +1,1 @@
+(key: "rogue/rogue-talents/skill-mastery-knowledge", blueprint: "4b104a7319393494ca8d449a3b38a45f", name: "Skill Mastery (Knowledge)", summary: "Can take 10 on Knowledge (Arcana) and Knowledge (World) checks.", guide: "rogue#skill-mastery-knowledge", prerequisite: Feature(feature: "advanced-talents", count: 1))

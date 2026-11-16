@@ -1,0 +1,1 @@
+(key: "oracle/revelations/flame/cinder-dance", blueprint: "6e67eae3081853544b191943f5ed4534", name: "Cinder Dance", summary: "+10 feet base speed, and you ignore difficult terrain from 10th level; not with the Lame curse.", guide: "oracle#cinder-dance", prerequisite: All([SelectionOption("oracle/mystery/flame"), Not(SelectionOption("oracle/oracles-curse/lame"))]))

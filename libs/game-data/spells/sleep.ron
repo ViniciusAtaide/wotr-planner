@@ -1,0 +1,14 @@
+(
+    key: "sleep",
+    blueprint: "bb7ecad2d3d2c8247a38f44855c99061",
+    name: "Sleep",
+    school: Enchantment,
+    guide: "wizard-spells#sleep-enchantment",
+    summary: "Living creatures in the area, up to 4 HD in total, fall magically asleep and are helpless.",
+    target: "One enemy creature within close range, 30' burst",
+    duration: "1 minute / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Sleep],
+    casting_time: FullRound,
+)

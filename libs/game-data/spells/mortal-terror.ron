@@ -1,0 +1,14 @@
+(
+    key: "mortal-terror",
+    blueprint: "8bc127ed66044685957e54f19d8dbdb7",
+    name: "Mortal Terror",
+    school: Enchantment,
+    guide: "wizard-spells#mortal-terror-enchantment",
+    summary: "Shakes the target; its first damage each round calls for a Will save or it's frightened (knocked out if already so); an initial save means 1 round shaken.",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

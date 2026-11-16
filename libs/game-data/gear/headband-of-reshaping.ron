@@ -1,0 +1,13 @@
+(
+    key: "headband-of-reshaping",
+    blueprint: "6bacb006d1dbe4e4c9f6b53663067472",
+    name: "Headband of Reshaping",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+    ],
+    always_on: [
+        "Caster level +1 (Transmutation)",
+    ],
+)

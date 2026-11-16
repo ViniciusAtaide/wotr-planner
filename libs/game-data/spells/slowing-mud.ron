@@ -1,0 +1,14 @@
+(
+    key: "slowing-mud",
+    blueprint: "6b30813c3709fc44b92dc8fd8191f345",
+    name: "Slowing Mud",
+    school: Conjuration,
+    guide: "druid-spells#slowing-mud-conjuration",
+    summary: "The targets are slowed as by Slow and dazed for one round.",
+    target: "Target creature within close range, 30' burst",
+    duration: "1 round / level",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

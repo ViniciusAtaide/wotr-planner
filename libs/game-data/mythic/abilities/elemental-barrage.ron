@@ -1,0 +1,1 @@
+(key: "elemental-barrage", blueprint: "da56a1b21032a374783fdf46e1a92adb", name: "Elemental Barrage", summary: "A creature hit by spell energy damage is marked; another energy type from your spells within 3 rounds adds 1d6 divine per MR.", group: Magic, guide: "mythic-paths#elemental-barrage")

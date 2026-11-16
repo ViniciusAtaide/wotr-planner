@@ -1,0 +1,14 @@
+(
+    key: "protection-from-energy-communal",
+    blueprint: "76a629d019275b94184a1a8733cac45e",
+    name: "Protection from Energy, Communal",
+    school: Abjuration,
+    guide: "wizard-spells#protection-from-energy-communal-abjuration",
+    summary: "Allies become immune to an energy type you choose until the spell absorbs 12 damage per caster level (max 120).",
+    target: "All allies within 25'",
+    duration: "10 minutes",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

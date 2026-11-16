@@ -1,0 +1,14 @@
+(
+    key: "poison-breath",
+    blueprint: "b5be90707c17a9643b90d90b7c4096e2",
+    name: "Poison Breath",
+    school: Evocation,
+    guide: "cleric-spells#poison-breath-evocation",
+    summary: "Creatures in the cone are afflicted as by the Poison spell.",
+    target: "All creatures within a 15' cone",
+    duration: "Varies",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Poison],
+    casting_time: Standard,
+)

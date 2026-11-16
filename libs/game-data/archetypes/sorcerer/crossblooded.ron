@@ -1,0 +1,20 @@
+(
+    key: "sorcerer/crossblooded",
+    class: "sorcerer",
+    blueprint: "e66a112ab57f69e418f1f11d5d2f3248",
+    name: "Crossblooded",
+    summary: "Takes two bloodlines: arcana, bonus spells and feats from both but powers from the first only, at the cost of one known spell per spell level.",
+    guide: "sorcerer#crossblooded",
+    levels: [
+        (level: 1, features: ["sorcerer-cantrips", "sorcerer/crossblooded/reduced-spellbook", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/bloodline", "sorcerer/crossblooded/second-bloodline"]),
+        (level: 3, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-1", "sorcerer/crossblooded/bloodline-spell-lvl-1"]),
+        (level: 5, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-2", "sorcerer/crossblooded/bloodline-spell-lvl-2"]),
+        (level: 7, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-3", "sorcerer/crossblooded/bloodline-spell-lvl-3"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 9, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-4", "sorcerer/crossblooded/bloodline-spell-lvl-4"]),
+        (level: 11, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-5", "sorcerer/crossblooded/bloodline-spell-lvl-5"]),
+        (level: 13, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-6", "sorcerer/crossblooded/bloodline-spell-lvl-6"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 15, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-7", "sorcerer/crossblooded/bloodline-spell-lvl-7"]),
+        (level: 17, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-8", "sorcerer/crossblooded/bloodline-spell-lvl-8"]),
+        (level: 19, features: ["sorcerer/crossblooded/bloodline-2-spell-lvl-9", "sorcerer/crossblooded/bloodline-spell-lvl-9"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+    ],
+)

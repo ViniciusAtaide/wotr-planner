@@ -1,0 +1,1 @@
+(key: "tower-shield-proficiency", blueprint: "6105f450bb2acbd458d277e71e19d835", name: "Tower Shield Proficiency", summary: "Proficiency with tower shields.", category: ArmourAndShield, guide: "feats#tower-shield-proficiency", prerequisite: Feat("shield-proficiency"))

@@ -147,9 +147,10 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
     // slayer stage lists went in ticket 33, the slayer picking a ranger style), Gold Dragon's Dragon Feats (a list of
     // every feat), and the warpriest's Weapon Focus, the Master of All's Skill Focus, the Sword Saint's Weapon Focus
     // and the half-elf's Skill Focus. Ticket 61 adds the Titan Fighter's three Massive Attacks lists.
-    assert_eq!(DATA.feat_lists().count(), 78);
+    assert_eq!(DATA.feat_lists.len(), 78);
     let every: Vec<_> = DATA
-        .feat_lists()
+        .feat_lists
+        .iter()
         .filter(|list| list.every_feat)
         .map(|list| {
             (
@@ -163,7 +164,8 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
     // holds as every feat, is the game check's)
     assert_eq!(every, [("gold-dragon/dragon-feats", true, 0)]);
     let one_choice: Vec<_> = DATA
-        .feat_lists()
+        .feat_lists
+        .iter()
         .filter(|list| !list.every_feat && list.feats.len() < 2)
         .map(|list| {
             (
@@ -211,11 +213,11 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
 fn no_selection_option_is_a_copy_of_another() {
     // A copy had its own key and the original's guide anchor; a selection shares the original instead.
     let mut anchors = HashMap::new();
-    for selection in DATA.selections() {
+    for selection in &DATA.selections {
         // An option the guide gives no heading of its own links to the page (Nature Bond's two): no anchor to copy.
         // The ten dragons and four elements share their bloodline's heading, and name it ("Draconic (Black)"); the
         // Primalist's two choices are described under their selection's heading.
-        for option in selection.options.iter().filter(|o| {
+        for option in DATA.options_of(selection).filter(|o| {
             o.guide.as_ref().unwrap().0.contains('#')
                 && !o.name.ends_with(')')
                 && o.guide != selection.guide

@@ -1,0 +1,22 @@
+(
+    key: "shifter/fiendflesh-shifter",
+    class: "shifter",
+    blueprint: "f5d22b6b5a7940d49a4d494f67a91efa",
+    name: "Fiendflesh Shifter",
+    summary: "Worldwound-corrupted shifter who swaps beast forms for fiendish aspects.",
+    guide: "shifter#fiendflesh-shifter",
+    levels: [
+        (level: 1, features: ["shifter/fiendflesh-shifter/fiendish-aspect", "shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 2, features: ["shifter/fiendflesh-shifter/fiendish-resilience", "shifter/track"]),
+        (level: 4, features: ["shifter/fiendflesh-shifter/fiendish-resilience"]),
+        (level: 5, features: ["shifter/fiendflesh-shifter/fiendish-aspect"]),
+        (level: 8, features: ["shifter/fiendflesh-shifter/fiendish-resilience"]),
+        (level: 9, features: ["shifter/fiendflesh-shifter/chimeric-fiend"]),
+        (level: 10, features: ["shifter/fiendflesh-shifter/fiendish-aspect"]),
+        (level: 12, features: ["shifter/fiendflesh-shifter/fiendish-resilience"]),
+        (level: 14, features: ["shifter/fiendflesh-shifter/greater-chimeric-fiend"]),
+        (level: 15, features: ["shifter/fiendflesh-shifter/fiendish-aspect"]),
+        (level: 16, features: ["shifter/fiendflesh-shifter/fiendish-resilience"]),
+        (level: 20, features: ["shifter/final-aspect", "shifter/fiendflesh-shifter/fiendish-aspect", "shifter/fiendflesh-shifter/fiendish-resilience"]),
+    ],
+)

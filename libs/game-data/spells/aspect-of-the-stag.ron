@@ -1,0 +1,14 @@
+(
+    key: "aspect-of-the-stag",
+    blueprint: "6a0ecb1bae18e51458be036b34073da5",
+    name: "Aspect of the Stag",
+    school: Transmutation,
+    guide: "druid-spells#aspect-of-the-stag-transmutation",
+    summary: "You gain +2 dodge AC against attacks of opportunity and +20 ft speed, and when one hits you, you strike back with antlers for 1d8 piercing at full BAB.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

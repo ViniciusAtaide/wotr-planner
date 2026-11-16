@@ -1,0 +1,14 @@
+(
+    key: "bears-grace",
+    blueprint: "770eef29433299e4f9d21142d0706cfb",
+    name: "Bear's Grace",
+    school: Transmutation,
+    guide: "trickster#bears-grace-transmutation",
+    summary: "If the target fails its save, it takes a -8 penalty to Dexterity.",
+    target: "One creature within medium range",
+    duration: "1 minute / level",
+    saving_throw: "Will negates",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

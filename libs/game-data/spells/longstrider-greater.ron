@@ -1,0 +1,14 @@
+(
+    key: "longstrider-greater",
+    blueprint: "e80a4d6c0efa5774cbd515e3e37095b0",
+    name: "Longstrider, Greater",
+    school: Transmutation,
+    guide: "druid-spells#longstrider-greater-transmutation",
+    summary: "Your base speed increases by 20 ft.",
+    target: "Personal",
+    duration: "1 hour / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

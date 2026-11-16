@@ -1,0 +1,13 @@
+(
+    key: "heal-mass",
+    blueprint: "867524328b54f25488d371214eea0d90",
+    name: "Heal, Mass",
+    school: Conjuration,
+    guide: "cleric-spells#heal-mass-conjuration",
+    summary: "Casts Heal on every creature in the burst, restoring up to 250 HP each, or dealing that much damage to undead.",
+    target: "Target point within close range, 30' burst",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [Cure],
+    casting_time: Standard,
+)

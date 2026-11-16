@@ -1,0 +1,14 @@
+(
+    key: "shield-of-law",
+    blueprint: "73e7728808865094b8892613ddfaf7f5",
+    name: "Shield of Law",
+    school: Abjuration,
+    guide: "cleric-spells#shield-of-law-abjuration",
+    summary: "Allies gain +4 deflection AC, +4 resistance on saves, mind-affecting protection and SR 25 vs chaotic; chaotic melee hitters are slowed (Will negates).",
+    target: "All allies within 20'",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [Law],
+    casting_time: Standard,
+)

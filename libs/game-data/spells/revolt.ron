@@ -1,0 +1,13 @@
+(
+    key: "revolt",
+    blueprint: "319c5a450b01f834599389853753d0f0",
+    name: "Revolt",
+    school: Enchantment,
+    guide: "azata#revolt-enchantment",
+    summary: "All in the burst (target line: allies) take 4d6 + caster level sonic; enemies failing a Will save attack the strongest enemy; savers take it 1d6 more rounds.",
+    target: "All allies within a 30' burst centred on caster",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

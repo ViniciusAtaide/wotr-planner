@@ -1,0 +1,6 @@
+(
+    key: "rogue/rogue-talents/combat-trick",
+    name: "Combat Trick",
+    guide: "rogue#combat-trick",
+    feats: ["combat-expertise", "dirty-trick"],
+)

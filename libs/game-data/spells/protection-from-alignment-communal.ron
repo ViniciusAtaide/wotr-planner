@@ -1,0 +1,14 @@
+(
+    key: "protection-from-alignment-communal",
+    blueprint: "2cadf6c6350e4684baa109d067277a45",
+    name: "Protection from Alignment, Communal",
+    school: Abjuration,
+    guide: "wizard-spells#protection-from-alignment-communal-abjuration",
+    summary: "Allies within 30 ft get +2 deflection AC and +2 resistance on saves against attacks by creatures of the chosen alignment.",
+    target: "Allies within 30'",
+    duration: "1 minute",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

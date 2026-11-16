@@ -1,0 +1,13 @@
+(
+    key: "ray-of-halberds",
+    blueprint: "a4eeea42be61d0f469676371ee0a5aa7",
+    name: "Ray of Halberds",
+    school: Conjuration,
+    guide: "trickster#ray-of-halberds-conjuration",
+    summary: "Fires one halberd per two caster levels at the target, each needing a ranged attack roll and dealing 1d10 + your Charisma modifier.",
+    target: "One enemy creature within close range",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

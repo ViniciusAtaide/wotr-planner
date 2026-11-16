@@ -1,0 +1,13 @@
+(
+    key: "hellfire-ray",
+    blueprint: "700cfcbd0cb2975419bcab7dbb8c6210",
+    name: "Hellfire Ray",
+    school: Evocation,
+    guide: "wizard-spells#hellfire-ray-evocation",
+    summary: "A ranged touch ray deals 1d6 per caster level (max 15d6), half fire and half unholy that fire resistance can't reduce; two rays at 15th level, three at 19th.",
+    target: "One enemy creature within close range",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Fire, Evil],
+    casting_time: Standard,
+)

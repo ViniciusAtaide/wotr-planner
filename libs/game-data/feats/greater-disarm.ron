@@ -1,0 +1,1 @@
+(key: "greater-disarm", blueprint: "63d8e3a9ab4d72e4081a7862d7246a79", name: "Greater Disarm", summary: "Disarms last 1d4 rounds +1 per 5 over the foe's CMD, and get +2 more to the check.", category: CombatManoeuvres, guide: "feats#greater-disarm", prerequisite: All([Feat("disarm"), BaseAttackBonus(6)]))

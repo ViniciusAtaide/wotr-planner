@@ -1,0 +1,15 @@
+(
+    key: "cleric/crusader",
+    class: "cleric",
+    blueprint: "6bfb7e74b530f3749b590286dd2b9b30",
+    name: "Crusader",
+    summary: "Martial cleric with one domain and bonus combat feats at 1st, 5th, 10th, 15th and 20th level, but fewer spells.",
+    guide: "cleric#crusader",
+    levels: [
+        (level: 1, features: ["cleric/channel-energy", "cleric/cleric-proficiencies", "cleric/diminished-spellcasting"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [OneOf(list: "cleric/crusader/bonus-feats-1")], selections: ["cleric/domain"]),
+        (level: 5, feat_slots: [OneOf(list: "cleric/crusader/bonus-feats-1")]),
+        (level: 10, feat_slots: [OneOf(list: "cleric/crusader/bonus-feats-10")]),
+        (level: 15, feat_slots: [OneOf(list: "cleric/crusader/bonus-feats-10")]),
+        (level: 20, feat_slots: [OneOf(list: "cleric/crusader/bonus-feats-20")]),
+    ],
+)

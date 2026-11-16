@@ -1,0 +1,14 @@
+(
+    key: "brilliant-inspiration",
+    blueprint: "a5c56f0f699daec44b7aedd8b273b08a",
+    name: "Brilliant Inspiration",
+    school: Evocation,
+    guide: "bard#brilliant-inspiration-evocation",
+    summary: "The ally rolls twice on attacks, ability checks and skill checks and keeps the better; the spell ends when it rolls a natural 20.",
+    target: "One friendly creature within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "oracle/revelations/stone/touch-of-acid", blueprint: "9333c3106d4a6c24d8f22279194aeeff", name: "Touch of Acid", summary: "Melee touch for 1d6 acid +1 per two levels, 3 + Cha modifier uses a day; from 11th your weapons are Corrosive.", guide: "oracle#touch-of-acid", prerequisite: SelectionOption("oracle/mystery/stone"))

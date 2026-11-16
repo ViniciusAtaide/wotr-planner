@@ -1,0 +1,1 @@
+(key: "oracle/revelations/life/enhanced-cures", blueprint: "973a22b02c793ca49b48652e3d70ae80", name: "Enhanced Cures", summary: "Your cure spells' bonus healing is capped by your class level instead of the spell's limit.", guide: "oracle#enhanced-cures", prerequisite: SelectionOption("oracle/mystery/life"))

@@ -227,9 +227,8 @@ fn a_mantis_zealot_is_open_at_le_ln_and_ne_and_locked_at_ce_and_lg() {
     // Game: MantisZealotArchetype fc403240fdca4a52a413578169ea7117 (needs AchaekekFeature); AchaekekFeature
     // a3189d5b7c4d4d91beaa8bfffac3e38e (LawfulNeutral, LawfulEvil, NeutralEvil)
     let allowed = [LawfulNeutral, LawfulEvil, NeutralEvil];
-    let zealot = class("warpriest")
-        .archetypes
-        .iter()
+    let zealot = DATA
+        .archetypes_of(&class("warpriest").key)
         .find(|a| a.key.as_str() == "warpriest/mantis-zealot")
         .unwrap();
     assert_eq!(
@@ -254,7 +253,8 @@ fn a_mantis_zealot_is_open_at_le_ln_and_ne_and_locked_at_ce_and_lg() {
 
 /// The archetypes whose own prerequisite names an alignment.
 fn archetypes_with_an_alignment_rule() -> BTreeSet<&'static str> {
-    DATA.archetypes()
+    DATA.archetypes
+        .iter()
         .filter(|archetype| archetype.prerequisite.as_ref().is_some_and(names_alignment))
         .map(|archetype| archetype.key.as_str())
         .collect()

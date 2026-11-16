@@ -52,9 +52,7 @@ fn a_class_level_gets_the_row_of_its_own_number_when_the_table_has_a_gap() {
 #[test]
 fn an_archetypes_rows_stored_out_of_level_order_apply_at_their_own_levels() {
     let mut data = world();
-    class_mut(&mut data, "fighter").archetypes[0]
-        .levels
-        .reverse();
+    first_archetype_mut(&mut data, "fighter").levels.reverse();
     let build = with_archetype(
         build("elf", &times("fighter", 4)),
         "fighter",
@@ -72,7 +70,7 @@ fn whether_a_class_casts_follows_its_archetype() {
     // An armiger whose 2nd-level row casts 1st-level arcane spells (with Intelligence): the fighter casts arcane
     // spells only with it, so only then can an Eldritch Knight advance it.
     let mut data = world();
-    let armiger = &mut class_mut(&mut data, "fighter").archetypes[0];
+    let armiger = first_archetype_mut(&mut data, "fighter");
     armiger.casting_ability = Some(Ability::Intelligence);
     armiger
         .levels
@@ -183,7 +181,7 @@ fn an_option_list_pickers_statuses_are_what_the_walk_finds_of_each_pick() {
 #[test]
 fn a_selection_sharing_exactly_one_option_grants_it_with_no_pick() {
     let mut data = world();
-    class_mut(&mut data, "warpriest").archetypes[0].selections[0]
+    selection_mut(&mut data, "warpriest/champion/chosen-alignment")
         .shared_options
         .remove(&option("warpriest/blessings/good"));
     let engine = engine_on(data);

@@ -1,0 +1,14 @@
+(
+    key: "blasphemy",
+    blueprint: "bd10c534a09f44f4ea632c8b8ae97145",
+    name: "Blasphemy",
+    school: Evocation,
+    guide: "cleric-spells#blasphemy-evocation",
+    summary: "Non-evil creatures within 40 ft with HD at most your caster level are dazed, weakened, paralysed or killed, worse the lower their HD; Will negates.",
+    target: "All creatures within 40' of caster",
+    duration: "Varies",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [Evil, Sonic],
+    casting_time: Standard,
+)

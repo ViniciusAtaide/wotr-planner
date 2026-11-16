@@ -1,0 +1,14 @@
+(
+    key: "elusive-nature",
+    blueprint: "2acdc2aeba36d8e45871ec6105c16509",
+    name: "Elusive Nature",
+    school: Abjuration,
+    guide: "azata#elusive-nature-abjuration",
+    summary: "The target can't be knocked prone or targeted by combat manoeuvres, and a critical hit on it makes it blink for 1 round per 4 caster levels.",
+    target: "One friendly creature within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

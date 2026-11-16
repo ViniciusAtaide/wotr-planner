@@ -1,0 +1,14 @@
+(
+    key: "mirror-image",
+    blueprint: "3e4ab69ada402d145a5e0ad3ad4b8564",
+    name: "Mirror Image",
+    school: Illusion,
+    guide: "wizard-spells#mirror-image-illusion",
+    summary: "You make 1d4 illusory doubles + 1 per three caster levels (max 8); attacks pick you or a double at random, and a hit or a miss by 5 or less pops one.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

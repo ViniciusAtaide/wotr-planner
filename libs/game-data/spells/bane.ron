@@ -1,0 +1,14 @@
+(
+    key: "bane",
+    blueprint: "8bc64d869456b004b9db255cdd1ea734",
+    name: "Bane",
+    school: Enchantment,
+    guide: "cleric-spells#bane-enchantment",
+    summary: "Enemies in the area take -1 on attacks and on saves against fear effects.",
+    target: "All enemies within 30'",
+    duration: "1 minute / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear, Compulsion, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

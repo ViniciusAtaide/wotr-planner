@@ -1,0 +1,14 @@
+(
+    key: "righteous-might",
+    blueprint: "90810e5cf53bf854293cbd5ea1066252",
+    name: "Righteous Might",
+    school: Transmutation,
+    guide: "cleric-spells#righteous-might-transmutation",
+    summary: "You grow one size: +4 size bonus to Strength and Constitution, -2 Dexterity, +2 natural AC, and DR 5/evil (or 5/good if evil), rising to 10 at 15th level.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

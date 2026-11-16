@@ -1,0 +1,15 @@
+// Cloak.
+(
+    key: "grand-festival-cloak",
+    blueprint: "12836afa5ce54260895c4f54d8a3bb4d",
+    name: "Grand Festival Cloak",
+    slot: Cloak,
+    guide: "items#cloaks",
+    bonuses: [
+        (target: AllSaves, amount: 7, kind: Resistance),
+        (target: Ability(Charisma), amount: 2, kind: Circumstance),
+    ],
+    always_on: [
+        "Persuasion (Bluff) +5 circumstance",
+    ],
+)

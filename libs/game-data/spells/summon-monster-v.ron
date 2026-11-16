@@ -1,0 +1,14 @@
+(
+    key: "summon-monster-v",
+    blueprint: "630c8b85d9f07a64f917d79cb5905741",
+    name: "Summon Monster V",
+    school: Conjuration,
+    guide: "wizard-spells#summon-monster-v-conjuration",
+    summary: "Summons a Bralani azata (non-evil) or a Redcap, 1d3 dire wolves or 1d4+1 monitor lizards, the beasts extraplanar.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

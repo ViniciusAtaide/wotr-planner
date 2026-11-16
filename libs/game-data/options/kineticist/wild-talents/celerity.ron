@@ -1,0 +1,1 @@
+(key: "kineticist/wild-talents/celerity", blueprint: "b182f559f572da342b54bece4404e4e7", name: "Celerity", summary: "Haste yourself for 1 round, or for rounds equal to your level by accepting 1 Burn.", guide: "kineticist#celerity", prerequisite: All([ClassLevel(class: "kineticist", level: 6), SelectionOption("kineticist/element/air")]))

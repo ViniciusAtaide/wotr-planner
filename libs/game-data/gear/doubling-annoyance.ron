@@ -1,0 +1,16 @@
+(
+    key: "doubling-annoyance",
+    blueprint: "63c9d4fc0810432aa6d85111d345aa84",
+    name: "Doubling Annoyance",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 6, kind: Enhancement),
+        (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+        (target: Ability(Charisma), amount: 6, kind: Enhancement),
+    ],
+    other_effects: [
+        "Casting Perpetually Annoyed Wizard summons two wizards.",
+        "Only the main character can wear it.",
+    ],
+)

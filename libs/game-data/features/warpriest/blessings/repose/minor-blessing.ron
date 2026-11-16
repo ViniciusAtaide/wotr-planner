@@ -1,0 +1,1 @@
+(key: "warpriest/blessings/repose/minor-blessing", blueprint: "64a416082927673409deb330af04d6d2", name: "Minor Blessing (Repose)", summary: "Melee touch staggers a target for 1 round (sleep if already staggered); undead are staggered for Wis mod rounds.", guide: "warpriest#repose")

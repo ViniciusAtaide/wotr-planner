@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/protection",
+    blueprint: "b750650400d9d554b880dbf4c8347b24",
+    name: "Protection Domain",
+    summary: "Bonus on saves, Resistant Touch and a deflection and resistance aura from 8th level; spells up to Seamantle.",
+    guide: "character-creation#protection-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/protection/resistant-touch"]),
+        (level: 8, features: ["cleric/domain/protection/aura-of-protection"]),
+    ],
+)

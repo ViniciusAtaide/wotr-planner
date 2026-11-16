@@ -1,0 +1,14 @@
+(
+    key: "cats-grace-mass",
+    blueprint: "1f6c94d56f178b84ead4c02f1b1e1c48",
+    name: "Cat's Grace, Mass",
+    school: Transmutation,
+    guide: "wizard-spells#cats-grace-mass-transmutation",
+    summary: "Allies in the burst gain +4 enhancement to Dexterity.",
+    target: "All allies within 30' burst, centred on target creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "archons-aura",
+    blueprint: "e67efd8c84f69d24ab472c9f546fff7e",
+    name: "Archon's Aura",
+    school: Evocation,
+    guide: "cleric-spells#archons-aura-evocation",
+    summary: "Enemies within 20 ft that fail a Will save take -2 on attacks, saves and AC; the effect breaks once a creature lands a hit on you.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "Will negates",
+    spell_resistance: false,
+    descriptors: [Good, Law],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "touch-of-fatigue",
+    blueprint: "5bf3315ce1ed4d94e8805706820ef64d",
+    name: "Touch of Fatigue",
+    school: Necromancy,
+    guide: "wizard-spells#touch-of-fatigue-necromancy",
+    summary: "A melee touch attack fatigues the target unless it passes a Fortitude save.",
+    target: "One enemy creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

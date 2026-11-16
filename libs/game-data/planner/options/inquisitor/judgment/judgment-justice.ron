@@ -1,0 +1,4 @@
+(
+    why: "An ability of JudgmentFeature in the game, not a feature of its own.",
+    entry: (key: "inquisitor/judgment/judgment-justice", name: "Judgment - Justice", summary: "+1 sacred bonus to attack rolls, +1 per 5 levels; doubled on critical confirmation rolls from 10th level.", guide: "inquisitor#judgment-justice"),
+)

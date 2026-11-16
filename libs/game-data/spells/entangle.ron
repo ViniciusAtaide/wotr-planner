@@ -1,0 +1,14 @@
+(
+    key: "entangle",
+    blueprint: "0fd00984a2c0e0a429cf1a911b4ec5ca",
+    name: "Entangle",
+    school: Transmutation,
+    guide: "druid-spells#entangle-transmutation",
+    summary: "Each round, creatures in the area that fail a Reflex save are grappled (escape by combat manoeuvre, Athletics or Mobility); the area is difficult terrain.",
+    target: "Target point within long range, 40' burst",
+    duration: "1 minute / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [MovementImpairing],
+    casting_time: Standard,
+)

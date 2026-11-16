@@ -1,0 +1,8 @@
+(
+    key: "skill-focus",
+    name: "Skill Focus",
+    category: Skill,
+    guide: "feats#skill-focus",
+    parameter: Skill,
+    repeat: PerValue,
+)

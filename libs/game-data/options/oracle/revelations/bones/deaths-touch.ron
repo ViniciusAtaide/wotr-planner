@@ -1,0 +1,1 @@
+(key: "oracle/revelations/bones/deaths-touch", blueprint: "1a25afc333021a64cbe9f23ef8c5ebd8", name: "Death\'s Touch", summary: "Melee touch for 1d6 negative energy +1 per two class levels; 3 + Charisma modifier uses a day.", guide: "oracle#deaths-touch", prerequisite: SelectionOption("oracle/mystery/bones"))

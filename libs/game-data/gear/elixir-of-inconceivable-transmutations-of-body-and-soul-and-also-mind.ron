@@ -1,0 +1,16 @@
+// Usable.
+(
+    key: "elixir-of-inconceivable-transmutations-of-body-and-soul-and-also-mind",
+    blueprint: "5219d5846529ae949b88c87858c1bb9e",
+    name: "Elixir of Inconceivable Transmutations of Body, and Soul, and Also Mind",
+    slot: Usable,
+    guide: "items#equipable-and-consumable",
+    bonuses: [
+        (target: Ability(Strength), amount: 2, kind: Inherent),
+        (target: Ability(Dexterity), amount: 2, kind: Inherent),
+        (target: Ability(Constitution), amount: 2, kind: Inherent),
+        (target: Ability(Intelligence), amount: 2, kind: Inherent),
+        (target: Ability(Wisdom), amount: 2, kind: Inherent),
+        (target: Ability(Charisma), amount: 2, kind: Inherent),
+    ],
+)

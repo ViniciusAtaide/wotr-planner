@@ -1,0 +1,14 @@
+(
+    key: "summon-monster-vii",
+    blueprint: "ab167fd8203c1314bac6568932f1752f",
+    name: "Summon Monster VII",
+    school: Conjuration,
+    guide: "wizard-spells#summon-monster-vii-conjuration",
+    summary: "Summons a Bogeyman, 1d3 Axiomites or Soul Eaters, or 1d4+1 Bralanis or Redcaps.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

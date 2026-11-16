@@ -1,0 +1,12 @@
+(
+    key: "belt-of-physical-perfection-8",
+    blueprint: "dc2f2613634c2f947b306fa3379232c2",
+    name: "Belt of Physical Perfection +8",
+    slot: Belt,
+    guide: "items-inevitable-excess#belts",
+    bonuses: [
+        (target: Ability(Strength), amount: 8, kind: Enhancement),
+        (target: Ability(Dexterity), amount: 8, kind: Enhancement),
+        (target: Ability(Constitution), amount: 8, kind: Enhancement),
+    ],
+)

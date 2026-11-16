@@ -1,0 +1,1 @@
+(key: "assassin/poison-use-strength-or-dexterity", blueprint: "8dd826513ba857645b38e918f17b59e6", name: "Poison Use - Strength or Dexterity", summary: "2 x level + 6 doses a day; a coated hit deals 1d4 Str or Dex damage for 4 rounds (Fort DC 10 + level + Int, +2 on a sneak attack).", guide: "prestige-classes#poison-use")

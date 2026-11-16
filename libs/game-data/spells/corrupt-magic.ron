@@ -1,0 +1,13 @@
+(
+    key: "corrupt-magic",
+    blueprint: "6fd7bdd6dfa9dd943b36d65faf97ac41",
+    name: "Corrupt Magic",
+    school: Abjuration,
+    guide: "lich#corrupt-magic-abjuration",
+    summary: "A targeted Dispel Magic that can remove several spells, highest level first; each one removed gives the target -1 to attack, damage, saves and AC.",
+    target: "One enemy creature within medium range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

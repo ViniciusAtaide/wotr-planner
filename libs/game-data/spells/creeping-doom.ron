@@ -1,0 +1,14 @@
+(
+    key: "creeping-doom",
+    blueprint: "b974af13e45639a41a04843ce1c9aa12",
+    name: "Creeping Doom",
+    school: Conjuration,
+    guide: "druid-spells#creeping-doom-conjuration",
+    summary: "Summons 4 centipede swarms (60 HP, 4d6 damage); those they hurt fail Fortitude or are nauseated 1 round and take 1d4 Dexterity a round for up to six rounds.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

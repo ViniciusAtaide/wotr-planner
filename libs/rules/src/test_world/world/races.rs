@@ -2,6 +2,7 @@
 
 use std::collections::BTreeSet;
 
+use crate::test_world::world::nested::{Race, Subrace};
 use crate::*;
 
 use crate::test_world::builds::feat_list;

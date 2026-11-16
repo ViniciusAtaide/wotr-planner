@@ -1,0 +1,14 @@
+(
+    key: "aspect-of-the-wolf",
+    blueprint: "6126b36fe22291543ad72f8b9f0d53a7",
+    name: "Aspect of the Wolf",
+    school: Transmutation,
+    guide: "druid-spells#aspect-of-the-wolf-transmutation",
+    summary: "You gain +4 enhancement to Strength and Dexterity and +2 on trip attempts, and can trip as a swift action.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

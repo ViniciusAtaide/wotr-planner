@@ -1,0 +1,14 @@
+(
+    key: "relativity",
+    blueprint: "5d28f75db5d3cc141ba5783a1a139f66",
+    name: "Relativity",
+    school: Transmutation,
+    guide: "aeon#relativity-transmutation",
+    summary: "Allies in the burst are hasted and enemies in it are slowed.",
+    target: "All creatures within a 30' burst centred on target creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

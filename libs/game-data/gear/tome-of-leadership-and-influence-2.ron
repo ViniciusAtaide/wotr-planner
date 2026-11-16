@@ -1,0 +1,10 @@
+(
+    key: "tome-of-leadership-and-influence-2",
+    blueprint: "37e2f09923a96234ca486bc9db0b6ad6",
+    name: "Tome of Leadership and Influence +2",
+    slot: Usable,
+    guide: "items#equipable-and-consumable",
+    bonuses: [
+        (target: Ability(Charisma), amount: 2, kind: Inherent),
+    ],
+)

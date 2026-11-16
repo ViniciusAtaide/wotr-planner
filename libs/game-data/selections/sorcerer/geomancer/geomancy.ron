@@ -1,0 +1,15 @@
+(
+    key: "sorcerer/geomancer/geomancy",
+    blueprint: "30493b3bd627435aa6b1cf3011dc762c",
+    name: "Geomancy",
+    summary: "Free toggle: your next spell that targets a creature costs you 1d8 HP and adds a terrain effect within 30 feet, using the spell's DC.",
+    guide: "sorcerer#geomancy",
+    options: [
+        "sorcerer/geomancer/geomancy/geomancy-abyss",
+        "sorcerer/geomancer/geomancy/geomancy-desert",
+        "sorcerer/geomancer/geomancy/geomancy-forest",
+        "sorcerer/geomancer/geomancy/geomancy-highlands",
+        "sorcerer/geomancer/geomancy/geomancy-underground",
+        "sorcerer/geomancer/geomancy/geomancy-urban",
+    ],
+)

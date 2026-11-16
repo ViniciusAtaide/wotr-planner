@@ -10,95 +10,10 @@ Class(
     reflex: Good,
     will: Poor,
     class_skills: ["athletics", "mobility", "persuasion"],
-    features: [
-        (key: "rogue/sneak-attack", name: "Sneak Attack", summary: "Extra damage against flanked foes.", guide: "rogue#sneak-attack"),
-    ],
-    selections: [
-        (
-            key: "rogue/rogue-talents",
-            name: "Rogue Talents",
-            guide: "rogue#rogue-talents",
-            options: [
-                (
-                    key: "rogue/rogue-talents/combat-trick",
-                    name: "Combat Trick",
-                    guide: "rogue#combat-trick",
-                    feats: ["combat-expertise", "dirty-trick"],
-                ),
-                (
-                    key: "rogue/rogue-talents/crippling-strike",
-                    name: "Crippling Strike",
-                    guide: "rogue#crippling-strike",
-                    prerequisite: All([
-                        ClassLevel(class: "rogue", level: 10),
-                        SelectionOption("rogue/rogue-talents/combat-trick"),
-                    ]),
-                ),
-                (
-                    // Weapon Focus in a weapon of the player's choosing.
-                    key: "rogue/rogue-talents/weapon-focus",
-                    name: "Weapon Focus",
-                    guide: "rogue#weapon-focus",
-                    chosen_feat: "weapon-focus",
-                ),
-                (
-                    key: "rogue/rogue-talents/resiliency",
-                    name: "Resiliency",
-                    guide: "rogue#resiliency",
-                    repeat: Times(2),
-                ),
-                (
-                    // Ticket 32: a pick naming a value of its own, from a short list.
-                    key: "rogue/rogue-talents/weapon-training",
-                    name: "Weapon Training",
-                    guide: "rogue#weapon-training",
-                    parameter: Weapon,
-                    values: [Weapon("dagger"), Weapon("longsword")],
-                ),
-            ],
-        ),
-    ],
-    feat_lists: [
-        // A bonus feat of the player's choosing: one parameterised feat, the pick names the skill.
-        (key: "rogue/skill-focus", name: "Skill Focus", guide: "rogue#skill-focus", ignores_prerequisites: true, feats: ["skill-focus"]),
-    ],
     levels: [
         // Ticket 32: a feat granted for one value.
         (level: 1, features: ["rogue/sneak-attack"], feats_for: [(feat: "weapon-focus", value: Weapon("dagger"))]),
         (level: 2, selections: ["rogue/rogue-talents"]),
         (level: 3, features: ["rogue/sneak-attack"], feat_slots: [OneOf(list: "rogue/skill-focus")]),
-    ],
-    archetypes: [
-        (
-            key: "rogue/eldritch-scoundrel",
-            name: "Eldritch Scoundrel",
-            summary: "A rogue who casts arcane spells.",
-            guide: "rogue#eldritch-scoundrel",
-            casting_ability: Intelligence,
-            prerequisite: Any([Race("human"), Race("elf")]),
-            skill_points: 4,
-            features: [
-                (key: "rogue/eldritch-scoundrel/spells", name: "Spells", guide: "rogue#eldritch-scoundrel-spells"),
-            ],
-            selections: [
-                (
-                    key: "rogue/eldritch-scoundrel/arcane-talents",
-                    name: "Arcane Talents",
-                    guide: "rogue#arcane-talents",
-                    options: [
-                        (key: "rogue/eldritch-scoundrel/arcane-talents/minor-magic", name: "Minor Magic", guide: "rogue#minor-magic"),
-                    ],
-                    shared_options: [
-                        "rogue/rogue-talents/combat-trick",
-                        "rogue/rogue-talents/crippling-strike",
-                    ],
-                ),
-            ],
-            levels: [
-                (level: 1, spell_levels: (arcane: 1, divine: 0), features: ["rogue/eldritch-scoundrel/spells"], feats_for: [(feat: "skill-focus", value: Skill("mobility"))]),
-                (level: 2, spell_levels: (arcane: 1, divine: 0), features: ["rogue/sneak-attack"]),
-                (level: 3, spell_levels: (arcane: 1, divine: 0), selections: ["rogue/eldritch-scoundrel/arcane-talents"]),
-            ],
-        ),
     ],
 )

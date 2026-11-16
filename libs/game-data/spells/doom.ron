@@ -1,0 +1,14 @@
+(
+    key: "doom",
+    blueprint: "fbdd8c455ac4cde4a9a3e18c84af9485",
+    name: "Doom",
+    school: Necromancy,
+    guide: "cleric-spells#doom-necromancy",
+    summary: "The target is shaken unless it saves.",
+    target: "One enemy creature within medium range",
+    duration: "1 minute / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear, Compulsion, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

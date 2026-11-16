@@ -1,0 +1,1 @@
+(key: "cavalier/ghost-rider/etheric-tether", blueprint: "4e3d51fb95da41af841d783374cf1c36", name: "Etheric Tether", summary: "Free action: when the mount would drop to 0 HP it stays at 1, and you lose the HP restored.", guide: "cavalier#etheric-tether")

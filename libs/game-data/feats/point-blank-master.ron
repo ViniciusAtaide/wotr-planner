@@ -1,0 +1,1 @@
+(key: "point-blank-master", blueprint: "05a3b543b0a0a0346a5061e90f293f0b", name: "Point Blank Master", summary: "Shooting your specialised weapon while threatened provokes no attacks of opportunity.", category: Ranged, guide: "feats#point-blank-master", prerequisite: Feat("weapon-specialization"))

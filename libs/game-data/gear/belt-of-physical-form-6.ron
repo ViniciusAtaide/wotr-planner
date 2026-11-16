@@ -1,0 +1,11 @@
+(
+    key: "belt-of-physical-form-6",
+    blueprint: "8cf20c1d0e9e0974e8f0c01bd2f80e3e",
+    name: "Belt of Physical Form +6",
+    slot: Belt,
+    guide: "items#belts",
+    bonuses: [
+        (target: Ability(Dexterity), amount: 6, kind: Enhancement),
+        (target: Ability(Constitution), amount: 6, kind: Enhancement),
+    ],
+)

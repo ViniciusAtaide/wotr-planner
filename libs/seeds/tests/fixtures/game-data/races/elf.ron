@@ -1,0 +1,10 @@
+(
+    key: "elf",
+    name: "Elf",
+    guide: "character-creation#elf",
+    ability_modifiers: [
+        Fixed(ability: Dexterity, amount: 2),
+        Fixed(ability: Intelligence, amount: 2),
+        Fixed(ability: Constitution, amount: -2),
+    ],
+)

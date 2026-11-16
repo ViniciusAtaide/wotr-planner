@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/darkness-domain",
+    blueprint: "3ed6cd88caecec944b837f57b9be176f",
+    name: "Darkness Domain",
+    summary: "Minor: an ally gains 20% concealment for 1 minute. Major (10th): blind an enemy within 30' for 1 minute (Will negates).",
+    guide: "warpriest#darkness-domain",
+    domain: "cleric/domain/darkness",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/darkness-domain/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/darkness-domain/major-blessing"]),
+    ],
+)

@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/animal-domain",
+    blueprint: "9d991f8374c3def4cb4a6287f370814d",
+    name: "Animal Domain",
+    summary: "Minor: an ally gains two 1d6 claws for 1 minute. Major (10th): summon an ally as Summon Nature's Ally V, rising to IX at 18th.",
+    guide: "warpriest#animal-domain",
+    domain: "cleric/domain/animal",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/animal-domain/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/animal-domain/major-blessing"]),
+    ],
+)

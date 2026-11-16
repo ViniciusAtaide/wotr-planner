@@ -1,0 +1,14 @@
+(
+    key: "summon-monster-i",
+    blueprint: "8fd74eddd9b6c224693d9ab241f25e84",
+    name: "Summon Monster I",
+    school: Conjuration,
+    guide: "wizard-spells#summon-monster-i-conjuration",
+    summary: "Calls an extraplanar dog.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

@@ -1,0 +1,13 @@
+(
+    key: "slay-living",
+    blueprint: "4fbd47525382517419c66fb548fe9a67",
+    name: "Slay Living",
+    school: Necromancy,
+    guide: "cleric-spells#slay-living-necromancy",
+    summary: "On a melee touch hit, the target takes 12d6 + 1 per caster level, or 3d6 + 1 per caster level if it makes its Fortitude save.",
+    target: "One enemy creature within touch range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Death],
+    casting_time: Standard,
+)

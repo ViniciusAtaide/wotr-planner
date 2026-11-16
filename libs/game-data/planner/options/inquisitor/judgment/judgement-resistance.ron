@@ -1,0 +1,4 @@
+(
+    why: "An ability of JudgmentFeature in the game, not a feature of its own.",
+    entry: (key: "inquisitor/judgment/judgement-resistance", name: "Judgement - Resistance", summary: "Resistance 2 to all energy types, +2 per 3 levels.", guide: "inquisitor#judgement-resistance"),
+)

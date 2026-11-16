@@ -1,0 +1,14 @@
+(
+    key: "uncertainty-principle",
+    blueprint: "4b7e6e992a4862a45bcfc9ba95bfc727",
+    name: "Uncertainty Principle",
+    school: Conjuration,
+    guide: "aeon#uncertainty-principle-conjuration",
+    summary: "Foes miss you 50% of the time, and as a swift action you can teleport to any spot within close range.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

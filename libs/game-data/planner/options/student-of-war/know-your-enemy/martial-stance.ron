@@ -1,0 +1,4 @@
+(
+    why: "An ability of Know Your Enemy in the game, not a feature of its own.",
+    entry: (key: "student-of-war/know-your-enemy/martial-stance", name: "Martial Stance", summary: "+1 insight to attack and damage vs the studied foe (+2 at 4th, +3 at 7th); from 6th level also +3 to confirm critical hits.", guide: "prestige-classes#martial-stance"),
+)

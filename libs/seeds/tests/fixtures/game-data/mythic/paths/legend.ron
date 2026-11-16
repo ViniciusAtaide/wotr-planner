@@ -5,7 +5,4 @@ MythicPath(
     name: "Legend",
     guide: "other-mythic-paths#legend",
     switch: (kept_through_rank: 2, path_kept_through_rank: 2, features: ["legend/legend"], further_ascensions: false, level_cap: 40),
-    features: [
-        (key: "legend/legend", name: "Legend", guide: "other-mythic-paths#legend", ability_bonuses: [Every(amount: 4)]),
-    ],
 )

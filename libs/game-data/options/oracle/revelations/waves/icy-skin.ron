@@ -1,0 +1,1 @@
+(key: "oracle/revelations/waves/icy-skin", blueprint: "cdeba08f8137cb141a9aa2f6fe55f99c", name: "Icy Skin", summary: "Cold resistance 5, 10 at 5th level, 20 at 11th, and cold immunity at 17th.", guide: "oracle#icy-skin", prerequisite: SelectionOption("oracle/mystery/waves"))

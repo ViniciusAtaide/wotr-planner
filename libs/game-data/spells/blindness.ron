@@ -1,0 +1,14 @@
+(
+    key: "blindness",
+    blueprint: "46fd02ad56c35224c9c91c88cd457791",
+    name: "Blindness",
+    school: Necromancy,
+    guide: "wizard-spells#blindness-necromancy",
+    summary: "Blinds the target permanently unless it passes a Fortitude save.",
+    target: "One enemy creature within medium range",
+    duration: "Permanent",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Curse],
+    casting_time: Standard,
+)

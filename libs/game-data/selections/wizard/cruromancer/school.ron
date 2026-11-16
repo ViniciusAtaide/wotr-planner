@@ -1,0 +1,12 @@
+(
+    key: "wizard/cruromancer/school",
+    blueprint: "e9450978cc9feeb468fb8ee3a90607e3",
+    name: "School (Cruromancer)",
+    summary: "A Cruromancer always specialises in Necromancy.",
+    guide: "wizard#cruromancer",
+    option_levels: ["wizard"],
+    options: [],
+    shared_options: [
+        "wizard/school/necromancer",
+    ],
+)

@@ -1,0 +1,13 @@
+(
+    key: "tidal-surge",
+    blueprint: "50bdf209dede4ce1acc722d5fdfcf53c",
+    name: "Tidal Surge",
+    school: Conjuration,
+    guide: "druid-spells#tidal-surge-conjuration",
+    summary: "A 30 ft cone or 60 ft line of water deals 1d10 per two caster levels, pushes 1d4 x 5 ft and knocks prone on a failed save, and dispels fire magic on those hit.",
+    target: "Target point within long range",
+    saving_throw: "Reflex half",
+    spell_resistance: false,
+    descriptors: [Cold],
+    casting_time: Standard,
+)

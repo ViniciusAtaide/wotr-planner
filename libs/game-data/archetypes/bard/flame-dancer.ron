@@ -1,0 +1,15 @@
+(
+    key: "bard/flame-dancer",
+    class: "bard",
+    blueprint: "e7914f2adcdb8fc46af5b65d1e06c539",
+    name: "Flame Dancer",
+    summary: "Bard whose performance protects allies from fire and who learns fire spells.",
+    guide: "bard#flame-dancer",
+    levels: [
+        (level: 1, features: ["bard/bard-proficiencies", "bardic-knowledge", "detect-magic", "bard/inspire-courage"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 3, features: ["bard/flame-dancer/fire-dance"]),
+        (level: 6, features: ["bard/fascinate", "bard/flame-dancer/fire-dance"], selections: ["rogue/rogue-talents"]),
+        (level: 8, features: ["bard/flame-dancer/fan-the-flames"]),
+        (level: 11, features: ["bard/flame-dancer/fire-dance"]),
+    ],
+)

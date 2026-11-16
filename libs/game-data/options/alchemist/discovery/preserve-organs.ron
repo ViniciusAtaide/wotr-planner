@@ -1,0 +1,1 @@
+(key: "alchemist/discovery/preserve-organs", blueprint: "76b4bb8e54f3f5c418f421684c76ef4e", name: "Preserve Organs", summary: "25% chance to negate extra damage from critical hits and sneak attacks; up to three times for 50% and 75%.", guide: "alchemist#preserve-organs", repeat: Times(3))

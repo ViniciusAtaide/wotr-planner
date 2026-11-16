@@ -1,0 +1,14 @@
+(
+    key: "summon-natures-ally-vii",
+    blueprint: "051b979e7d7f8ec41b9fa35d04746b33",
+    name: "Summon Nature's Ally VII",
+    school: Conjuration,
+    guide: "druid-spells#summon-natures-ally-vii-conjuration",
+    summary: "You summon 1d4+1 manticores, 1d3 smilodons or one mastodon.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

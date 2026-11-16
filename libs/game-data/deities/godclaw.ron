@@ -1,0 +1,9 @@
+(
+    key: "godclaw",
+    blueprint: "583a26e88031d0a4a94c8180105692a5",
+    name: "Godclaw",
+    guide: "character-creation#deities",
+    alignments: [LawfulGood, LawfulNeutral, LawfulEvil],
+    favoured_weapons: ["flail"],
+    domains: ["cleric/domain/law", "cleric/domain/protection", "cleric/domain/strength", "cleric/domain/war"],
+)

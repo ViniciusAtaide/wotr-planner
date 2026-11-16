@@ -1,0 +1,1 @@
+(key: "mythic-buckler-flying-shield-style", blueprint: "874cd4a453cb44e595c6ee34e97feafd", name: "Mythic Buckler - Flying Shield Style", summary: "Carrying a buckler grants allies within 15 ft your shield\'s AC as a shield bonus.", group: ArmourAndShield, guide: "mythic-paths#mythic-buckler-flying-shield-style", prerequisite: Feat("shield-focus"))

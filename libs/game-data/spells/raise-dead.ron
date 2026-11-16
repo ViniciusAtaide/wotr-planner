@@ -1,0 +1,14 @@
+(
+    key: "raise-dead",
+    blueprint: "a0fc99f0933d01643b2b8fe570caa4c5",
+    name: "Raise Dead",
+    school: Conjuration,
+    guide: "cleric-spells#raise-dead-conjuration",
+    summary: "Revives a party member with HP equal to their HD and ends death's door; they gain two negative levels that other means must remove.",
+    components: "1 diamond",
+    target: "One friendly creature within any range",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: FullRound,
+)

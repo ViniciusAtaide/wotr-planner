@@ -1,0 +1,14 @@
+(
+    key: "radiant-ground",
+    blueprint: "87bcf706e376b80418903ae0d4303feb",
+    name: "Radiant Ground",
+    school: Abjuration,
+    guide: "angel#radiant-ground-abjuration",
+    summary: "Creatures in the burst heal 1d6 HP for every two caster levels each round.",
+    target: "All creatures with a 20' burst centred on a target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

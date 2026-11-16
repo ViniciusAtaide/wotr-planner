@@ -1,0 +1,13 @@
+(
+    key: "divine-zap",
+    blueprint: "8a1992f59e06dd64ab9ba52337bf8cb5",
+    name: "Divine Zap",
+    school: Divination,
+    guide: "cleric-spells#divine-zap-divination",
+    summary: "Deals 1d3 divine damage to the target, halved on a successful save.",
+    target: "One friendly creature within touch range",
+    saving_throw: "Fortitude half",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

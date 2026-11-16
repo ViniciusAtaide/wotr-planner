@@ -1,0 +1,16 @@
+(
+    key: "cavalier/standard-bearer",
+    class: "cavalier",
+    blueprint: "07db3fec753209546a792a7942288998",
+    name: "Standard Bearer",
+    summary: "You get your banner early and use it to buff allies.",
+    guide: "cavalier#standard-bearer",
+    levels: [
+        (level: 1, features: ["cavalier/challenge", "banner", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)], selections: ["cavalier/order"]),
+        (level: 5, features: ["cavalier-mount", "cavalier/tactician"]),
+        (level: 11, features: ["cavalier/mighty-charge", "cavalier/standard-bearer/banner-of-solace"]),
+        (level: 15, features: ["cavalier/standard-bearer/banner-of-solace", "banner", "cavalier/tactician"]),
+        (level: 19, features: ["cavalier/challenge", "cavalier/standard-bearer/banner-of-solace"]),
+        (level: 20, features: ["cavalier/standard-bearer/awesome-pennon", "banner", "cavalier/tactician"]),
+    ],
+)

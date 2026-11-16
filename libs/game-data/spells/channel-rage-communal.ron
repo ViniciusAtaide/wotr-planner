@@ -1,0 +1,14 @@
+(
+    key: "channel-rage-communal",
+    blueprint: "ea373f990b4d8a947a4688e6cbcb1d5f",
+    name: "Channel Rage, Communal",
+    school: Transmutation,
+    guide: "demon#channel-rage-communal-transmutation",
+    summary: "Shares your Demonic Rage with allies in the burst; it can only be cast while you are raging.",
+    target: "Allies within a 30' burst centred on the caster",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

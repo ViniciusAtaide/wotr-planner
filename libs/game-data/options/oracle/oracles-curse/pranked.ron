@@ -1,0 +1,13 @@
+(
+    key: "oracle/oracles-curse/pranked",
+    blueprint: "15631616e56ccf44ab8659e55c36185f",
+    name: "Pranked",
+    summary: "-4 initiative for spells known: Faerie Fire, then Glitterdust and Mirror Image at 5th, Confusion at 10th and Insanity at 15th.",
+    guide: "oracle#pranked",
+    levels: [
+        (level: 1, features: ["oracle/oracles-curse/pranked/level-1"]),
+        (level: 5, features: ["oracle/oracles-curse/pranked/level-5"]),
+        (level: 10, features: ["oracle/oracles-curse/pranked/level-10"]),
+        (level: 15, features: ["oracle/oracles-curse/pranked/level-15"]),
+    ],
+)

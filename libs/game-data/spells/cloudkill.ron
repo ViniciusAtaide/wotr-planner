@@ -1,0 +1,14 @@
+(
+    key: "cloudkill",
+    blueprint: "548d339ba87ee56459c98e80167bdf10",
+    name: "Cloudkill",
+    school: Conjuration,
+    guide: "wizard-spells#cloudkill-conjuration",
+    summary: "Slays creatures of 3 HD or less, and of 4-6 HD unless they save (then 1d4 Constitution damage a round); stronger ones take 1d4 a round, halved by a save.",
+    target: "Target point within medium range, 20' burst",
+    duration: "1 round / level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [Poison],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "kineticist/wild-talents/skilled-kineticist", blueprint: "fd13e9efee08db448974fe0263eb96c8", name: "Skilled Kineticist", summary: "Bonus of half your level on the class skills granted by your primary Elemental Focus.", guide: "kineticist#skilled-kineticist", prerequisite: ClassLevel(class: "kineticist", level: 2))

@@ -1,0 +1,14 @@
+(
+    key: "aspect-of-the-bear",
+    blueprint: "a4ad1b8fa11e7c347a608c004efce9d5",
+    name: "Aspect of the Bear",
+    school: Transmutation,
+    guide: "druid-spells#aspect-of-the-bear-transmutation",
+    summary: "You gain +2 enhancement to natural armour and +2 enhancement on CMB, and can use the Bull Rush combat manoeuvre.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

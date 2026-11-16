@@ -1,0 +1,14 @@
+(
+    key: "summon-monster-ii",
+    blueprint: "1724061e89c667045a6891179ee2e8e7",
+    name: "Summon Monster II",
+    school: Conjuration,
+    guide: "wizard-spells#summon-monster-ii-conjuration",
+    summary: "Calls one wolf or 1d3 dogs, all extraplanar.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

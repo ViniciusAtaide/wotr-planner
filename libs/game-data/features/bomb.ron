@@ -1,0 +1,1 @@
+(key: "bomb", blueprint: "c59b2f256f5a70a4d896568658315b7d", name: "Bomb", summary: "Class level + Int bombs a day: 30 feet, fire dice + Int on a hit, Reflex-halved splash; the Alchemist's 1d6, +1d6 per odd level, the Reanimator's from 1d4.", guide: "alchemist#bomb")

@@ -1,0 +1,1 @@
+(key: "thundering-blows", blueprint: "8081c981b95ad9f49a421e7345c8c6f6", name: "Thundering Blows", summary: "Once a round, missing in melee blasts enemies within 10 ft for 2d6 + 1d6 per two mythic ranks sonic damage.", group: Melee, guide: "mythic-paths#thundering-blows")

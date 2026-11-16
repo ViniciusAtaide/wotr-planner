@@ -1,0 +1,15 @@
+(
+    key: "true-seeing-communal",
+    blueprint: "fa08cb49ade3eee42b5fd42bd33cb407",
+    name: "True Seeing, Communal",
+    school: Divination,
+    guide: "wizard-spells#true-seeing-communal-divination",
+    summary: "Allies in the area can see past invisibility, blur and displacement.",
+    components: "Diamond dust x10",
+    target: "All allies within 30' of friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

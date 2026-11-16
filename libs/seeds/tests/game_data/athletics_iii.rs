@@ -170,11 +170,10 @@ fn the_level_athletics_iii_is_taken_at_doesnt_see_it_in_its_own_feat_slot() {
 
 #[test]
 fn athletics_iii_is_the_only_option_that_sets_the_bab_by_ranks() {
-    let raising: Vec<_> = DATA
-        .mythic_paths
-        .iter()
-        .flat_map(|path| &path.selections)
-        .flat_map(|selection| &selection.options)
+    let raising: Vec<_> = all_path_grants()
+        .selections
+        .into_iter()
+        .flat_map(|selection| DATA.options_of(selection))
         .filter_map(|option| Some((option.key.as_str(), option.bab_from_ranks.as_ref()?)))
         .collect();
     // Game: TricksterAthleticsTier3Feature e45bf795c4f84c3b8a83c011f8580491, the only blueprint with a BAB bonus read
@@ -188,23 +187,11 @@ fn athletics_iii_is_the_only_option_that_sets_the_bab_by_ranks() {
         ("athletics", 5)
     );
     // No class, archetype or prestige class sets one.
-    let selections = DATA
-        .classes
-        .iter()
-        .flat_map(|class| {
-            class
-                .selections
-                .iter()
-                .chain(class.archetypes.iter().flat_map(|a| &a.selections))
-        })
-        .chain(
-            DATA.prestige_classes
-                .iter()
-                .flat_map(|class| &class.selections),
-        );
+    let selections = all_class_grants().selections;
     assert!(
         selections
-            .flat_map(|selection| &selection.options)
+            .into_iter()
+            .flat_map(|selection| DATA.options_of(selection))
             .all(|option| option.bab_from_ranks.is_none())
     );
 }

@@ -73,12 +73,12 @@ fn a_crossblooded_sorcerers_second_bloodline_gives_its_arcana() {
     assert!(!holds(&one, "sorcerer/bloodline/abyssal/grow-claws"));
     assert!(!holds(&one, "sorcerer/crossblooded/bloodline-2-arcana"));
     // Every sorcerer bloodline names its arcana.
-    let bloodlines = &class("sorcerer")
-        .selections
-        .iter()
-        .find(|s| s.key.as_str() == "sorcerer/bloodline")
-        .unwrap()
-        .options;
+    let bloodlines: Vec<_> = DATA
+        .options_of(
+            DATA.selection(&rules::FeatureSelectionKey::new("sorcerer/bloodline"))
+                .unwrap(),
+        )
+        .collect();
     assert_eq!(bloodlines.len(), 21);
     assert!(bloodlines.iter().all(|o| o.arcana.is_some()));
 }
@@ -210,8 +210,7 @@ fn a_divine_hunters_domain_runs_two_levels_behind_its_hunter_level() {
     from_level(&build, 3, "cleric/domain/nobility/inspiring-word");
     // The data names the offset. Game: every domain progression (NobilityDomainProgression and the 36 others) lists
     // DivineHunterArchetype f996f0a18e5d945459e710ee3a6dd485 with AdditionalLevel -2.
-    let domain = DATA
-        .selections()
+    let domain = (DATA.selections.iter())
         .find(|selection| selection.key.as_str() == "hunter/divine-hunter/domain")
         .unwrap();
     assert_eq!(
@@ -439,16 +438,15 @@ fn a_signifer_picks_one_of_the_seven_hellknight_orders() {
     // Game: HellknightSigniferProgression 9dbe8102673d3e94e98e25cb9260e1c5 at 1: HellKnightOrderSelection
     // e31d849e4eb2578458419c9df622270f, seven orders.
     let signifer = class("hellknight-signifer");
-    let order = signifer
-        .selections
-        .iter()
-        .find(|s| s.key.as_str() == "hellknight-signifer/order")
+    let order = DATA
+        .selection(&rules::FeatureSelectionKey::new(
+            "hellknight-signifer/order",
+        ))
         .expect("the Signifer's order");
     assert_eq!(order.offered().len(), 7);
     assert!(signifer.levels[0].selections.contains(&order.key));
     assert!(
-        signifer
-            .features
+        DATA.features
             .iter()
             .all(|f| f.key.as_str() != "hellknight-signifer/order")
     );
@@ -542,9 +540,8 @@ fn a_dual_heritage_or_kindred_raised_half_elf_has_no_adaptability_pick() {
     }
     // No subrace in the data has slots of its own: the guide lists none.
     assert!(
-        DATA.races
+        DATA.subraces
             .iter()
-            .flat_map(|race| &race.subraces)
             .all(|subrace| subrace.feat_slots.is_empty())
     );
 }

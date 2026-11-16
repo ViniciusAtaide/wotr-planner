@@ -1,0 +1,9 @@
+(
+    key: "sarenrae",
+    blueprint: "c1c4f7f64842e7e48849e5e67be11a1b",
+    name: "Sarenrae",
+    guide: "character-creation#deities",
+    alignments: [LawfulGood, NeutralGood, ChaoticGood, TrueNeutral],
+    favoured_weapons: ["scimitar"],
+    domains: ["cleric/domain/fire", "cleric/domain/glory", "cleric/domain/good", "cleric/domain/healing", "cleric/domain/sun"],
+)

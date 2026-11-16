@@ -1,0 +1,19 @@
+(
+    key: "barbarian/mad-dog",
+    class: "barbarian",
+    blueprint: "063da4c77fa59454a9828c9ece407ea1",
+    name: "Mad Dog",
+    summary: "Barbarian with an animal companion; Rage and DR come later, no Uncanny Dodge, fewer rage powers.",
+    guide: "barbarian#mad-dog",
+    levels: [
+        (level: 1, features: ["barbarian/fast-movement", "barbarian/mad-dog/animal-companion"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 2, features: ["barbarian/mad-dog/pack-tactics"]),
+        (level: 4, features: ["barbarian/rage"], selections: ["barbarian/rage-power"]),
+        (level: 5, features: ["barbarian/mad-dog/ferocious-fetch"]),
+        (level: 6, features: ["barbarian/danger-sense"]),
+        (level: 7),
+        (level: 10, features: ["barbarian/damage-reduction"]),
+        (level: 14, features: ["barbarian/mad-dog/throat-cutter"]),
+        (level: 18, features: ["barbarian/danger-sense"]),
+    ],
+)

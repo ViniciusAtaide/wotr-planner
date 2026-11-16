@@ -1,0 +1,1 @@
+(key: "ranging-shots", blueprint: "2b558167862b05d47b8472d176257f82", name: "Ranging Shots", summary: "Each ranged miss gives a stacking +1 attack bonus up to your mythic rank; each hit removes 1.", group: Ranged, guide: "mythic-paths#ranging-shots")

@@ -1,0 +1,23 @@
+(
+    key: "slayer/imitator",
+    class: "slayer",
+    blueprint: "5947427f10bc497dbc24f66129b43e5d",
+    name: "Imitator",
+    summary: "Human slayer who adopts other classes' stances instead of Studied Target, with fewer sneak dice and talents.",
+    guide: "slayer#imitator",
+    prerequisite: Race("human"),
+    levels: [
+        (level: 1, features: ["slayer/slayer-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["slayer/imitator/imitation"]),
+        (level: 4),
+        (level: 5),
+        (level: 6, selections: ["slayer/slayer-talents"]),
+        (level: 7),
+        (level: 10, features: ["advanced-talents"]),
+        (level: 12, selections: ["slayer/slayer-talents"]),
+        (level: 13),
+        (level: 15, features: ["sneak-attack"]),
+        (level: 16),
+        (level: 18, selections: ["slayer/slayer-talents"]),
+        (level: 20, features: ["slayer/master-slayer"], selections: ["slayer/slayer-talents"]),
+    ],
+)

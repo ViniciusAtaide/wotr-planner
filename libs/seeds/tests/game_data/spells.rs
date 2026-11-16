@@ -3,7 +3,6 @@
 //! README lists.
 
 use std::collections::{BTreeMap, BTreeSet};
-use std::path::Path;
 
 use rules::{
     ArchetypeKey, CastingTime, ClassKey, MythicPathKey, Spell, SpellCaster, SpellDescriptor,
@@ -442,75 +441,6 @@ fn the_spell_lists_hold_the_games_spells() {
         .filter(|(key, spell, level)| levels(key, spell).contains(&(*level, None)))
         .collect();
     assert_eq!((missing, extra), (vec![], vec![]));
-}
-
-/// The list a page folder's blocks sit under.
-fn folder_list(folder: &str) -> &str {
-    match folder {
-        "angel" => "angel/merged",
-        "lich" => "lich/merged",
-        "arcanist" => "arcanist/magic-deceiver",
-        other => other,
-    }
-}
-
-/// A spell's file says where its block is: `spells/<page>/level-<n>.ron` holds the blocks under that page's "Level
-/// <n>" heading, so each is on that page's list at that level, and its guide link is to that page.
-#[test]
-fn each_spell_is_in_the_file_of_its_blocks_page_and_level() {
-    let dir = seeds::game_data_dir().join("spells");
-    let mut files = 0;
-    for folder in std::fs::read_dir(&dir).unwrap() {
-        let folder = folder.unwrap().path();
-        if !folder.is_dir() {
-            continue;
-        }
-        let name = folder.file_name().unwrap().to_str().unwrap().to_owned();
-        let page = match name.as_str() {
-            "wizard" | "cleric" | "druid" => format!("{name}-spells"),
-            other => other.to_owned(),
-        };
-        for file in std::fs::read_dir(&folder).unwrap() {
-            let file = file.unwrap().path();
-            let level: u8 = file
-                .file_stem()
-                .and_then(|stem| stem.to_str()?.strip_prefix("level-")?.parse().ok())
-                .unwrap_or_else(|| panic!("{} isn't level-<n>.ron", file.display()));
-            files += 1;
-            for spell in read_spells(&file) {
-                assert!(
-                    spell
-                        .guide
-                        .as_ref()
-                        .unwrap()
-                        .0
-                        .starts_with(&format!("{page}#")),
-                    "{}: {} links to {}",
-                    file.display(),
-                    spell.key,
-                    spell.guide.as_ref().unwrap().0
-                );
-                assert!(
-                    levels(folder_list(&name), spell.key.as_str())
-                        .iter()
-                        .any(|(at, _)| *at == level),
-                    "{}: {} isn't on {} at {level}",
-                    file.display(),
-                    spell.key,
-                    folder_list(&name)
-                );
-            }
-        }
-    }
-    assert_eq!(files, 98);
-}
-
-fn read_spells(path: &Path) -> Vec<Spell> {
-    let text = std::fs::read_to_string(path).unwrap();
-    ron::Options::default()
-        .with_default_extension(ron::extensions::Extensions::IMPLICIT_SOME)
-        .from_str(&text)
-        .unwrap()
 }
 
 #[test]

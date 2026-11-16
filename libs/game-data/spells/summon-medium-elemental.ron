@@ -1,0 +1,14 @@
+(
+    key: "summon-medium-elemental",
+    blueprint: "e42b1dbff4262c6469a9ff0a6ce730e3",
+    name: "Summon Medium Elemental",
+    school: Conjuration,
+    guide: "wizard-spells#summon-medium-elemental-conjuration",
+    summary: "Summons a Medium elemental of your choice: air, earth, fire or water.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

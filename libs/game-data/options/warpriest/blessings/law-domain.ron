@@ -1,0 +1,13 @@
+(
+    key: "warpriest/blessings/law-domain",
+    blueprint: "9c49504e2e4c66d4aa341348356b47a8",
+    name: "Law Domain",
+    summary: "Minor: an ally's attacks deal +1d6 to chaotic foes and count as lawful. Major (10th): allies within 30' get +4 AC and saves against chaotic foes.",
+    guide: "warpriest#law-domain",
+    domain: "cleric/domain/law",
+    prerequisite: All([Any([Not(PickedThrough("warpriest/blessings")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]), Any([Not(PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")), DeityOffers("cleric/domain/law")])]),
+    levels: [
+        (level: 1, features: ["warpriest/blessings/law-domain/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/law-domain/major-blessing"]),
+    ],
+)

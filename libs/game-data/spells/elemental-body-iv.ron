@@ -1,0 +1,14 @@
+(
+    key: "elemental-body-iv",
+    blueprint: "376db0590f3ca4945a8b6dc16ed14975",
+    name: "Elemental Body IV",
+    school: Transmutation,
+    guide: "wizard-spells#elemental-body-iv-transmutation",
+    summary: "You turn into a Huge elemental of your choice: air, earth, fire or water.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

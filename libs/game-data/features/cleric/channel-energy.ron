@@ -1,0 +1,1 @@
+(key: "cleric/channel-energy", blueprint: "d332c1748445e8f4f9e92763123e31bd", name: "Channel Energy", summary: "30-foot burst of 1d6 +1d6 per two levels, healing or harming by your energy (Will halves); 3 + Cha uses a day; trade spells for cure or inflict.", guide: "cleric#channel-energy")

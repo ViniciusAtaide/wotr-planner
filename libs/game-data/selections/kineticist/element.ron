@@ -1,0 +1,14 @@
+(
+    key: "kineticist/element",
+    blueprint: "1f3a15a3ae8a5524ab8b97f469bf4e3d",
+    name: "Elemental Focus",
+    summary: "Choose the element your powers draw on; it sets your blasts, extra class skills, bonus feat list and defensive wild talent.",
+    guide: "kineticist#elemental-focus",
+    option_levels: ["kineticist"],
+    options: [
+        "kineticist/element/air",
+        "kineticist/element/earth",
+        "kineticist/element/fire",
+        "kineticist/element/water",
+    ],
+)

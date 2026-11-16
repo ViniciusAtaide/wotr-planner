@@ -1,0 +1,11 @@
+(
+    key: "sorcerer/seeker",
+    class: "sorcerer",
+    name: "Seeker",
+    guide: "sorcerer#seeker-sorcerer",
+    spontaneous: false,
+    levels: [
+        (level: 1, selections: ["sorcerer/seeker/bloodline", "sorcerer/seeker/second-bloodline"]),
+        (level: 2, selections: ["sorcerer/seeker/choice"]),
+    ],
+)

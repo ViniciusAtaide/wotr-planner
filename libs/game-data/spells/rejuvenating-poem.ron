@@ -1,0 +1,13 @@
+(
+    key: "rejuvenating-poem",
+    blueprint: "10f0308c40d647c42a6b4caaee7658a8",
+    name: "Rejuvenating Poem",
+    school: Conjuration,
+    guide: "azata#rejuvenating-poem-conjuration",
+    summary: "Removes fatigued and exhausted from every party member.",
+    target: "All allies within a 30' burst centred on caster",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

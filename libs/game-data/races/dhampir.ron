@@ -1,0 +1,8 @@
+(
+    key: "dhampir",
+    blueprint: "64e8b7d5f1ae91d45bbf1e56a3fdff01",
+    name: "Dhampir",
+    summary: "Healed by negative and harmed by positive energy; immune to energy drain; +2 saves vs disease and mind-affecting; +2 Persuasion (bluff) and Perception.",
+    guide: "character-creation#dhampir",
+    ability_modifiers: [Fixed(ability: Dexterity, amount: 2), Fixed(ability: Constitution, amount: -2), Fixed(ability: Charisma, amount: 2)],
+)

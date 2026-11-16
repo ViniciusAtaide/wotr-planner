@@ -1,0 +1,13 @@
+(
+    key: "dispel-magic",
+    blueprint: "92681f181b507b34ea87018e8f7a528a",
+    name: "Dispel Magic",
+    school: Abjuration,
+    guide: "wizard-spells#dispel-magic-abjuration",
+    summary: "Ends one ongoing spell on a creature, or one area spell at the target point.",
+    target: "One creature within medium range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

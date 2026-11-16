@@ -1,0 +1,14 @@
+(
+    key: "edict-of-predetermination",
+    blueprint: "3f205f55a6e7759449772feb34edc378",
+    name: "Edict of Predetermination",
+    school: Abjuration,
+    guide: "aeon#edict-of-predetermination-abjuration",
+    summary: "Every d20 the target rolls comes up 11.",
+    target: "One creature within close range",
+    duration: "1 round / 4 caster levels",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Swift,
+)

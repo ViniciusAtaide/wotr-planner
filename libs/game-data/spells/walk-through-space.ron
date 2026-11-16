@@ -1,0 +1,14 @@
+(
+    key: "walk-through-space",
+    blueprint: "368d7cf2fb69d8a46be5a650f5a5a173",
+    name: "Walk through Space",
+    school: Conjuration,
+    guide: "wizard-spells#walk-through-space-conjuration",
+    summary: "You can teleport up to 30 ft as a move action, or stand up from prone with one, without provoking attacks of opportunity.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

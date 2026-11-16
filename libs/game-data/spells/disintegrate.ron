@@ -1,0 +1,13 @@
+(
+    key: "disintegrate",
+    blueprint: "4aa7942c3e62a164387a73184bca3fc1",
+    name: "Disintegrate",
+    school: Transmutation,
+    guide: "wizard-spells#disintegrate-transmutation",
+    summary: "On a ranged touch hit, deals 2d6 per caster level and disintegrates a target it kills; a Fortitude save cuts it to 5d6.",
+    target: "One enemy creature within medium range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

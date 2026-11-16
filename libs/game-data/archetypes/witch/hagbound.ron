@@ -1,0 +1,16 @@
+(
+    key: "witch/hagbound",
+    class: "witch",
+    blueprint: "96e4c06b6add0a64a8ad8976f9c38c37",
+    name: "Hagbound",
+    summary: "Witch slowly turning into a hag: limited patrons, claws, Strength and an at-will curse.",
+    guide: "witch#hagbound",
+    levels: [
+        (level: 1, features: ["witch/familiar", "witch-cantrips", "witch/hagbound/hagbound-patron", "witch/hagbound/hags-claws"], feats: ["simple-weapon-proficiency"]),
+        (level: 2, features: ["witch/hagbound/hunched-muscle"]),
+        (level: 8, features: ["witch/hagbound/hunched-muscle"]),
+        (level: 10, features: ["witch/hagbound/vile-curse", "major-hexes"]),
+        (level: 14, features: ["witch/hagbound/hunched-muscle"]),
+        (level: 20, features: ["witch/hagbound/hag-transformation"]),
+    ],
+)

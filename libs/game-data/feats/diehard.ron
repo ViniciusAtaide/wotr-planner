@@ -1,0 +1,1 @@
+(key: "diehard", blueprint: "86669ce8759f9d7478565db69b8c19ad", name: "Diehard", summary: "Dropping below 0 HP (but not dead) leaves you disabled but fighting for 1 more round; unless healed above 0, you then pass out.", category: Miscellaneous, guide: "feats#diehard")

@@ -1,0 +1,13 @@
+(
+    key: "chain-lightning",
+    blueprint: "645558d63604747428d55f0dd3a4cb58",
+    name: "Chain Lightning",
+    school: Evocation,
+    guide: "wizard-spells#chain-lightning-evocation",
+    summary: "Deals 1d6 electricity per caster level (max 20d6) to the target, then arcs to further targets within 30 ft, up to your caster level in all, none hit twice.",
+    target: "One enemy creature within long range",
+    saving_throw: "Reflex partial",
+    spell_resistance: true,
+    descriptors: [Electricity],
+    casting_time: Standard,
+)

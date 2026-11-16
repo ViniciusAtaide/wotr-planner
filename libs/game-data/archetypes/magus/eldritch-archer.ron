@@ -1,0 +1,14 @@
+(
+    key: "magus/eldritch-archer",
+    class: "magus",
+    blueprint: "44388c01eb4a29d4d90a25cc0574320d",
+    name: "Eldritch Archer",
+    summary: "Ranged magus who uses a ranged weapon for spell combat and spellstrike; loses Counterstrike.",
+    guide: "magus#eldritch-archer",
+    class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "perception", "persuasion"],
+    levels: [
+        (level: 1, features: ["magus/arcane-pool", "detect-magic", "magus/eldritch-archer/ranged-spell-combat", "magus/magus-proficiencies"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
+        (level: 2, features: ["magus/eldritch-archer/ranged-spellstrike"]),
+        (level: 16),
+    ],
+)

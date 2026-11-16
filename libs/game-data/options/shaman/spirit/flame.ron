@@ -1,0 +1,13 @@
+(
+    key: "shaman/spirit/flame",
+    blueprint: "50efeb23b314869409365c8061a4082d",
+    name: "Flame",
+    summary: "Flame: Touch of Flames, fire resistance and a cone at 8th, fire elemental form at 16th, free fire metamagic at 20th.",
+    guide: "shaman#flame",
+    levels: [
+        (level: 1, features: ["shaman/spirit/flame/touch-of-flames"]),
+        (level: 8, features: ["shaman/spirit/flame/fiery-soul"]),
+        (level: 16, features: ["shaman/spirit/flame/elemental-form-fire"]),
+        (level: 20, features: ["shaman/spirit/flame/manifestation-flame"]),
+    ],
+)

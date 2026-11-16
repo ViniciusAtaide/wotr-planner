@@ -1,0 +1,1 @@
+(key: "oracle/revelations/wind/spark-skin", blueprint: "279637adc9719db4c93352f71366eba8", name: "Spark Skin", summary: "Electricity resistance 5, 10 at 5th level, 20 at 11th, and electricity immunity at 17th.", guide: "oracle#spark-skin", prerequisite: SelectionOption("oracle/mystery/wind"))

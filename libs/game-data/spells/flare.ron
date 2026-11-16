@@ -1,0 +1,14 @@
+(
+    key: "flare",
+    blueprint: "f0f8e5b9808f44e4eadd22b138131d52",
+    name: "Flare",
+    school: Evocation,
+    guide: "wizard-spells#flare-evocation",
+    summary: "Dazzles the target for 1 minute if it fails a Fortitude save.",
+    target: "One enemy creature within close range",
+    duration: "1 minute",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

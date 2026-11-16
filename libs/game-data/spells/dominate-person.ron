@@ -1,0 +1,14 @@
+(
+    key: "dominate-person",
+    blueprint: "d7cbd2004ce66a042aeab2e95a3c5c61",
+    name: "Dominate Person",
+    school: Enchantment,
+    guide: "wizard-spells#dominate-person-enchantment",
+    summary: "A humanoid that fails fights on your side, with a new save each round.",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: FullRound,
+)

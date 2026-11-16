@@ -1,0 +1,13 @@
+(
+    key: "silver-darts",
+    blueprint: "b0ffc8eaff404f2e9e0a3ee9f4c35486",
+    name: "Silver Darts",
+    school: Conjuration,
+    guide: "wizard-spells#silver-darts-conjuration",
+    summary: "Creatures in the cone take 1d6 piercing damage per caster level, up to 10d6.",
+    target: "15' cone",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

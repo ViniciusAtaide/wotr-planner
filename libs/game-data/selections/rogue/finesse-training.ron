@@ -1,0 +1,8 @@
+(
+    key: "rogue/finesse-training",
+    blueprint: "b78d146cea711a84598f0acef69462ea",
+    name: "Finesse Training",
+    summary: "From 3rd level, adds Dexterity instead of Strength to damage with one chosen finessable weapon; a second at 11th, a third at 19th.",
+    guide: "rogue#finesse-training",
+    options: ["rogue/finesse-training/weapon"],
+)

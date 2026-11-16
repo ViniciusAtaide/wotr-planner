@@ -1,0 +1,1 @@
+(key: "weapon-finesse", blueprint: "90e54424d682d104ab36436bd527af09", name: "Weapon Finesse", summary: "Use Dex instead of Str for attack rolls (not damage) with light and finesse weapons such as the dagger, rapier, dueling sword and estoc.", category: Weapon, guide: "feats#weapon-finesse")

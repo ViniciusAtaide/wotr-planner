@@ -1,0 +1,1 @@
+(key: "paladin/mercy/frightened", blueprint: "7687aa3764cb651448a50016e1758069", name: "Frightened", summary: "From 9th level, needs the Shaken mercy: Lay on Hands also removes the frightened condition.", guide: "paladin#mercy", prerequisite: All([ClassLevel(class: "paladin", level: 9), SelectionOption("paladin/mercy/shaken")]))

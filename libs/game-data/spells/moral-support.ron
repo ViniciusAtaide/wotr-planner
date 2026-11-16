@@ -1,0 +1,14 @@
+(
+    key: "moral-support",
+    blueprint: "92ca26ebceec30a4babc1b0582e34ce6",
+    name: "Moral Support",
+    school: Abjuration,
+    guide: "azata#moral-support-abjuration",
+    summary: "Allies in the burst gain +1 per 3 caster levels on skill checks and critical confirmation rolls, and +1 per 6 caster levels on saves.",
+    target: "All allies within a 30' burst centred on creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

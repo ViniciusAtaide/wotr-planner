@@ -1,0 +1,14 @@
+(
+    key: "shadow-evocation-greater",
+    blueprint: "3c4a2d4181482e84d9cd752ef8edc3b6",
+    name: "Shadow Evocation, Greater",
+    school: Illusion,
+    guide: "wizard-spells#shadow-evocation-greater-illusion",
+    summary: "Casts a shadow Sirocco, Ki Shout, Chain Lightning, Caustic Eruption, Cold Ice Strike or Elemental Assessor; a Will save cuts its damage to three fifths.",
+    target: "Target point within any range",
+    duration: "?",
+    saving_throw: "?",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

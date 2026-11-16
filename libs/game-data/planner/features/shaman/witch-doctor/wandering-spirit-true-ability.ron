@@ -1,0 +1,4 @@
+(
+    why: "Each spirit's own wandering progression grants it in the game; the planner holds one entry for whichever spirit is chosen.",
+    entry: (key: "shaman/witch-doctor/wandering-spirit-true-ability", name: "Wandering Spirit - True Ability", summary: "At 20th level, you also gain your wandering spirit's true ability.", guide: "shaman#witch-doctor"),
+)

@@ -1,0 +1,1 @@
+(key: "hunter", blueprint: "dd715e89fceb7ad44b120a49e4395332", name: "Hunter", group: Wanderer, note: "Proficient with shortbow and longbow.", class_skills: ["lore-nature", "perception"], weapons: ["long-bow", "short-bow"])

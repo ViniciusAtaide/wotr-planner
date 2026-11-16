@@ -64,9 +64,7 @@ async fn an_archetype_has_its_rows_merged_over_its_classs() {
     assert_eq!(levels.len(), 20);
     // Its own rows replace the arcanist's at their levels; the rest are the arcanist's.
     assert!(names(&levels[2]["features"]).contains(&"Powerful Change".to_owned()));
-    assert!(
-        keys(&levels[0]["features"]).contains(&"arcanist/brown-fur-transmuter/cantrips".to_owned())
-    );
+    assert!(keys(&levels[0]["features"]).contains(&"arcanist-cantrips".to_owned()));
     assert_eq!(
         keys(&levels[0]["selections"]),
         ["arcanist/arcanist-exploits"]
@@ -85,14 +83,8 @@ async fn an_archetypes_replacement_for_a_skipped_option_row_is_in_its_table() {
         )
         .await;
     let levels = empyreal["levels"].as_array().unwrap();
-    assert_eq!(
-        keys(&levels[19]["features"]),
-        ["sorcerer/empyreal-sorcerer/apotheosis"]
-    );
-    assert!(
-        !keys(&levels[18]["features"])
-            .contains(&"sorcerer/empyreal-sorcerer/apotheosis".to_owned())
-    );
+    assert_eq!(keys(&levels[19]["features"]), ["celestial-ascension"]);
+    assert!(!keys(&levels[18]["features"]).contains(&"celestial-ascension".to_owned()));
 }
 
 #[tokio::test]

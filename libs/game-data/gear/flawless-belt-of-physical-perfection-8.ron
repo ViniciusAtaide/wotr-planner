@@ -1,0 +1,15 @@
+(
+    key: "flawless-belt-of-physical-perfection-8",
+    blueprint: "3c3a3a043b99422480b04940bc1edc73",
+    name: "Flawless Belt of Physical Perfection +8",
+    slot: Belt,
+    guide: "items-inevitable-excess#belts",
+    bonuses: [
+        (target: Ability(Strength), amount: 8, kind: Enhancement),
+        (target: Ability(Dexterity), amount: 8, kind: Enhancement),
+        (target: Ability(Constitution), amount: 8, kind: Enhancement),
+    ],
+    always_on: [
+        "Critical threat range +1",
+    ],
+)

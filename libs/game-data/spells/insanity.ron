@@ -1,0 +1,14 @@
+(
+    key: "insanity",
+    blueprint: "2b044152b3620c841badb090e01ed9de",
+    name: "Insanity",
+    school: Enchantment,
+    guide: "wizard-spells#insanity-enchantment",
+    summary: "The target is permanently confused; only Heal or Greater Restoration removes it.",
+    target: "One enemy creature within medium range",
+    duration: "Permanent",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

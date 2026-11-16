@@ -1,0 +1,1 @@
+(key: "monk/student-of-stone/bonus-feats-6", blueprint: "a4a78358ba604afb8182ce1adffada31", name: "Bonus Feat (Student of Stone, level 6)", guide: "monk#bonus-feat-student-of-stone", ignores_prerequisites: true, feats: ["blind-fight", "combat-reflexes", "crane-style", "deflect-arrows", "disarm", "dodge", "elemental-fist", "improved-initiative", "trip"])

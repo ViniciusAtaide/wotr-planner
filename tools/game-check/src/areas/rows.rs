@@ -124,7 +124,7 @@ pub fn compare_classes(ctx: &Ctx, out: &mut Out) {
         diff(ctx, out, AREA, "level", &at, class_guid, game, planner);
         out.compared(AREA, mark);
 
-        for archetype in &class.archetypes {
+        for archetype in ctx.planner.data.archetypes_of(&class.key) {
             let Some((guid, json)) =
                 ctx.blueprint(out, AREA, archetype.blueprint.as_ref(), "archetype")
             else {

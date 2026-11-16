@@ -1,0 +1,13 @@
+(
+    why: "The game has one bonus-feat selection per element, none of them primary.",
+    entry: (
+        key: "kineticist/wild-talents/kineticist-bonus-feat",
+        name: "Kineticist Bonus Feat",
+        summary: "Take a bonus feat from an Elemental Focus list, ignoring its prerequisites.",
+        guide: "kineticist#kineticist-bonus-feat",
+        prerequisite: ClassLevel(class: "kineticist", level: 2),
+        levels: [
+            (level: 1, feat_slots: [OptionList(selection: "kineticist/element", label: "Wild talent feat")]),
+        ],
+    ),
+)

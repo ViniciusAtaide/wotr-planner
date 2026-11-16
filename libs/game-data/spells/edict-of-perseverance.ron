@@ -1,0 +1,14 @@
+(
+    key: "edict-of-perseverance",
+    blueprint: "b7bc99f6e3592a3499815387e1d721e2",
+    name: "Edict of Perseverance",
+    school: Abjuration,
+    guide: "aeon#edict-of-perseverance-abjuration",
+    summary: "Holds off every negative effect on the target while it lasts.",
+    target: "One friendly creature within close range",
+    duration: "1 round / 5 caster levels",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Swift,
+)

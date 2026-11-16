@@ -1,0 +1,1 @@
+(key: "wizard/school/conjurer/acid-dart", blueprint: "b4b575d14c3bab6489aafa17ac2c909e", name: "Acid Dart", summary: "Standard action, 3 + Int times a day: a 30' ranged touch dart for 1d6 acid + 1 per two levels.", guide: "wizard#acid-dart")

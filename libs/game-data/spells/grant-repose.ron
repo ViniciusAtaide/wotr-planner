@@ -1,0 +1,13 @@
+(
+    key: "grant-repose",
+    blueprint: "b16d3d442bb3ed148a4a79a22ee7c880",
+    name: "Grant Repose",
+    school: Conjuration,
+    guide: "angel#grant-repose-conjuration",
+    summary: "On a touch hit, an undead target is destroyed if it fails its save, or takes 2d6 plus 1 for every two caster levels if it succeeds.",
+    target: "One enemy creature within touch range",
+    saving_throw: "Will partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

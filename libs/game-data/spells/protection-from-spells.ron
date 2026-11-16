@@ -1,0 +1,15 @@
+(
+    key: "protection-from-spells",
+    blueprint: "42aa71adc7343714fa92e471baa98d42",
+    name: "Protection from Spells",
+    school: Abjuration,
+    guide: "wizard-spells#protection-from-spells-abjuration",
+    summary: "The target adds a +8 resistance bonus to its saving throws versus spells and spell-like effects.",
+    components: "Diamond dust x10",
+    target: "One friendly creature within touch range",
+    duration: "10 minutes . level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

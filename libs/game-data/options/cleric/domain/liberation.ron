@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/liberation",
+    blueprint: "df2f14ced8710664ba7db914880c4a02",
+    name: "Liberation Domain",
+    summary: "Freedom of Movement rounds and Freedom's Call aura from 8th level; spells up to Communal Mind Blank.",
+    guide: "character-creation#liberation-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/liberation/freedom-of-movement"]),
+        (level: 8, features: ["cleric/domain/liberation/freedoms-call"]),
+    ],
+)

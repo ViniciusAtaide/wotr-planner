@@ -1,0 +1,14 @@
+(
+    key: "crusaders-edge",
+    blueprint: "be5452c422a6ea744bf1037b0a443bb1",
+    name: "Crusader's Edge",
+    school: Transmutation,
+    guide: "cleric-spells#crusaders-edge-transmutation",
+    summary: "The target's melee weapon gains bane against evil outsiders, and creatures it hits are nauseated 1d3 rounds, or sickened 1 round on a Fortitude save.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [Good],
+    casting_time: Standard,
+)

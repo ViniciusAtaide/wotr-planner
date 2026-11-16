@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/community",
+    blueprint: "b8bbe42616d61ac419971b7910d79fc8",
+    name: "Community Domain",
+    summary: "Calming Touch heals and cleanses; Guarded Hearth adds Wisdom to allies' attacks and saves from 8th; spells up to Mass Heal.",
+    guide: "character-creation#community-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/community/calming-touch"]),
+        (level: 8, features: ["cleric/domain/community/guarded-hearth"]),
+    ],
+)

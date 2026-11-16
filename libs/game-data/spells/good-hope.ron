@@ -1,0 +1,14 @@
+(
+    key: "good-hope",
+    blueprint: "a5e23522eda32dc45801e32c05dc9f96",
+    name: "Good Hope",
+    school: Enchantment,
+    guide: "bard#good-hope-enchantment",
+    summary: "Allies gain a +2 morale bonus on attacks, damage, saves, ability checks and skill checks; it counters Crushing Despair.",
+    target: "All allies within a 15' burst",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

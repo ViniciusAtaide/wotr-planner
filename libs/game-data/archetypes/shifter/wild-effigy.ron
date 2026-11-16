@@ -1,0 +1,15 @@
+(
+    key: "shifter/wild-effigy",
+    class: "shifter",
+    blueprint: "c42d338616fa46ab9bcc67c94bca7609",
+    name: "Wild Effigy",
+    summary: "Shifter whose aspect forms are stone effigies, gaining DR and protection against crits.",
+    guide: "shifter#wild-effigy",
+    levels: [
+        (level: 2, features: ["shifter/wild-effigy/armor-plating"]),
+        (level: 4, features: ["shifter/wild-effigy/heart-of-earth", "major-form"]),
+        (level: 6, features: ["shifter/shifters-fury", "shifter/wild-effigy/stoneclaw-strike"]),
+        (level: 9, features: ["shifter/chimeric-aspect", "shifter/wild-effigy/heart-of-earth"]),
+        (level: 15, features: ["shifter/wild-effigy/heart-of-earth"], selections: ["shifter/shifter-aspect"]),
+    ],
+)

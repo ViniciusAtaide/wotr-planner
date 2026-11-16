@@ -1,0 +1,14 @@
+(
+    key: "bears-endurance",
+    blueprint: "a900628aea19aa74aad0ece0e65d091a",
+    name: "Bear's Endurance",
+    school: Transmutation,
+    guide: "wizard-spells#bears-endurance-transmutation",
+    summary: "+4 enhancement bonus to the target's Constitution.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

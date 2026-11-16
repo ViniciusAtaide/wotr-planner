@@ -1,0 +1,13 @@
+(
+    key: "second-breath",
+    blueprint: "d7e6f8a0369530341b50987d3ebdfe57",
+    name: "Second Breath",
+    school: Enchantment,
+    guide: "azata#second-breath-enchantment",
+    summary: "Restores every companion's ability uses to full.",
+    target: "All allies within a 30' burst centred on caster",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

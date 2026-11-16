@@ -1,0 +1,13 @@
+(
+    key: "cure-light-wounds",
+    blueprint: "5590652e1c2225c4ca30c4a699ab3649",
+    name: "Cure Light Wounds",
+    school: Conjuration,
+    guide: "cleric-spells#cure-light-wounds-conjuration",
+    summary: "Heals the target 1d8 + 1 per caster level (max +5), or deals that much damage to undead, who can save for half.",
+    target: "One friendly creature within touch range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [Cure],
+    casting_time: Standard,
+)

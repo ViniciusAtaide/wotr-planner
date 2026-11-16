@@ -1,0 +1,13 @@
+(
+    key: "cleric/ecclesitheurge",
+    class: "cleric",
+    blueprint: "472af8cb3de628f4a805dc4a038971bc",
+    name: "Ecclesitheurge",
+    summary: "Unarmored caster with two domains, 3 skill points a level, Blessing of the Faithful and a bonded holy symbol.",
+    guide: "cleric#ecclesitheurge",
+    skill_points: 3,
+    levels: [
+        (level: 1, features: ["cleric/channel-energy", "cleric/ecclesitheurge/blessing-of-the-faithful", "cleric/ecclesitheurge/domain-mastery", "cleric/ecclesitheurge/ecclesitheurge-proficiencies"], selections: ["cleric/domain", "cleric/domain"]),
+        (level: 3, features: ["cleric/ecclesitheurge/bonded-holy-symbol"]),
+    ],
+)

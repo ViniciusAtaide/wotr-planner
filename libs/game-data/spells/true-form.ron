@@ -1,0 +1,13 @@
+(
+    key: "true-form",
+    blueprint: "be0537e563ad07241a15c25dba990bd1",
+    name: "True Form",
+    school: Transmutation,
+    guide: "aeon#true-form-transmutation",
+    summary: "Cures the target of petrification and of any harmful transmutation effect.",
+    target: "One friendly creature within close range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

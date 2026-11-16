@@ -1,0 +1,19 @@
+(
+    key: "gold-dragon/improved-gold-dragon-breath",
+    blueprint: "81fe63677a4f4f7fb64e9be7cf075948",
+    name: "Improved Gold Dragon Breath",
+    summary: "Pick an extra breath effect at each mythic rank, and three at rank 10.",
+    guide: "gold-dragon#improved-gold-dragon-breath",
+    options: [
+        "gold-dragon/improved-gold-dragon-breath/annihilating-breath",
+        "gold-dragon/improved-gold-dragon-breath/decaying-breath",
+        "gold-dragon/improved-gold-dragon-breath/disrupting-breath",
+        "gold-dragon/improved-gold-dragon-breath/empowered-breath",
+        "gold-dragon/improved-gold-dragon-breath/enlightening-breath",
+        "gold-dragon/improved-gold-dragon-breath/mind-clearing-breath",
+        "gold-dragon/improved-gold-dragon-breath/overwhelming-breath",
+        "gold-dragon/improved-gold-dragon-breath/rejuvenating-breath",
+        "gold-dragon/improved-gold-dragon-breath/scorching-breath",
+        "gold-dragon/improved-gold-dragon-breath/spellbane-breath",
+    ],
+)

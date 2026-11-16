@@ -1,0 +1,1 @@
+(key: "assassin/public-execution", blueprint: "0579b74972044b4ab2f88fa74cdc13e2", name: "Public Execution", summary: "Dropping a foe to 0 HP makes a demoralise attempt against every enemy within 30 feet, at +2 if the victim was marked for death.", guide: "prestige-classes#public-execution")

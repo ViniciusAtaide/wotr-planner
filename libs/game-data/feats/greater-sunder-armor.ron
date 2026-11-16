@@ -1,0 +1,1 @@
+(key: "greater-sunder-armor", blueprint: "54d824028117e884a8f9356c7c66149b", name: "Greater Sunder Armor", summary: "Sundered armour stays down 1d4 rounds +1 per 5 over the foe's CMD, and the check gets +2 more.", category: CombatManoeuvres, guide: "feats#greater-sunder-armor", prerequisite: All([Feat("sunder-armor"), BaseAttackBonus(6)]))

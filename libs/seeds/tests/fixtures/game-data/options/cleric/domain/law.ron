@@ -1,0 +1,1 @@
+(key: "cleric/domain/law", name: "Law Domain", guide: "character-creation#law-domain", prerequisite: Any([Atheist, Deity("iomedae"), Not(DeityOffers("cleric/domain/good"))]))

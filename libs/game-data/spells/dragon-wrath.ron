@@ -1,0 +1,13 @@
+(
+    key: "dragon-wrath",
+    blueprint: "59d08b909d684b91a137766ab22f4b1a",
+    name: "Dragon Wrath",
+    school: Evocation,
+    guide: "gold-dragon#dragon-wrath-evocation",
+    summary: "Fires one ray per six caster levels (max 3 at 18th) at enemies within 25 ft; each ranged touch hit deals 1d6 per caster level, half fire, half holy or unholy.",
+    target: "All enemies within 25'",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

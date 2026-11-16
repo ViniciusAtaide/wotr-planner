@@ -1,0 +1,4 @@
+(
+    why: "An ability of KiPowerFeature in the game, not a feature of its own.",
+    entry: (key: "monk/ki-power-extra-attack", name: "Ki Power - Extra Attack", summary: "During a flurry, a swift action and 1 ki point give one more attack, stacking with Haste.", guide: "monk#ki-power-extra-attack"),
+)

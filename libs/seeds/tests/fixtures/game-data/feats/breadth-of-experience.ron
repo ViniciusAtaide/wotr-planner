@@ -1,0 +1,10 @@
+(
+    key: "breadth-of-experience",
+    name: "Breadth of Experience",
+    category: Skill,
+    guide: "feats#breadth-of-experience",
+    prerequisite: All([
+        Any([Race("elf"), Race("dwarf")]),
+        CharacterLevel(2),
+    ]),
+)

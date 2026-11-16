@@ -1,0 +1,8 @@
+(
+    key: "greater-elemental-focus",
+    name: "Greater Elemental Focus",
+    category: Magic,
+    guide: "feats#greater-elemental-focus",
+    parameter: Energy,
+    prerequisite: FeatForSameValue("elemental-focus"),
+)

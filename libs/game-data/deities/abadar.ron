@@ -1,0 +1,9 @@
+(
+    key: "abadar",
+    blueprint: "6122dacf418611540a3c91e67197ee4e",
+    name: "Abadar",
+    guide: "character-creation#deities",
+    alignments: [LawfulGood, LawfulNeutral, TrueNeutral, LawfulEvil],
+    favoured_weapons: ["light-crossbow"],
+    domains: ["cleric/domain/earth", "cleric/domain/law", "cleric/domain/nobility", "cleric/domain/protection", "cleric/domain/travel"],
+)

@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/sun",
+    blueprint: "ba825e3c77acaec4386e00f691f8f3be",
+    name: "Sun",
+    summary: "Minor: blind a foe for 1 round (dazzled on a Reflex save). Major (10th): give a weapon flaming or undead bane for 1 minute.",
+    guide: "warpriest#sun",
+    domain: "cleric/domain/sun",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/sun/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/sun/major-blessing"]),
+    ],
+)

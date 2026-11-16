@@ -1,0 +1,17 @@
+(
+    key: "oracle/enlightened-philosopher",
+    class: "oracle",
+    blueprint: "4f2698f04fa63e34b8153fa3a9795649",
+    name: "Enlightened Philosopher",
+    summary: "Knowledge-focused: Skill Focus (Knowledge World), fixed bonus spells, Intelligence from 7th and its own final revelation.",
+    guide: "oracle#enlightened-philosopher",
+    levels: [
+        (level: 1, features: ["oracle/additional-spells"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], feats_for: [(feat: "skill-focus", value: Skill("knowledge-world"))], selections: ["oracle/enlightened-philosopher/mystery", "oracle/oracles-curse", "oracle/revelations"]),
+        (level: 7, features: ["oracle/enlightened-philosopher/mental-acuity"]),
+        (level: 10, features: ["oracle/enlightened-philosopher/mental-acuity"]),
+        (level: 13, features: ["oracle/enlightened-philosopher/mental-acuity"]),
+        (level: 16, features: ["oracle/enlightened-philosopher/mental-acuity"]),
+        (level: 19, features: ["oracle/enlightened-philosopher/mental-acuity"], selections: ["oracle/revelations"]),
+        (level: 20, features: ["oracle/enlightened-philosopher/final-revelation-enlightened-philosopher"]),
+    ],
+)

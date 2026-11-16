@@ -1,0 +1,15 @@
+(
+    key: "oracle/maneuver-mastery",
+    blueprint: "89629bb513a70cb4596d1d780b95ea72",
+    name: "Maneuver Mastery",
+    summary: "Pick a combat maneuver: you use your class level instead of BAB for its CMB, gain its Improved feat at 7th and its Greater feat at 11th.",
+    guide: "oracle#maneuver-mastery",
+    level_from: GrantingOption,
+    options: [
+        "oracle/maneuver-mastery/bull-rush",
+        "oracle/maneuver-mastery/dirty-trick",
+        "oracle/maneuver-mastery/disarm",
+        "oracle/maneuver-mastery/sunder-armor",
+        "oracle/maneuver-mastery/trip",
+    ],
+)

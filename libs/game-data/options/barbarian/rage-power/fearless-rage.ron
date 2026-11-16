@@ -1,0 +1,1 @@
+(key: "barbarian/rage-power/fearless-rage", blueprint: "2f59c85adec695b418a66242f2ba08b8", name: "Fearless Rage", summary: "Immune to shaken and frightened.", guide: "barbarian#fearless-rage", prerequisite: Any([ClassLevel(class: "barbarian", level: 12), ClassLevel(class: "skald", level: 12)]))

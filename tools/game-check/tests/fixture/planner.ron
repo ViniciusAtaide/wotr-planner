@@ -60,38 +60,6 @@
             class_skills: ["athletics", "perception"],
             // Agrees: not lawful.
             prerequisite: Any([Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
-            features: [
-                (key: "warden/guard", blueprint: "000000000000000000000000000000f1", name: "Guard", guide: "warden#guard"),
-                (key: "warden/sense", blueprint: "000000000000000000000000000000f2", name: "Sense", guide: "warden#sense"),
-                (key: "warden/ghost", blueprint: "000000000000000000000000000000f4", name: "Ghost", guide: "warden#ghost"),
-            ],
-            selections: [
-                (
-                    key: "warden/trick",
-                    blueprint: "000000000000000000000000000000e1",
-                    name: "Trick",
-                    guide: "warden#trick",
-                    options: [
-                        // Agrees: Warden level 2.
-                        (key: "warden/trick/a", blueprint: "000000000000000000000000000000b1", name: "Trick A", guide: "warden#trick-a", prerequisite: ClassLevel(class: "warden", level: 2)),
-                        // Planted: not among the game's options.
-                        (key: "warden/trick/b", blueprint: "000000000000000000000000000000b2", name: "Trick B", guide: "warden#trick-b"),
-                        (key: "warden/trick/c", name: "Trick C", guide: "warden#trick-c"),
-                    ],
-                ),
-                // Planted: the game grants this blueprint, a feature, with no choice.
-                (
-                    key: "warden/knack",
-                    blueprint: "000000000000000000000000000000f3",
-                    name: "Knack",
-                    guide: "warden#knack",
-                    options: [(key: "warden/knack/a", blueprint: "000000000000000000000000000000b3", name: "Knack A", guide: "warden#knack-a")],
-                ),
-            ],
-            feat_lists: [
-                // Planted: the game's list ignores no prerequisites and holds Wide Stance, not Keen Eye.
-                (key: "warden/drills", blueprint: "000000000000000000000000000000d1", name: "Drills", guide: "warden#drills", ignores_prerequisites: true, feats: ["steady-hand", "keen-eye"]),
-            ],
             levels: [
                 // Agrees: the game's bundle of Steady Hand.
                 (level: 1, features: ["warden/guard"], feats: ["steady-hand"]),
@@ -101,27 +69,6 @@
                 // Trick, which the game doesn't give (another pick, not a further rank), and a further rank of Guard.
                 // The game's second combat feat selection here is missing.
                 (level: 3, features: ["warden/ghost", "warden/guard"], selections: ["warden/trick"]),
-            ],
-            archetypes: [
-                (
-                    key: "warden/stoic",
-                    blueprint: "000000000000000000000000000000c3",
-                    name: "Stoic",
-                    guide: "warden#stoic",
-                    // Planted: 3 + 1 in the game.
-                    skill_points: 5,
-                    // Planted: the game keeps the class's poor Will.
-                    will: Good,
-                    features: [(key: "warden/stoic/calm", blueprint: "000000000000000000000000000000f6", name: "Calm", guide: "warden#calm")],
-                    // Level 2 keeps the base row: planted, the game removes the Trick there.
-                    levels: [(level: 1, features: ["warden/stoic/calm"], feats: ["steady-hand"])],
-                ),
-                (
-                    key: "warden/stray",
-                    blueprint: "000000000000000000000000000000c4",
-                    name: "Stray",
-                    guide: "warden#stray",
-                ),
             ],
         ),
     ],
@@ -137,7 +84,6 @@
             fort: Good,
             reflex: Poor,
             will: Poor,
-            features: [(key: "sentinel/watch", blueprint: "000000000000000000000000000000f5", name: "Watch", guide: "sentinel#watch")],
             levels: [(level: 1, features: ["sentinel/watch"])],
         ),
     ],
@@ -169,27 +115,6 @@
             blueprint: "a5a9fe8f663d701488bd1db8ea40484e",
             name: "Seraph",
             guide: "seraph",
-            features: [
-                (key: "seraph/first-step", blueprint: "00000000000000000000000000000201", name: "First Step", guide: "seraph#first-step"),
-                (key: "seraph/halo", blueprint: "00000000000000000000000000000202", name: "Halo", guide: "seraph#halo"),
-                (key: "seraph/wings", blueprint: "00000000000000000000000000000203", name: "Wings", guide: "seraph#wings"),
-                (key: "seraph/summon", blueprint: "00000000000000000000000000000204", name: "Summon", guide: "seraph#summon"),
-            ],
-            selections: [
-                // Agrees: its own option and the Warden's Trick A, which it shares.
-                (
-                    key: "seraph/boon",
-                    blueprint: "000000000000000000000000000000e2",
-                    name: "Boon",
-                    guide: "seraph#boon",
-                    options: [(key: "seraph/boon/light", blueprint: "000000000000000000000000000000b4", name: "Light", guide: "seraph#light")],
-                    shared_options: ["warden/trick/a"],
-                ),
-            ],
-            feat_lists: [
-                // Agrees.
-                (key: "seraph/feats", blueprint: "000000000000000000000000000000d2", name: "Seraph Feats", guide: "seraph#feats", feats: ["steady-hand", "keen-eye"]),
-            ],
             ranks: [
                 (rank: 1, features: ["seraph/first-step"]),
                 (rank: 3, features: ["seraph/halo"]),
@@ -200,4 +125,79 @@
     ],
     backgrounds: [],
     deities: [],
+    subraces: [],
+    feat_lists: [
+        // Planted: the game's list ignores no prerequisites and holds Wide Stance, not Keen Eye.
+        (key: "warden/drills", blueprint: "000000000000000000000000000000d1", name: "Drills", guide: "warden#drills", ignores_prerequisites: true, feats: ["steady-hand", "keen-eye"]),
+        // Agrees.
+        (key: "seraph/feats", blueprint: "000000000000000000000000000000d2", name: "Seraph Feats", guide: "seraph#feats", feats: ["steady-hand", "keen-eye"]),
+    ],
+    archetypes: [
+        (
+            key: "warden/stoic",
+            class: "warden",
+            blueprint: "000000000000000000000000000000c3",
+            name: "Stoic",
+            guide: "warden#stoic",
+            // Planted: 3 + 1 in the game.
+            skill_points: 5,
+            // Planted: the game keeps the class's poor Will.
+            will: Good,
+            // Level 2 keeps the base row: planted, the game removes the Trick there.
+            levels: [(level: 1, features: ["warden/stoic/calm"], feats: ["steady-hand"])],
+        ),
+        (
+            key: "warden/stray",
+            class: "warden",
+            blueprint: "000000000000000000000000000000c4",
+            name: "Stray",
+            guide: "warden#stray",
+        ),
+    ],
+    features: [
+        (key: "warden/stoic/calm", blueprint: "000000000000000000000000000000f6", name: "Calm", guide: "warden#calm"),
+        (key: "warden/guard", blueprint: "000000000000000000000000000000f1", name: "Guard", guide: "warden#guard"),
+        (key: "warden/sense", blueprint: "000000000000000000000000000000f2", name: "Sense", guide: "warden#sense"),
+        (key: "warden/ghost", blueprint: "000000000000000000000000000000f4", name: "Ghost", guide: "warden#ghost"),
+        (key: "sentinel/watch", blueprint: "000000000000000000000000000000f5", name: "Watch", guide: "sentinel#watch"),
+        (key: "seraph/first-step", blueprint: "00000000000000000000000000000201", name: "First Step", guide: "seraph#first-step"),
+        (key: "seraph/halo", blueprint: "00000000000000000000000000000202", name: "Halo", guide: "seraph#halo"),
+        (key: "seraph/wings", blueprint: "00000000000000000000000000000203", name: "Wings", guide: "seraph#wings"),
+        (key: "seraph/summon", blueprint: "00000000000000000000000000000204", name: "Summon", guide: "seraph#summon"),
+    ],
+    selections: [
+        (
+            key: "warden/trick",
+            blueprint: "000000000000000000000000000000e1",
+            name: "Trick",
+            guide: "warden#trick",
+            options: ["warden/trick/a", "warden/trick/b", "warden/trick/c"],
+        ),
+        // Planted: the game grants this blueprint, a feature, with no choice.
+        (
+            key: "warden/knack",
+            blueprint: "000000000000000000000000000000f3",
+            name: "Knack",
+            guide: "warden#knack",
+            options: ["warden/knack/a"],
+        ),
+        // Agrees: its own option and the Warden's Trick A, which it shares.
+        (
+            key: "seraph/boon",
+            blueprint: "000000000000000000000000000000e2",
+            name: "Boon",
+            guide: "seraph#boon",
+            options: ["seraph/boon/light"],
+            shared_options: ["warden/trick/a"],
+        ),
+    ],
+    options: [
+        // Agrees: Warden level 2.
+        (key: "warden/trick/a", blueprint: "000000000000000000000000000000b1", name: "Trick A", guide: "warden#trick-a", prerequisite: ClassLevel(class: "warden", level: 2)),
+        // Planted: not among the game's options.
+        (key: "warden/trick/b", blueprint: "000000000000000000000000000000b2", name: "Trick B", guide: "warden#trick-b"),
+        (key: "warden/trick/c", name: "Trick C", guide: "warden#trick-c"),
+        (key: "warden/knack/a", blueprint: "000000000000000000000000000000b3", name: "Knack A", guide: "warden#knack-a"),
+        (key: "seraph/boon/light", blueprint: "000000000000000000000000000000b4", name: "Light", guide: "seraph#light"),
+    ],
 )

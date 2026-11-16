@@ -1,0 +1,14 @@
+(
+    key: "summon-monster-iv",
+    blueprint: "7ed74a3ec8c458d4fb50b192fd7be6ef",
+    name: "Summon Monster IV",
+    school: Conjuration,
+    guide: "wizard-spells#summon-monster-iv-conjuration",
+    summary: "Summons one dire wolf, 1d3 monitor lizards or 1d4+1 wolves, all extraplanar.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

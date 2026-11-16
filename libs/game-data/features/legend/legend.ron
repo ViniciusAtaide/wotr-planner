@@ -1,0 +1,1 @@
+(key: "legend/legend", blueprint: "7f99961610390044391f300c7ef5e0c8", name: "Legend", summary: "All ability scores +4, the level cap rises to 40, and levelling needs less XP.", guide: "other-mythic-paths#legend", ability_bonuses: [Every(amount: 4)])

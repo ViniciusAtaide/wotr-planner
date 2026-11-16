@@ -15,7 +15,7 @@ const AREA: Area = Area::OptionLists;
 
 pub fn compare(ctx: &Ctx, out: &mut Out) {
     let data = ctx.planner.data;
-    for selection in data.selections() {
+    for selection in &data.selections {
         let at = DataAt::FeatureSelection(selection.key.clone());
         // A filtered pool (`filtered_by`, ticket 243) offers all its options, as the game's one selection does
         // before its options' prerequisites filter it (an oracle's revelations).
@@ -26,7 +26,7 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
         let planner = guids(ctx, out, options);
         list(ctx, out, &at, selection.blueprint.as_ref(), planner, None);
     }
-    for feat_list in data.feat_lists() {
+    for feat_list in &data.feat_lists {
         let at = DataAt::FeatList(feat_list.key.clone());
         if feat_list.every_feat {
             out.skip(AREA, "a list of every feat");

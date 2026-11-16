@@ -1,0 +1,1 @@
+(key: "greater-dispel-focus", blueprint: "d0cf79c8e0a44325b00dc8fa6ad37d7c", name: "Greater Dispel Focus", summary: "+2 more caster level on dispel attempts.", category: Magic, guide: "feats#greater-dispel-focus", prerequisite: Feat("dispel-focus"))

@@ -1,0 +1,14 @@
+(
+    key: "ghoul-touch",
+    blueprint: "a2b05555c704458aaadc34be52a63633",
+    name: "Ghoul Touch",
+    school: Necromancy,
+    guide: "wizard-spells#ghoul-touch-necromancy",
+    summary: "A melee touch paralyses a humanoid that fails a Fortitude save; its stench sickens living creatures within 10 ft other than you (Fortitude negates).",
+    target: "One humanoid creature within touch range",
+    duration: "1d6 + 2 rounds",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

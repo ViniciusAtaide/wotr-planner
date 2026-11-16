@@ -9,6 +9,7 @@
 
 use std::collections::BTreeSet;
 
+use super::catalog::GrantedBy;
 use super::{Engine, SlotKind};
 use crate::build::{Faith, FeatSource, Pick, SlotId};
 use crate::choice::{Issue, LaterPick, Unmet};
@@ -32,6 +33,16 @@ enum Holder<'a> {
     Archetype(&'a Archetype),
     Class(&'a Class),
     Path(&'a MythicPath),
+}
+
+/// A holder's name.
+fn holder_name(holder: Holder<'_>) -> &str {
+    match holder {
+        Holder::Option(option) => &option.name,
+        Holder::Archetype(archetype) => &archetype.name,
+        Holder::Class(class) => &class.name,
+        Holder::Path(path) => &path.name,
+    }
 }
 
 /// How a negated condition's held side reads: "for the X archetype", "with Power Attack", "as Domain (Separatist)",
@@ -185,57 +196,116 @@ impl Engine {
     }
 
     /// A feature's name, with whose it is when another feature shares the name: "Weapon Training (Sohei)",
-    /// "Animal Companion (Animal Domain)".
+    /// "Animal Companion (Animal Domain)". Without a Build, whose it is only when one holder grants it (a class with
+    /// its archetypes counts as the class): a feature several classes grant (Uncanny Dodge) is named alone, never for
+    /// a holder the reader may not have.
     pub fn feature_name_apart(&self, key: &FeatureKey) -> String {
+        self.feature_name_held(key, None)
+    }
+
+    /// [`Self::feature_name_apart`] for a Build at `state`: whose it is, of the classes the Build has taken far enough
+    /// that their rows grant it, its path and the options it holds; as without a Build when none of them grants it.
+    /// A Rogue's Uncanny Dodge reads "(Rogue)", a Barbarian's "(Barbarian)" (ticket 244, review).
+    pub fn feature_name_for(&self, key: &FeatureKey, state: &CharacterState) -> String {
+        self.feature_name_held(key, Some(state))
+    }
+
+    fn feature_name_held(&self, key: &FeatureKey, state: Option<&CharacterState>) -> String {
         let name = self.feature_name(key);
         if !self.catalog.shares_name(key) {
             return name.to_owned();
         }
-        match self.feature_owner(key) {
-            Some(owner) => format!("{name} ({owner})"),
+        let owner = state
+            .and_then(|state| self.held_holder(key, state))
+            .or_else(|| self.sole_holder(key));
+        match owner {
+            Some(owner) => format!("{name} ({})", holder_name(owner)),
             None => name.to_owned(),
         }
     }
 
-    /// The name of what a feature belongs to (`cleric/domain/animal/animal-companion` is the Animal Domain's).
-    fn feature_owner(&self, key: &FeatureKey) -> Option<&str> {
-        self.owner(key.as_str())
-    }
-
-    /// The name of the nearest option, archetype, class or path a key sits under.
-    fn owner(&self, key: &str) -> Option<&str> {
-        Some(match self.holder(key)? {
-            Holder::Option(option) => &option.name,
-            Holder::Archetype(archetype) => &archetype.name,
-            Holder::Class(class) => &class.name,
-            Holder::Path(path) => &path.name,
+    /// What grants a feature to the Build at `state`: the first class taken whose rows up to its level grant it (its
+    /// archetype when the class's own rows don't), else the path or an option held whose rows grant it.
+    fn held_holder(&self, key: &FeatureKey, state: &CharacterState) -> Option<Holder<'_>> {
+        let by = self.catalog.feature_holders(key);
+        for taken in &state.classes {
+            let Some((class, _)) = self.catalog.class(&taken.class) else {
+                continue;
+            };
+            let archetype = self.catalog.archetype_of(class, taken.archetype.as_ref());
+            let reached = (self.catalog.rows(class, archetype))
+                .take_while(|row| row.level <= taken.level)
+                .any(|row| row.features.contains(key));
+            if !reached {
+                continue;
+            }
+            return Some(match archetype {
+                Some(archetype) if !by.contains(&GrantedBy::Class(class.key.clone())) => {
+                    Holder::Archetype(archetype)
+                }
+                _ => Holder::Class(class),
+            });
+        }
+        self.holders(by).find(|holder| match holder {
+            Holder::Path(path) => state.mythic_path.as_ref() == Some(&path.key),
+            Holder::Option(option) => state.option_count(&option.key) > 0,
+            Holder::Class(_) | Holder::Archetype(_) => false,
         })
     }
 
-    /// The nearest option, archetype, class or path a feature's key sits under.
-    fn feature_holder(&self, key: &FeatureKey) -> Option<Holder<'_>> {
-        self.holder(key.as_str())
-    }
-
-    /// The nearest option, archetype, class or path a key sits under.
-    fn holder(&self, key: &str) -> Option<Holder<'_>> {
-        let mut prefix = key;
-        while let Some((owner, _)) = prefix.rsplit_once('/') {
-            prefix = owner;
-            if let Some(option) = self.catalog.option(&SelectionOptionKey::new(prefix)) {
-                return Some(Holder::Option(option));
-            }
-            if let Some(archetype) = self.catalog.archetype(&ArchetypeKey::new(prefix)) {
-                return Some(Holder::Archetype(archetype));
-            }
-            if let Some((class, _)) = self.catalog.class(&ClassKey::new(prefix)) {
-                return Some(Holder::Class(class));
-            }
-            if let Some(path) = self.catalog.path(&MythicPathKey::new(prefix)) {
-                return Some(Holder::Path(path));
+    /// A feature's one holder: the only one, or the class whose archetypes are the others; `None` when several
+    /// classes, paths or options grant it.
+    fn sole_holder(&self, key: &FeatureKey) -> Option<Holder<'_>> {
+        let holders: Vec<Holder<'_>> = self.feature_holders(key).collect();
+        fn class_of<'a>(holder: &Holder<'a>) -> Option<&'a ClassKey> {
+            match holder {
+                Holder::Class(class) => Some(&class.key),
+                Holder::Archetype(archetype) => Some(&archetype.class),
+                Holder::Path(_) | Holder::Option(_) => None,
             }
         }
-        None
+        match holders.as_slice() {
+            [] => None,
+            [_] => holders.into_iter().next(),
+            [first, rest @ ..] => {
+                let class = class_of(first)?;
+                rest.iter()
+                    .all(|holder| class_of(holder) == Some(class))
+                    .then(|| {
+                        self.catalog
+                            .class(class)
+                            .map(|(class, _)| Holder::Class(class))
+                    })
+                    .flatten()
+            }
+        }
+    }
+
+    /// The name of what names a Feature selection in its rows: the first of its holders, a class before an
+    /// archetype, a path and an option.
+    fn selection_owner(&self, key: &FeatureSelectionKey) -> Option<&str> {
+        self.holders(self.catalog.selection_holders(key))
+            .next()
+            .map(holder_name)
+    }
+
+    /// The classes, archetypes, paths and options whose rows grant a feature, in that order.
+    fn feature_holders(&self, key: &FeatureKey) -> impl Iterator<Item = Holder<'_>> {
+        self.holders(self.catalog.feature_holders(key))
+    }
+
+    fn holders<'a>(&'a self, by: &'a [GrantedBy]) -> impl Iterator<Item = Holder<'a>> {
+        by.iter().filter_map(|by| match by {
+            GrantedBy::Class(class) => self
+                .catalog
+                .class(class)
+                .map(|(class, _)| Holder::Class(class)),
+            GrantedBy::Archetype(archetype) => {
+                self.catalog.archetype(archetype).map(Holder::Archetype)
+            }
+            GrantedBy::Path(path) => self.catalog.path(path).map(Holder::Path),
+            GrantedBy::Option(option) => self.catalog.option(option).map(Holder::Option),
+        })
     }
 
     /// A picker's reason for this character: of each "or", only the alternatives the character's classes give
@@ -304,12 +374,18 @@ impl Engine {
             Unmet::Condition { needs, .. } => match needs {
                 Prerequisite::ClassLevel { class, .. } => has(class),
                 Prerequisite::Archetype(archetype) => has_archetype(archetype),
-                Prerequisite::Feature { feature, .. } => match self.feature_holder(feature) {
-                    Some(Holder::Class(class)) => has(&class.key),
-                    Some(Holder::Archetype(archetype)) => has_archetype(&archetype.key),
-                    // An option's features (a domain's) come with options several classes share.
-                    _ => true,
-                },
+                // A class's or an archetype's feature is within reach for a character with one of the classes or
+                // archetypes whose rows grant it; a path's or an option's (a domain's, which options several classes
+                // share), or one no row grants, always is.
+                Prerequisite::Feature { feature, .. } => {
+                    let mut holders = self.feature_holders(feature).peekable();
+                    holders.peek().is_none()
+                        || holders.any(|holder| match holder {
+                            Holder::Class(class) => has(&class.key),
+                            Holder::Archetype(archetype) => has_archetype(&archetype.key),
+                            Holder::Path(_) | Holder::Option(_) => true,
+                        })
+                }
                 _ => true,
             },
             Unmet::All(children) => children.iter().all(|child| self.within_reach(child, state)),
@@ -1046,7 +1122,7 @@ impl Engine {
             let selection = self.catalog.selection_of(option)?;
             let owner = match with_owner {
                 true => self
-                    .owner(selection.key.as_str())
+                    .selection_owner(&selection.key)
                     .map(|owner| format!("{owner} ")),
                 false => None,
             };

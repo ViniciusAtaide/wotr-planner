@@ -1,0 +1,14 @@
+(
+    key: "vampiric-touch",
+    blueprint: "8a28a811ca5d20d49a863e832c31cce1",
+    name: "Vampiric Touch",
+    school: Necromancy,
+    guide: "wizard-spells#vampiric-touch-necromancy",
+    summary: "A melee touch deals 1d6 damage per two caster levels and gives you that much in temporary hit points.",
+    target: "One enemy creature within touch range",
+    duration: "Temporary HP last one hour",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

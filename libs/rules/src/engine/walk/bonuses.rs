@@ -261,7 +261,7 @@ impl Walker<'_> {
             BonusItem::MythicAbility(ability) => engine.mythic_ability_name(ability).to_owned(),
             BonusItem::Feat(feat) => engine.feat_name(feat).to_owned(),
             BonusItem::MythicFeat(feat) => engine.mythic_feat_name(feat).to_owned(),
-            BonusItem::Feature(feature) => engine.feature_name_apart(feature),
+            BonusItem::Feature(feature) => engine.feature_name_for(feature, &self.state),
             BonusItem::SelectionOption(option) => match engine.catalog.selection_of(option) {
                 Some(selection) => format!("{} ({})", selection.name, engine.option_name(option)),
                 None => engine.option_name(option).to_owned(),

@@ -1,0 +1,1 @@
+(key: "wizard/school/transmuter/physical-enhancement", blueprint: "93919f8ce64dc5a4cbf058a486a44a1b", name: "Physical Enhancement", summary: "+1 enhancement to a physical ability chosen when preparing spells, +1 per 5 wizard levels (+5 at 20th, two abilities at 20th).", guide: "wizard#physical-enhancement")

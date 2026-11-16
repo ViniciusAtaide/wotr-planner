@@ -1,0 +1,11 @@
+(
+    key: "azata/superpowers/life-bonding-friendship",
+    blueprint: "cfad18f581584ac4ba066df067956477",
+    name: "Life-Bonding Friendship",
+    summary: "Gain a teamwork feat now and next rank, share teamwork feats within 50 ft; allies below 0 HP fight on, then die after combat or Cha-mod hits.",
+    guide: "azata#life-bonding-friendship",
+    levels: [
+        (level: 1, feat_slots: [Category(Teamwork)]),
+        (level: 2, feat_slots: [Category(Teamwork)]),
+    ],
+)

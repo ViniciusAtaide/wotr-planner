@@ -11,7 +11,7 @@ use rules::{
 use super::closest;
 use super::tree::{At, Given, Node, Why, needs, pick_gives};
 use crate::options::{Fix, LaterLevels, issue_reason};
-use crate::planner::{Planner, all_selections};
+use crate::planner::Planner;
 use crate::unreached::Unreached;
 
 /// What a walk failure is worded from.
@@ -213,8 +213,7 @@ impl Wording<'_> {
                 let given = start.race.as_ref().map_or("", RaceKey::as_str);
                 let races = data.races.iter().flat_map(|race| {
                     std::iter::once((race.name.as_str(), race.key.as_str())).chain(
-                        race.subraces
-                            .iter()
+                        data.subraces_of(&race.key)
                             .map(|subrace| (subrace.name.as_str(), subrace.key.as_str())),
                     )
                 });
@@ -222,11 +221,8 @@ impl Wording<'_> {
             }
             Choice::Subrace => {
                 let given = start.subrace.as_ref().map_or("", SubraceKey::as_str);
-                let subraces = data.races.iter().flat_map(|race| {
-                    race.subraces
-                        .iter()
-                        .map(|subrace| (subrace.name.as_str(), subrace.key.as_str()))
-                });
+                let subraces = (data.subraces.iter())
+                    .map(|subrace| (subrace.name.as_str(), subrace.key.as_str()));
                 (given, "a subrace", closest(given, subraces))
             }
             Choice::Deity => {
@@ -259,12 +255,9 @@ impl Wording<'_> {
             }
             Choice::Archetype { class } => {
                 let given = archetype_of(build, class).map_or("", ArchetypeKey::as_str);
-                let archetypes = data.class(class).into_iter().flat_map(|class| {
-                    class
-                        .archetypes
-                        .iter()
-                        .map(|archetype| (archetype.name.as_str(), archetype.key.as_str()))
-                });
+                let archetypes = data
+                    .archetypes_of(class)
+                    .map(|archetype| (archetype.name.as_str(), archetype.key.as_str()));
                 (given, "an archetype", closest(given, archetypes))
             }
             Choice::Advances { class } => {
@@ -341,9 +334,8 @@ impl Wording<'_> {
                     .and_then(|race| data.races.iter().find(|candidate| &candidate.key == race));
                 match race {
                     Some(race) => {
-                        let subraces = race
-                            .subraces
-                            .iter()
+                        let subraces = data
+                            .subraces_of(&race.key)
                             .map(|subrace| (subrace.name.as_str(), subrace.key.as_str()));
                         format!(
                             "`{given}` isn't a subrace of the {}{}.",
@@ -356,12 +348,9 @@ impl Wording<'_> {
             }
             Choice::Archetype { class } => {
                 let given = archetype_of(build, class).map_or("", ArchetypeKey::as_str);
-                let archetypes = data.class(class).into_iter().flat_map(|class| {
-                    class
-                        .archetypes
-                        .iter()
-                        .map(|archetype| (archetype.name.as_str(), archetype.key.as_str()))
-                });
+                let archetypes = data
+                    .archetypes_of(class)
+                    .map(|archetype| (archetype.name.as_str(), archetype.key.as_str()));
                 format!(
                     "`{given}` isn't an archetype of the {}{}.",
                     engine.class_name(class),
@@ -596,8 +585,8 @@ fn items_like<'a>(data: &'a GameData, pick: &Pick) -> (&'static str, Vec<(&'a st
         ),
         Pick::SelectionOption { .. } => (
             "an option of a Feature selection",
-            all_selections(data)
-                .flat_map(|selection| &selection.options)
+            data.options
+                .iter()
                 .map(|option| (option.name.as_str(), option.key.as_str()))
                 .collect(),
         ),

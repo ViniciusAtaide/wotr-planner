@@ -1,0 +1,14 @@
+(
+    key: "chameleon-stride-greater",
+    blueprint: "7ec0ffdd8779c344f85337109af0c6c5",
+    name: "Chameleon Stride, Greater",
+    school: Illusion,
+    guide: "ranger#chameleon-stride-greater-illusion",
+    summary: "You and allies within 10 ft gain +4 on Stealth checks and concealment (20% miss chance).",
+    target: "All allies within 10'",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

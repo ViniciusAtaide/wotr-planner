@@ -1,0 +1,17 @@
+(
+    key: "demon/demonic-aspect",
+    blueprint: "bbfc0d06955db514ba23337c7bf2cca6",
+    name: "Demonic Aspect",
+    summary: "From rank 4, while raging you can take on a demon\'s aspect: skill bonuses plus a combat effect.",
+    guide: "demon#demonic-aspect",
+    options: [
+        "demon/demonic-aspect/aspect-of-babau",
+        "demon/demonic-aspect/aspect-of-brimorak",
+        "demon/demonic-aspect/aspect-of-incubus",
+        "demon/demonic-aspect/aspect-of-kalavakus",
+        "demon/demonic-aspect/aspect-of-nabasu",
+        "demon/demonic-aspect/aspect-of-schir",
+        "demon/demonic-aspect/aspect-of-succubus",
+        "demon/demonic-aspect/aspect-of-vrock",
+    ],
+)

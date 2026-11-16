@@ -1,0 +1,14 @@
+(
+    key: "heroism",
+    blueprint: "5ab0d42fb68c9e34abae4921822b9d63",
+    name: "Heroism",
+    school: Enchantment,
+    guide: "wizard-spells#heroism-enchantment",
+    summary: "+2 morale bonus for the target on attacks, saving throws and skill checks.",
+    target: "One friendly creature within touch range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "arcanist/magic-deceiver/ways-of-the-deceiver/magic-inventor",
+    blueprint: "a0c82ce4664a4adf82b676b1603bcf35",
+    name: "Magic Inventor",
+    summary: "Deceiver path built on Use Magic Device and stronger item enhancements.",
+    guide: "arcanist#magic-inventor",
+    levels: [
+        (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/magic-inventor/magic-inventions"]),
+        (level: 2, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/magic-inventor/fake-enhancement"]),
+        (level: 4, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/magic-inventor/enchanters-fabrication"]),
+        (level: 12, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/magic-inventor/enchanters-penetration"]),
+        (level: 20, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/magic-inventor/true-enhancement"]),
+    ],
+)

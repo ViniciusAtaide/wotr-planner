@@ -1,0 +1,13 @@
+(
+    key: "corrosive-touch",
+    blueprint: "95810d2829895724f950c8c4086056e7",
+    name: "Corrosive Touch",
+    school: Conjuration,
+    guide: "wizard-spells#corrosive-touch-conjuration",
+    summary: "A melee touch attack deals 1d4 acid damage per caster level, up to 5d4.",
+    target: "One creature within touch range",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Acid],
+    casting_time: Standard,
+)

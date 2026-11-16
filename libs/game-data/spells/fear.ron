@@ -1,0 +1,14 @@
+(
+    key: "fear",
+    blueprint: "d2aeac47450c76347aebbc02e4f463e0",
+    name: "Fear",
+    school: Necromancy,
+    guide: "wizard-spells#fear-necromancy",
+    summary: "Creatures that fail are frightened for the duration; those that save are shaken for 1 round.",
+    target: "All creatures within a 30' cone",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear, Emotion],
+    casting_time: Standard,
+)

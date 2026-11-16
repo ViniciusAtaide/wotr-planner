@@ -1,0 +1,1 @@
+(key: "duelist/parry", blueprint: "47e9ac1bf9c376e44b64cb5844a5e6a6", name: "Parry", summary: "Hold back one attack of a full attack to roll against a later attack on you or an adjacent ally; beat it and it misses (-4 per size larger, -4 for allies).", guide: "prestige-classes#parry")

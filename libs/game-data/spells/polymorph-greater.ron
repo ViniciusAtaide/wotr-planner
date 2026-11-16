@@ -1,0 +1,14 @@
+(
+    key: "polymorph-greater",
+    blueprint: "a9fc28e147dbb364ea4a3c1831e7e55f",
+    name: "Polymorph, Greater",
+    school: Transmutation,
+    guide: "wizard-spells#polymorph-greater-transmutation",
+    summary: "The target becomes a Large smilodon, wyvern, shambling mound or elemental, or a Medium dragon-like creature, and can change back early as a full-round action.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

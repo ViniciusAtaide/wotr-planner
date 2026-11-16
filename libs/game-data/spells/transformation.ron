@@ -1,0 +1,14 @@
+(
+    key: "transformation",
+    blueprint: "27203d62eb3d4184c9aced94f22e1806",
+    name: "Transformation",
+    school: Transmutation,
+    guide: "wizard-spells#transformation-transmutation",
+    summary: "You gain +4 Strength, Dexterity and Constitution, +4 natural armour, +5 Fortitude, and a base attack bonus equal to your character level.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

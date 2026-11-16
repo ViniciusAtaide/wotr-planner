@@ -1,0 +1,18 @@
+(
+    key: "druid/blight-druid",
+    class: "druid",
+    blueprint: "35a3b7bfc663ac74aa8bb50adfe70813",
+    name: "Blight Druid",
+    summary: "Druid with no animal companion, a blight-themed domain list and auras of sickness and plague.",
+    guide: "druid#blight-druid",
+    levels: [
+        (level: 1, features: ["druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"], selections: ["druid/blight-druid/domain"]),
+        (level: 4, features: ["wild-shape-wolf"]),
+        (level: 5, features: ["druid/blight-druid/miasma"]),
+        (level: 6, features: ["druid/blight-druid/wild-shape-leopard-small-elemental", "wild-shape-wolf"]),
+        (level: 8, features: ["druid/blight-druid/wild-shape-bear-medium-elemental", "wild-shape-wolf"]),
+        (level: 9, features: ["druid/blight-druid/blightblooded"]),
+        (level: 10, features: ["druid/blight-druid/wild-shape-smilodon-large-elemental-shambling-mound", "wild-shape-wolf"]),
+        (level: 13, features: ["druid/blight-druid/plaguebearer"]),
+    ],
+)

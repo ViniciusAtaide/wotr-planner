@@ -1,0 +1,13 @@
+(
+    key: "shaman/wildland-shaman/spirit",
+    blueprint: "00c8c566d1825dd4a871250f35285982",
+    name: "Spirit (Wildland Shaman)",
+    band: Path,
+    summary: "The Wildland Shaman's spirit: Battle only.",
+    guide: "shaman#wildland-shaman",
+    option_levels: ["shaman"],
+    options: [],
+    shared_options: [
+        "shaman/spirit/battle",
+    ],
+)

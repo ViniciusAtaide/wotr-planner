@@ -106,7 +106,7 @@ fn a_list_whose_pick_skips_proficiency_takes_any_weapon_and_makes_the_character_
     // (`KensaiChosenWeapon.OnActivate`).
     let mut data: GameData = world();
     feat_mut(&mut data, "weapon-focus").requires_proficiency = true;
-    class_mut(&mut data, "warpriest").feat_lists[0].skips_proficiency = true;
+    feat_list_mut(&mut data, "warpriest/weapon-focus").skips_proficiency = true;
     let engine = engine_on(data);
     let mut build = build("human", &["warpriest"]);
     let longsword = WeaponKey::new("longsword");

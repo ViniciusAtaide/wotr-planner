@@ -1,0 +1,7 @@
+(
+    key: "two-weapon-fighting",
+    name: "Two-Weapon Fighting",
+    category: Weapon,
+    guide: "feats#two-weapon-fighting",
+    prerequisite: AbilityScore(ability: Dexterity, score: 15),
+)

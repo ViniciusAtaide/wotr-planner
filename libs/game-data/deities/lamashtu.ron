@@ -1,0 +1,9 @@
+(
+    key: "lamashtu",
+    blueprint: "f86bc8fbf13221f4f9041608a1fb8585",
+    name: "Lamashtu",
+    guide: "character-creation#deities",
+    alignments: [ChaoticNeutral, NeutralEvil, ChaoticEvil],
+    favoured_weapons: ["falchion", "kukri"],
+    domains: ["cleric/domain/chaos", "cleric/domain/evil", "cleric/domain/madness", "cleric/domain/strength", "cleric/domain/trickery"],
+)

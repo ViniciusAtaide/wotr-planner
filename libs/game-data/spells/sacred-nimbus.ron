@@ -1,0 +1,14 @@
+(
+    key: "sacred-nimbus",
+    blueprint: "bf74b3b54c21a9344afe9947546e036f",
+    name: "Sacred Nimbus",
+    school: Evocation,
+    guide: "cleric-spells#sacred-nimbus-evocation",
+    summary: "Evil creatures hitting you in melee take 1d6 + 1 per caster level (max +15), and you take half (none on a save) from evil-descriptor magical attacks.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Good],
+    casting_time: Standard,
+)

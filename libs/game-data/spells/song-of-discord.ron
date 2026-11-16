@@ -1,0 +1,14 @@
+(
+    key: "song-of-discord",
+    blueprint: "d38aaf487e29c3d43a3bffa4a4a55f8f",
+    name: "Song of Discord",
+    school: Enchantment,
+    guide: "bard#song-of-discord-enchantment",
+    summary: "Each round, every affected enemy has a 50% chance to attack the nearest creature instead of acting normally.",
+    target: "All enemies within 20' of target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Sonic],
+    casting_time: Standard,
+)

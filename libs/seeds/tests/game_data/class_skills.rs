@@ -197,8 +197,8 @@ fn a_sorcerer_holds_its_bloodlines_class_skill() {
 /// Every option row's class skills, as `option level: skills`.
 fn option_row_class_skills() -> Vec<(String, u8, Vec<String>)> {
     let mut rows = Vec::new();
-    for selection in DATA.class_selections() {
-        for option in &selection.options {
+    for selection in all_class_grants().selections {
+        for option in DATA.options_of(selection) {
             for row in &option.levels {
                 if !row.class_skills.is_empty() {
                     rows.push((
@@ -327,8 +327,9 @@ fn the_animal_domains_class_skill_is_on_its_first_row() {
 
 #[test]
 fn no_feature_stands_for_a_fixed_class_skill() {
-    let features: Vec<(&str, &str)> = DATA
-        .class_features()
+    let features: Vec<(&str, &str)> = all_class_grants()
+        .features
+        .into_iter()
         .map(|feature| (feature.key.as_str(), feature.name.as_str()))
         .filter(|(_, name)| name.starts_with("Class Skill") || *name == "Skills")
         .collect();
@@ -336,13 +337,7 @@ fn no_feature_stands_for_a_fixed_class_skill() {
     // Game: BloodlineArcaneClassSkillSelection 19ab16dba857d1a4ba617074f203f975 (Lore (Religion), Knowledge (World) or
     // Lore (Nature)), which SageBloodlineProgression 7d990675841a7354c957689a6707c6c2 holds too; that the data keeps
     // them as features is its shape, not a game fact
-    assert_eq!(
-        features,
-        [
-            ("sorcerer/bloodline/arcane/class-skill", "Class Skill"),
-            ("sorcerer/sage-sorcerer/class-skill", "Class Skill"),
-        ]
-    );
+    assert_eq!(features, [("arcane-bloodline-class-skill", "Class Skill")]);
     // The archetypes whose feature went hold the skill through their own list.
     // Game: SoheiArchetype fad7c56737ed12e42aacc330acc86428 (SoheiLoreNatureFeature d59fe46a1aa1ace4e987d843c8e309ff);
     // EmpyrealBloodlineProgression 8a95d80a3162d274896d50c2f18bb6b1 (BloodlineCelestialClassSkill);
@@ -446,10 +441,8 @@ fn an_overwhelming_mage_and_a_seeker_hold_their_bloodlines_class_skill_and_no_cl
             );
         }
         let defined = DATA
-            .classes
+            .features
             .iter()
-            .flat_map(|class| class.archetypes.iter())
-            .flat_map(|a| &a.features)
             .any(|feature| feature.key.as_str() == format!("{archetype}/class-skill"));
         assert!(!defined, "{archetype}/class-skill is still defined");
     }

@@ -1,0 +1,7 @@
+(
+    key: "extra-mythic-power",
+    name: "Extra Mythic Power",
+    group: Miscellaneous,
+    guide: "mythic-paths#extra-mythic-power",
+    repeat: Times(2),
+)

@@ -95,7 +95,8 @@ fn finesse_trainings_weapons_are_the_guides_list() {
     assert!(shield.stats.is_some_and(|stats| stats.finesse));
     // No feature is left: the selection is the Finesse Training a level holds.
     assert!(
-        DATA.class_features()
+        DATA.features
+            .iter()
             .all(|feature| feature.key.as_str() != SELECTION)
     );
 }
@@ -201,7 +202,7 @@ fn a_weapon_trained_once_is_taken_and_a_weapon_off_the_list_is_refused() {
 #[test]
 fn every_rogue_archetype_but_the_rowdy_chooses_at_3_11_and_19() {
     let mut kept = Vec::new();
-    for archetype in &class("rogue").archetypes {
+    for archetype in DATA.archetypes_of(&class("rogue").key) {
         let key = archetype.key.as_str();
         let mut build = archetype_build("rogue", key, 20);
         if key == "rogue/master-of-all" {
@@ -210,7 +211,7 @@ fn every_rogue_archetype_but_the_rowdy_chooses_at_3_11_and_19() {
         assert!(possible(&build), "{key}");
         let levels = levels_with_slot_of(&build, SELECTION);
         if key == "rogue/rowdy" {
-            assert_eq!(levels, [], "{key}");
+            assert!(levels.is_empty(), "{key}: {levels:?}");
             continue;
         }
         assert_eq!(levels, LEVELS, "{key}");
@@ -238,9 +239,8 @@ fn every_rogue_archetype_but_the_rowdy_chooses_at_3_11_and_19() {
                 selections.iter().any(|s| s.as_str() == SELECTION)
             };
             class.levels.iter().any(|row| names(&row.selections))
-                || class
-                    .archetypes
-                    .iter()
+                || DATA
+                    .archetypes_of(&class.key)
                     .flat_map(|a| &a.levels)
                     .any(|row| names(&row.selections))
         })

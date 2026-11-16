@@ -1,0 +1,19 @@
+(
+    key: "shifter/feyform-shifter",
+    class: "shifter",
+    blueprint: "1cdfc7d306d1430eac19427539b62091",
+    name: "Feyform Shifter",
+    summary: "Shifter tied to the First World who gains fey aspects, ankou form and later minor beast aspects.",
+    guide: "shifter#feyform-shifter",
+    levels: [
+        (level: 1, features: ["shifter/feyform-shifter/fey-aspect", "shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 4, features: ["shifter/feyform-shifter/fey-shape"]),
+        (level: 5),
+        (level: 8, selections: ["shifter/feyform-shifter/rogue-talent"]),
+        (level: 9, features: ["shifter/feyform-shifter/fey-shifter"]),
+        (level: 10),
+        (level: 14, features: ["shifter/feyform-shifter/greater-fey-shifter"], selections: ["shifter/feyform-shifter/rogue-talent"]),
+        (level: 15),
+        (level: 20, features: ["shifter/feyform-shifter/final-fey-aspect"]),
+    ],
+)

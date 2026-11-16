@@ -1,0 +1,1 @@
+(key: "alchemist/reanimator/corpse-studying", blueprint: "a3b73e40ce9c48bcb6dc866a541e8bb4", name: "Corpse Studying", summary: "After a kill, +1 attack and damage until combat ends, +1 more at 5th and every 6 levels (max +4 at 17th).", guide: "alchemist#corpse-studying")

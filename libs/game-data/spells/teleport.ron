@@ -1,0 +1,13 @@
+(
+    key: "teleport",
+    blueprint: "b3e8e307811b2a24387c2c9226fb4c10",
+    name: "Teleport",
+    school: Conjuration,
+    guide: "demon#teleport-conjuration",
+    summary: "You teleport to a chosen spot in range.",
+    target: "Target point within long range",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Move,
+)

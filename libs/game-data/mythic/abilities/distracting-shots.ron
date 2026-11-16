@@ -1,0 +1,1 @@
+(key: "distracting-shots", blueprint: "ad686f07a3deaf94ba91f97369156000", name: "Distracting Shots", summary: "A ranged hit gives the enemy an AC penalty of MR/2 against melee attacks for 1 round.", group: Ranged, guide: "mythic-paths#distracting-shots")

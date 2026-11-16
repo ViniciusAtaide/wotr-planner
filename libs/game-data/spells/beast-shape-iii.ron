@@ -1,0 +1,14 @@
+(
+    key: "beast-shape-iii",
+    blueprint: "9b93040dad242eb43ac7de6bb6547030",
+    name: "Beast Shape III",
+    school: Transmutation,
+    guide: "wizard-spells#beast-shape-iii-transmutation",
+    summary: "You turn into a Large bear with +4 Strength, +4 natural armour, +10 ft speed, two 1d6 claws, a 1d6 bite and rend.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

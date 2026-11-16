@@ -1,0 +1,14 @@
+(
+    key: "faerie-fire",
+    blueprint: "4d9bf81b7939b304185d58a09960f589",
+    name: "Faerie Fire",
+    school: Transmutation,
+    guide: "druid-spells#faerie-fire-transmutation",
+    summary: "Creatures in the area glow, taking -20 on Stealth and losing any concealment from darkness, blur, displacement, invisibility and the like.",
+    target: "Target point within long range, 5' burst",
+    duration: "1 minute / level",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

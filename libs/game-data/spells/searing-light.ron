@@ -1,0 +1,13 @@
+(
+    key: "searing-light",
+    blueprint: "bf0accce250381a44b857d4af6c8e10d",
+    name: "Searing Light",
+    school: Evocation,
+    guide: "cleric-spells#searing-light-evocation",
+    summary: "On a ranged touch hit: living targets take 1d8 per two caster levels (max 5d8), undead 1d6 per level (max 10d6), constructs 1d6 per two levels (max 5d6).",
+    target: "One enemy creature within medium range",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

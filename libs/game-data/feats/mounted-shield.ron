@@ -1,0 +1,1 @@
+(key: "mounted-shield", blueprint: "e5bee904e6724fc44aae8887dcefae51", name: "Mounted Shield", summary: "Add your shield's base bonus and Shield Focus (not enhancement) to your mount's AC.", category: MountedCombat, guide: "feats#mounted-shield", prerequisite: All([Feat("mounted-combat"), Feat("shield-focus")]))

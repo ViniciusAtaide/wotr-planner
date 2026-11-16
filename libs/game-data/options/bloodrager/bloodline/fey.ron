@@ -1,0 +1,15 @@
+(
+    key: "bloodrager/bloodline/fey",
+    blueprint: "a6e8fae8a6d6e374a9af2893840be4ac",
+    name: "Fey",
+    summary: "Fey bloodline: confusing criticals, ignore difficult terrain at 4th, Blur at 8th, haste in rage at 12th, Bane attacks at 20th.",
+    guide: "bloodrager#fey-bloodrager",
+    levels: [
+        (level: 1, features: ["bloodrager/bloodline/fey/confusing-critical"], feat_list: "bloodrager/bloodline/fey/feats"),
+        (level: 4, features: ["bloodrager/bloodline/fey/leaping-charger"]),
+        (level: 8, features: ["bloodrager/bloodline/fey/blurring-movement"]),
+        (level: 12, features: ["bloodrager/bloodline/fey/quickling-bloodrage"]),
+        (level: 16, features: ["bloodrager/bloodline/fey/one-with-nature"]),
+        (level: 20, features: ["bloodrager/bloodline/fey/fury-of-the-fey"]),
+    ],
+)

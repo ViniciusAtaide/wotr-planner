@@ -1,0 +1,14 @@
+(
+    key: "summon-dragon-i",
+    blueprint: "1e42ecaa79454e85b274edc73e130a03",
+    name: "Summon Dragon I",
+    school: Conjuration,
+    guide: "gold-dragon#summon-dragon-i-conjuration",
+    summary: "Summons 1d3+1 Medium silver dragons (black dragons if you have sworn to serve Dahak).",
+    target: "Target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: Standard,
+)

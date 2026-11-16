@@ -1,0 +1,14 @@
+(
+    key: "effortless-armor",
+    blueprint: "e1291272c8f48c14ab212a599ad17aac",
+    name: "Effortless Armor",
+    school: Transmutation,
+    guide: "cleric-spells#effortless-armor-transmutation",
+    summary: "Your armour no longer slows you, and its armour check penalty drops by 1 + 1 per five caster levels (max 5).",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

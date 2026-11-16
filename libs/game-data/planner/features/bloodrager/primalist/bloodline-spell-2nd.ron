@@ -1,0 +1,4 @@
+(
+    why: "A placeholder for the held bloodline's spell at this spell level: the game has one blueprint per bloodline and grants the held one's.",
+    entry: (key: "bloodrager/primalist/bloodline-spell-2nd", name: "Bloodline Spell (2nd)", summary: "At 10th level, adds your bloodline's 2nd-level spell to your spells known.", guide: "bloodrager#primalist"),
+)

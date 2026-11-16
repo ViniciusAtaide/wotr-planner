@@ -1,0 +1,14 @@
+(
+    key: "create-greater-undead",
+    blueprint: "8ba9b6e4df4c46a597154e2b8e7e6e4a",
+    name: "Create Greater Undead",
+    school: Necromancy,
+    guide: "wizard-spells#create-greater-undead-necromancy",
+    summary: "Raises a Devourer or an Advanced Greater Shadow that fights for you.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning, Evil],
+    casting_time: FullRound,
+)

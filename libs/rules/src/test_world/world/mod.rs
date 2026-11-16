@@ -6,6 +6,7 @@ mod deities;
 mod feats;
 mod gear;
 mod mythic;
+mod nested;
 mod paths;
 mod races;
 mod selections;
@@ -25,9 +26,15 @@ use self::races::races;
 use crate::test_world::builds::{feat, feat_list, feature, skill};
 
 pub fn world() -> GameData {
-    GameData {
+    let mut data = GameData {
         progression: progression(),
-        races: races(),
+        races: vec![],
+        subraces: vec![],
+        feat_lists: vec![],
+        archetypes: vec![],
+        features: vec![],
+        selections: vec![],
+        options: vec![],
         skills: vec![
             skill_row("athletics", "Athletics", Ability::Strength),
             skill_row("mobility", "Mobility", Ability::Dexterity),
@@ -40,6 +47,21 @@ pub fn world() -> GameData {
         ],
         weapons: weapons(),
         feats: feats(),
+        classes: vec![],
+        prestige_classes: vec![],
+        mythic_abilities: mythic_abilities(),
+        mythic_feats: mythic_feats(),
+        bonuses: bonuses(),
+        interactions: Vec::new(),
+        gear: gear::gear(),
+        mythic_paths: vec![],
+        backgrounds: backgrounds(),
+        deities: deities(),
+        spells: Vec::new(),
+        spell_lists: Vec::new(),
+    };
+    let nested = nested::Nested {
+        races: races(),
         classes: vec![
             fighter(),
             rogue(),
@@ -64,11 +86,6 @@ pub fn world() -> GameData {
             winter_witch(),
             dragon_disciple(),
         ],
-        mythic_abilities: mythic_abilities(),
-        mythic_feats: mythic_feats(),
-        bonuses: bonuses(),
-        interactions: Vec::new(),
-        gear: gear::gear(),
         mythic_paths: vec![
             trickster(),
             aeon(),
@@ -77,11 +94,9 @@ pub fn world() -> GameData {
             swarm_that_walks(),
             devil(),
         ],
-        backgrounds: backgrounds(),
-        deities: deities(),
-        spells: Vec::new(),
-        spell_lists: Vec::new(),
-    }
+    };
+    nested::flatten(nested, &mut data);
+    data
 }
 
 fn progression() -> Progression {

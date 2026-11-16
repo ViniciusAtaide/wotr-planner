@@ -1,0 +1,14 @@
+(
+    key: "song-of-discord-greater",
+    blueprint: "2daf19a1e59545fba89b3d2a822c20b4",
+    name: "Song of Discord, Greater",
+    school: Enchantment,
+    guide: "bard#song-of-discord-greater-enchantment",
+    summary: "Affected enemies gain +4 morale to Strength and attack the nearest creature every round; those that save are affected for only 1 round.",
+    target: "All enemies within 20' of target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion, Sonic],
+    casting_time: Standard,
+)

@@ -1,0 +1,14 @@
+(
+    key: "summon-hog-of-desolation",
+    blueprint: "4bd71b7351aea8047b74ec77c7689237",
+    name: "Summon Hog of Desolation",
+    school: Conjuration,
+    guide: "trickster#summon-hog-of-desolation-conjuration",
+    summary: "Summons a small pig hostile to everyone, friend and foe.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: Standard,
+)

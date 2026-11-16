@@ -1,0 +1,1 @@
+(key: "shaman/hex/fire-nimbus", blueprint: "24074b42608fff54f8e1a5b7fa4a7d29", name: "Fire Nimbus", summary: "Flame: a creature within 30 feet loses concealment and invisibility and takes -2 on saves vs fire for class level rounds (Will negates).", guide: "shaman#fire-nimbus", prerequisite: SelectionOption("shaman/spirit/flame"))

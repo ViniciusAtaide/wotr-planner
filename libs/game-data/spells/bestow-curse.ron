@@ -1,0 +1,14 @@
+(
+    key: "bestow-curse",
+    blueprint: "989ab5c44240907489aba0a8568d0603",
+    name: "Bestow Curse",
+    school: Necromancy,
+    guide: "wizard-spells#bestow-curse-necromancy",
+    summary: "Curses the target with your choice of -6 to Constitution, to Strength and Dexterity, or to all three mental scores, or -4 on attacks, saves and checks.",
+    target: "One creature within touch range",
+    duration: "Permanent",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [Curse],
+    casting_time: Standard,
+)

@@ -1,0 +1,8 @@
+(
+    key: "sorcerer/seeker/choice/talents",
+    name: "Talents",
+    guide: "sorcerer#seeker-sorcerer",
+    repeat: Unlimited,
+    replaces_row_of: "sorcerer/bloodline",
+    levels: [(level: 1, selections: ["sorcerer/school", "sorcerer/school"])],
+)

@@ -1,0 +1,14 @@
+(
+    key: "natures-grasp",
+    blueprint: "2b9db9808a1aad74b94f651c5732fd3c",
+    name: "Nature's Grasp",
+    school: Conjuration,
+    guide: "azata#natures-grasp-conjuration",
+    summary: "If the target fails, it is ensnared: unable to move, 50% miss chance on attacks, and 1d6 + half your caster level bludgeoning each round it fails to break free.",
+    target: "One enemy creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,7 @@
+(
+    key: "power-attack-mythic",
+    name: "Power Attack (Mythic)",
+    group: Melee,
+    guide: "mythic-paths#power-attack-mythic",
+    prerequisite: Feat("power-attack"),
+)

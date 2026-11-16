@@ -1,0 +1,14 @@
+(
+    key: "constricting-coils",
+    blueprint: "3fce8e988a51a2a4ea366324d6153001",
+    name: "Constricting Coils",
+    school: Enchantment,
+    guide: "wizard-spells#constricting-coils-enchantment",
+    summary: "Pins the target where it stands, dealing 1d6+6 bludgeoning damage per round.",
+    target: "One enemy creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates (save each round)",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

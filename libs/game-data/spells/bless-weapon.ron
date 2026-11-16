@@ -1,0 +1,14 @@
+(
+    key: "bless-weapon",
+    blueprint: "de954d4cbf995864ba8662e67a473f93",
+    name: "Bless Weapon",
+    school: Transmutation,
+    guide: "paladin#bless-weapon-transmutation",
+    summary: "The weapon counts as magic and good against DR, and its critical threats against evil creatures confirm automatically.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

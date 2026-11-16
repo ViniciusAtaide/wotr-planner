@@ -1,0 +1,10 @@
+(
+    key: "manual-of-quickness-of-action-2",
+    blueprint: "b8ea6d2f787c7004c9cab9f519f687f8",
+    name: "Manual of Quickness of Action +2",
+    slot: Usable,
+    guide: "items#equipable-and-consumable",
+    bonuses: [
+        (target: Ability(Dexterity), amount: 2, kind: Inherent),
+    ],
+)

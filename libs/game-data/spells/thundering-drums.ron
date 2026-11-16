@@ -1,0 +1,13 @@
+(
+    key: "thundering-drums",
+    blueprint: "c26eeeeabf732914ba723f2b67fe9b9d",
+    name: "Thundering Drums",
+    school: Evocation,
+    guide: "bard#thundering-drums-evocation",
+    summary: "Creatures in the cone take 5d8 sonic damage and fall prone; a successful save halves the damage and keeps them standing.",
+    target: "All creatures within 15' cone",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Sonic],
+    casting_time: Standard,
+)

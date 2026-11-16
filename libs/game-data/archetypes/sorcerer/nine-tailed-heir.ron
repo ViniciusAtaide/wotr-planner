@@ -1,0 +1,21 @@
+(
+    key: "sorcerer/nine-tailed-heir",
+    class: "sorcerer",
+    blueprint: "65a630aa291f65047b90a2af5df75d83",
+    name: "Nine Tailed Heir",
+    summary: "Kitsune only: trades bloodline spells for a Magical Tail bonus feat at 3rd level and every two levels after.",
+    guide: "sorcerer#nine-tailed-heir",
+    prerequisite: Race("kitsune"),
+    levels: [
+        (level: 1, features: ["sorcerer-cantrips", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [Category(Magic)], selections: ["sorcerer/bloodline"]),
+        (level: 3, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
+        (level: 5, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
+        (level: 7, features: ["sorcerer/nine-tailed-heir/magical-tail"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 9, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
+        (level: 11, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
+        (level: 13, features: ["sorcerer/nine-tailed-heir/magical-tail"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+        (level: 15, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
+        (level: 17, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
+        (level: 19, features: ["sorcerer/nine-tailed-heir/magical-tail"], feat_slots: [OptionList(selection: "sorcerer/bloodline")]),
+    ],
+)

@@ -1,0 +1,18 @@
+(
+    key: "cavalier/knight-of-the-wall",
+    class: "cavalier",
+    blueprint: "112dd0e61f95c3a459ac0a565472e685",
+    name: "Knight of the Wall",
+    summary: "Shield-focused cavalier without teamwork abilities.",
+    guide: "cavalier#knight-of-the-wall",
+    levels: [
+        (level: 1, features: ["cavalier-mount", "cavalier/challenge"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-focus", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cavalier/order"]),
+        (level: 4, features: ["cavalier/challenge", "cavalier/knight-of-the-wall/deflective-shield"]),
+        (level: 5, features: ["banner"]),
+        (level: 9, features: ["cavalier/knight-of-the-wall/soul-shield"]),
+        (level: 10, features: ["banner", "cavalier/challenge"]),
+        (level: 15, features: ["banner"]),
+        (level: 17),
+        (level: 20, features: ["banner", "cavalier/supreme-charge"]),
+    ],
+)

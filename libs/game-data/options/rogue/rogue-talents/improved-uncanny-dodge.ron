@@ -1,0 +1,3 @@
+// "An Eldritch Scoundrel can select (Improved) Uncanny Dodge as Rogue Talents" (ticket 190). The Improved one
+// needing Uncanny Dodge first is the user's decision (the guide doesn't say; 2026-11-13: the recommended option).
+(key: "rogue/rogue-talents/improved-uncanny-dodge", blueprint: "e821c61b2711cea4cb993725b910e7e8", name: "Improved Uncanny Dodge", summary: "Eldritch Scoundrel only, after Uncanny Dodge: you cannot be flanked; rogues need 4 more rogue levels than you to sneak attack you.", guide: "rogue#rogue-talents", prerequisite: All([Archetype("rogue/eldritch-scoundrel"), Feature(feature: "uncanny-dodge", count: 1)]), levels: [(level: 1, features: ["improved-uncanny-dodge"])])

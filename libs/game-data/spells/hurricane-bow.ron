@@ -1,0 +1,14 @@
+(
+    key: "hurricane-bow",
+    blueprint: "3e9d1119d43d07c4c8ba9ebfd1671952",
+    name: "Hurricane Bow",
+    school: Transmutation,
+    guide: "wizard-spells#hurricane-bow-transmutation",
+    summary: "Your bow and crossbow arrows deal damage as if one size larger (a longbow does 2d6 instead of 1d8).",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

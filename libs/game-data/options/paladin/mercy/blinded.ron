@@ -1,0 +1,1 @@
+(key: "paladin/mercy/blinded", blueprint: "23c3fb906c6346440b4e7d92fc25319b", name: "Blinded", summary: "From 12th level, Lay on Hands also removes blindness.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 12))

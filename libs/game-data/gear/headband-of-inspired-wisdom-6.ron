@@ -1,0 +1,9 @@
+(
+    key: "headband-of-inspired-wisdom-6",
+    blueprint: "bc931a618226e044caaebdf4ace1188a",
+    name: "Headband of Inspired Wisdom +6",
+    slot: Headwear,
+    bonuses: [
+        (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+    ],
+)

@@ -1,0 +1,14 @@
+(
+    key: "blessing-of-courage-and-life",
+    blueprint: "c36c1d11771b0584f8e100b92ee5475b",
+    name: "Blessing of Courage and Life",
+    school: Conjuration,
+    guide: "cleric-spells#blessing-of-courage-and-life-conjuration",
+    summary: "The target gains a +2 morale bonus on saves against fear and death; it can end the spell early to heal 1d8 + 1 per caster level (max 1d8 + 10).",
+    target: "One friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [Emotion],
+    casting_time: Standard,
+)

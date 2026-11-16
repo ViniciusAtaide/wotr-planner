@@ -1,0 +1,14 @@
+(
+    key: "magic-fang-greater",
+    blueprint: "f1100650705a69c4384d3edd88ba0f52",
+    name: "Magic Fang, Greater",
+    school: Transmutation,
+    guide: "druid-spells#magic-fang-greater-transmutation",
+    summary: "The target's natural weapons and unarmed strikes get +1 enhancement to attack and damage per four caster levels (max +5).",
+    target: "One friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

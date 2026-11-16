@@ -1,0 +1,13 @@
+(
+    key: "devour",
+    blueprint: "eacb5f788001ca84cb83c3091c1ced19",
+    name: "Devour",
+    school: Transmutation,
+    guide: "demon#devour-transmutation",
+    summary: "On a melee touch hit, the target takes 3d6 per caster level (1d6 if it saves), and if this kills it you regain 10 HP per caster level.",
+    target: "1 creature within touch range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

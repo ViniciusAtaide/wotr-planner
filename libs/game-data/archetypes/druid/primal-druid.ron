@@ -1,0 +1,15 @@
+(
+    key: "druid/primal-druid",
+    class: "druid",
+    blueprint: "c1c86e2997fd4257a13ef5601b5dc6dd",
+    name: "Primal Druid",
+    summary: "Megafauna druid with a limited companion list, no domain and a stronger Enlarge Person.",
+    guide: "druid#primal-druid",
+    levels: [
+        (level: 1, features: ["druid/druid-proficiencies", "druid/primal-druid/animal-companion-primal-druid", "druid/primal-druid/primal-size", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
+        (level: 6, features: ["druid/primal-druid/wild-shape-leopard-small-elemental", "wild-shape-wolf"]),
+        (level: 8, features: ["druid/primal-druid/primal-size", "druid/primal-druid/wild-shape-bear-medium-elemental", "wild-shape-wolf"]),
+        (level: 10, features: ["druid/primal-druid/wild-shape-smilodon-large-elemental-shambling-mound", "wild-shape-wolf"]),
+        (level: 16, features: ["druid/primal-druid/primal-size", "wild-shape-wolf"]),
+    ],
+)

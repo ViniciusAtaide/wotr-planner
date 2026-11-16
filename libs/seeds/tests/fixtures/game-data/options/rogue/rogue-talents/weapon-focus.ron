@@ -1,0 +1,7 @@
+(
+    // Weapon Focus in a weapon of the player's choosing.
+    key: "rogue/rogue-talents/weapon-focus",
+    name: "Weapon Focus",
+    guide: "rogue#weapon-focus",
+    chosen_feat: "weapon-focus",
+)

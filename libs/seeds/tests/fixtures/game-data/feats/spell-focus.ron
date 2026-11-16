@@ -1,0 +1,8 @@
+(
+    // Taken once: the value is a school.
+    key: "spell-focus",
+    name: "Spell Focus",
+    category: Magic,
+    guide: "feats#spell-focus",
+    parameter: SpellSchool,
+)

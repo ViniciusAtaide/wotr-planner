@@ -1,0 +1,9 @@
+(
+    key: "desna",
+    blueprint: "2c0a3b9971327ba4d9d85354d16998c1",
+    name: "Desna",
+    guide: "character-creation#deities",
+    alignments: [NeutralGood, ChaoticGood, ChaoticNeutral],
+    favoured_weapons: ["starknife"],
+    domains: ["cleric/domain/chaos", "cleric/domain/good", "cleric/domain/liberation", "cleric/domain/luck", "cleric/domain/travel"],
+)

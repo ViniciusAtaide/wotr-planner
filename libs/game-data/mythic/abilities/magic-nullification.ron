@@ -1,0 +1,1 @@
+(key: "magic-nullification", blueprint: "3b17eb0294898cf409dc6afdb3d278cf", name: "Magic Nullification", summary: "A toggled ability that makes you immune to magic and dispels spells on you, friendly ones included.", group: Magic, guide: "mythic-paths#magic-nullification")

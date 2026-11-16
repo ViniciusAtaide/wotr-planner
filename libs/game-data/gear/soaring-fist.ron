@@ -1,0 +1,11 @@
+(
+    key: "soaring-fist",
+    blueprint: "e11d5d581d05d3348b1d50e55d355411",
+    name: "Soaring Fist",
+    slot: Gloves,
+    guide: "items#gloves",
+    bonuses: [
+        (target: Ability(Constitution), amount: 2, kind: Enhancement),
+        (target: Skill("mobility"), amount: 4, kind: Competence),
+    ],
+)

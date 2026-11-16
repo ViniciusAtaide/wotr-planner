@@ -1,0 +1,14 @@
+(
+    key: "wizard/school/universalist",
+    blueprint: "0933849149cfc9244ac05d6a5b57fd80",
+    name: "Universalist",
+    summary: "No specialisation: Hand of the Apprentice and Metamagic Mastery instead of school powers.",
+    guide: "wizard#universalist",
+    levels: [
+        (level: 1, features: ["wizard/school/universalist/hand-of-the-apprentice"]),
+        (level: 8, features: ["wizard/school/universalist/mm-extend-and-reach-spell"]),
+        (level: 12, features: ["wizard/school/universalist/mm-empower"]),
+        (level: 16, features: ["wizard/school/universalist/mm-maximise"]),
+        (level: 20, features: ["wizard/school/universalist/mm-quicken"]),
+    ],
+)

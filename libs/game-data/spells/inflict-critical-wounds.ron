@@ -1,0 +1,13 @@
+(
+    key: "inflict-critical-wounds",
+    blueprint: "651110ed4f117a948b41c05c5c7624c0",
+    name: "Inflict Critical Wounds",
+    school: Necromancy,
+    guide: "cleric-spells#inflict-critical-wounds-necromancy",
+    summary: "Deals 4d8 + 1 per caster level to the target, Will for half; heals undead by the same amount.",
+    target: "One creature within touch range",
+    saving_throw: "Will half (if used to damage)",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

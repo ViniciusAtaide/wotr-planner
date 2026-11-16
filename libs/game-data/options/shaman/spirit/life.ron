@@ -1,0 +1,13 @@
+(
+    key: "shaman/spirit/life",
+    blueprint: "f9ee5a9146561ba4bac4cb8a7126f85c",
+    name: "Life",
+    summary: "Life: Channel positive energy, Healer's Touch at 8th, swift Quick Healing at 16th, immunity to many conditions at 20th.",
+    guide: "shaman#life",
+    levels: [
+        (level: 1, features: ["shaman/spirit/life/channel"]),
+        (level: 8, features: ["shaman/spirit/life/healers-touch"]),
+        (level: 16, features: ["shaman/spirit/life/quick-healing"]),
+        (level: 20, features: ["shaman/spirit/life/manifestation-life"]),
+    ],
+)

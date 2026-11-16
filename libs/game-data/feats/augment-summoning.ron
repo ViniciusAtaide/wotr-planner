@@ -1,0 +1,1 @@
+(key: "augment-summoning", blueprint: "38155ca9e4055bb48a89240a2055dcc3", name: "Augment Summoning", summary: "Creatures you summon arrive with +4 enhancement to Strength and Constitution.", category: Magic, guide: "feats#augment-summoning", prerequisite: FeatFor(feat: "spell-focus", value: SpellSchool(Conjuration)))

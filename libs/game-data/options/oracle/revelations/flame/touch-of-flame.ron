@@ -1,0 +1,1 @@
+(key: "oracle/revelations/flame/touch-of-flame", blueprint: "7551135fc3779744396b229b38dca152", name: "Touch of Flame", summary: "Melee touch for 1d6 fire +1 per two levels, 3 + Cha modifier uses a day; from 11th your weapons are Flaming.", guide: "oracle#touch-of-flame", prerequisite: SelectionOption("oracle/mystery/flame"))

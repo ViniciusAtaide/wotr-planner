@@ -1,0 +1,14 @@
+(
+    key: "magical-vestment",
+    blueprint: "2d4263d80f5136b4296d6eb43a221d7d",
+    name: "Magical Vestment",
+    school: Transmutation,
+    guide: "cleric-spells#magical-vestment-transmutation",
+    summary: "Gives the target's armour or shield +1 enhancement per four caster levels (max +5).",
+    target: "One friendly creature within close range",
+    duration: "1 hour / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

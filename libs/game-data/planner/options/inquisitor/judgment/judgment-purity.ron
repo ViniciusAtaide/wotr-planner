@@ -1,0 +1,4 @@
+(
+    why: "An ability of JudgmentFeature in the game, not a feature of its own.",
+    entry: (key: "inquisitor/judgment/judgment-purity", name: "Judgment - Purity", summary: "+1 sacred bonus to saving throws, +1 per 5 levels; doubled against curses, diseases and poisons from 10th level.", guide: "inquisitor#judgment-purity"),
+)

@@ -1,0 +1,10 @@
+(
+    key: "druid/nature-bond/domain",
+    blueprint: "5edfe84c93823d04f8c40ca2b4e0f039",
+    name: "Domain",
+    summary: "Take a domain rather than an animal companion.",
+    guide: "druid",
+    levels: [
+        (level: 1, selections: ["druid/domain"]),
+    ],
+)

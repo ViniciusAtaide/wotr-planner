@@ -1,0 +1,14 @@
+(
+    key: "invisibility",
+    blueprint: "89940cde01689fb46946b2f8cd7b66b7",
+    name: "Invisibility",
+    school: Illusion,
+    guide: "wizard-spells#invisibility-illusion",
+    summary: "The target turns invisible for the duration, until it attacks an enemy.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

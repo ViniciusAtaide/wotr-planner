@@ -1,0 +1,13 @@
+(
+    key: "shocking-grasp",
+    blueprint: "ab395d2335d3f384e99dddee8562978f",
+    name: "Shocking Grasp",
+    school: Evocation,
+    guide: "wizard-spells#shocking-grasp-evocation",
+    summary: "A melee touch attack deals 1d6 electricity damage per caster level, up to 5d6.",
+    target: "One creature within touch range",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Electricity],
+    casting_time: Standard,
+)

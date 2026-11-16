@@ -1,0 +1,14 @@
+(
+    key: "sorcerer/bloodline/arcane",
+    blueprint: "4d491cf9631f7e9429444f4aed629791",
+    name: "Arcane",
+    summary: "Spellcaster bloodline: metamagic raises DCs by 1, a bonded object or familiar, +concentration, School Power at 15th and Arcane Apotheosis at 20th.",
+    guide: "sorcerer#arcane",
+    arcana: "sorcerer/bloodline/arcane/arcane-arcana",
+    levels: [
+        (level: 1, features: ["sorcerer/bloodline/arcane/arcane-arcana", "sorcerer/bloodline/arcane/arcane-bond", "arcane-bloodline-class-skill"], feat_list: "sorcerer/bloodline/arcane/feats"),
+        (level: 3, features: ["sorcerer/bloodline/arcane/combat-casting-adept"]),
+        (level: 15, selections: ["sorcerer/bloodline/arcane/school-power"]),
+        (level: 20, features: ["sorcerer/bloodline/arcane/arcane-apotheosis"]),
+    ],
+)

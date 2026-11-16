@@ -1,0 +1,1 @@
+(key: "throwing-axe", blueprint: "ca131c71f4fefcb48b30b5991520e01d", name: "Throwing Axe", proficiency: Martial, stats: (damage: (count: 1, sides: 6), threat: 20, multiplier: 2, handedness: Light, ranged: Thrown))

@@ -1,0 +1,1 @@
+(key: "wizard/school/conjurer/summoners-charm", blueprint: "cee0f7edbd874a042952ee150f878b84", name: "Summoner\'s Charm", summary: "Conjuration spells last extra rounds equal to half your level (minimum 1), not doubled by Extend Spell.", guide: "wizard#summoners-charm")

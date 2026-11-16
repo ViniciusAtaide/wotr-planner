@@ -1,0 +1,14 @@
+(
+    key: "sun-marked",
+    blueprint: "201c1235b0467f741b0c46e09c85d89b",
+    name: "Sun Marked",
+    school: Abjuration,
+    guide: "angel#sun-marked-abjuration",
+    summary: "The target's attacks add 1d6 holy for every four caster levels, and anything that strikes it takes 1d6 fire plus 1 per caster level.",
+    target: "One friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

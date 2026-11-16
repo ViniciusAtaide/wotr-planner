@@ -1,0 +1,14 @@
+(
+    key: "vinetrap",
+    blueprint: "6d1d48a939ce475409f06e1b376bc386",
+    name: "Vinetrap",
+    school: Conjuration,
+    guide: "cleric-spells#vinetrap-conjuration",
+    summary: "The target is paralysed and entangled, taking 2d4 piercing damage each round while entangled; a Reflex save negates the paralysis, with a new save each round.",
+    target: "One enemy creature within long range",
+    duration: "1 round / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -160,12 +160,13 @@ fn an_archetype_row_replaces_the_base_rows_granted_feats() {
         .iter()
         .find(|c| c.key.as_str() == "fighter")
         .unwrap();
-    let row = effective_row(fighter, Some(&fighter.archetypes[0]), 1).unwrap();
+    let armiger_archetype = data.archetypes_of(&fighter.key).next();
+    let row = effective_row(fighter, armiger_archetype, 1).unwrap();
     assert!(row.feats.is_empty());
     let base = effective_row(fighter, None, 1).unwrap();
     assert_eq!(base.feats.len(), 2);
     // A level the Armiger leaves out is the fighter's, grants included.
-    let row_3 = effective_row(fighter, Some(&fighter.archetypes[0]), 3).unwrap();
+    let row_3 = effective_row(fighter, armiger_archetype, 3).unwrap();
     assert_eq!(row_3, effective_row(fighter, None, 3).unwrap());
 
     let build = armiger(1);

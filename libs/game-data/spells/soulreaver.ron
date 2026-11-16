@@ -1,0 +1,13 @@
+(
+    key: "soulreaver",
+    blueprint: "b4afacd337dac4a40a769a567c038ab7",
+    name: "Soulreaver",
+    school: Necromancy,
+    guide: "wizard-spells#soulreaver-necromancy",
+    summary: "Each living creature in the area takes up to 20d6 damage: 1d6 for every caster level.",
+    target: "All creatures within 25' of target point within close range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Death],
+    casting_time: Standard,
+)

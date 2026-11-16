@@ -1,0 +1,14 @@
+(
+    key: "abyssal-chains",
+    blueprint: "3b86de15c18e4b44bb7315fc6c116b4d",
+    name: "Abyssal Chains",
+    school: Evocation,
+    guide: "demon#abyssal-chains-evocation",
+    summary: "Deals 1d8 bludgeoning per caster level and entangles the target, and the chains spread to as many other targets as your caster level, doing the same.",
+    target: "One creature within long range",
+    duration: "1 round / level",
+    saving_throw: "None",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

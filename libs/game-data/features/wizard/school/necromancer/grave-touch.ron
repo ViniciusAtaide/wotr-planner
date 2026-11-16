@@ -1,0 +1,1 @@
+(key: "wizard/school/necromancer/grave-touch", blueprint: "927707dce06627d4f880c90b5575125f", name: "Grave Touch", summary: "Melee touch, 3 + Int times a day: shaken for half your level in rounds, or frightened 1 round if already shaken and low HD.", guide: "wizard#grave-touch")

@@ -1,0 +1,1 @@
+(key: "gold-dragon/perfect-soul", blueprint: "f1631a20b6f14e58924a32c81da95840", name: "Perfect Soul", summary: "Rank 10: immune to acid, cold, electricity, fire, energy drain, negative energy; all damage holy; spell dice at least d10 (else +1/die); +2 top score.", guide: "gold-dragon#perfect-soul", ability_bonuses: [Highest(amount: 2)])

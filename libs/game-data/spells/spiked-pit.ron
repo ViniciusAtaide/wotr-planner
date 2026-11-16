@@ -1,0 +1,14 @@
+(
+    key: "spiked-pit",
+    blueprint: "46097f610219ac445b4d6403fc596b9f",
+    name: "Spiked Pit",
+    school: Conjuration,
+    guide: "wizard-spells#spiked-pit-conjuration",
+    summary: "A spiked pit 10 ft deep per two caster levels (max 50 ft): falling in deals 1d6 per 10 ft + 2d6 spikes; climbing out needs DC 25 Athletics or Mobility.",
+    target: "Target point within medium range, 10' burst",
+    duration: "1 round + 1 round / level",
+    saving_throw: "Reflex negates",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

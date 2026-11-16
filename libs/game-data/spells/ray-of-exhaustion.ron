@@ -1,0 +1,14 @@
+(
+    key: "ray-of-exhaustion",
+    blueprint: "8eead52509987034ea9025d60cc05985",
+    name: "Ray of Exhaustion",
+    school: Necromancy,
+    guide: "wizard-spells#ray-of-exhaustion-necromancy",
+    summary: "A ranged touch attack exhausts the target, or fatigues it on a successful Fortitude save.",
+    target: "One enemy creature within close range",
+    duration: "1 minute per level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

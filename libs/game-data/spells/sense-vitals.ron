@@ -1,0 +1,14 @@
+(
+    key: "sense-vitals",
+    blueprint: "82962a820ebc0e7408b8582fdc3f4c0c",
+    name: "Sense Vitals",
+    school: Divination,
+    guide: "wizard-spells#sense-vitals-divination",
+    summary: "You can sneak attack like a rogue for 1d6, plus 1d6 for every 3 levels above 3rd (5d6 at 15th).",
+    target: "Personal",
+    duration: "1 round/ level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

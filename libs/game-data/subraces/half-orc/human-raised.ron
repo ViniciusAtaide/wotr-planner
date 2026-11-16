@@ -1,0 +1,1 @@
+(key: "half-orc/human-raised", race: "half-orc", blueprint: "289d95c2c26f4e638c1f26d5ea7c594b", name: "Half-Orc (Human-Raised)", summary: "+1 skill point per level; +2 Persuasion to intimidate and +2 Perception.", guide: "character-creation#half-orc-human-raised", ability_modifiers: [Chosen(amount: 2)], skill_points: 1)

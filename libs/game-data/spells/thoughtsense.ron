@@ -1,0 +1,14 @@
+(
+    key: "thoughtsense",
+    blueprint: "8fb1a1670b6e1f84b89ea846f589b627",
+    name: "Thoughtsense",
+    school: Divination,
+    guide: "wizard-spells#thoughtsense-divination",
+    summary: "You detect and locate conscious creatures within 60 ft automatically.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Sight],
+    casting_time: Swift,
+)

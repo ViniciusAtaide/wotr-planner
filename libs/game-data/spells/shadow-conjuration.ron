@@ -1,0 +1,14 @@
+(
+    key: "shadow-conjuration",
+    blueprint: "caac251ca7601324bbe000372a0a1005",
+    name: "Shadow Conjuration",
+    school: Illusion,
+    guide: "wizard-spells#shadow-conjuration-illusion",
+    summary: "Mimics a conjuration spell of level 3 or lower at a level 4 DC; a creature that saves (Will) takes a fifth of its damage, and its summons have 20% HP.",
+    target: "Target point within close range",
+    duration: "?",
+    saving_throw: "?",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

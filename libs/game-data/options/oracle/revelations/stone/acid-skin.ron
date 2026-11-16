@@ -1,0 +1,1 @@
+(key: "oracle/revelations/stone/acid-skin", blueprint: "bc1cbe328e1cd214698e6da7fbd9400f", name: "Acid Skin", summary: "Acid resistance 5, 10 at 5th level, 20 at 11th, and acid immunity at 17th.", guide: "oracle#acid-skin", prerequisite: SelectionOption("oracle/mystery/stone"))

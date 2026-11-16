@@ -1,0 +1,14 @@
+(
+    key: "barkskin",
+    blueprint: "5b77d7cc65b8ab74688e74a37fc2f553",
+    name: "Barkskin",
+    school: Transmutation,
+    guide: "druid-spells#barkskin-transmutation",
+    summary: "The target gains +2 enhancement to natural AC, +1 more per three caster levels above 3rd (max +5), stacking with its own natural armour bonus.",
+    target: "One friendly creature within close range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

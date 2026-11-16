@@ -1,0 +1,14 @@
+(
+    key: "acid-pit",
+    blueprint: "1407fb5054d087d47a4c40134c809f12",
+    name: "Acid Pit",
+    school: Conjuration,
+    guide: "wizard-spells#acid-pit-conjuration",
+    summary: "Opens a pit 10 ft deep per two caster levels (max 100 ft); a creature falling in takes 1d6 per 10 ft, then 2d6 acid each round inside; climbing out is DC 25.",
+    target: "Target point within medium range, 10' burst",
+    duration: "1 round + 1 round / level",
+    saving_throw: "Reflex negates",
+    spell_resistance: false,
+    descriptors: [Acid],
+    casting_time: Standard,
+)

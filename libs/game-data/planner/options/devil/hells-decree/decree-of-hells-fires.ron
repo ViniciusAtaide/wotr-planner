@@ -1,0 +1,4 @@
+(
+    why: "An ability of the Devil's Hell's Decree or Hell's Seal feature in the game, not a feature of its own.",
+    entry: (key: "devil/hells-decree/decree-of-hells-fires", name: "Decree of Hell\'s Fires", summary: "Enemies within 50 ft take 2d10 + MR half fire, half holy; those under 10x MR hit points must pass a Fortitude save or die.", guide: "other-mythic-paths#decree-of-hells-fires"),
+)

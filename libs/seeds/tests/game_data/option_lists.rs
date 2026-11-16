@@ -81,7 +81,8 @@ fn options_of_any(children: &[Prerequisite]) -> BTreeSet<String> {
 }
 
 fn selection(key: &str) -> &'static FeatureSelection {
-    DATA.selections()
+    DATA.selections
+        .iter()
         .find(|selection| selection.key.as_str() == key)
         .unwrap_or_else(|| panic!("no selection {key}"))
 }
@@ -180,9 +181,9 @@ fn every_exception_covers_an_option_the_prerequisite_leaves_out() {
 #[test]
 fn an_any_of_a_selections_options_names_all_of_them() {
     let mut owner: BTreeMap<String, &FeatureSelection> = BTreeMap::new();
-    for selection in DATA.selections() {
+    for selection in &DATA.selections {
         for option in &selection.options {
-            owner.insert(option.key.to_string(), selection);
+            owner.insert(option.to_string(), selection);
         }
     }
     let prerequisites = DATA
@@ -221,7 +222,7 @@ fn an_any_of_a_selections_options_names_all_of_them() {
                 let missing: Vec<String> = selection(selection_key)
                     .options
                     .iter()
-                    .map(|o| o.key.to_string())
+                    .map(|o| o.to_string())
                     .filter(|o| !named.contains(o))
                     .collect();
                 if !missing.is_empty() {
@@ -240,22 +241,22 @@ fn an_any_of_a_selections_options_names_all_of_them() {
     );
 }
 
-/// Accomplished Sneak Attacker and Mythic Sneak Attack ("Prerequisites: Sneak Attack") name every class, archetype and
-/// path feature that is a sneak attack: its key ends in `/sneak-attack` or `/sneak-attack-<archetype>` (the Knife
+/// Accomplished Sneak Attacker and Mythic Sneak Attack ("Prerequisites: Sneak Attack") name the one Sneak Attack,
+/// which every class, archetype and path that has a sneak attack grants (one entry since ticket 244; the Knife
 /// Master's Sneak Stab and the like are other features).
 #[test]
 fn the_sneak_attack_feats_name_every_sneak_attack_feature() {
-    let is_sneak_attack = |key: &str| {
-        let last = key.rsplit('/').next().unwrap_or(key);
-        last == "sneak-attack" || last.starts_with("sneak-attack-")
-    };
     let features: BTreeSet<String> = DATA
-        .class_features()
-        .chain(DATA.mythic_paths.iter().flat_map(|path| &path.features))
+        .features
+        .iter()
+        .filter(|feature| {
+            feature.blueprint.as_ref().map(|guid| guid.as_str())
+                == Some("9b9eac6709e1c084cb18c3a366e0ec87")
+        })
         .map(|feature| feature.key.to_string())
-        .filter(|key| is_sneak_attack(key))
         .collect();
-    assert_eq!(features.len(), 14, "{features:?}");
+    // Game: SneakAttack 9b9eac6709e1c084cb18c3a366e0ec87, one feature.
+    assert_eq!(features, BTreeSet::from(["sneak-attack".to_owned()]));
     // Game: AccomplishedSneakAttacker 9f0187869dc23744292c0e5bb364464e and SneakAttackerMythicFeat
     // d0a53bf03b978634890e5ebab4a90ecb need the SneakAttack stat at 1 or more (equivalent model: any of the
     // features that raise it).

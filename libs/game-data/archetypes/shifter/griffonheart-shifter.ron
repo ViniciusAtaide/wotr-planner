@@ -1,0 +1,18 @@
+(
+    key: "shifter/griffonheart-shifter",
+    class: "shifter",
+    blueprint: "aed5b306ad734a6da5d5638edcb667c9",
+    name: "Griffonheart Shifter",
+    summary: "Ulbrig's unique DLC archetype with a griffon aspect and form and bonus combat feats.",
+    guide: "shifter#griffonheart-shifter",
+    levels: [
+        (level: 1, features: ["shifter/griffonheart-shifter/griffon-aspect", "shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"]),
+        (level: 4, features: ["shifter/griffonheart-shifter/griffon-form"], feat_slots: [CombatFeat]),
+        (level: 5, features: ["shifter/griffonheart-shifter/griffon-aspect"]),
+        (level: 9, features: ["shifter/griffonheart-shifter/griffon-form"], feat_slots: [CombatFeat]),
+        (level: 10, features: ["shifter/griffonheart-shifter/griffon-aspect"]),
+        (level: 14, features: ["shifter/griffonheart-shifter/griffon-form"], feat_slots: [CombatFeat]),
+        (level: 15, features: ["shifter/griffonheart-shifter/griffon-aspect"]),
+        (level: 20, features: ["shifter/final-aspect", "shifter/griffonheart-shifter/griffon-aspect"]),
+    ],
+)

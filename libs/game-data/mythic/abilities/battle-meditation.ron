@@ -1,0 +1,1 @@
+(key: "battle-meditation", blueprint: "3f12027f9152f484b8fde69d2c87c8cc", name: "Battle Meditation", summary: "Standard action: allies within 30 ft gain +1 (+1 per 3 MR) morale to attack, damage and saves vs. fear; you can\'t move and lose Dex to AC.", group: Miscellaneous, guide: "mythic-paths#battle-meditation")

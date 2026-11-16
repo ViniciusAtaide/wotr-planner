@@ -1,0 +1,4 @@
+(
+    why: "An ability of JudgmentFeature in the game, not a feature of its own.",
+    entry: (key: "inquisitor/judgment/judgment-destruction", name: "Judgment - Destruction", summary: "+1 sacred bonus to damage rolls, +1 per 3 levels.", guide: "inquisitor#judgment-destruction"),
+)

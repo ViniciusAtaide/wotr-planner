@@ -1,0 +1,13 @@
+(
+    key: "joyful-rapture",
+    blueprint: "15a04c40f84545949abeedef7279751a",
+    name: "Joyful Rapture",
+    school: Conjuration,
+    guide: "wizard-spells#joyful-rapture-conjuration",
+    summary: "Allies in range lose any emotion effects and heal 1d4 Intelligence, Wisdom or Charisma damage.",
+    target: "All allies within 60'",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [Emotion],
+    casting_time: Standard,
+)

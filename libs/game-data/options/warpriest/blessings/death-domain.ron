@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/death-domain",
+    blueprint: "6d11e8b00add90c4f93c2ad6d12885f7",
+    name: "Death Domain",
+    summary: "Minor: +4 Intimidate and +2 to saves against several effects for 1 minute. Major (10th): a touch or your next melee hit gives 1 negative level.",
+    guide: "warpriest#death-domain",
+    domain: "cleric/domain/death",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/death-domain/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/death-domain/major-blessing"]),
+    ],
+)

@@ -1,0 +1,11 @@
+(
+    key: "oracle/mystery/nature",
+    blueprint: "69579bfe28e15b942af0722021d8725c",
+    name: "Nature",
+    summary: "Nature: Athletics as a class skill, Feather Step to Shapechange, revelations like an animal companion, and a restoring form change at 20th.",
+    guide: "oracle#nature",
+    levels: [
+        (level: 1, class_skills: ["athletics"]),
+        (level: 20, features: ["oracle/mystery/nature/nature-final-revelation"]),
+    ],
+)

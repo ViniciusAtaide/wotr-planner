@@ -1,0 +1,1 @@
+(key: "ranger/combat-style-feat/archery-feats-2", blueprint: "3cf94df3f1cf9a443a880bc1ae9be3c6", name: "Archery Feats (from level 2)", guide: "ranger#archery-feats", ignores_prerequisites: true, feats: ["dodge", "great-fortitude", "iron-will", "lightning-reflexes", "point-blank-shot", "precise-shot", "rapid-shot", "toughness"])

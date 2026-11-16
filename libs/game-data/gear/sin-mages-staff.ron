@@ -1,0 +1,15 @@
+(
+    key: "sin-mages-staff",
+    blueprint: "19f9506b61ed4190bffc66eb0cad39de",
+    name: "Sin Mage's Staff",
+    slot: Weapon,
+    guide: "items#weapon-properties",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 6),
+        (target: SpellDc(All), amount: 1),
+        (target: CasterLevel, amount: 3),
+    ],
+    always_on: [
+        "A +5 quarterstaff",
+    ],
+)

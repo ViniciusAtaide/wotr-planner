@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/darkness",
+    blueprint: "1e1b4128290b11a41ba55280ede90d7d",
+    name: "Darkness Domain",
+    summary: "Touch of Darkness miss chance and Moonfire from 8th level; spells from Sleep to Polar Midnight.",
+    guide: "character-creation#darkness-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/darkness/touch-of-darkness"]),
+        (level: 8, features: ["cleric/domain/darkness/moonfire"]),
+    ],
+)

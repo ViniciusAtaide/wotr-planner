@@ -1,0 +1,13 @@
+(
+    key: "feast-of-blood",
+    blueprint: "edf6e91ca5a468849b8326bcc9c569b2",
+    name: "Feast of Blood",
+    school: Necromancy,
+    guide: "lich#feast-of-blood-necromancy",
+    summary: "As Exsanguinate on every enemy in the burst, and you gain temporary HP equal to the highest damage dealt.",
+    target: "All creatures with a 20' burst centred on target creature within medium range",
+    saving_throw: "Fortitude partial / Reflex half",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

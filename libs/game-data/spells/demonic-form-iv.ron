@@ -1,0 +1,14 @@
+(
+    key: "demonic-form-iv",
+    blueprint: "a8815c40e1e6d3a44b57ad7b3727eebb",
+    name: "Demonic Form IV",
+    school: Transmutation,
+    guide: "demon#demonic-form-iv-transmutation",
+    summary: "You can turn into a balor, vavakia, gallu or marilith demon.",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

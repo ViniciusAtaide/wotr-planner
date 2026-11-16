@@ -1,0 +1,14 @@
+(
+    key: "displacement",
+    blueprint: "903092f6488f9ce45a80943923576ab3",
+    name: "Displacement",
+    school: Illusion,
+    guide: "wizard-spells#displacement-illusion",
+    summary: "The target seems to stand 2 ft from where it is, giving attacks against it a 50% miss chance.",
+    target: "One friendly creature within touch range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

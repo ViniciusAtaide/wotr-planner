@@ -1,0 +1,23 @@
+(
+    key: "monk/ki-power",
+    blueprint: "3049386713ff04245a38b32483362551",
+    name: "Ki Power",
+    summary: "Choose a ki power at 4th level and every 2 levels after, paid for with ki points.",
+    guide: "monk#ki-power",
+    options: [
+        "monk/ki-power/abundant-step",
+        "monk/ki-power/barkskin",
+        "monk/ki-power/cold-ice-strike",
+        "monk/ki-power/diamond-body",
+        "monk/ki-power/diamond-soul",
+        "monk/ki-power/poison",
+        "monk/ki-power/quivering-palm",
+        "monk/ki-power/restoration",
+        "monk/ki-power/scorching-ray",
+        "monk/ki-power/shout",
+        "monk/ki-power/spit-venom",
+        "monk/ki-power/sudden-speed",
+        "monk/ki-power/true-strike",
+        "monk/ki-power/wholeness-of-body",
+    ],
+)

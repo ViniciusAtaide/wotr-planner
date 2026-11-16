@@ -1,0 +1,1 @@
+(key: "oracle/revelations/stone/clobbering-strike", blueprint: "b830f7ed7a68fa349a08cccc35975bdd", name: "Clobbering Strike", summary: "A critical hit with an attack-roll spell lets you try a trip as a swift action.", guide: "oracle#clobbering-strike", prerequisite: SelectionOption("oracle/mystery/stone"))

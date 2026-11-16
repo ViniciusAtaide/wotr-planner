@@ -1,0 +1,14 @@
+(
+    key: "jolting-portent",
+    blueprint: "0dd638688edf68a4da865752d7b9ee82",
+    name: "Jolting Portent",
+    school: Evocation,
+    guide: "cleric-spells#jolting-portent-evocation",
+    summary: "The target's attacks and spells force Fortitude saves (DC 10 + half caster level + Wisdom modifier; table: no save) or 4d6 + Wisdom modifier electricity damage.",
+    target: "One creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "None",
+    spell_resistance: true,
+    descriptors: [Electricity],
+    casting_time: Standard,
+)

@@ -1,0 +1,15 @@
+(
+    key: "ranger/combat-style-feat",
+    blueprint: "c6d0da9124735a44f93ac31df803b9a9",
+    name: "Combat Style",
+    summary: "A combat feat from your style, ignoring its prerequisites, or Dodge, Great Fortitude, Iron Will, Lightning Reflexes or Toughness; Skill Focus from 10th.",
+    guide: "ranger#combat-style-feat",
+    option_levels: ["ranger"],
+    options: [
+        "ranger/combat-style-feat/archery-feats",
+        "ranger/combat-style-feat/menacing-feats",
+        "ranger/combat-style-feat/two-handed-weapon-feats",
+        "ranger/combat-style-feat/two-weapon-combat-feats",
+        "ranger/combat-style-feat/weapon-and-shield-feats",
+    ],
+)

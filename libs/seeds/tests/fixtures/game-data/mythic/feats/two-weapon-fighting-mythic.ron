@@ -1,0 +1,10 @@
+(
+    key: "two-weapon-fighting-mythic",
+    name: "Two-Weapon Fighting (Mythic)",
+    group: Melee,
+    guide: "mythic-paths#two-weapon-fighting-mythic",
+    prerequisite: All([
+        Feat("two-weapon-fighting"),
+        Any([MythicAbility("mythic-charge"), MythicFeat("power-attack-mythic")]),
+    ]),
+)

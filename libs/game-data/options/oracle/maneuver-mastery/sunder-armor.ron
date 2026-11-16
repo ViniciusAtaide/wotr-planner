@@ -1,0 +1,11 @@
+(
+    key: "oracle/maneuver-mastery/sunder-armor",
+    blueprint: "f6331dc792c40eb4ab99a4ad36eb7b41",
+    name: "Sunder Armor",
+    summary: "Sunder Armor uses your class level instead of BAB for CMB; its Improved feat at 7th level and Greater feat at 11th.",
+    guide: "oracle#maneuver-mastery",
+    levels: [
+        (level: 7, feats: ["sunder-armor"]),
+        (level: 11, feats: ["greater-sunder-armor"]),
+    ],
+)

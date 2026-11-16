@@ -1,0 +1,12 @@
+(
+    key: "oracle/divine-herbalist",
+    class: "oracle",
+    blueprint: "204117c48168f2a41a8e155419e6e880",
+    name: "Divine Herbalist",
+    summary: "Healer with Healer's Way and Lore (Nature) bonuses but fewer revelations and no mystery class skills.",
+    guide: "oracle#divine-herbalist",
+    levels: [
+        (level: 1, features: ["oracle/additional-spells", "oracle/divine-herbalist/healers-way", "oracle/divine-herbalist/master-herbalist"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "brew-potions", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/divine-herbalist/mystery", "oracle/oracles-curse"]),
+        (level: 7, features: ["oracle/divine-herbalist/master-healing-technique"]),
+    ],
+)

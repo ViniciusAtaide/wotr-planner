@@ -1,0 +1,14 @@
+(
+    key: "stone-call",
+    blueprint: "5181c2ed0190fc34b8a1162783af5bf4",
+    name: "Stone Call",
+    school: Conjuration,
+    guide: "wizard-spells#stone-call-conjuration",
+    summary: "Stones deal 2d6 bludgeoning damage in the area, which stays difficult terrain for the duration.",
+    target: "Target point within medium range, 40' burst",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

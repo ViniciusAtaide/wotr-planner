@@ -1,0 +1,14 @@
+(
+    key: "infectious-rage",
+    blueprint: "3bbb3398e37929343b236bba6b4008a8",
+    name: "Infectious Rage",
+    school: Transmutation,
+    guide: "demon#infectious-rage-transmutation",
+    summary: "Enemies in the burst that fail fall into Demonic Rage and attack the nearest creature, saving again each round to shake it off.",
+    target: "Enemies within a 30' burst centred on the caster",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,19 @@
+(
+    why: "The game's slayer takes RangerStyleSelection2, 6 and 10 themselves; the planner groups them in one selection.",
+    entry: (
+        key: "slayer/combat-style",
+        name: "Combat Style (Slayer)",
+        summary: "A Ranger combat style feat taken as a slayer talent, at most three times: at 2nd or 4th, 6th or 8th, and 10th or later.",
+        guide: "slayer#slayer-talents",
+        option_levels: ["slayer"],
+        only_without_option: true,
+        options: [],
+        shared_options: [
+            "ranger/combat-style-feat/archery-feats",
+            "ranger/combat-style-feat/menacing-feats",
+            "ranger/combat-style-feat/two-handed-weapon-feats",
+            "ranger/combat-style-feat/two-weapon-combat-feats",
+            "ranger/combat-style-feat/weapon-and-shield-feats",
+        ],
+    ),
+)

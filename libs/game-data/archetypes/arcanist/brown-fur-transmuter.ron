@@ -1,0 +1,13 @@
+(
+    key: "arcanist/brown-fur-transmuter",
+    class: "arcanist",
+    blueprint: "ce63b2df8c6c12649b02c278e73d8bfa",
+    name: "Brown-Fur Transmuter",
+    summary: "Arcanist who boosts transmutation spells and shares self-buffs, with fewer exploits.",
+    guide: "arcanist#brown-fur-transmuter",
+    levels: [
+        (level: 3, features: ["arcanist/brown-fur-transmuter/powerful-change"]),
+        (level: 9, features: ["arcanist/brown-fur-transmuter/shared-transmutation"]),
+        (level: 20, features: ["arcanist/brown-fur-transmuter/transmutation-supremacy"]),
+    ],
+)

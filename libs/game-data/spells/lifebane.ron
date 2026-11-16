@@ -1,0 +1,14 @@
+(
+    key: "lifebane",
+    blueprint: "26aaee184eda5c545a0d353c5082cfd2",
+    name: "Lifebane",
+    school: Transmutation,
+    guide: "demon#lifebane-transmutation",
+    summary: "Turns the target's weapon into a +5 Living Bane weapon.",
+    target: "Friendly creature within medium range",
+    duration: "1 round / mythic rank",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Swift,
+)

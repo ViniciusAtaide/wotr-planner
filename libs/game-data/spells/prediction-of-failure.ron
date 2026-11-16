@@ -1,0 +1,14 @@
+(
+    key: "prediction-of-failure",
+    blueprint: "0e67fa8f011662c43934d486acc50253",
+    name: "Prediction of Failure",
+    school: Divination,
+    guide: "wizard-spells#prediction-of-failure-divination",
+    summary: "The target is shaken and sickened permanently, or only for 1 round per level if it makes its Will save.",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear, Curse],
+    casting_time: Standard,
+)

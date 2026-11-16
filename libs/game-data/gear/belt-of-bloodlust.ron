@@ -1,0 +1,14 @@
+(
+    key: "belt-of-bloodlust",
+    blueprint: "c63859f821f7b414492580b638b009fb",
+    name: "Belt of Bloodlust",
+    slot: Belt,
+    guide: "items#belts",
+    bonuses: [
+        (target: Ability(Strength), amount: 4, kind: Enhancement),
+        (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+    ],
+    other_effects: [
+        "Killing an enemy: +5 morale on the next attack.",
+    ],
+)

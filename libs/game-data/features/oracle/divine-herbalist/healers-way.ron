@@ -1,0 +1,1 @@
+(key: "oracle/divine-herbalist/healers-way", blueprint: "cdaceaeb927fe69419aa04646b872f08", name: "Healer\'s Way", summary: "Heal 1d6 per two class levels, 1 + Charisma modifier times a day; standard action on others, swift on yourself.", guide: "oracle#healers-way")

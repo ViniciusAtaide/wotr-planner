@@ -1,0 +1,18 @@
+(
+    key: "rogue/rowdy",
+    class: "rogue",
+    blueprint: "4dbc4b7f2d5149ce83854bffa72035ce",
+    name: "Rowdy",
+    summary: "Rogue with martial weapons and the Vital Strike feats, losing Finesse Training and Evasion.",
+    guide: "rogue#rowdy",
+    skill_points: 3,
+    class_skills: ["athletics", "mobility", "perception", "persuasion", "trickery"],
+    levels: [
+        (level: 1, features: ["rogue/rogue-proficiencies", "rogue/rowdy/vital-force", "sneak-attack", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency", "vital-strike"]),
+        (level: 2, selections: ["rogue/rogue-talents"]),
+        (level: 3, features: ["rogue/danger-sense", "sneak-attack"]),
+        (level: 6, features: ["rogue/danger-sense"], feats: ["improved-vital-strike"], selections: ["rogue/rogue-talents"]),
+        (level: 11, features: ["sneak-attack"], feats: ["greater-vital-strike"]),
+        (level: 19, features: ["sneak-attack"]),
+    ],
+)

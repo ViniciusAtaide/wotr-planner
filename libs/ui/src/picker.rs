@@ -1138,7 +1138,9 @@ fn RacePicker() -> impl IntoView {
                     .find(|race| race.key == option.value.race)?;
                 let (name, summary) = match &option.value.subrace {
                     Some(key) => {
-                        let subrace = race.subraces.iter().find(|subrace| &subrace.key == key)?;
+                        let (_, subrace) = engine
+                            .subrace(key)
+                            .filter(|(owner, _)| owner.key == race.key)?;
                         (subrace.name.clone(), subrace.summary.clone())
                     }
                     None => (race.name.clone(), race.summary.clone()),

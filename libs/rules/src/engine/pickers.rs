@@ -362,7 +362,7 @@ impl Engine {
             let archetypes: Vec<Option<&Archetype>> = match taken {
                 Some(taken) => vec![self.catalog.archetype_of(class, taken.archetype.as_ref())],
                 None => std::iter::once(None)
-                    .chain(class.archetypes.iter().map(Some))
+                    .chain(self.catalog.archetypes_of(&class.key).map(Some))
                     .collect(),
             };
             for archetype in archetypes {

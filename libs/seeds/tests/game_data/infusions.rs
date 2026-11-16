@@ -264,20 +264,13 @@ fn open_infusions(build: &Build, level: u8) -> BTreeSet<String> {
 /// feature are `the_kineticist_picks_an_infusion_at_1_and_at_each_later_infusion_level`'s, which waits on the data.
 #[test]
 fn infusions_are_a_selection_of_32_with_their_level_and_elements() {
-    let kineticist = class("kineticist");
-    let selection = kineticist
-        .selections
-        .iter()
-        .find(|selection| selection.key.as_str() == INFUSIONS_SELECTION)
+    let selection = DATA
+        .selection(&rules::FeatureSelectionKey::new(INFUSIONS_SELECTION))
         .expect("the infusion selection");
     // Game: InfusionSelection 58d6f8e9eea63f6418b107ce64f315ea: its 32 options (Honed Infusion is
     // ArmorPiercingInfusion, Rending Arrows ClusterArrowsInfusion).
     assert_eq!(selection.name, "Infusion");
-    let keys: BTreeSet<String> = selection
-        .options
-        .iter()
-        .map(|o| o.key.to_string())
-        .collect();
+    let keys: BTreeSet<String> = selection.options.iter().map(|o| o.to_string()).collect();
     let expected: BTreeSet<String> = INFUSIONS.iter().map(|(name, ..)| infusion(name)).collect();
     assert_eq!(keys, expected);
     // Game: each row's blueprint, cited beside it in INFUSIONS (the rows of LEVEL_DIFFERS and BLASTS wait on the data).
@@ -303,10 +296,8 @@ fn infusions_are_a_selection_of_32_with_their_level_and_elements() {
     // The Sharpshooter's "Infusion (Kinetic Sharpshooter)" was its pick; it's gone.
     // Game: KineticSharpshooterArchetype e0684d0a6ef44cae9d095f5318618a85 removes the level-1 InfusionSelection and
     // adds none.
-    assert!(kineticist.archetypes.iter().all(|a| {
-        a.features.iter().all(|f| {
-            f.key.as_str() != "kineticist/kinetic-sharpshooter/infusion-kinetic-sharpshooter"
-        })
+    assert!(DATA.features.iter().all(|f| {
+        f.key.as_str() != "kineticist/kinetic-sharpshooter/infusion-kinetic-sharpshooter"
     }));
     // Game: InfusionSelection 58d6f8e9eea63f6418b107ce64f315ea is held by the kineticist's progression and archetypes
     // alone (InfusionProgression 908286aeefa6be54e8c39e144cb87fdd is named by nothing).
@@ -344,9 +335,7 @@ fn the_kineticist_picks_an_infusion_at_1_and_at_each_later_infusion_level() {
             .all(|row| !row.features.contains(&feature))
     );
     assert!(
-        table
-            .archetypes
-            .iter()
+        DATA.archetypes_of(&table.key)
             .flat_map(|a| &a.levels)
             .all(|row| !row.features.contains(&feature))
     );
@@ -657,7 +646,7 @@ fn the_kineticist_archetypes_without_the_level_1_infusion_pick_infusions_at_thei
         );
     }
     // Game: KineticistClass 42a455d9ec1ad924d889272429eb8391 lists 7 archetypes.
-    assert_eq!(class("kineticist").archetypes.len(), 7);
+    assert_eq!(DATA.archetypes_of(&class("kineticist").key).count(), 7);
 }
 
 /// The game's base kineticist, Dark Elementalist, Elemental Engine, Overwhelming Soul and Psychokineticist pick an

@@ -1,0 +1,1 @@
+(key: "two-weapon-fighting", blueprint: "ac8aaf29054f5b74eb18f2af950e752d", name: "Two-Weapon Fighting", summary: "Two-weapon penalties drop to -4/-4, or -2/-2 with a light off-hand weapon.", category: Weapon, guide: "feats#two-weapon-fighting", prerequisite: AbilityScore(ability: Dexterity, score: 15))

@@ -1,0 +1,14 @@
+(
+    key: "animal-growth",
+    blueprint: "56923211d2ac95e43b8ac5031bab74d8",
+    name: "Animal Growth",
+    school: Transmutation,
+    guide: "wizard-spells#animal-growth-transmutation",
+    summary: "The target doubles in size, one size up: +8 Strength, +4 Constitution, +2 natural armour and -2 Dexterity.",
+    target: "One friendly creature within medium range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

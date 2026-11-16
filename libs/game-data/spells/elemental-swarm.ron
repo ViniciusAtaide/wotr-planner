@@ -1,0 +1,14 @@
+(
+    key: "elemental-swarm",
+    blueprint: "0340fe43f35e7a448981b646c638c83d",
+    name: "Elemental Swarm",
+    school: Conjuration,
+    guide: "druid-spells#elemental-swarm-conjuration",
+    summary: "Summons 2d4 large elementals, then 1d4 huge elementals five rounds later and a greater elemental five rounds after that.",
+    target: "Target point within medium range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

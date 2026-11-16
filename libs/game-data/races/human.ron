@@ -1,0 +1,10 @@
+(
+    key: "human",
+    blueprint: "0a5d473ead98b0646b94495af250fdc4",
+    name: "Human",
+    summary: "An extra feat at 1st level and one extra skill point every level.",
+    guide: "character-creation#human",
+    ability_modifiers: [Chosen(amount: 2)],
+    feat_slots: [General],
+    skill_points: 1,
+)

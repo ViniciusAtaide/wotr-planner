@@ -1,0 +1,14 @@
+(
+    key: "undeath-to-death",
+    blueprint: "a9a52760290591844a96d0109e30e04d",
+    name: "Undeath to Death",
+    school: Necromancy,
+    guide: "wizard-spells#undeath-to-death-necromancy",
+    summary: "Strikes 1d4 HD of undead for each caster level: on a failed save, those under 9 HD are destroyed and those of 9 HD or more take 100 damage.",
+    components: "Diamond dust x10",
+    target: "Target point within medium range, 40' burst",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

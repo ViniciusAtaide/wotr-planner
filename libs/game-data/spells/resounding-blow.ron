@@ -1,0 +1,14 @@
+(
+    key: "resounding-blow",
+    blueprint: "9047cb1797639924487ec0ad566a3fea",
+    name: "Resounding Blow",
+    school: Evocation,
+    guide: "inquisitor#resounding-blow-evocation",
+    summary: "Your weapon deals +1d6 sonic; with Judgment or Smite Evil, foes hit are staggered 1 round, and a crit stuns 1 round and blinds 1d6 rounds (Fortitude negates).",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [Sonic],
+    casting_time: Standard,
+)

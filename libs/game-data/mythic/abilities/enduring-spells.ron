@@ -1,0 +1,1 @@
+(key: "enduring-spells", blueprint: "2f206e6d292bdfb4d981e99dcf08153f", name: "Enduring Spells", summary: "Any spell with a duration over 1 hour and under 24 hours now lasts a full day.", group: Magic, guide: "mythic-paths#enduring-spells")

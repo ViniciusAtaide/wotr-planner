@@ -1,0 +1,4 @@
+(
+    why: "The element focus grants the defensive wild talent in the game, one blueprint per element.",
+    entry: (key: "kineticist/kinetic-knight/defensive-wild-talent", name: "Defensive Wild Talent", summary: "At 4th level, unlocks the Defensive Wild Talent of their Elemental Focus.", guide: "kineticist#kinetic-knight", option_row: (selection: "kineticist/kinetic-knight/element", level: 2)),
+)

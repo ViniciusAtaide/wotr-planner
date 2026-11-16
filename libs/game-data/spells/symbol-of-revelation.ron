@@ -1,0 +1,15 @@
+(
+    key: "symbol-of-revelation",
+    blueprint: "48a555180a109e545a6e367b1bd3f535",
+    name: "Symbol of Revelation",
+    school: Divination,
+    guide: "wizard-spells#symbol-of-revelation-divination",
+    summary: "A symbol outlines with Faerie Fire any invisible, illusion-affected or shapechanging creature that triggers it, then stays active 10 minutes per caster level.",
+    components: "Diamond dust x 20",
+    target: "Target point within long range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

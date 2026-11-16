@@ -1,0 +1,19 @@
+(
+    key: "fighter/aldori-defender",
+    class: "fighter",
+    blueprint: "d80a67a264f206e4b8d2fcf7e560d48f",
+    name: "Aldori Defender",
+    summary: "Dexterity fighter who defends with the Aldori dueling sword, with fewer bonus feats and no Armor Training.",
+    guide: "fighter#aldori-defender",
+    levels: [
+        (level: 1, features: ["fighter/aldori-defender/weapon-proficiency-dueling-sword"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "tower-shield-proficiency"], feat_slots: [CombatFeat]),
+        (level: 3, features: ["fighter/aldori-defender/defensive-parry"]),
+        (level: 6, features: ["fighter/aldori-defender/disarming-strike", "fighter/bravery"]),
+        (level: 7, features: ["fighter/aldori-defender/defensive-parry"]),
+        (level: 8, features: ["fighter/aldori-defender/steel-net"]),
+        (level: 10, features: ["fighter/aldori-defender/counterattack", "fighter/bravery"]),
+        (level: 11, features: ["fighter/aldori-defender/defensive-parry"]),
+        (level: 15, features: ["fighter/aldori-defender/defensive-parry"]),
+        (level: 19, features: ["fighter/armor-mastery", "fighter/aldori-defender/defensive-parry"]),
+    ],
+)

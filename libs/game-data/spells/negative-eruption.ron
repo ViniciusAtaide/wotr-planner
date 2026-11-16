@@ -1,0 +1,13 @@
+(
+    key: "negative-eruption",
+    blueprint: "5c377ad96e3fc4f4d9b74eba9d38f4f8",
+    name: "Negative Eruption",
+    school: Necromancy,
+    guide: "lich#negative-eruption-necromancy",
+    summary: "An area Harm; undead in it gain +2 to attack, damage and Will saves, plus temporary HP of double your caster level.",
+    target: "All creatures with a 30' burst centred on target point within medium range",
+    saving_throw: "Will half",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "kineticist/wild-talents/expanded-defense/defense", blueprint: "d741f298dfae8fc40b4615aaf83b6548", name: "Expanded Defense", summary: "Unlocks the Defensive Wild Talent of an element gained through Expanded Element.", guide: "kineticist#expanded-defense", option_row: (selection: "kineticist/expanded-element", level: 2))

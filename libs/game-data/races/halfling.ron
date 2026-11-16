@@ -1,0 +1,8 @@
+(
+    key: "halfling",
+    blueprint: "b0c3ef2729c498f47970bb50fa1acd30",
+    name: "Halfling",
+    summary: "+1 to all saves and another +2 vs fear; +2 Athletics, Mobility and Perception; speed 20 ft.",
+    guide: "character-creation#halfling",
+    ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Dexterity, amount: 2), Fixed(ability: Charisma, amount: 2)],
+)

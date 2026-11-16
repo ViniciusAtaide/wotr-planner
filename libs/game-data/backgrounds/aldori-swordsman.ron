@@ -1,0 +1,1 @@
+(key: "aldori-swordsman", blueprint: "ce0ea6b388ac467408d6da224fab403d", name: "Aldori Swordsman", group: Regional, note: "Proficient with buckler.", class_skills: ["persuasion"], feats_for: [(feat: "exotic-weapon-proficiency", value: Weapon("dueling-sword"))])

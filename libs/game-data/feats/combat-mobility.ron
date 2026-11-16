@@ -1,0 +1,1 @@
+(key: "combat-mobility", blueprint: "2a6091b97ad940943b46262600eaeaeb", name: "Combat Mobility", summary: "Moving through or out of threatened squares: +4 dodge AC against the attacks of opportunity, unless you're denied Dex.", category: Miscellaneous, guide: "feats#combat-mobility", prerequisite: Feat("dodge"))

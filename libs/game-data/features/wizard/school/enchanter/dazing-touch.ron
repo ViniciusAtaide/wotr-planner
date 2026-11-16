@@ -1,0 +1,1 @@
+(key: "wizard/school/enchanter/dazing-touch", blueprint: "9e4c4799735ae9c45964e9113107ef02", name: "Dazing Touch", summary: "Standard action, 3 + Int times a day: a melee touch dazes a living creature.", guide: "wizard#dazing-touch")

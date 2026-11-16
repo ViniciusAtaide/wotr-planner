@@ -1,0 +1,14 @@
+(
+    key: "foxs-cunning-mass",
+    blueprint: "2b24159ad9907a8499c2313ba9c0f615",
+    name: "Fox's Cunning, Mass",
+    school: Transmutation,
+    guide: "wizard-spells#foxs-cunning-mass-transmutation",
+    summary: "Allies in the burst gain +4 enhancement to Intelligence.",
+    target: "All allies within 30' burst, centred on target creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

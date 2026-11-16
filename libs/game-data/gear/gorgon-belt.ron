@@ -1,0 +1,16 @@
+(
+    key: "gorgon-belt",
+    blueprint: "a2206ab9a731411dbe5055ab48175a22",
+    name: "Gorgon Belt",
+    slot: Belt,
+    guide: "items#belts",
+    bonuses: [
+        (target: Ability(Strength), amount: 4, kind: Enhancement),
+    ],
+    always_on: [
+        "Ignores difficult terrain",
+    ],
+    other_effects: [
+        "Once a day: breathes a 50-foot cone that paralyses foes for 1d4 rounds (save DC 18 + Con mod).",
+    ],
+)

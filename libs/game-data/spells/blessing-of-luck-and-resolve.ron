@@ -1,0 +1,14 @@
+(
+    key: "blessing-of-luck-and-resolve",
+    blueprint: "9a7e3cd1323dfe347a6dcce357844769",
+    name: "Blessing of Luck and Resolve",
+    school: Enchantment,
+    guide: "cleric-spells#blessing-of-luck-and-resolve-enchantment",
+    summary: "The target gains a +2 morale bonus on saves against fear; after a failed save it may end the spell to reroll that save with +4.",
+    target: "One friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

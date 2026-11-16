@@ -1,0 +1,14 @@
+(
+    key: "resist-energy-communal",
+    blueprint: "7bb0c402f7f789d4d9fae8ca87b4c7e2",
+    name: "Resist Energy, Communal",
+    school: Abjuration,
+    guide: "wizard-spells#resist-energy-communal-abjuration",
+    summary: "Allies within 25 ft gain resistance 10 to one chosen energy type, 20 from 7th level and 30 from 11th.",
+    target: "All allies within 25'",
+    duration: "10 minutes",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

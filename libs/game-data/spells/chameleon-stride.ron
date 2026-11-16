@@ -1,0 +1,14 @@
+(
+    key: "chameleon-stride",
+    blueprint: "27bf851c585817c4fbd079c970a162fa",
+    name: "Chameleon Stride",
+    school: Illusion,
+    guide: "ranger#chameleon-stride-illusion",
+    summary: "You gain +4 on Stealth checks and concealment (20% miss chance).",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

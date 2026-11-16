@@ -1,0 +1,1 @@
+(key: "dirty-trick-mythic", blueprint: "06816910f76f55c4fbad0d19a0c37bcc", name: "Dirty Trick (Mythic)", summary: "+MR/2 to CMB and CMD for dirty tricks, and an attack of opportunity on anyone who tries one on you.", group: CombatManoeuvre, guide: "mythic-paths#dirty-trick-mythic", prerequisite: Feat("dirty-trick"))

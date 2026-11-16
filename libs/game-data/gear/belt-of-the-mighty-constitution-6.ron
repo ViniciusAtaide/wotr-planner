@@ -1,0 +1,9 @@
+(
+    key: "belt-of-the-mighty-constitution-6",
+    blueprint: "f2c5555b4cce199488f9e6d3796a661f",
+    name: "Belt of the Mighty Constitution +6",
+    slot: Belt,
+    bonuses: [
+        (target: Ability(Constitution), amount: 6, kind: Enhancement),
+    ],
+)

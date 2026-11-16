@@ -1,0 +1,6 @@
+(
+    key: "fighter/armiger/order",
+    name: "Order",
+    guide: "fighter#order",
+    options: ["fighter/armiger/order/order-of-the-cockatrice", "fighter/armiger/order/order-of-the-dragon"],
+)

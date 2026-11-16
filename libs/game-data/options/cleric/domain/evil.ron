@@ -1,0 +1,12 @@
+(
+    key: "cleric/domain/evil",
+    blueprint: "a8936d29b6051a1418682da1878b644e",
+    name: "Evil Domain",
+    summary: "Touch of Evil sickens; Unholy weapons from 8th level; spells from Ray of Sickening to Summon Monster IX.",
+    guide: "character-creation#evil-domain",
+    prerequisite: All([Any([Not(PickedThrough("cleric/separatist/domain")), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("cleric/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("inquisitor/sacred-huntsmaster/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]), Any([Not(PickedThrough("hunter/divine-hunter/domain")), Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)])]),
+    levels: [
+        (level: 1, features: ["cleric/domain/evil/touch-of-evil"]),
+        (level: 8, features: ["cleric/domain/evil/scythe-of-evil"]),
+    ],
+)

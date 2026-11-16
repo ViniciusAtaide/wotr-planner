@@ -1,0 +1,13 @@
+(
+    key: "restoration-lesser",
+    blueprint: "e84fc922ccf952943b5240293669b171",
+    name: "Restoration, Lesser",
+    school: Conjuration,
+    guide: "cleric-spells#restoration-lesser-conjuration",
+    summary: "Dispels a magical effect lowering one of the target's ability scores or heals 1d4 temporary ability damage, and removes fatigue.",
+    target: "One friendly creature within close range",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: FullRound,
+)

@@ -1,0 +1,1 @@
+(key: "shaman/hex/wind-ward", blueprint: "2a7f7b35e1a0fb44ba7f01e28fa7a535", name: "Wind Ward", summary: "Wind: 20% miss chance on ranged attacks against the warded ally for class level rounds; 1 minute per level at 8th, 50% at 16th.", guide: "shaman#wind-ward", prerequisite: SelectionOption("shaman/spirit/wind"))

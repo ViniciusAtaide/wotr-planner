@@ -1,0 +1,14 @@
+(
+    key: "spit-venom",
+    blueprint: "9779c8578acd919419f563c33d7b2af5",
+    name: "Spit Venom",
+    school: Transmutation,
+    guide: "cleric-spells#spit-venom-transmutation",
+    summary: "A ranged touch hit blinds the target for 1 round, and unless it saves it takes 1d2 Constitution damage each round until it does (black adder venom).",
+    target: "One enemy creature within close range",
+    duration: "6 rounds",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [Poison],
+    casting_time: Standard,
+)

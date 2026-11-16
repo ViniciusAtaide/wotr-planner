@@ -1,0 +1,11 @@
+(
+    key: "wizard/school/illusionist",
+    blueprint: "24d5402c0c1de48468b563f6174c6256",
+    name: "Illusionist",
+    summary: "Illusion specialist: Blinding Ray and Invisibility Field.",
+    guide: "wizard#illusionist",
+    levels: [
+        (level: 1, features: ["wizard/school/illusionist/blinding-ray"]),
+        (level: 8, features: ["wizard/school/illusionist/invisibility-field"]),
+    ],
+)

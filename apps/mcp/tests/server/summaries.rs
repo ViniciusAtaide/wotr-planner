@@ -33,7 +33,12 @@ fn summarised_world() -> GameData {
         .find(|class| class.key.as_str() == "fighter")
         .expect("fighter");
     set(&mut fighter.summary, FIGHTER);
-    set(&mut fighter.archetypes[0].summary, ARMIGER);
+    let armiger = data
+        .archetypes
+        .iter_mut()
+        .find(|archetype| archetype.key.as_str() == "fighter/armiger")
+        .expect("armiger");
+    set(&mut armiger.summary, ARMIGER);
     let human = data
         .races
         .iter_mut()
@@ -46,24 +51,24 @@ fn summarised_world() -> GameData {
         .find(|path| path.key.as_str() == "aeon")
         .expect("aeon");
     set(&mut aeon.summary, AEON);
-    let rogue = data
-        .classes
-        .iter_mut()
-        .find(|class| class.key.as_str() == "rogue")
-        .expect("rogue");
-    let sneak_attack = rogue
+    let sneak_attack = data
         .features
         .iter_mut()
         .find(|feature| feature.key.as_str() == "rogue/sneak-attack")
         .expect("sneak attack");
     set(&mut sneak_attack.summary, SNEAK_ATTACK);
-    let fast_stealth = rogue.selections[0]
+    let fast_stealth = data
         .options
         .iter_mut()
         .find(|option| option.key.as_str() == "rogue/rogue-talents/fast-stealth")
         .expect("fast stealth");
     set(&mut fast_stealth.summary, FAST_STEALTH);
-    set(&mut rogue.selections[0].summary, ROGUE_TALENTS);
+    let talents = data
+        .selections
+        .iter_mut()
+        .find(|selection| selection.key.as_str() == "rogue/rogue-talents")
+        .expect("rogue talents");
+    set(&mut talents.summary, ROGUE_TALENTS);
     data
 }
 

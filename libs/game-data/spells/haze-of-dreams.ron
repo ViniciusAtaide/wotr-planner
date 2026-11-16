@@ -1,0 +1,14 @@
+(
+    key: "haze-of-dreams",
+    blueprint: "40ec382849b60504d88946df46a10f2d",
+    name: "Haze of Dreams",
+    school: Enchantment,
+    guide: "cleric-spells#haze-of-dreams-enchantment",
+    summary: "A target that fails its save is slowed to half its speed.",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Emotion, Charmed],
+    casting_time: Standard,
+)

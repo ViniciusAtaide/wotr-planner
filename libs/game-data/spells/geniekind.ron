@@ -1,0 +1,14 @@
+(
+    key: "geniekind",
+    blueprint: "07b608fab304f894880898dc0764e6e5",
+    name: "Geniekind",
+    school: Transmutation,
+    guide: "wizard-spells#geniekind-transmutation",
+    summary: "You become a genie: +4 natural armour, +2 Constitution, +2 on saves vs paralysis, poison, sleep and stun, and its element's +1d6 on melee hits and resist 10.",
+    target: "Personal",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

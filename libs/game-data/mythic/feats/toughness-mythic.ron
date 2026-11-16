@@ -1,0 +1,1 @@
+(key: "toughness-mythic", blueprint: "d8df8f8ad7149824e8e60dd3453557d2", name: "Toughness (Mythic)", summary: "Toughness gives twice the hit points, and you gain DR 10/epic while below 0 HP.", group: Miscellaneous, guide: "mythic-paths#toughness-mythic", prerequisite: Feat("toughness"))

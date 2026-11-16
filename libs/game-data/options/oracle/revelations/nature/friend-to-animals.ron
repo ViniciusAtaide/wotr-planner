@@ -1,0 +1,1 @@
+(key: "oracle/revelations/nature/friend-to-animals", blueprint: "9a56368c28795544fbeb43fe70e1a40d", name: "Friend to Animals", summary: "Adds Summon Nature's Ally spells to your spells known; animals within 30 feet add your Charisma modifier to saves.", guide: "oracle#friend-to-animals", prerequisite: SelectionOption("oracle/mystery/nature"))

@@ -1,0 +1,14 @@
+(
+    key: "deadly-beauty",
+    blueprint: "bf3b19ed9c919464aa2a741271718542",
+    name: "Deadly Beauty",
+    school: Transmutation,
+    guide: "azata#deadly-beauty-transmutation",
+    summary: "You gain DR 5/adamantine, and creatures hitting you in melee take 1d6 + your caster level piercing damage.",
+    target: "Personal",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

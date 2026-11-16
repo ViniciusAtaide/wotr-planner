@@ -132,10 +132,8 @@ fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
             "{name}"
         );
     }
-    let selection = class("barbarian")
-        .selections
-        .iter()
-        .find(|selection| selection.key.as_str() == RAGE_POWER)
+    let selection = DATA
+        .selection(&rules::FeatureSelectionKey::new(RAGE_POWER))
         .expect("the rage power selection");
     // Game: RagePowerSelection 28710502f46848d48b3f0d6132817c4e (33) and InstinctualWarriorRagePowerSelection
     // 609f0e5336084442a0dafa3abd4d31c5 (the same 33 and the five) (equivalent model: one list, the five gated by the

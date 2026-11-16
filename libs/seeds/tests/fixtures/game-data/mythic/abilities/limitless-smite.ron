@@ -1,0 +1,7 @@
+(
+    key: "limitless-smite",
+    name: "Limitless Smite",
+    group: Class,
+    guide: "mythic-paths#limitless-smite",
+    prerequisite: ClassLevel(class: "fighter", level: 1),
+)

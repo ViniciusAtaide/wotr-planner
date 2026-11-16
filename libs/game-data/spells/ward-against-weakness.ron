@@ -1,0 +1,14 @@
+(
+    key: "ward-against-weakness",
+    blueprint: "b66eee357e8404d49b7d8ad58cbb7f15",
+    name: "Ward Against Weakness",
+    school: Abjuration,
+    guide: "angel#ward-against-weakness-abjuration",
+    summary: "Makes the target immune to disease, poison, ability damage and drain, fatigued, exhausted, sickened and nauseated.",
+    target: "One friendly creature within touch range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

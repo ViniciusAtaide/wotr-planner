@@ -1,0 +1,13 @@
+(
+    key: "touch-of-slime",
+    blueprint: "84ccca10da2a4484c89a837fbea2a829",
+    name: "Touch of Slime",
+    school: Conjuration,
+    guide: "wizard-spells#touch-of-slime-conjuration",
+    summary: "On a melee touch hit, green slime deals 1d3 Constitution damage each round until Remove Disease is cast.",
+    target: "One enemy creature within touch range",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Disease],
+    casting_time: Standard,
+)

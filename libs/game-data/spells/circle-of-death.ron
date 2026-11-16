@@ -1,0 +1,14 @@
+(
+    key: "circle-of-death",
+    blueprint: "a89dcbbab8f40e44e920cc60636097cf",
+    name: "Circle of Death",
+    school: Necromancy,
+    guide: "wizard-spells#circle-of-death-necromancy",
+    summary: "Affects 1d4 HD of living creatures for each caster level: on a failed save, those under 9 HD die and those of 9 HD or more take 100 damage.",
+    components: "Diamond dust x10",
+    target: "Target point within medium range, 40' burst",
+    saving_throw: "Fortitude negates",
+    spell_resistance: true,
+    descriptors: [Death],
+    casting_time: Standard,
+)

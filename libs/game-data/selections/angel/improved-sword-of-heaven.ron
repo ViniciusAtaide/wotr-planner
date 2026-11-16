@@ -1,0 +1,17 @@
+(
+    key: "angel/improved-sword-of-heaven",
+    blueprint: "c4a7679515ae2374eb634dd8087faf47",
+    name: "Improved Sword of Heaven",
+    summary: "At ranks 4 and 6, add one improvement to Sword of Heaven.",
+    guide: "angel#improved-sword-of-heaven",
+    options: [
+        "angel/improved-sword-of-heaven/abolish-disease",
+        "angel/improved-sword-of-heaven/abolish-guile",
+        "angel/improved-sword-of-heaven/abolish-poison",
+        "angel/improved-sword-of-heaven/abolish-undeath",
+        "angel/improved-sword-of-heaven/bestow-the-divine",
+        "angel/improved-sword-of-heaven/everlasting-flame",
+        "angel/improved-sword-of-heaven/grand-blessing",
+        "angel/improved-sword-of-heaven/guide-the-faithful",
+    ],
+)

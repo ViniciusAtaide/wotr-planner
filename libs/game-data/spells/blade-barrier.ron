@@ -1,0 +1,14 @@
+(
+    key: "blade-barrier",
+    blueprint: "36c8971e91f1745418cc3ffdfac17b74",
+    name: "Blade Barrier",
+    school: Evocation,
+    guide: "cleric-spells#blade-barrier-evocation",
+    summary: "An immobile barrier deals 1d6 per caster level (max 15d6) to any creature that passes through it, halved on a Reflex save.",
+    target: "All creatures within 60' of target point within medium range",
+    duration: "1 minute / level",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Force],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "clustered-shots", blueprint: "f7de245bb20f12f47864c7cb8b1d1abb", name: "Clustered Shots", summary: "Damage reduction applies once to the combined damage of your ranged hits on one foe each round, not to each hit.", category: Ranged, guide: "feats#clustered-shots", prerequisite: All([Feat("point-blank-shot"), Feat("precise-shot"), BaseAttackBonus(6)]))

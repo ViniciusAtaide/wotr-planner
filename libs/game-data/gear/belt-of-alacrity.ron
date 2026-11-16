@@ -1,0 +1,11 @@
+(
+    key: "belt-of-alacrity",
+    blueprint: "4b0b9b95225d6034f84b75a6ad1e76c7",
+    name: "Belt of Alacrity",
+    slot: Belt,
+    guide: "items-lord-of-nothing#belts",
+    bonuses: [
+        (target: Ability(Dexterity), amount: 4, kind: Enhancement),
+        (target: Save(Reflex), amount: 4, kind: Competence),
+    ],
+)

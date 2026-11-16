@@ -592,14 +592,12 @@ fn beneficial_curse_gives_a_slot_of_the_oracles_curses() {
             .collect(),
         other => panic!("{other:?}"),
     };
-    let curses: BTreeSet<String> = class("oracle")
-        .selections
-        .iter()
-        .find(|selection| selection.key.as_str() == CURSES)
+    let curses: BTreeSet<String> = DATA
+        .selection(&rules::FeatureSelectionKey::new(CURSES))
         .unwrap()
         .options
         .iter()
-        .map(|option| option.key.to_string())
+        .map(|option| option.to_string())
         .collect();
     assert_eq!(held, curses);
     assert_eq!(curses.len(), 9);

@@ -1,0 +1,14 @@
+(
+    key: "icy-prison-mass",
+    blueprint: "1852a9393a23d5741b650a1ea7078abc",
+    name: "Icy Prison, Mass",
+    school: Evocation,
+    guide: "wizard-spells#icy-prison-mass-evocation",
+    summary: "Enemies are frozen in ice: paralysed, or entangled on a Reflex save; they take 1 cold damage per caster level each round until a Fortitude save frees them.",
+    target: "All enemies with 30' of target creature within medium range",
+    duration: "1 minute / level",
+    saving_throw: "Special",
+    spell_resistance: true,
+    descriptors: [Cold],
+    casting_time: Standard,
+)

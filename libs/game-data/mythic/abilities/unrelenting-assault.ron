@@ -1,0 +1,1 @@
+(key: "unrelenting-assault", blueprint: "b0db6bc8548257a40b055c37d7cbc3e0", name: "Unrelenting Assault", summary: "Each turn you make a melee attack, gain a stacking +2 melee damage (up to +10) for the rest of combat.", group: Melee, guide: "mythic-paths#unrelenting-assault")

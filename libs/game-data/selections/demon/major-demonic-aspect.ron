@@ -1,0 +1,15 @@
+(
+    key: "demon/major-demonic-aspect",
+    blueprint: "5eba1d83a078bdd49a0adc79279e1ffe",
+    name: "Major Demonic Aspect",
+    summary: "From rank 5, while raging you can take on the aspect of a major demon.",
+    guide: "demon#major-demonic-aspect",
+    options: [
+        "demon/major-demonic-aspect/aspect-of-balor",
+        "demon/major-demonic-aspect/aspect-of-coloxus",
+        "demon/major-demonic-aspect/aspect-of-omox",
+        "demon/major-demonic-aspect/aspect-of-shadow-demon",
+        "demon/major-demonic-aspect/aspect-of-vavakia",
+        "demon/major-demonic-aspect/aspect-of-vrolikai",
+    ],
+)

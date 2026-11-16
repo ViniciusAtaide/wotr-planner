@@ -1,0 +1,13 @@
+(
+    key: "arrow-of-law",
+    blueprint: "dd2a5a6e76611c04e9eac6254fcf8c6b",
+    name: "Arrow of Law",
+    school: Evocation,
+    guide: "cleric-spells#arrow-of-law-evocation",
+    summary: "Chaotic targets take 1d8 per two caster levels (max 5d8); chaotic outsiders 1d6 per level (max 10d6) and dazed 1 round; neutral half, lawful none.",
+    target: "One enemy creature within close range",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [Law],
+    casting_time: Standard,
+)

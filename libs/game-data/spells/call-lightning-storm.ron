@@ -1,0 +1,14 @@
+(
+    key: "call-lightning-storm",
+    blueprint: "d5a36a7ee8177be4f848b953d1c53c84",
+    name: "Call Lightning Storm",
+    school: Evocation,
+    guide: "druid-spells#call-lightning-storm-evocation",
+    summary: "Each round you can call a 5d6 electricity bolt on a creature (later bolts take a standard action); each bolt uses up one minute of the duration.",
+    target: "One creature within long range",
+    duration: "1 minute / level",
+    saving_throw: "Reflex half",
+    spell_resistance: true,
+    descriptors: [Electricity],
+    casting_time: FullRound,
+)

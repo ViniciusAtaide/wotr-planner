@@ -1,0 +1,13 @@
+(
+    key: "blazing-crown",
+    blueprint: "c4ebdd7c0465d0441baa785d8ef9cb76",
+    name: "Blazing Crown",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Charisma), amount: 4, kind: Enhancement),
+    ],
+    other_effects: [
+        "Spell damage to a foe: gain 10 temporary hit points, lasting 3 rounds.",
+    ],
+)

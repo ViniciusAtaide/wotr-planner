@@ -1,0 +1,1 @@
+(key: "improved-snap-shot", blueprint: "c3453e7e215c1f149b938be27ac754c6", name: "Improved Snap Shot", summary: "Snap Shot reaches 5 ft further.", category: Ranged, guide: "feats#improved-snap-shot", prerequisite: All([Feat("rapid-shot"), Feat("snap-shot"), BaseAttackBonus(9)]))

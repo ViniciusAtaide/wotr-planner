@@ -1,0 +1,12 @@
+(
+    key: "bloodrager/primalist/primal-choices",
+    blueprint: "e6228dd80521e1149abc6257a8279b75",
+    name: "Primal Choices",
+    summary: "At 4th level and every four levels after, take either your bloodline's ability or two rage powers.",
+    guide: "bloodrager#primal-choices",
+    option_levels: ["bloodrager"],
+    options: [
+        "bloodrager/primalist/primal-choices/bloodline-ability",
+        "bloodrager/primalist/primal-choices/rage-powers",
+    ],
+)

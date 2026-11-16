@@ -1,0 +1,13 @@
+(
+    key: "crushing-presence",
+    blueprint: "835d2e861aef0dd4fb21df9700074edc",
+    name: "Crushing Presence",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Charisma), amount: 6, kind: Enhancement),
+    ],
+    other_effects: [
+        "3 times a day: pushes enemies within 15 feet back 10 feet and deals bludgeoning damage (1d8 + caster level).",
+    ],
+)

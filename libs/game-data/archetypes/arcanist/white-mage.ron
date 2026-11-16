@@ -1,0 +1,13 @@
+(
+    key: "arcanist/white-mage",
+    class: "arcanist",
+    blueprint: "5f2fa2e0d1cf1ca428af7e24c443d868",
+    name: "White Mage",
+    summary: "Arcanist who can cast healing spells spontaneously.",
+    guide: "arcanist#white-mage",
+    levels: [
+        (level: 1, features: ["arcane-reservoir", "arcanist/consume-spells", "arcanist-cantrips", "arcanist/white-mage/spontaneous-healing"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/arcanist-exploits"]),
+        (level: 9),
+        (level: 10, features: ["arcanist/white-mage/spontaneous-healing-ii"]),
+    ],
+)

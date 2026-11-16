@@ -1,0 +1,7 @@
+(
+    key: "arcane-strike",
+    name: "Arcane Strike",
+    category: Magic,
+    guide: "feats#arcane-strike",
+    prerequisite: SpellLevel(spell_type: Arcane, level: 1),
+)

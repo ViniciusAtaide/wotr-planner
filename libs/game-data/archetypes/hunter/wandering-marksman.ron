@@ -1,0 +1,16 @@
+(
+    key: "hunter/wandering-marksman",
+    class: "hunter",
+    blueprint: "0be343c549776574286730b33ae5c676",
+    name: "Wandering Marksman",
+    summary: "You shoot the foes your companion distracts, losing teamwork feats.",
+    guide: "hunter#wandering-marksman",
+    levels: [
+        (level: 3, features: ["hunter/wandering-marksman/planned-distraction"]),
+        (level: 6, features: ["hunter/wandering-marksman/self-reliance"]),
+        (level: 9, features: ["hunter/wandering-marksman/emergency-swap"]),
+        (level: 12, features: ["hunter/wandering-marksman/planned-distraction"]),
+        (level: 15, features: ["hunter/wandering-marksman/imminent-attack"]),
+        (level: 18, features: ["hunter/wandering-marksman/planned-distraction"]),
+    ],
+)

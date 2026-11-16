@@ -1,0 +1,1 @@
+(key: "exhausting-critical", blueprint: "7c492212d25d8f04fbd43eb99d780b1e", name: "Exhausting Critical", summary: "Your critical hits leave the target exhausted.", category: Weapon, guide: "feats#exhausting-critical", prerequisite: All([Feat("critical-focus"), Feat("tiring-critical"), BaseAttackBonus(15)]))

@@ -1,0 +1,9 @@
+(
+    // Same skill points as the cleric, and no class skills at all.
+    key: "cleric/herald",
+    class: "cleric",
+    name: "Herald",
+    guide: "cleric#herald",
+    casting_ability: Charisma,
+    class_skills: [],
+)

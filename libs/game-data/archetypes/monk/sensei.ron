@@ -1,0 +1,18 @@
+(
+    key: "monk/sensei",
+    class: "monk",
+    blueprint: "f8767821ec805bf479706392fcc3394c",
+    name: "Sensei",
+    summary: "Teaching monk who trades Fast Movement and Flurry of Blows for bard-like Advice performances.",
+    guide: "monk#sensei",
+    class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth"],
+    levels: [
+        (level: 1, features: ["monk/ac-bonus", "monk/monk-proficiencies", "monk/sensei/advice", "monk/sensei/inspire-courage", "monk/stunning-fist", "monk/unarmed-strike"], feats: ["improved-unarmed-strike"], feat_slots: [OneOf(list: "monk/bonus-feats-1")]),
+        (level: 2, features: ["monk/sensei/insightful-strike"]),
+        (level: 3, features: ["monk/ki-pool", "monk/ki-strike-magic", "monk/sensei/inspire-competence"]),
+        (level: 6, features: ["monk/sensei/mystic-powers"], selections: ["monk/ki-power"]),
+        (level: 9, features: ["monk/sensei/inspire-greatness", "monk/style-strike"]),
+        (level: 10, features: ["monk/ki-strike-lawful", "monk/sensei/mystic-powers", "monk/sensei/mystic-wisdom"], selections: ["monk/ki-power"]),
+        (level: 14, features: ["monk/sensei/mystic-wisdom"], selections: ["monk/ki-power"]),
+    ],
+)

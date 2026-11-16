@@ -1,0 +1,4 @@
+(
+    why: "The game has one blueprint per dragon colour, element, energy, form or bloodline, none of them primary; the planner holds one entry for whichever is held.",
+    entry: (key: "fighter/dragonheir-scion/might-of-wyrms", name: "Might of Wyrms", summary: "At 20th level, immune to paralysis, sleep and your bloodline's element, with 60-foot blindsense.", guide: "fighter#might-of-wyrms"),
+)

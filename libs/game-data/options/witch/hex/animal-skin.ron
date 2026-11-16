@@ -1,0 +1,1 @@
+(key: "witch/hex/animal-skin", blueprint: "b8aab24af64e78a42970f476ecf86d4a", name: "Animal Skin", summary: "You turn into a leopard, as Beast Shape II.", guide: "witch#animal-skin", prerequisite: Any([All([ClassLevel(class: "magus", level: 12), Archetype("magus/hexcrafter")]), Feature(feature: "major-hexes", count: 1)]))

@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/madness",
+    blueprint: "a99916a8aad2414f970072db7b760c48",
+    name: "Madness",
+    summary: "Minor: turn a frightened, panicked or paralysed foe confused for 1 round. Major (10th): direct all confused creatures within 30' for 1 round.",
+    guide: "warpriest#madness",
+    domain: "cleric/domain/madness",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/madness/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/madness/major-blessing"]),
+    ],
+)

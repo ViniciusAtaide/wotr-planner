@@ -1,0 +1,13 @@
+(
+    key: "cavalier/order/order-of-the-star",
+    blueprint: "80004ec12a45b4d40936207341797361",
+    name: "Order of the Star",
+    summary: "Order protecting a faith: +1 morale to saves (+1 per 4 levels) while threatening your challenged foe; Lore (Religion) a class skill.",
+    guide: "cavalier#order-of-the-star",
+    levels: [
+        (level: 1, class_skills: ["lore-religion"]),
+        (level: 2, features: ["cavalier/order/order-of-the-star/calling"]),
+        (level: 8, features: ["cavalier/order/order-of-the-star/for-the-faith"]),
+        (level: 15, features: ["cavalier/order/order-of-the-star/retribution"]),
+    ],
+)

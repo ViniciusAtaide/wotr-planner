@@ -1,0 +1,14 @@
+(
+    key: "summon-dragon-iii",
+    blueprint: "cb127670411c41298a4aa4d0a165a20b",
+    name: "Summon Dragon III",
+    school: Conjuration,
+    guide: "gold-dragon#summon-dragon-iii-conjuration",
+    summary: "Summons 1 Huge silver dragon (a black dragon if you have sworn to serve Dahak).",
+    target: "Target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: Standard,
+)

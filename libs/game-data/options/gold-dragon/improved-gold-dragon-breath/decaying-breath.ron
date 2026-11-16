@@ -1,0 +1,1 @@
+(key: "gold-dragon/improved-gold-dragon-breath/decaying-breath", blueprint: "c606a6897125480ebde14b63bb8fb18e", name: "Decaying Breath", summary: "Rank 9, Vow of Dahak: the breath deals 1d4 + MR/2 Constitution damage to living foes, Fortitude half.", guide: "gold-dragon#decaying-breath", prerequisite: All([MythicRank(9), Story(VowOfDahak)]))

@@ -1,0 +1,14 @@
+(
+    key: "field-of-flowers",
+    blueprint: "b2d9ad1cc95d718459c09499a2e9dbf9",
+    name: "Field of Flowers",
+    school: Conjuration,
+    guide: "azata#field-of-flowers-conjuration",
+    summary: "Enemies in the area save each round: one failure gives -2 attack and damage, two stagger, three sleep them 1d4 rounds; then stagger and sleep can't affect them.",
+    target: "All enemies within a 30' burst centred on target point within long range",
+    duration: "1 minute / level",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

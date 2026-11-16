@@ -1,0 +1,1 @@
+(key: "gold-dragon/improved-gold-dragon-breath/rejuvenating-breath", blueprint: "ef3690c36872422d9bfadeb276b5c3fe", name: "Rejuvenating Breath", summary: "Rank 9, uncorrupted: allies caught in the breath regain hit points equal to the damage it deals.", guide: "gold-dragon#rejuvenating-breath", prerequisite: All([MythicRank(9), Story(Uncorrupted)]))

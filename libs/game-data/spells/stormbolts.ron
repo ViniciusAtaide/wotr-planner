@@ -1,0 +1,13 @@
+(
+    key: "stormbolts",
+    blueprint: "7cfbefe0931257344b2cb7ddc4cdff6f",
+    name: "Stormbolts",
+    school: Evocation,
+    guide: "wizard-spells#stormbolts-evocation",
+    summary: "Enemies around you take 1d8 electricity damage per level (max 20d8) and are stunned 1 round; a successful save halves it and prevents the stun.",
+    target: "All enemies within 30' of caster",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Electricity],
+    casting_time: Standard,
+)

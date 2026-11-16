@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/luck",
+    blueprint: "70654ee784fffa74489933a0d2047bbd",
+    name: "Luck",
+    summary: "Minor: an ally rolls twice on d20 rolls for 1 round. Major (10th): an enemy takes the worse of two d20 rolls for 1 round.",
+    guide: "warpriest#luck",
+    domain: "cleric/domain/luck",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/luck/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/luck/major-blessing"]),
+    ],
+)

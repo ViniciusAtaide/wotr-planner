@@ -1,0 +1,18 @@
+(
+    key: "bloodrager/hag-riven/bloodline",
+    blueprint: "62b33ac8ceb18dd47ad4c8f06849bc01",
+    name: "Bloodline (Hag-Riven)",
+    summary: "The Hag-Riven's bloodline: Arcane, Elemental, Fey or Hag only.",
+    guide: "bloodrager#hag-riven",
+    option_levels: ["bloodrager"],
+    options: [],
+    shared_options: [
+        "bloodrager/bloodline/arcane",
+        "bloodrager/bloodline/elemental-air",
+        "bloodrager/bloodline/elemental-earth",
+        "bloodrager/bloodline/elemental-fire",
+        "bloodrager/bloodline/elemental-water",
+        "bloodrager/bloodline/fey",
+        "bloodrager/bloodline/hag",
+    ],
+)

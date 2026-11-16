@@ -1,0 +1,1 @@
+(key: "wizard/school/illusionist/blinding-ray", blueprint: "9be5e050244352d43a1cb50aad8d548f", name: "Blinding Ray", summary: "Standard action, 3 + Int times a day: ranged touch blinds for 1 round, or dazzles creatures with more HD than your level.", guide: "wizard#blinding-ray")

@@ -1,0 +1,13 @@
+(
+    key: "headband-of-rigorous-training",
+    blueprint: "05915da42bbfc384b830b14d7116cbc7",
+    name: "Headband of Rigorous Training",
+    slot: Headwear,
+    guide: "items#headwear",
+    bonuses: [
+        (target: Ability(Wisdom), amount: 6, kind: Enhancement),
+    ],
+    other_effects: [
+        "5 extra uses of Perfect Strike a day.",
+    ],
+)

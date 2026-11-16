@@ -1,0 +1,1 @@
+(key: "metamagic-intensified-spell", blueprint: "8ad7fd39abea4722b39eb5a67d606a41", name: "Metamagic (Intensified Spell)", summary: "+1 spell level: the spell's damage dice cap rises by 5 caster levels, if your caster level is high enough.", category: Magic, guide: "feats#metamagic-intensified-spell")

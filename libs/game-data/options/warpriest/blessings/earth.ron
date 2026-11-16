@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/earth",
+    blueprint: "73c37a22bc9a523409a47218d507acf6",
+    name: "Earth",
+    summary: "Minor: a weapon deals +1d4 acid for 1 minute. Major (10th): an ally gains DR 1/- for 1 minute, rising to DR 5/- at 18th.",
+    guide: "warpriest#earth",
+    domain: "cleric/domain/earth",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/earth/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/earth/major-blessing"]),
+    ],
+)

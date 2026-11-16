@@ -1,0 +1,13 @@
+(
+    key: "wizard/elemental-specialist/focused-element",
+    blueprint: "41964f61f24b4f38b695f36532d4b1a3",
+    name: "Focused Element",
+    summary: "Pick acid, cold, electricity or fire to convert elemental spell damage into; from 15th, half its damage is untyped.",
+    guide: "wizard#focused-element",
+    options: [
+        "wizard/elemental-specialist/focused-element/acid",
+        "wizard/elemental-specialist/focused-element/cold",
+        "wizard/elemental-specialist/focused-element/electricity",
+        "wizard/elemental-specialist/focused-element/fire",
+    ],
+)

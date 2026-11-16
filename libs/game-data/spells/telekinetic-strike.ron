@@ -1,0 +1,13 @@
+(
+    key: "telekinetic-strike",
+    blueprint: "1a33199538c31a14db23318fdb6e10cb",
+    name: "Telekinetic Strike",
+    school: Transmutation,
+    guide: "demon#telekinetic-strike-transmutation",
+    summary: "Deals 1d6 force per caster level; on a failed save the target falls prone and you can push or pull it (combat manoeuvre with caster level and casting ability).",
+    target: "One creature within long range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

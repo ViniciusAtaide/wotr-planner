@@ -1,0 +1,14 @@
+(
+    key: "cloak-of-chaos",
+    blueprint: "9155dbc8268da1c49a7fc4834fa1a4b1",
+    name: "Cloak of Chaos",
+    school: Abjuration,
+    guide: "cleric-spells#cloak-of-chaos-abjuration",
+    summary: "Allies gain +4 deflection AC, +4 resistance on saves, mind-affecting protection and SR 25 vs lawful; lawful melee hitters are confused 1 round (Will negates).",
+    target: "All allies within 20'",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [Chaos],
+    casting_time: Standard,
+)

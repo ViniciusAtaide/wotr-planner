@@ -1,0 +1,14 @@
+(
+    key: "summon-monster-iii",
+    blueprint: "5d61dde0020bbf54ba1521f7ca0229dc",
+    name: "Summon Monster III",
+    school: Conjuration,
+    guide: "wizard-spells#summon-monster-iii-conjuration",
+    summary: "Calls a monitor lizard, 1d3 wolves or 1d4+1 dogs, all extraplanar.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

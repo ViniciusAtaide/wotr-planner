@@ -1,0 +1,10 @@
+(
+    key: "manual-of-bodily-health-2",
+    blueprint: "2d4d510a69da09c48893f945ec197210",
+    name: "Manual of Bodily Health +2",
+    slot: Usable,
+    guide: "items#equipable-and-consumable",
+    bonuses: [
+        (target: Ability(Constitution), amount: 2, kind: Inherent),
+    ],
+)

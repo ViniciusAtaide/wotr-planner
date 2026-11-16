@@ -1,0 +1,1 @@
+(key: "shaman/hex/beckoning-chill", blueprint: "905a9eccb9fa73e4da1d3e86bcb1e421", name: "Beckoning Chill", summary: "Waves: a creature within 30 feet is entangled for 1 round whenever it takes cold damage, for 1 minute.", guide: "shaman#beckoning-chill", prerequisite: SelectionOption("shaman/spirit/waves"))

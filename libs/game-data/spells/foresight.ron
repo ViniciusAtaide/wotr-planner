@@ -1,0 +1,14 @@
+(
+    key: "foresight",
+    blueprint: "1f01a098d737ec6419aedc4e7ad61fdd",
+    name: "Foresight",
+    school: Divination,
+    guide: "wizard-spells#foresight-divination",
+    summary: "The target is never flat-footed and has +2 insight to AC and on Reflex saves.",
+    target: "One friendly creature within close range",
+    duration: "10 minutes / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

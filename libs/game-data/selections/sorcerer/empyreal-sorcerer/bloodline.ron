@@ -1,0 +1,15 @@
+(
+    key: "sorcerer/empyreal-sorcerer/bloodline",
+    blueprint: "24bef8d1bee12274686f6da6ccbc8914",
+    name: "Bloodline (Empyreal Sorcerer)",
+    band: Path,
+    summary: "The Empyreal Sorcerer's fixed bloodline, built on the Celestial one.",
+    guide: "sorcerer#empyreal-sorcerer",
+    option_levels: ["dragon-disciple", "sorcerer"],
+    skipped_levels: [1, 20],
+    replaced_by: {20: "celestial-ascension"},
+    options: [],
+    shared_options: [
+        "sorcerer/bloodline/celestial",
+    ],
+)

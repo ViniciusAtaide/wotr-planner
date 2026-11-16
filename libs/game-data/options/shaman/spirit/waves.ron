@@ -1,0 +1,13 @@
+(
+    key: "shaman/spirit/waves",
+    blueprint: "2196e093593903f4ebc36467ccbf1d9a",
+    name: "Waves",
+    summary: "Waves: Wave Strike bull rush, a cold cone that pushes at 8th, water elemental form at 16th, free cold metamagic at 20th.",
+    guide: "shaman#waves",
+    levels: [
+        (level: 1, features: ["shaman/spirit/waves/wave-strike"]),
+        (level: 8, features: ["shaman/spirit/waves/fluid-mastery"]),
+        (level: 16, features: ["shaman/spirit/waves/elemental-form-water"]),
+        (level: 20, features: ["shaman/spirit/waves/manifestation-waves"]),
+    ],
+)

@@ -1,0 +1,14 @@
+// Bracers.
+(
+    key: "bracers-of-mighty-boar",
+    blueprint: "6c7ca383c299404caa44841fe0aee062",
+    name: "Bracers of Mighty Boar",
+    slot: Bracers,
+    guide: "items#bracers",
+    bonuses: [
+        (target: Ability(Strength), amount: 6, kind: Enhancement),
+    ],
+    other_effects: [
+        "Charging with natural attacks: the first attack's base damage is tripled.",
+    ],
+)

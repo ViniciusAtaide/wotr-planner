@@ -1,0 +1,20 @@
+(
+    key: "druid/drovier",
+    class: "druid",
+    blueprint: "a6bf603aa4d666f4f86dab0289e2048c",
+    name: "Drovier",
+    summary: "Druid who gives party-wide animal aspects instead of wild shape or a domain.",
+    guide: "druid#drovier",
+    levels: [
+        (level: 1, features: ["druid/drovier/animal-companion", "druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"]),
+        (level: 4, features: ["druid/drovier/communal-aspect", "resist-natures-lure"]),
+        (level: 6, features: ["druid/drovier/communal-aspect-greater"]),
+        (level: 8, features: ["druid/drovier/communal-aspect-aspect-of-the-falcon"]),
+        (level: 10, features: ["druid/drovier/communal-aspect-aspect-of-the-bear"]),
+        (level: 12, features: ["druid/drovier/communal-aspect-aspect-of-the-stag"]),
+        (level: 14, features: ["druid/drovier/communal-aspect-aspect-of-the-wolf"]),
+        (level: 16),
+        (level: 18),
+        (level: 20, features: ["druid/drovier/communal-aspect"]),
+    ],
+)

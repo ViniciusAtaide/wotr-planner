@@ -1,0 +1,13 @@
+(
+    key: "witch/keen-eyed-adventurer",
+    class: "witch",
+    blueprint: "d37f299738894b97bbc0808c1c44e6d2",
+    name: "Keen-Eyed Adventurer",
+    summary: "Visitors from Morta witch who adds damage to ray cantrips, losing three hexes.",
+    guide: "witch#keen-eyed-adventurer",
+    levels: [
+        (level: 1, features: ["witch/familiar", "witch/keen-eyed-adventurer/improved-cantrips"], feats: ["simple-weapon-proficiency"], selections: ["witch/patron"]),
+        (level: 6, features: ["witch/keen-eyed-adventurer/elemental-vortex"]),
+        (level: 20, features: ["witch/keen-eyed-adventurer/cantrip-mastery"]),
+    ],
+)

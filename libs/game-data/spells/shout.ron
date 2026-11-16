@@ -1,0 +1,14 @@
+(
+    key: "shout",
+    blueprint: "f09453607e683784c8fca646eec49162",
+    name: "Shout",
+    school: Evocation,
+    guide: "wizard-spells#shout-evocation",
+    summary: "Creatures in the cone take 5d6 sonic and are stunned 1 round; a Fortitude save halves the damage and avoids the stun.",
+    target: "All creatures within a 30' cone",
+    duration: "1 round",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [Stunned, Sonic],
+    casting_time: Standard,
+)

@@ -1,0 +1,10 @@
+(
+    key: "tome-of-clear-thought-2",
+    blueprint: "3584c2a2f8b5b1b43ae11128f0ff1583",
+    name: "Tome of Clear Thought +2",
+    slot: Usable,
+    guide: "items#equipable-and-consumable",
+    bonuses: [
+        (target: Ability(Intelligence), amount: 2, kind: Inherent),
+    ],
+)

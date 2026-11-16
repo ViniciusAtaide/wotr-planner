@@ -1,0 +1,1 @@
+(key: "oracle/revelations/flame/molten-skin", blueprint: "5fd4d9ba38a9f8745b39fb8baee58337", name: "Molten Skin", summary: "Fire resistance 5, 10 at 5th level, 20 at 11th, and fire immunity at 17th.", guide: "oracle#molten-skin", prerequisite: SelectionOption("oracle/mystery/flame"))

@@ -1,0 +1,14 @@
+(
+    key: "resistance",
+    blueprint: "7bc8e27cba24f0e43ae64ed201ad5785",
+    name: "Resistance",
+    school: Abjuration,
+    guide: "wizard-spells#resistance-abjuration",
+    summary: "The target gains a +1 bonus on saving throws.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

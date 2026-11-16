@@ -1,0 +1,1 @@
+(key: "crushing-blow", blueprint: "4153755355a0b9b4e956c9ca232c22cf", name: "Crushing Blow", summary: "A full-round Stunning Fist variant: success lowers the target's AC by your Wisdom modifier for 1 minute.", category: UnarmedCombat, guide: "feats#crushing-blow", prerequisite: Any([Feat("stunning-fist"), Feature(feature: "monk/stunning-fist", count: 1)]))

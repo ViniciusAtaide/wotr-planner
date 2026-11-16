@@ -1,0 +1,12 @@
+(
+    key: "warpriest/blessings/magic",
+    blueprint: "1754ff61a0805714fa2b89c8c1bb87ad",
+    name: "Magic",
+    summary: "Minor: throw your melee weapon at a foe within 30', adding Wis to the attack. Major (10th): recall a spell you cast as a swift action.",
+    guide: "warpriest#magic",
+    domain: "cleric/domain/magic",
+    levels: [
+        (level: 1, features: ["warpriest/blessings/magic/minor-blessing"]),
+        (level: 10, features: ["warpriest/blessings/magic/major-blessing"]),
+    ],
+)

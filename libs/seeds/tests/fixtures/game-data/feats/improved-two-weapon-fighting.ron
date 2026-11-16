@@ -1,0 +1,11 @@
+(
+    key: "improved-two-weapon-fighting",
+    name: "Improved Two-Weapon Fighting",
+    category: Weapon,
+    guide: "feats#improved-two-weapon-fighting",
+    prerequisite: All([
+        AbilityScore(ability: Dexterity, score: 17),
+        Feat("two-weapon-fighting"),
+        BaseAttackBonus(6),
+    ]),
+)

@@ -136,7 +136,8 @@ fn physical_enhancement_is_granted_once_and_its_two_abilities_come_at_wizard_20(
         assert_eq!(feature_blueprint(&key), None, "{key}");
         assert!(
             !DATA
-                .class_features()
+                .features
+                .iter()
                 .any(|feature| feature.key.as_str() == key)
         );
     }
@@ -151,7 +152,12 @@ fn cursed(classes: &[&str], curse: &str) -> Build {
     with_option(build, 1, 1, &format!("oracle/oracles-curse/{curse}"))
 }
 
+/// A curse stage's key: the curse's own, or the feature's own key when the curse grants a feature others share (Powerless
+/// Prophecy's Uncanny Dodge, one entry since ticket 244).
 fn stage(curse: &str, stage: &str) -> String {
+    if feature_blueprint(stage).is_some() {
+        return stage.to_owned();
+    }
     format!("oracle/oracles-curse/{curse}/{stage}")
 }
 
@@ -193,7 +199,8 @@ fn an_oracles_curse_reaches_its_stages_at_curse_levels_1_5_10_and_15() {
             let key = format!("{owner}/curse-{step}");
             assert!(
                 !DATA
-                    .class_features()
+                    .features
+                    .iter()
                     .any(|feature| feature.key.as_str() == key),
                 "{key}"
             );
@@ -427,8 +434,7 @@ fn the_oracles_revelations_are_the_games_one_selection_of_62() {
     // Game: OracleRevelationSelection 60008a10ad7ad6543b1f63016741a5d2, 62 options in m_AllFeatures (61 revelations,
     // FortuneRevelationFeature and MisfortuneRevelationFeature).
     let selection = DATA
-        .selections()
-        .find(|selection| selection.key.as_str() == REVELATIONS)
+        .selection(&rules::FeatureSelectionKey::new(REVELATIONS))
         .unwrap();
     assert_eq!(
         blueprint(DataAt::FeatureSelection(selection.key.clone())),

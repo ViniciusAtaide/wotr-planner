@@ -1,0 +1,1 @@
+(key: "monk/sohei/bonus-feats-1", blueprint: "59bd6f915ba1dee44a8316f97fd51967", name: "Bonus Feat (Sohei)", guide: "monk#bonus-feat-sohei", ignores_prerequisites: true, feats: ["blind-fight", "combat-reflexes", "crane-style", "deflect-arrows", "dodge", "improved-initiative", "indomitable-mount", "mounted-combat", "mounted-shield", "spirited-charge", "trample"])

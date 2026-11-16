@@ -1,0 +1,13 @@
+(
+    key: "doom-to-servitude",
+    blueprint: "24067ba8e0e69a14e83ff397826f6c6d",
+    name: "Doom to Servitude",
+    school: Necromancy,
+    guide: "lich#doom-to-servitude-necromancy",
+    summary: "Deals 1d6 unholy per two caster levels (Fortitude negates), then 1d6 unholy per caster level until the target dies and rises as your undead.",
+    target: "One enemy creature within medium range",
+    saving_throw: "Fortitude partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

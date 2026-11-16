@@ -1,0 +1,19 @@
+(
+    key: "bloodrager/greenrager",
+    class: "bloodrager",
+    blueprint: "5648585af75596f4a9fa3ae385127f57",
+    name: "Greenrager",
+    summary: "Nature bloodrager: ignores difficult terrain, learns Summon Nature I-IV from 6th level and buffs its summons from 9th.",
+    guide: "bloodrager#greenrager",
+    levels: [
+        (level: 3, features: ["bloodrager/greenrager/unfettered-fury"]),
+        (level: 6, features: ["bloodrager/greenrager/summoning-rager"], feat_slots: [OptionList(selection: "bloodrager/bloodline")]),
+        (level: 7, features: ["bloodrager/greenrager/bloodline-spell-1st", "damage-reduction"]),
+        (level: 9, features: ["bloodrager/greenrager/furious-summoning"], feat_slots: [OptionList(selection: "bloodrager/bloodline")]),
+        (level: 10, features: ["bloodrager/greenrager/bloodline-spell-2nd", "damage-reduction"]),
+        (level: 11, features: ["bloodrager/greater-bloodrage", "bloodrager/greenrager/furious-summoning"]),
+        (level: 13, features: ["bloodrager/greenrager/bloodline-spell-3rd", "damage-reduction"]),
+        (level: 16, features: ["bloodrager/greenrager/bloodline-spell-4th", "damage-reduction"]),
+        (level: 20, features: ["bloodrager/greenrager/furious-summoning", "bloodrager/mighty-bloodrage"]),
+    ],
+)

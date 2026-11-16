@@ -1,0 +1,13 @@
+(
+    key: "display-of-power",
+    blueprint: "42831d8b78d38674e83b89657a3e5434",
+    name: "Display of Power",
+    slot: Belt,
+    guide: "items#belts",
+    bonuses: [
+        (target: Ability(Strength), amount: 6, kind: Enhancement),
+    ],
+    always_on: [
+        "Enemies within 15 feet: -2 Will saves",
+    ],
+)

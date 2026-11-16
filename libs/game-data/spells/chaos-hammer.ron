@@ -1,0 +1,13 @@
+(
+    key: "chaos-hammer",
+    blueprint: "c42ac3feb96d1e54e9bc77c84082f05f",
+    name: "Chaos Hammer",
+    school: Evocation,
+    guide: "cleric-spells#chaos-hammer-evocation",
+    summary: "Lawful creatures are slowed 1d6 rounds and take 1d8 per two caster levels (max 5d8), lawful outsiders 1d6 per level (max 10d6); neutral half, not slowed.",
+    target: "All creatures within 20' of target creature within medium range",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [Chaos],
+    casting_time: Standard,
+)

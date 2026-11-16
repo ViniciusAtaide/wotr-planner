@@ -1,0 +1,13 @@
+(
+    key: "shaman/spirit/battle",
+    blueprint: "26e81d83d13dbf6448b10019c802612d",
+    name: "Battle",
+    summary: "Battle: morale aura for allies, Enemies' Bane at 8th, Paragon of Battle at 16th, Pounce and more HP at 20th; bonus spells like Enlarge Person.",
+    guide: "shaman#battle",
+    levels: [
+        (level: 1, features: ["shaman/spirit/battle/battle-spirit"]),
+        (level: 8, features: ["shaman/spirit/battle/enemies-bane", "shaman/spirit/battle/battle-spirit"]),
+        (level: 16, features: ["shaman/spirit/battle/paragon-of-battle", "shaman/spirit/battle/battle-spirit"]),
+        (level: 20, features: ["shaman/spirit/battle/manifestation-battle"]),
+    ],
+)

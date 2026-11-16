@@ -1,0 +1,19 @@
+(
+    key: "magus/armored-battlemage",
+    class: "magus",
+    blueprint: "67ec8dcae6fb3d3439e5ae874ddc7b9b",
+    name: "Armored Battlemage",
+    summary: "Defensive magus who enchants armour instead of weapons and gets Armor Training, but loses Spell Combat and some arcana.",
+    guide: "magus#armored-battlemage",
+    levels: [
+        (level: 1, features: ["magus/armored-battlemage/arcane-pool-armored-battlemage", "magus/armored-battlemage/armored-battlemage-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
+        (level: 3, features: ["magus/armored-battlemage/armor-training"]),
+        (level: 5, features: ["magus/armored-battlemage/arcane-armor-2"], feat_slots: [General]),
+        (level: 7, features: ["magus/armored-battlemage/arcane-heavy-armor"], feats: ["armor-proficiency-heavy-armor"]),
+        (level: 8, features: ["magus/armored-battlemage/armor-training"]),
+        (level: 9, features: ["magus/armored-battlemage/arcane-armor-3"], selections: ["magus/magus-arcana"]),
+        (level: 13, features: ["magus/armored-battlemage/arcane-armor-4", "magus/armored-battlemage/armor-training"]),
+        (level: 17, features: ["magus/armored-battlemage/arcane-armor-5"], feat_slots: [General]),
+        (level: 18, features: ["magus/armored-battlemage/armor-training"]),
+    ],
+)

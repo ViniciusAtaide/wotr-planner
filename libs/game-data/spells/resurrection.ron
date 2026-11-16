@@ -1,0 +1,14 @@
+(
+    key: "resurrection",
+    blueprint: "80a1a388ee938aa4e90d427ce9a7a3e9",
+    name: "Resurrection",
+    school: Conjuration,
+    guide: "cleric-spells#resurrection-conjuration",
+    summary: "Brings the target back to life at full HP and health, keeping its prepared spells.",
+    components: "1 diamond",
+    target: "One friendly creature within any range",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: FullRound,
+)

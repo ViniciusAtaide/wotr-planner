@@ -1,0 +1,14 @@
+(
+    key: "enlarge-person-mass",
+    blueprint: "66dc49bf154863148bd217287079245e",
+    name: "Enlarge Person, Mass",
+    school: Transmutation,
+    guide: "wizard-spells#enlarge-person-mass-transmutation",
+    summary: "Allies grow one size category, gaining +2 Strength while taking -2 Dexterity (size) and -1 on attack rolls and AC.",
+    target: "All allies within 15' burst, centred on target point within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: FullRound,
+)

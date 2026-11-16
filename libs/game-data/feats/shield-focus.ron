@@ -1,0 +1,1 @@
+(key: "shield-focus", blueprint: "ac57069b6bf8c904086171683992a92a", name: "Shield Focus", summary: "+1 AC from your shield.", category: ArmourAndShield, guide: "feats#shield-focus", prerequisite: Feat("shield-proficiency"))

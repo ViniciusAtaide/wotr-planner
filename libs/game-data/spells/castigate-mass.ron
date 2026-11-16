@@ -1,0 +1,14 @@
+(
+    key: "castigate-mass",
+    blueprint: "41236cf0e476d7043bc16a33a9f449bd",
+    name: "Castigate, Mass",
+    school: Enchantment,
+    guide: "inquisitor#castigate-mass-enchantment",
+    summary: "Enemies in the burst cower in fear unless they save, saving again each round; those that succeed are only shaken for 1 round.",
+    target: "One enemy creature within medium range, 30' burst",
+    duration: "1 round / level",
+    saving_throw: "Will partial",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Fear, Compulsion, Emotion, NegativeEmotion],
+    casting_time: Standard,
+)

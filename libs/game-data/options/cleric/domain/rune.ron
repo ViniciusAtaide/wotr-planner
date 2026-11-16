@@ -1,0 +1,11 @@
+(
+    key: "cleric/domain/rune",
+    blueprint: "6d4dac497c182754d8b1f49071cca3fd",
+    name: "Rune Domain",
+    summary: "Blast Rune traps and Warding Rune from 8th level; spells from Protection from Alignment to Power Word Kill.",
+    guide: "character-creation#rune-domain",
+    levels: [
+        (level: 1, features: ["cleric/domain/rune/blast-rune"]),
+        (level: 8, features: ["cleric/domain/rune/warding-rune"]),
+    ],
+)

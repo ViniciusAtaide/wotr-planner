@@ -12,9 +12,9 @@ use crate::keys::{FeatKey, SkillKey, WeaponKey};
 /// The kind of value a parameterised feat is taken for.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum ParameterKind {
-    /// A skill from `skills.ron` (Skill Focus).
+    /// A skill of the data (Skill Focus).
     Skill,
-    /// Any weapon in `weapons.ron` (Weapon Focus).
+    /// Any weapon of the data (Weapon Focus).
     Weapon,
     /// An exotic weapon: one the guide's Exotic Weapon Proficiency lists.
     ExoticWeapon,

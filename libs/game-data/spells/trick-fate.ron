@@ -1,0 +1,14 @@
+(
+    key: "trick-fate",
+    blueprint: "6e109d21da9e1c44fb772a9eca2cafdd",
+    name: "Trick Fate",
+    school: Divination,
+    guide: "trickster#trick-fate-divination",
+    summary: "Every roll the target makes comes up 20.",
+    target: "One friendly creature within touch range",
+    duration: "3 rounds",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

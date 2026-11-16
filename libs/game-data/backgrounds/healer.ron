@@ -1,0 +1,1 @@
+(key: "healer", blueprint: "f0d2840b6564c6f408c1e068d0707ca0", name: "Healer", group: Oblate, note: "Intelligence instead of Wisdom for both Lores.", class_skills: ["lore-nature", "lore-religion"])

@@ -1,0 +1,13 @@
+(
+    key: "oracle/oracles-curse/wasting",
+    blueprint: "1dddfbb862b6857478d13fcdd78911f4",
+    name: "Wasting",
+    summary: "-4 on Charisma skills except Intimidate, +4 vs disease; immune to sickened at 5th, disease at 10th and nauseated at 15th.",
+    guide: "oracle#wasting",
+    levels: [
+        (level: 1, features: ["oracle/oracles-curse/wasting/level-1"]),
+        (level: 5, features: ["oracle/oracles-curse/wasting/level-5"]),
+        (level: 10, features: ["oracle/oracles-curse/wasting/level-10"]),
+        (level: 15, features: ["oracle/oracles-curse/wasting/level-15"]),
+    ],
+)

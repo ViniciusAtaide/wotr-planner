@@ -1,0 +1,1 @@
+(key: "boundless-healing", blueprint: "c8bbb330aaecaf54dbc7570200653f8c", name: "Boundless Healing", summary: "Healing spells act as if Reach metamagic were applied, and no spell\'s caster level is capped.", group: Healing, guide: "mythic-paths#boundless-healing")

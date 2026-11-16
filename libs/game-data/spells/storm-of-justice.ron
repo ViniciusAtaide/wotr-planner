@@ -1,0 +1,13 @@
+(
+    key: "storm-of-justice",
+    blueprint: "b118f142f9bc88a44acbba737a135382",
+    name: "Storm of Justice",
+    school: Conjuration,
+    guide: "angel#storm-of-justice-conjuration",
+    summary: "Strikes each enemy in the burst with Bolt of Justice.",
+    target: "All enemies within a 30' burst centred on target point within Long range",
+    saving_throw: "Reflex partial",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

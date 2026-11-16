@@ -1,0 +1,14 @@
+(
+    key: "fester",
+    blueprint: "2dbe271c979d9104c8e2e6b42e208e32",
+    name: "Fester",
+    school: Necromancy,
+    guide: "inquisitor#fester-necromancy",
+    summary: "The target has SR 12 against healing; a successful save cuts this to 1 round.",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Fortitude partial",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

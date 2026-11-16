@@ -1,0 +1,12 @@
+(
+    key: "angel/greater-sword-of-heaven",
+    blueprint: "e0ce40968bf0007408b11089a10f36cf",
+    name: "Greater Sword of Heaven",
+    summary: "At ranks 8 and 10, add a stronger improvement to Sword of Heaven on top of the earlier ones.",
+    guide: "angel#greater-sword-of-heaven",
+    options: [
+        "angel/greater-sword-of-heaven/heavenly-host",
+        "angel/greater-sword-of-heaven/overwhelming-flames",
+        "angel/greater-sword-of-heaven/speed-of-light",
+    ],
+)

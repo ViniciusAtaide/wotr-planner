@@ -1,0 +1,14 @@
+(
+    key: "devil/hells-decree",
+    blueprint: "442e199eca0ab2f4dbdcf7147fa2c399",
+    name: "Hell\'s Decree",
+    summary: "Issue decrees MR times a day; any save is DC 10 + twice your mythic rank.",
+    guide: "other-mythic-paths#hells-decree",
+    options: [
+        "devil/hells-decree/decree-of",
+        "devil/hells-decree/decree-of-hells-fires",
+        "devil/hells-decree/decree-of-hunt",
+        "devil/hells-decree/decree-of-neverending-war",
+        "devil/hells-decree/decree-of-vengeance",
+    ],
+)

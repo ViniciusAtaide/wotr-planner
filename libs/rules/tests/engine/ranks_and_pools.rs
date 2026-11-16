@@ -97,12 +97,7 @@ fn a_filtered_pool_offers_what_the_held_option_admits_and_checks_the_rest() {
     let mut data = world();
     let fire = || Prerequisite::SelectionOption(option("cleric/domain/fire"));
     let water = || Prerequisite::SelectionOption(option("cleric/domain/water"));
-    let revelations = &mut class_mut(&mut data, "cleric")
-        .selections
-        .iter_mut()
-        .find(|selection| selection.key.as_str() == "cleric/fire-revelations")
-        .unwrap()
-        .options;
+    let mut revelations = own_options_mut(&mut data, "cleric/fire-revelations");
     // Fire Breath: the fire domain and character level 5. Burning Hands: either domain.
     revelations[1].prerequisite = Some(Prerequisite::All(vec![
         fire(),
@@ -161,12 +156,7 @@ fn a_filtered_pool_offers_what_the_held_option_admits_and_checks_the_rest() {
 fn a_filtered_pool_leaves_out_only_what_needs_an_admitting_option() {
     let mut data = world();
     let fire = || Prerequisite::SelectionOption(option("cleric/domain/fire"));
-    let revelations = &mut class_mut(&mut data, "cleric")
-        .selections
-        .iter_mut()
-        .find(|selection| selection.key.as_str() == "cleric/fire-revelations")
-        .unwrap()
-        .options;
+    let mut revelations = own_options_mut(&mut data, "cleric/fire-revelations");
     // Burning Hands: fire or level 1. Fire Breath: not fire. Maneuver Mastery: one of fire and level 1.
     revelations[0].prerequisite = Some(Prerequisite::Any(vec![
         fire(),
@@ -210,23 +200,17 @@ const STAGE_2: &str = "cleric/oracles-curse/lame/stage-2";
 /// Its one option, Lame, has a stage at option level 5.
 fn curse_world() -> GameData {
     let mut data = world();
-    let cleric = class_mut(&mut data, "cleric");
-    let mut stage = cleric.features[0].clone();
+    let mut stage = feature_mut(&mut data, "cleric/domain/war/battle-rage").clone();
     stage.key = FeatureKey::new(STAGE_2);
     stage.name = "Lame (stage 2)".into();
-    cleric.features.push(stage);
-    let mut curse = cleric
-        .selections
-        .iter()
-        .find(|selection| selection.key.as_str() == "cleric/water-revelations")
-        .unwrap()
-        .clone();
+    data.features.push(stage);
+    let mut lame = own_options_mut(&mut data, "cleric/water-revelations")[0].clone();
+    let mut curse = selection_mut(&mut data, "cleric/water-revelations").clone();
     curse.key = FeatureSelectionKey::new(CURSE);
     curse.option_levels = BTreeSet::from([class("cleric"), class("witch")]);
     curse.option_level_archetypes =
         BTreeMap::from([(rules::ArchetypeKey::new("witch/false-god"), 0)]);
     curse.half_other_classes = true;
-    let mut lame = curse.options[0].clone();
     lame.key = SelectionOptionKey::new(LAME);
     lame.prerequisite = None;
     lame.levels = vec![OptionLevelRow {
@@ -234,9 +218,10 @@ fn curse_world() -> GameData {
         features: vec![FeatureKey::new(STAGE_2)],
         ..OptionLevelRow::default()
     }];
-    curse.options = vec![lame];
-    cleric.selections.push(curse);
-    cleric.levels[1]
+    curse.options = BTreeSet::from([lame.key.clone()]);
+    data.options.push(lame);
+    data.selections.push(curse);
+    class_mut(&mut data, "cleric").levels[1]
         .selections
         .push(FeatureSelectionKey::new(CURSE));
     data
@@ -290,12 +275,7 @@ fn an_option_level_counts_half_the_other_classes_and_a_class_only_through_its_na
 
 /// The old keys of the rogue talent Fast Stealth.
 fn stealth_aliases(data: &mut GameData) -> &mut BTreeSet<SelectionOptionKey> {
-    &mut class_mut(data, "rogue").selections[0]
-        .options
-        .iter_mut()
-        .find(|o| o.key.as_str() == "rogue/rogue-talents/fast-stealth")
-        .unwrap()
-        .aliases
+    &mut option_mut(data, "rogue/rogue-talents/fast-stealth").aliases
 }
 
 /// A link naming an option's old key opens on the option. An old key is read only by the link decoder: no option nor
@@ -321,11 +301,7 @@ fn a_link_naming_an_options_old_key_reads_as_the_option() {
     // An alias that is another option's key, an alias two options have, and a prerequisite naming an old key.
     let trick = SelectionOptionKey::new("rogue/rogue-talents/combat-trick");
     stealth_aliases(&mut data).insert(trick.clone());
-    class_mut(&mut data, "rogue").selections[0]
-        .options
-        .iter_mut()
-        .find(|o| o.key == trick)
-        .unwrap()
+    option_mut(&mut data, trick.as_str())
         .aliases
         .insert(old_key.clone());
     let dodge = data

@@ -1,0 +1,14 @@
+(
+    key: "summon-monster-vi",
+    blueprint: "e740afbab0147944dab35d83faa0ae1c",
+    name: "Summon Monster VI",
+    school: Conjuration,
+    guide: "wizard-spells#summon-monster-vi-conjuration",
+    summary: "Summons an Axiomite (non-evil) or a Soul Eater, 1d3 Bralanis or Redcaps, or 1d4+1 extraplanar dire wolves.",
+    target: "Target point within close range",
+    duration: "1 round / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Summoning],
+    casting_time: FullRound,
+)

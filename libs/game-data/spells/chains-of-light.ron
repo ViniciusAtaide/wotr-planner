@@ -1,0 +1,14 @@
+(
+    key: "chains-of-light",
+    blueprint: "f8cea58227f59c64399044a82c9735c4",
+    name: "Chains of Light",
+    school: Conjuration,
+    guide: "wizard-spells#chains-of-light-conjuration",
+    summary: "Paralyses the target if it fails, with a new save each round.",
+    target: "One enemy creature within close range",
+    duration: "1 round / level",
+    saving_throw: "Reflex negates",
+    spell_resistance: true,
+    descriptors: [Good],
+    casting_time: Standard,
+)

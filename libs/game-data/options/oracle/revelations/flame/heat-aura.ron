@@ -1,0 +1,1 @@
+(key: "oracle/revelations/flame/heat-aura", blueprint: "44dbe8e30c013544d85976671009d79d", name: "Heat Aura", summary: "Swift action: 1d4 fire per two levels to all within 10 feet (Reflex halves) and 20% concealment; 1/day, +1 at 5th and every 5 levels.", guide: "oracle#heat-aura", prerequisite: SelectionOption("oracle/mystery/flame"))

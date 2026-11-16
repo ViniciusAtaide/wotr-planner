@@ -1,0 +1,14 @@
+(
+    key: "friendly-hug",
+    blueprint: "7a3b1ffd1712fab4ca73b1e31820347c",
+    name: "Friendly Hug",
+    school: Abjuration,
+    guide: "azata#friendly-hug-abjuration",
+    summary: "Clears every negative level from the target and grants it immunity to mind-affecting effects and energy drain.",
+    target: "Friendly creature within close range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

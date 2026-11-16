@@ -1,0 +1,14 @@
+(
+    key: "death-ward",
+    blueprint: "e9cc9378fd6841f48ad59384e79e9953",
+    name: "Death Ward",
+    school: Necromancy,
+    guide: "cleric-spells#death-ward-necromancy",
+    summary: "The target is immune to negative energy effects and gains +4 morale on saves against death effects.",
+    target: "One friendly creature within touch range",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: true,
+    descriptors: [],
+    casting_time: Standard,
+)

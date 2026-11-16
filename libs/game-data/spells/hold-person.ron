@@ -1,0 +1,14 @@
+(
+    key: "hold-person",
+    blueprint: "c7104f7526c4c524f91474614054547e",
+    name: "Hold Person",
+    school: Enchantment,
+    guide: "wizard-spells#hold-person-enchantment",
+    summary: "A humanoid that fails its Will save is paralysed, with a new save each round.",
+    target: "One enemy humanoid creature within medium range",
+    duration: "1 round / level",
+    saving_throw: "Will negates",
+    spell_resistance: true,
+    descriptors: [MindAffecting, Compulsion],
+    casting_time: Standard,
+)

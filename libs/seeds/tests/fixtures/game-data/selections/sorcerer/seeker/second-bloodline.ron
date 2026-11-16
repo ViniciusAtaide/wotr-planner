@@ -1,0 +1,11 @@
+(
+    key: "sorcerer/seeker/second-bloodline",
+    name: "Second Bloodline (Seeker)",
+    guide: "sorcerer#crossblooded",
+    shared_options: ["sorcerer/bloodline/abyssal"],
+    option_levels: ["sorcerer"],
+    feat_lists_only: true,
+    only_without_option: true,
+    once_per_option: true,
+    options: [],
+)

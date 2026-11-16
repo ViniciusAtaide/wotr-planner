@@ -1,0 +1,15 @@
+(
+    key: "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity",
+    blueprint: "464ffaf88140474a949618bec7955e78",
+    name: "Living Deity",
+    summary: "Deceiver path posing as a living god, with an oracle mystery, curse and revelations.",
+    prerequisite: Atheist,
+    guide: "arcanist#living-deity",
+    levels: [
+        (level: 1, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/mysterious-gift"], selections: ["arcanist/magic-deceiver/mystery", "arcanist/magic-deceiver/revelation", "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/curse"]),
+        (level: 2, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/pious-guile"]),
+        (level: 4, selections: ["arcanist/magic-deceiver/revelation"]),
+        (level: 12, features: ["arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/godly-fraud"], selections: ["arcanist/magic-deceiver/revelation"]),
+        (level: 20, selections: ["arcanist/magic-deceiver/domain", "arcanist/magic-deceiver/domain", "arcanist/magic-deceiver/revelation"]),
+    ],
+)

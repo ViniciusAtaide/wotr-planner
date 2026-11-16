@@ -1,0 +1,1 @@
+(key: "kineticist/infusions/extended-range", blueprint: "cb2d9e6355dd33940b2bef49e544b0bf", name: "Extended Range", summary: "Form, 1 Burn: the blast reaches any target within 50'.", guide: "kineticist#extended-range", prerequisite: All([Not(Archetype("kineticist/kinetic-sharpshooter")), ClassLevel(class: "kineticist", level: 2)]))

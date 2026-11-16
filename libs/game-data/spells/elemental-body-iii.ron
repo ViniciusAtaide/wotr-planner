@@ -1,0 +1,14 @@
+(
+    key: "elemental-body-iii",
+    blueprint: "459e6d5aab080a14499e13b407eb3b85",
+    name: "Elemental Body III",
+    school: Transmutation,
+    guide: "wizard-spells#elemental-body-iii-transmutation",
+    summary: "You turn into a Large elemental of your choice (air, earth, fire or water).",
+    target: "Personal",
+    duration: "1 minute / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [Polymorph],
+    casting_time: Standard,
+)

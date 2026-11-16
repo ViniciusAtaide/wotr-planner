@@ -1,0 +1,14 @@
+(
+    key: "supernova",
+    blueprint: "1325e698f4a3f224b880e3b83a551228",
+    name: "Supernova",
+    school: Evocation,
+    guide: "aeon#supernova-evocation",
+    summary: "Enemies in the burst are blinded unless they pass a Fortitude save, and take 2d6 + caster level fire and divine damage each round they stay (Reflex half).",
+    target: "All enemies within a 20' burst centred on target point within medium range",
+    duration: "1 round / level",
+    saving_throw: "See below",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

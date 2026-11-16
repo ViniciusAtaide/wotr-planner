@@ -1,0 +1,12 @@
+(
+    key: "wizard/school/invoker",
+    blueprint: "f8019b7724d72a241a97157bc37f1c3b",
+    name: "Invoker",
+    summary: "Evocation specialist: Intense Spells, Force Missile and Elemental Wall.",
+    guide: "wizard#invoker",
+    levels: [
+        (level: 1, features: ["wizard/school/invoker/force-missile", "wizard/school/invoker/intense-spells"]),
+        (level: 8, features: ["wizard/school/invoker/elemental-wall"]),
+        (level: 20, features: ["wizard/school/invoker/intense-spells-spell-penetration"]),
+    ],
+)

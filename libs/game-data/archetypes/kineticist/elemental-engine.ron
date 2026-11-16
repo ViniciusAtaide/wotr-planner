@@ -1,0 +1,14 @@
+(
+    key: "kineticist/elemental-engine",
+    class: "kineticist",
+    blueprint: "4a8324d676d642c99edcdda6988ca3b1",
+    name: "Elemental Engine",
+    summary: "Kineticist who gains large bonuses while at maximum Burn, but loses Supercharge.",
+    guide: "kineticist#elemental-engine",
+    levels: [
+        (level: 3, features: ["kineticist/elemental-engine/burnout", "elemental-overflow"], selections: ["kineticist/infusions"]),
+        (level: 7, features: ["kineticist/elemental-engine/elemental-burnout"], selections: ["kineticist/expanded-element"]),
+        (level: 11, selections: ["kineticist/infusions"]),
+        (level: 13, features: ["kineticist/elemental-engine/greater-elemental-burnout", "metakinesis-quicken"], selections: ["kineticist/infusions"]),
+    ],
+)

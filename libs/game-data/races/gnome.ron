@@ -1,0 +1,9 @@
+(
+    key: "gnome",
+    blueprint: "ef35a22c9a27da345a4528f0d5889157",
+    name: "Gnome",
+    summary: "+4 AC vs giants; +1 attack vs reptilian and goblinoid foes; +2 saves vs illusions, +1 DC to your illusions; +2 Perception and Knowledge (World); speed 20 ft.",
+    guide: "character-creation#gnome",
+    ability_modifiers: [Fixed(ability: Strength, amount: -2), Fixed(ability: Constitution, amount: 2), Fixed(ability: Charisma, amount: 2)],
+    weapons_as_martial: ["gnome-hooked-hammer"],
+)

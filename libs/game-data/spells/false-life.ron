@@ -1,0 +1,14 @@
+(
+    key: "false-life",
+    blueprint: "7a5b5bf845779a941a67251539545762",
+    name: "False Life",
+    school: Necromancy,
+    guide: "wizard-spells#false-life-necromancy",
+    summary: "Grants you 1d10 extra hit points, +1 per caster level (up to +10).",
+    target: "Personal",
+    duration: "1 hour / level",
+    saving_throw: "N/A",
+    spell_resistance: false,
+    descriptors: [],
+    casting_time: Standard,
+)

@@ -1,0 +1,1 @@
+(key: "extra-rage", blueprint: "1a54bbbafab728348a015cf9ffcf50a7", name: "Extra Rage", summary: "6 more rounds of rage a day; up to 10 times.", category: Class, guide: "feats#extra-rage", repeat: Times(10), prerequisite: Feature(feature: "barbarian/rage", count: 1))

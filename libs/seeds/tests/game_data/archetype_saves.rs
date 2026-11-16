@@ -49,7 +49,7 @@ fn replacing() -> Vec<SavesOf> {
     let mut replacing: Vec<SavesOf> = DATA
         .classes
         .iter()
-        .flat_map(|class| &class.archetypes)
+        .flat_map(|class| DATA.archetypes_of(&class.key))
         .filter(|archetype| {
             archetype.fort.is_some() || archetype.reflex.is_some() || archetype.will.is_some()
         })

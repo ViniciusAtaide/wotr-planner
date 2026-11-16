@@ -1,0 +1,1 @@
+(key: "harmonic-spell", blueprint: "88c5ed03321d45b99a65a621c5963c65", name: "Harmonic Spell", summary: "Spells of 1st level or higher cast mid-performance refund a round of bardic performance.", category: Class, guide: "feats#harmonic-spell", prerequisite: ClassLevel(class: "bard", level: 1))

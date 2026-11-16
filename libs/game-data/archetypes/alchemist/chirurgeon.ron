@@ -1,0 +1,13 @@
+(
+    key: "alchemist/chirurgeon",
+    class: "alchemist",
+    blueprint: "063440d550b25524abcb8dc2590d0168",
+    name: "Chirurgeon",
+    summary: "Alchemist who trades poison resistance for healing powers.",
+    guide: "alchemist#chirurgeon",
+    levels: [
+        (level: 2, features: ["alchemist/chirurgeon/infused-curative"], selections: ["alchemist/discovery"]),
+        (level: 5, feats_for: [(feat: "skill-focus", value: Skill("lore-religion"))]),
+        (level: 10, features: ["alchemist/chirurgeon/power-over-death"], selections: ["alchemist/discovery"]),
+    ],
+)
