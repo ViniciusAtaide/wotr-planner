@@ -12,7 +12,9 @@ Class(
     will: Good,
     save_exceptions: [(level: 20, save: Will, value: 20)],
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "persuasion"],
-    prerequisite: Alignment(LawfulGood),
+    components: [
+        Requires(condition: Alignment([LawfulGood])),
+    ],
     levels: [
         (level: 1, features: ["paladin/alignment-restriction", "smite-evil"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, features: ["paladin/divine-grace", "paladin/lay-on-hands"]),

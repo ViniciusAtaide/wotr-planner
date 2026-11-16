@@ -9,9 +9,9 @@ use rules::{
     SelectionOptionKey, SkillKey, SlotId, SlotKind, SlotOption, Unmet, WeaponKey,
 };
 
-pub static DATA: LazyLock<GameData> = LazyLock::new(|| {
-    seeds::read_game_data_files(&seeds::game_data_dir()).expect("game-data reads")
-});
+/// The game data as every reader holds it: [`CHECKED`]'s, each entry's `Requires` compiled into its `prerequisite`
+/// (ticket 296).
+pub static DATA: LazyLock<GameData> = LazyLock::new(|| GameData::clone(&CHECKED));
 
 /// Every entry's blueprint, by where it is (ticket 237).
 pub static BLUEPRINTS: LazyLock<std::collections::BTreeMap<rules::DataAt, Option<&'static str>>> =
@@ -22,9 +22,10 @@ pub static BLUEPRINTS: LazyLock<std::collections::BTreeMap<rules::DataAt, Option
             .collect()
     });
 
-/// [`DATA`], checked once for every engine the tests build.
-static CHECKED: LazyLock<CheckedGameData> =
-    LazyLock::new(|| DATA.clone().checked().expect("game-data checks"));
+/// The files read and checked once, for [`DATA`] and every engine the tests build.
+static CHECKED: LazyLock<CheckedGameData> = LazyLock::new(|| {
+    seeds::check_game_data_files(&seeds::game_data_dir()).expect("game-data checks")
+});
 
 /// Every failing single condition in an `Unmet`, as a flat list.
 pub fn conditions(unmet: &Unmet) -> Vec<(&Prerequisite, Option<u8>)> {

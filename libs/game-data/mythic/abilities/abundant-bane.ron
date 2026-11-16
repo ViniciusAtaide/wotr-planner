@@ -1,1 +1,1 @@
-(key: "abundant-bane", blueprint: "1af20285c6d179e41a0d1fec3868fe5f", name: "Abundant Bane", summary: "Bane lasts one more round a day per mythic rank.", group: Class, guide: "mythic-paths#abundant-bane", prerequisite: Feature(feature: "inquisitor/bane", count: 1))
+(key: "abundant-bane", blueprint: "1af20285c6d179e41a0d1fec3868fe5f", name: "Abundant Bane", summary: "Bane lasts one more round a day per mythic rank.", group: Class, guide: "mythic-paths#abundant-bane", components: [Requires(condition: Has(Feature("inquisitor/bane")))])

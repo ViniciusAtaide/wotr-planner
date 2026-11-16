@@ -5,7 +5,9 @@
     name: "Bloodseeker",
     summary: "Dance of Masks evil slayer with a Blood Pool of vampiric powers and spells instead of slayer talents.",
     guide: "slayer#bloodseeker",
-    prerequisite: Any([Alignment(LawfulEvil), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
+    components: [
+        Requires(condition: Alignment([LawfulEvil, NeutralEvil, ChaoticEvil])),
+    ],
     levels: [
         (level: 1, features: ["slayer/bloodseeker/bloodseekers-cursed-lineage", "slayer/slayer-proficiencies", "studied-target"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, features: ["slayer/bloodseeker/blood-pool", "slayer/bloodseeker/bloodlust", "slayer/bloodseeker/sharp-teeth"], selections: ["slayer/bloodseeker/nocturnal-abilities"]),

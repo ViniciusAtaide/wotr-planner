@@ -10,7 +10,11 @@ Class(
     reflex: Poor,
     will: Poor,
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "perception"],
-    prerequisite: All([Feat("martial-weapons-proficiency"), SpellLevel(spell_type: Arcane, level: 3), CharacterLevel(6)]),
+    components: [
+        Requires(condition: Has(Feat("martial-weapons-proficiency"))),
+        Requires(condition: CasterTypeSpellLevel(caster: Arcane, level: 3)),
+        Requires(condition: CharacterLevel(6)),
+    ],
     counts_as: [(class: "fighter", toward: FeatPrerequisites)],
     levels: [
         (level: 1, features: ["eldritch-knight/diverse-training"], feat_slots: [CombatFeat]),

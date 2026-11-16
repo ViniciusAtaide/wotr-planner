@@ -5,7 +5,9 @@
     name: "Purifier",
     summary: "Aasimar only: channels against evil outsiders and gains armor training, with fewer revelations and no added cure or inflict spells.",
     guide: "oracle#purifier",
-    prerequisite: Race("aasimar"),
+    components: [
+        Requires(condition: Has(Race("aasimar"))),
+    ],
     levels: [
         (level: 1, feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/mystery", "oracle/oracles-curse", "oracle/revelations"]),
         (level: 3),

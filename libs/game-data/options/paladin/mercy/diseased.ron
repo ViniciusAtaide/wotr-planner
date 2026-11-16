@@ -1,1 +1,1 @@
-(key: "paladin/mercy/diseased", blueprint: "3990a92ce97efa3439e55c160412ce14", name: "Diseased", summary: "From 6th level, Lay on Hands also removes diseases.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 6))
+(key: "paladin/mercy/diseased", blueprint: "3990a92ce97efa3439e55c160412ce14", name: "Diseased", summary: "From 6th level, Lay on Hands also removes diseases.", guide: "paladin#mercy", components: [Requires(condition: ClassLevel("paladin", 6))])

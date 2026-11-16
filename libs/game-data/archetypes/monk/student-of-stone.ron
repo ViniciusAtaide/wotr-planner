@@ -5,7 +5,9 @@
     name: "Student of Stone",
     summary: "Oread-only monk focused on stability over mobility.",
     guide: "monk#student-of-stone",
-    prerequisite: Race("oread"),
+    components: [
+        Requires(condition: Has(Race("oread"))),
+    ],
     levels: [
         (level: 2, features: ["monk/student-of-stone/hard-as-stone"], feat_slots: [OneOf(list: "monk/bonus-feats-1")]),
         (level: 3, features: ["monk/ki-pool", "monk/ki-strike-magic", "monk/student-of-stone/strength-of-stone"]),

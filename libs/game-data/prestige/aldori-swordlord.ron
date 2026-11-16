@@ -10,7 +10,16 @@ Class(
     reflex: Good,
     will: Poor,
     class_skills: ["knowledge-world", "mobility", "perception", "persuasion"],
-    prerequisite: All([Feat("dazzling-display"), Feat("weapon-finesse"), FeatFor(feat: "weapon-focus", value: Weapon("dueling-sword")), SkillRanks(skill: "knowledge-world", ranks: 3), SkillRanks(skill: "mobility", ranks: 3), SkillRanks(skill: "perception", ranks: 3), SkillRanks(skill: "persuasion", ranks: 5), CharacterLevel(6)]),
+    components: [
+        Requires(condition: Has(Feat("dazzling-display"))),
+        Requires(condition: Has(Feat("weapon-finesse"))),
+        Requires(condition: ParametrizedFeature("weapon-focus", Weapon("dueling-sword"))),
+        Requires(condition: Stat(stat: Skill("knowledge-world"), value: 3)),
+        Requires(condition: Stat(stat: Skill("mobility"), value: 3)),
+        Requires(condition: Stat(stat: Skill("perception"), value: 3)),
+        Requires(condition: Stat(stat: Skill("persuasion"), value: 5)),
+        Requires(condition: CharacterLevel(6)),
+    ],
     levels: [
         (level: 1, features: ["aldori-swordlord/deft-strike"]),
         (level: 2, features: ["aldori-swordlord/display-weapon-prowess"]),

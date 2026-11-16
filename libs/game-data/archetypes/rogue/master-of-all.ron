@@ -5,7 +5,9 @@
     name: "Master of All",
     summary: "Half-elf rogue with every skill as a class skill and Skill Focus feats, but less sneak attack.",
     guide: "rogue#master-of-all",
-    prerequisite: Race("half-elf"),
+    components: [
+        Requires(condition: Has(Race("half-elf"))),
+    ],
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
     levels: [
         (level: 1, features: ["bardic-knowledge", "sneak-attack", "rogue/rogue-proficiencies", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),

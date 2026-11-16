@@ -1,1 +1,1 @@
-(key: "deadly-aim-mythic", blueprint: "ec661a003088c174ca3d477b51d35e03", name: "Deadly Aim (Mythic)", summary: "Deadly Aim\'s damage bonus rises to +3.", group: Ranged, guide: "mythic-paths#deadly-aim-mythic", prerequisite: Feat("deadly-aim"))
+(key: "deadly-aim-mythic", blueprint: "ec661a003088c174ca3d477b51d35e03", name: "Deadly Aim (Mythic)", summary: "Deadly Aim\'s damage bonus rises to +3.", group: Ranged, guide: "mythic-paths#deadly-aim-mythic", components: [Requires(condition: Has(Feat("deadly-aim")))])

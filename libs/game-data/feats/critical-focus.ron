@@ -1,1 +1,1 @@
-(key: "critical-focus", blueprint: "8ac59959b1b23c347a0361dc97cc786d", name: "Critical Focus", summary: "+4 to attack rolls that confirm critical hits.", category: Weapon, guide: "feats#critical-focus", prerequisite: BaseAttackBonus(9))
+(key: "critical-focus", blueprint: "8ac59959b1b23c347a0361dc97cc786d", name: "Critical Focus", summary: "+4 to attack rolls that confirm critical hits.", category: Weapon, guide: "feats#critical-focus", components: [Requires(condition: Stat(stat: BaseAttack, value: 9))])

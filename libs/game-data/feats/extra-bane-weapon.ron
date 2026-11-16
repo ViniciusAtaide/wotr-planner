@@ -1,1 +1,1 @@
-(key: "extra-bane-weapon", blueprint: "756dc2f7340b0b34285a1dc367ff7359", name: "Extra Bane Weapon", summary: "3 more rounds a day of the inquisitor's Bane.", category: Class, guide: "feats#extra-bane-weapon", prerequisite: Feature(feature: "inquisitor/bane", count: 1))
+(key: "extra-bane-weapon", blueprint: "756dc2f7340b0b34285a1dc367ff7359", name: "Extra Bane Weapon", summary: "3 more rounds a day of the inquisitor's Bane.", category: Class, guide: "feats#extra-bane-weapon", components: [Requires(condition: Has(Feature("inquisitor/bane")))])

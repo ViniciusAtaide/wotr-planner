@@ -1,1 +1,1 @@
-(key: "rogue/rogue-talents/slippery-mind", blueprint: "a14e8c1801911334f96d410f10eab7bf", name: "Slippery Mind", summary: "Adds your Dexterity modifier to saves against mind-affecting effects.", guide: "rogue#slippery-mind", prerequisite: Feature(feature: "advanced-talents", count: 1))
+(key: "rogue/rogue-talents/slippery-mind", blueprint: "a14e8c1801911334f96d410f10eab7bf", name: "Slippery Mind", summary: "Adds your Dexterity modifier to saves against mind-affecting effects.", guide: "rogue#slippery-mind", components: [Requires(condition: Has(Feature("advanced-talents")))])

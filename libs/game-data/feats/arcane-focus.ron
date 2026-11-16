@@ -1,1 +1,1 @@
-(key: "arcane-focus", blueprint: "f12795ec2c204d428738bbe1bfcad8fb", name: "Arcane Focus", summary: "Casting defensively gets +2 concentration, and beating spell resistance gets +1 caster level.", category: Racial, guide: "feats#arcane-focus", prerequisite: Race("elf"))
+(key: "arcane-focus", blueprint: "f12795ec2c204d428738bbe1bfcad8fb", name: "Arcane Focus", summary: "Casting defensively gets +2 concentration, and beating spell resistance gets +1 caster level.", category: Racial, guide: "feats#arcane-focus", components: [Requires(condition: Has(Race("elf")))])

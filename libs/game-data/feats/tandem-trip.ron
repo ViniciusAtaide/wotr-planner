@@ -1,1 +1,1 @@
-(key: "tandem-trip", blueprint: "d26eb8ab2aabd0e45a4d7eec0340bbce", name: "Tandem Trip", summary: "Roll trips twice and keep the better result whenever an ally with this feat is beside you.", category: Teamwork, guide: "feats#tandem-trip", prerequisite: Feat("trip"))
+(key: "tandem-trip", blueprint: "d26eb8ab2aabd0e45a4d7eec0340bbce", name: "Tandem Trip", summary: "Roll trips twice and keep the better result whenever an ally with this feat is beside you.", category: Teamwork, guide: "feats#tandem-trip", components: [Requires(condition: Has(Feat("trip")))])

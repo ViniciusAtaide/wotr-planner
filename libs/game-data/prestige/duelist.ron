@@ -10,7 +10,13 @@ Class(
     reflex: Good,
     will: Poor,
     class_skills: ["mobility", "perception", "persuasion"],
-    prerequisite: All([Feat("combat-mobility"), Feat("weapon-finesse"), SkillRanks(skill: "mobility", ranks: 2), BaseAttackBonus(6), CharacterLevel(7)]),
+    components: [
+        Requires(condition: Has(Feat("combat-mobility"))),
+        Requires(condition: Has(Feat("weapon-finesse"))),
+        Requires(condition: Stat(stat: Skill("mobility"), value: 2)),
+        Requires(condition: Stat(stat: BaseAttack, value: 6)),
+        Requires(condition: CharacterLevel(7)),
+    ],
     levels: [
         (level: 1, features: ["duelist/canny-defense", "duelist/precise-strike"]),
         (level: 2, features: ["duelist/improved-reaction", "duelist/parry"]),

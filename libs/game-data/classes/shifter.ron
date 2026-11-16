@@ -11,7 +11,9 @@ Class(
     will: Poor,
     save_exceptions: [(level: 2, save: Reflex, value: 2)],
     class_skills: ["athletics", "lore-nature", "mobility", "perception", "stealth"],
-    prerequisite: Any([Alignment(NeutralGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil)]),
+    components: [
+        Requires(condition: Alignment([NeutralGood, LawfulNeutral, TrueNeutral, ChaoticNeutral, NeutralEvil])),
+    ],
     levels: [
         (level: 1, features: ["shifter/shifter-claws"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["shifter/shifter-aspect"]),
         (level: 2, features: ["shifter/defensive-instinct", "shifter/track"]),

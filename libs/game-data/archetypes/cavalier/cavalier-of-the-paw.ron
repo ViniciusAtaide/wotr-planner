@@ -5,7 +5,9 @@
     name: "Cavalier of the Paw",
     summary: "Halfling cavalier with a dog or wolf mount and no order.",
     guide: "cavalier#cavalier-of-the-paw",
-    prerequisite: Race("halfling"),
+    components: [
+        Requires(condition: Has(Race("halfling"))),
+    ],
     levels: [
         (level: 1, features: ["cavalier-mount", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Teamwork)]),
         (level: 2, features: ["cavalier/cavalier-of-the-paw/danger-ward"]),

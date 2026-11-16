@@ -10,7 +10,9 @@ Class(
     reflex: Good,
     will: Poor,
     class_skills: ["athletics", "knowledge-world", "lore-religion", "mobility", "perception", "persuasion", "stealth"],
-    prerequisite: Any([Alignment(LawfulGood), Alignment(LawfulNeutral), Alignment(LawfulEvil)]),
+    components: [
+        Requires(condition: Alignment([LawfulGood, LawfulNeutral, LawfulEvil])),
+    ],
     levels: [
         (level: 1, features: ["monk/ac-bonus", "monk/flurry-of-blows", "monk/monk-proficiencies", "monk/stunning-fist", "monk/unarmed-strike"], feats: ["improved-unarmed-strike"], feat_slots: [OneOf(list: "monk/bonus-feats-1")]),
         (level: 2, features: ["evasion"], feat_slots: [OneOf(list: "monk/bonus-feats-1")]),

@@ -4,7 +4,9 @@
     name: "Combat Style Feat (10th level or later)",
     summary: "A Ranger combat style feat taken as a slayer talent at 10th level or later.",
     guide: "slayer#slayer-talents",
-    prerequisite: ClassLevel(class: "slayer", level: 10),
+    components: [
+        Requires(condition: ClassLevel("slayer", 10)),
+    ],
     levels: [
         (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style", at_level: 10)], selections: ["slayer/combat-style"]),
     ],

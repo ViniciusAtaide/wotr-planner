@@ -1,1 +1,1 @@
-(key: "monk/ki-power/true-strike", blueprint: "98e18d4659f390d4d84c9cc2765ac9c3", name: "True Strike", summary: "From 4th level, spend 1 ki point to cast True Strike.", guide: "monk", prerequisite: ClassLevel(class: "monk", level: 4))
+(key: "monk/ki-power/true-strike", blueprint: "98e18d4659f390d4d84c9cc2765ac9c3", name: "True Strike", summary: "From 4th level, spend 1 ki point to cast True Strike.", guide: "monk", components: [Requires(condition: ClassLevel("monk", 4))])

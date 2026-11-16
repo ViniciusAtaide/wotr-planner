@@ -1,1 +1,1 @@
-(key: "monk/ki-power/poison", blueprint: "7368732975b40eb42aa83889fdfaa3f2", name: "Poison", summary: "From 8th level, spend 2 ki points to use Poison.", guide: "monk", prerequisite: ClassLevel(class: "monk", level: 8))
+(key: "monk/ki-power/poison", blueprint: "7368732975b40eb42aa83889fdfaa3f2", name: "Poison", summary: "From 8th level, spend 2 ki points to use Poison.", guide: "monk", components: [Requires(condition: ClassLevel("monk", 8))])

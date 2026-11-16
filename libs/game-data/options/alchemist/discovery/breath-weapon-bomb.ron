@@ -1,1 +1,1 @@
-(key: "alchemist/discovery/breath-weapon-bomb", blueprint: "c186762d98c6a96459cc9302c6f49258", name: "Breath Weapon Bomb", summary: "A bomb can affect a 15-foot cone.", guide: "alchemist#breath-weapon-bomb", prerequisite: ClassLevel(class: "alchemist", level: 6))
+(key: "alchemist/discovery/breath-weapon-bomb", blueprint: "c186762d98c6a96459cc9302c6f49258", name: "Breath Weapon Bomb", summary: "A bomb can affect a 15-foot cone.", guide: "alchemist#breath-weapon-bomb", components: [Requires(condition: ClassLevel("alchemist", 6))])

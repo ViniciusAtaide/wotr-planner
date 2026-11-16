@@ -1,1 +1,1 @@
-(key: "mythic-sneak-attack", blueprint: "d0a53bf03b978634890e5ebab4a90ecb", name: "Mythic Sneak Attack", summary: "+1d6 sneak attack damage.", group: Miscellaneous, guide: "mythic-paths#mythic-sneak-attack", prerequisite: Feature(feature: "sneak-attack", count: 1))
+(key: "mythic-sneak-attack", blueprint: "d0a53bf03b978634890e5ebab4a90ecb", name: "Mythic Sneak Attack", summary: "+1d6 sneak attack damage.", group: Miscellaneous, guide: "mythic-paths#mythic-sneak-attack", components: [Requires(condition: Has(Feature("sneak-attack")))])

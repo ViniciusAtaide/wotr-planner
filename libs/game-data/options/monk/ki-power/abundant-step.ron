@@ -1,1 +1,1 @@
-(key: "monk/ki-power/abundant-step", blueprint: "008466f45b3e2e64793b30f3d16e41c0", name: "Abundant Step", summary: "From 8th level, 2 ki: teleport like Dimension Door, without bringing others.", guide: "monk#abundant-step", prerequisite: ClassLevel(class: "monk", level: 8))
+(key: "monk/ki-power/abundant-step", blueprint: "008466f45b3e2e64793b30f3d16e41c0", name: "Abundant Step", summary: "From 8th level, 2 ki: teleport like Dimension Door, without bringing others.", guide: "monk#abundant-step", components: [Requires(condition: ClassLevel("monk", 8))])

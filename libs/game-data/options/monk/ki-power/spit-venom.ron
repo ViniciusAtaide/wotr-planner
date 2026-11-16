@@ -1,1 +1,1 @@
-(key: "monk/ki-power/spit-venom", blueprint: "35012509f410a4b478d76922f8db5b96", name: "Spit Venom", summary: "From 10th level, spend 2 ki points to use Spit Venom.", guide: "monk", prerequisite: ClassLevel(class: "monk", level: 10))
+(key: "monk/ki-power/spit-venom", blueprint: "35012509f410a4b478d76922f8db5b96", name: "Spit Venom", summary: "From 10th level, spend 2 ki points to use Spit Venom.", guide: "monk", components: [Requires(condition: ClassLevel("monk", 10))])

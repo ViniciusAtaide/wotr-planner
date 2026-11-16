@@ -1,1 +1,1 @@
-(key: "furys-fall", blueprint: "0fc1ed8532168f74a9441bd17ad59e66", name: "Fury\'s Fall", summary: "Add your Dex bonus to your CMB when tripping.", category: CombatManoeuvres, guide: "feats#furys-fall", prerequisite: Feat("trip"))
+(key: "furys-fall", blueprint: "0fc1ed8532168f74a9441bd17ad59e66", name: "Fury\'s Fall", summary: "Add your Dex bonus to your CMB when tripping.", category: CombatManoeuvres, guide: "feats#furys-fall", components: [Requires(condition: Has(Feat("trip")))])

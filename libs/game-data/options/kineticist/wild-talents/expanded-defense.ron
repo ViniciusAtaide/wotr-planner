@@ -4,7 +4,9 @@
     name: "Expanded Defense",
     summary: "Unlocks the Defensive Wild Talent of an element gained through Expanded Element.",
     guide: "kineticist#expanded-defense",
-    prerequisite: ClassLevel(class: "kineticist", level: 8),
+    components: [
+        Requires(condition: ClassLevel("kineticist", 8)),
+    ],
     levels: [
         (level: 1, features: ["kineticist/wild-talents/expanded-defense/defense"]),
     ],

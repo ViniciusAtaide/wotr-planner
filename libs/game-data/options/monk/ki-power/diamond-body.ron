@@ -1,1 +1,1 @@
-(key: "monk/ki-power/diamond-body", blueprint: "a8819b70975701b4e874b2f9862aac24", name: "Diamond Body", summary: "From 12th level, immune to poison.", guide: "monk#diamond-body", prerequisite: ClassLevel(class: "monk", level: 12))
+(key: "monk/ki-power/diamond-body", blueprint: "a8819b70975701b4e874b2f9862aac24", name: "Diamond Body", summary: "From 12th level, immune to poison.", guide: "monk#diamond-body", components: [Requires(condition: ClassLevel("monk", 12))])

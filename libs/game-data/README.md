@@ -832,7 +832,9 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   and `-`, in `/`-separated parts (the schema checks this).
 - `guide` fields are `page#anchor` links into the guide. Store a short summary in our own words, never the
   guide's text.
-- Prerequisites are `All([...])`, `Any([...])` and `AtLeast(n, [...])` over single conditions such as
+- Prerequisites (the `prerequisite` field: a planner entry's, a blueprint entry's whose tree holds a condition with no
+  component yet, and the tree `Requires` compile into, see Components) are `All([...])`, `Any([...])` and
+  `AtLeast(n, [...])` over single conditions such as
   `Feat("power-attack")`, `AbilityScore(ability: Strength, score: 13)` or `MythicRank(9)`. A missing
   `prerequisite` means there is none. `Feat("weapon-focus")` is the feat for any value; `FeatFor(feat:
   "weapon-focus", value: Weapon("dueling-sword"))` needs one value (`Skill("mobility")`,
@@ -852,8 +854,16 @@ Since ticket 295 an entry may also hold `components: [...]`: what it does in the
 components (`AddFacts`, `PrerequisiteFeature`, `AddContextStatBonus`, `ContextRankConfig`, …) in our own words, with
 keys inside, never GUIDs (`rules::Component`, whose docs cite each kind's code). Every fact kind holds the field:
 feats, features, selections, options, mythic abilities and feats, races, subraces, backgrounds, deities, classes and
-archetypes. It is left out when empty, and no data file holds one yet: tickets 296 to 298 move the hand fields onto
-components, and 293 writes them from the blueprints.
+archetypes. It is left out when empty. Tickets 296 to 298 move the hand fields onto components, and 293 writes them
+from the blueprints:
+
+- **Prerequisites (ticket 296).** Every blueprint entry holds its prerequisite as `Requires` components, the same
+  values as the hand-shaped `prerequisite` it replaced: a condition of the `All` group each, and one `Any` group as
+  the game's `MeetsPrerequisites` reads it. The `prerequisite` field stays on the planner's entries (`planner/`) and on
+  the blueprint entries whose tree holds a condition with no component yet: a story condition (the planner's own),
+  and `FeatForSameValue`, `FeatIfValue`, `Worships`, `Atheist`, `DeityOffers`, `PickedThrough`,
+  `NoOtherOptionOfGroup`, `NoOptionFrom` and the Arcane Trickster's `AtLeast` over Sneak Attack's rank, each a later
+  stage's (ticket 296's Answer lists them).
 
 ```ron
 components: [
@@ -865,8 +875,9 @@ components: [
 ```
 
 - `Requires` compiles into the entry's `prerequisite` at load: an `All` of the `All` group's conditions with one
-  `Any` of the `Any` group's. Only an entry that is picked holds it (a feat, an option, a mythic ability or feat, a
-  class, an archetype).
+  `Any` of the `Any` group's. The checked data holds that tree in their place (`GameData::checked`), so the engine,
+  the MCP server, the game check and the browser's JSON read one form. Only an entry that is picked holds it (a feat,
+  an option, a mythic ability or feat, a class, an archetype).
 - The grants (`Grant`, `GrantAtClassLevel`, `GrantIf`, `GrantOnApply`, `RemoveOnApply`, `GrantWithValue`), the
   stat bonuses with their values (`Flat`, `PerRank`, `Rank`, `Shared`), `ClassSkill`, `SkillPoints`, `Proficiency`
   and `Flag` apply while the entry is held; `PrerequisiteClassLevels` and `PrerequisiteStat` change what a

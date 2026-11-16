@@ -10,7 +10,9 @@ Class(
     reflex: Poor,
     will: Poor,
     class_skills: ["athletics", "lore-nature", "mobility", "perception", "persuasion"],
-    prerequisite: Any([Alignment(NeutralGood), Alignment(ChaoticGood), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil), Alignment(ChaoticEvil)]),
+    components: [
+        Requires(condition: Alignment([NeutralGood, ChaoticGood, TrueNeutral, ChaoticNeutral, NeutralEvil, ChaoticEvil])),
+    ],
     levels: [
         (level: 1, features: ["barbarian/fast-movement", "barbarian/rage"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 2, features: ["uncanny-dodge"], selections: ["barbarian/rage-power"]),

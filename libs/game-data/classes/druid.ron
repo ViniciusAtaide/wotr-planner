@@ -11,7 +11,9 @@ Class(
     reflex: Poor,
     will: Good,
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "perception"],
-    prerequisite: Any([Alignment(NeutralGood), Alignment(LawfulNeutral), Alignment(TrueNeutral), Alignment(ChaoticNeutral), Alignment(NeutralEvil)]),
+    components: [
+        Requires(condition: Alignment([NeutralGood, LawfulNeutral, TrueNeutral, ChaoticNeutral, NeutralEvil])),
+    ],
     levels: [
         (level: 1, divine_spell_level: 1, features: ["druid/druid-proficiencies", "druid/nature-sense", "druid/spontaneous-summoning"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"], selections: ["druid/nature-bond"]),
         (level: 2, divine_spell_level: 1, features: ["druid/woodland-stride"]),

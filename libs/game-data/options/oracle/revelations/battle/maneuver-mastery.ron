@@ -3,7 +3,9 @@
     blueprint: "89629bb513a70cb4596d1d780b95ea72",
     name: "Maneuver Mastery",
     summary: "Pick a combat maneuver: you use your class level instead of BAB for its CMB, gain its Improved feat at 7th and its Greater feat at 11th.",
-    prerequisite: SelectionOption("oracle/mystery/battle"),
+    components: [
+        Requires(condition: Has(Option("oracle/mystery/battle"))),
+    ],
     guide: "oracle#maneuver-mastery",
     levels: [
         (level: 1, selections: ["oracle/maneuver-mastery"]),

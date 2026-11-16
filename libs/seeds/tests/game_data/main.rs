@@ -43,6 +43,7 @@ mod option_lists;
 mod parameterised_feats;
 mod pick_order;
 mod pick_values;
+mod prerequisites_as_components;
 mod proficiency;
 mod races;
 mod ranks_and_pools;

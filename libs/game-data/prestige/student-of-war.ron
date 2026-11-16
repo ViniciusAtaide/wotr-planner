@@ -11,7 +11,16 @@ Class(
     will: Good,
     save_exceptions: [(level: 4, save: Will, value: 3)],
     class_skills: ["knowledge-arcana", "knowledge-world", "perception"],
-    prerequisite: All([Any([FeatFor(feat: "skill-focus", value: Skill("knowledge-arcana")), FeatFor(feat: "skill-focus", value: Skill("knowledge-world")), FeatFor(feat: "skill-focus", value: Skill("lore-nature")), FeatFor(feat: "skill-focus", value: Skill("lore-religion"))]), Feat("combat-expertise"), Feat("dodge"), BaseAttackBonus(5), CharacterLevel(6)]),
+    components: [
+        Requires(condition: ParametrizedFeature("skill-focus", Skill("knowledge-arcana")), group: Any),
+        Requires(condition: ParametrizedFeature("skill-focus", Skill("knowledge-world")), group: Any),
+        Requires(condition: ParametrizedFeature("skill-focus", Skill("lore-nature")), group: Any),
+        Requires(condition: ParametrizedFeature("skill-focus", Skill("lore-religion")), group: Any),
+        Requires(condition: Has(Feat("combat-expertise"))),
+        Requires(condition: Has(Feat("dodge"))),
+        Requires(condition: Stat(stat: BaseAttack, value: 5)),
+        Requires(condition: CharacterLevel(6)),
+    ],
     levels: [
         (level: 1, features: ["student-of-war/additional-class-skill"], selections: ["student-of-war/know-your-enemy"]),
         (level: 2, features: ["student-of-war/mind-over-metal"], feat_slots: [CombatFeat]),

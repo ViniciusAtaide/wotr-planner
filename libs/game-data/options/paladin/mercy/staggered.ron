@@ -1,1 +1,1 @@
-(key: "paladin/mercy/staggered", blueprint: "19250e5a12db1fc448970b81e0f38922", name: "Staggered", summary: "From 6th level, Lay on Hands also removes the staggered condition.", guide: "paladin#mercy", prerequisite: ClassLevel(class: "paladin", level: 6))
+(key: "paladin/mercy/staggered", blueprint: "19250e5a12db1fc448970b81e0f38922", name: "Staggered", summary: "From 6th level, Lay on Hands also removes the staggered condition.", guide: "paladin#mercy", components: [Requires(condition: ClassLevel("paladin", 6))])

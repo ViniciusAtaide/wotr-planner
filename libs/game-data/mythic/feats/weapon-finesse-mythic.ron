@@ -1,1 +1,1 @@
-(key: "weapon-finesse-mythic", blueprint: "d791af1bc179e0e44a0ca1fa6c418993", name: "Weapon Finesse (Mythic)", summary: "Add your Dexterity modifier to damage rolls.", group: Melee, guide: "mythic-paths#weapon-finesse-mythic", prerequisite: Feat("weapon-finesse"))
+(key: "weapon-finesse-mythic", blueprint: "d791af1bc179e0e44a0ca1fa6c418993", name: "Weapon Finesse (Mythic)", summary: "Add your Dexterity modifier to damage rolls.", group: Melee, guide: "mythic-paths#weapon-finesse-mythic", components: [Requires(condition: Has(Feat("weapon-finesse")))])

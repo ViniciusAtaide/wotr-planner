@@ -1,1 +1,1 @@
-(key: "any-means-necessary", blueprint: "a0a814897cd33ed4ea6ffca4b0e1197a", name: "Any Means Necessary", summary: "Damage reduction treats your attacks as good-aligned.", group: Class, guide: "mythic-paths#any-means-necessary", prerequisite: ClassLevel(class: "hellknight", level: 1))
+(key: "any-means-necessary", blueprint: "a0a814897cd33ed4ea6ffca4b0e1197a", name: "Any Means Necessary", summary: "Damage reduction treats your attacks as good-aligned.", group: Class, guide: "mythic-paths#any-means-necessary", components: [Requires(condition: ClassLevel("hellknight", 1))])

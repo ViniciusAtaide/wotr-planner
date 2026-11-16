@@ -1,1 +1,1 @@
-(key: "monk/ki-power/cold-ice-strike", blueprint: "bd0eea84b4ff6994a96b119a3cee8357", name: "Cold Ice Strike", summary: "From 14th level, spend 3 ki points to use Cold Ice Strike.", guide: "monk", prerequisite: ClassLevel(class: "monk", level: 14))
+(key: "monk/ki-power/cold-ice-strike", blueprint: "bd0eea84b4ff6994a96b119a3cee8357", name: "Cold Ice Strike", summary: "From 14th level, spend 3 ki points to use Cold Ice Strike.", guide: "monk", components: [Requires(condition: ClassLevel("monk", 14))])

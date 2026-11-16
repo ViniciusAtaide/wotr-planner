@@ -1,1 +1,1 @@
-(key: "throw-elixir", blueprint: "fd1f99a42ff74d74f95c50cfc632cd69", name: "Throw Elixir", summary: "An Alchemist\'s extracts reach close range instead of touch.", group: Class, guide: "mythic-paths#throw-elixir", prerequisite: SelectionOption("alchemist/discovery/infusion"))
+(key: "throw-elixir", blueprint: "fd1f99a42ff74d74f95c50cfc632cd69", name: "Throw Elixir", summary: "An Alchemist\'s extracts reach close range instead of touch.", group: Class, guide: "mythic-paths#throw-elixir", components: [Requires(condition: Has(Option("alchemist/discovery/infusion")))])
