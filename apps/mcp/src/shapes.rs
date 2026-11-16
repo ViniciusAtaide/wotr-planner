@@ -1205,7 +1205,7 @@ pub enum OptionStatus {
     },
     Closed {
         /// The engine's issue: `unmet`, `already_held`, `max_times`, `not_allowed`, `class_level_cap`,
-        /// `not_from_path`, `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`.
+        /// `not_from_path`, `deity_alignment`, `needs_faith`, `deity_domain`, `not_proficient`, `breaks_later`.
         issue: String,
         /// The planner's reason ("Needs Power Attack, BAB +4 (have +1)").
         reason: String,
@@ -1324,7 +1324,7 @@ pub struct Rejected {
     /// Its address, as given.
     pub choice: String,
     /// Why: the engine's issue (`unmet`, `already_held`, `max_times`, `not_allowed`, `class_level_cap`,
-    /// `not_from_path`, `deity_alignment`, `needs_faith`, `deity_domain`, `breaks_later`), or the server's
+    /// `not_from_path`, `deity_alignment`, `needs_faith`, `deity_domain`, `not_proficient`, `breaks_later`), or the server's
     /// (`not_an_option`, `needs_parameter`, `no_such_choice`, `internal`).
     pub issue: String,
     /// The planner's reason; for `not_an_option`, the closest values offered; for `needs_parameter`, what the value

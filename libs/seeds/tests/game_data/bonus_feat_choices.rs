@@ -510,12 +510,16 @@ fn the_hunters_and_the_stormwalkers_choices_offer_their_lists_ignoring_prerequis
                 list_feats(list),
                 "{list} at {level}"
             );
+            // Every option is open but a weapon the character isn't proficient with, for a feat that requires
+            // proficiency (ticket 251; game: WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e, RequireProficiency,
+            // which BlueprintParametrizedFeature.CanSelect checks whatever the selection ignores, WrathDecompiled
+            // 6ce4a6b).
             for option in engine().options(&build, &class_slot(*level)).unwrap() {
-                assert_eq!(
-                    option.status,
-                    Ok(()),
-                    "{list} at {level}: {:?}",
-                    option.pick
+                assert!(
+                    matches!(option.status, Ok(()) | Err(Issue::NotProficient { .. })),
+                    "{list} at {level}: {:?} {:?}",
+                    option.pick,
+                    option.status
                 );
             }
         }

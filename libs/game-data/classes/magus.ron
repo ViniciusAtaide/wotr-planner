@@ -399,7 +399,7 @@ Class(
                 (key: "magus/sword-saint/weapon-mastery", blueprint: "5b31af13868166d4c9bb452f19277f19", name: "Weapon Mastery", summary: "At 20th level, chosen-weapon threats always confirm and their crit multiplier rises by 1.", guide: "magus#weapon-mastery"),
             ],
             feat_lists: [
-                (key: "magus/sword-saint/chosen-weapon", blueprint: "3130e3083845b7b4fa2ac5b6f1a1ae6e", name: "Chosen Weapon", guide: "magus#chosen-weapon", ignores_prerequisites: true, feats: ["weapon-focus"]),
+                (key: "magus/sword-saint/chosen-weapon", blueprint: "3130e3083845b7b4fa2ac5b6f1a1ae6e", name: "Chosen Weapon", guide: "magus#chosen-weapon", ignores_prerequisites: true, skips_proficiency: true, feats: ["weapon-focus"]),
             ],
             levels: [
                 (level: 1, features: ["magus/arcane-pool", "magus/spell-combat", "magus/sword-saint/canny-defense", "magus/sword-saint/detect-magic", "magus/sword-saint/sword-saint-proficiencies"], feats: ["simple-weapon-proficiency"], feat_slots: [OneOf(list: "magus/sword-saint/chosen-weapon")]),

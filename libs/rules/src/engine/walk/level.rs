@@ -412,7 +412,8 @@ impl<'a> Walker<'a> {
     }
 
     /// Fills a level's own slots and the slots its picks grant, band by band in the game's order ([`Band`]). Within a
-    /// band, a pick refused for an unmet prerequisite at its turn is tried again after the band's other picks and the
+    /// band, a pick refused at its turn for an unmet prerequisite or a weapon not yet proficient
+    /// ([`deferrable`](super::judge::deferrable)) is tried again after the band's other picks and the
     /// slots they grant, until no more holds: so it holds when some order of the band's picks holds it, each checked
     /// with the ones before it, as the game applies the picks of one band in the order the player makes them
     /// (`LevelUpController.AddAction`, WrathDecompiled 6ce4a6b). Never with itself, nor with a later band's pick, a

@@ -229,19 +229,21 @@ fn weapon_mastery_grants_improved_critical_at_8_in_its_weapon() {
         revelation_slot(1),
         Pick::option_for(
             SelectionOptionKey::new("oracle/revelations/battle/weapon-mastery"),
-            weapon("longsword"),
+            weapon("heavy-mace"),
         ),
     );
     assert!(engine().is_possible(&build));
+    // A weapon the oracle is proficient with (ticket 251): Weapon Mastery's 1st-level pick is Weapon Focus
+    // (OracleRevelationWeaponMasteryWeaponFocusSelection 7e360e025592a734bb6c3ae1210824f3), which requires it.
     // Game: OracleRevelationWeaponMastery 0a4c3556355747241b2d3dcc0a88ec10: Weapon Focus at 1, Improved Critical at
     // 8, Greater Weapon Focus at 12, in the chosen weapon.
-    assert!(at(&build, 1).has_feat_for(&FeatKey::new("weapon-focus"), &weapon("longsword")));
+    assert!(at(&build, 1).has_feat_for(&FeatKey::new("weapon-focus"), &weapon("heavy-mace")));
     let critical = FeatKey::new("improved-critical");
-    assert!(!at(&build, 7).has_feat_for(&critical, &weapon("longsword")));
-    assert!(at(&build, 8).has_feat_for(&critical, &weapon("longsword")));
+    assert!(!at(&build, 7).has_feat_for(&critical, &weapon("heavy-mace")));
+    assert!(at(&build, 8).has_feat_for(&critical, &weapon("heavy-mace")));
     assert!(!at(&build, 8).has_feat_for(&critical, &weapon("dagger")));
     assert!(
-        at(&build, 12).has_feat_for(&FeatKey::new("greater-weapon-focus"), &weapon("longsword"))
+        at(&build, 12).has_feat_for(&FeatKey::new("greater-weapon-focus"), &weapon("heavy-mace"))
     );
 }
 

@@ -339,6 +339,21 @@ pub fn possible(build: &Build) -> bool {
     engine().is_possible(build)
 }
 
+/// A Build from a link made before ticket 251, without the weapon feats in it that the game refuses for a weapon the
+/// character isn't proficient with (`RequireProficiency`, which `BlueprintParametrizedFeature.CanSelect` checks,
+/// WrathDecompiled 6ce4a6b): those make the link stale. Panics when any other choice fails.
+pub fn without_unproficient_picks(mut build: Build) -> Build {
+    for failure in engine().failures(&build) {
+        match (failure.choice, failure.issue) {
+            (rules::Choice::Slot(slot), Issue::NotProficient { .. }) => {
+                build.picks.remove(&slot);
+            }
+            (choice, issue) => panic!("{choice:?} fails: {issue:?}"),
+        }
+    }
+    build
+}
+
 pub fn feat_pick(key: &str, value: Parameter) -> Pick {
     Pick::feat_for(FeatKey::new(key), value)
 }

@@ -15,8 +15,9 @@ use crate::check::CheckedGameData;
 use crate::game_data::{
     AbilityBonus, AbilityModifier, Archetype, BabFromRanks, Background, Band, Class, Deity,
     EXOTIC_WEAPON_PROFICIENCY, Feat, FeatCategory, FeatList, FeatureSelection, FeatureSteps,
-    GameData, IMPROVED_UNARMED_STRIKE, MythicAbility, MythicFeat, MythicPath, OptionRow, Race,
-    SelectionOption, Skill, Subrace, UNARMED_STRIKE, Weapon, WeaponProficiency,
+    GameData, IMPROVED_UNARMED_STRIKE, MARTIAL_WEAPONS_PROFICIENCY, MythicAbility, MythicFeat,
+    MythicPath, OptionRow, Race, SIMPLE_WEAPON_PROFICIENCY, SelectionOption, Skill, Subrace,
+    UNARMED_STRIKE, Weapon, WeaponProficiency,
 };
 use crate::gear::GearItem;
 use crate::keys::{
@@ -26,6 +27,7 @@ use crate::keys::{
 };
 use crate::parameter::{ArmourType, Element, Energy, Parameter, ParameterKind, SpellSchool, Stat};
 use crate::prerequisite::Prerequisite;
+use crate::state::CharacterState;
 
 /// The game data in canonical order, with its positions by key and what the engine reads off its features. Built
 /// once by [`Engine::new`](super::Engine::new); the engine reads the game data only through it.
@@ -614,6 +616,54 @@ impl Catalog {
     /// The weapons a feature makes the character proficient with while it's held; none for most.
     pub(super) fn feature_weapons(&self, feature: &FeatureKey) -> Option<&BTreeSet<WeaponKey>> {
         self.features.weapons.get(feature)
+    }
+
+    /// Whether a character is proficient with a weapon (ticket 198): one on no proficiency list (the unarmed strike,
+    /// rays, natural attacks) always; a simple or martial one while holding that list's feat; an exotic one while
+    /// holding Exotic Weapon Proficiency for it, or Martial Weapons Proficiency when the race treats it as martial;
+    /// and any a held feature, the race's weapon familiarity (the subrace's in its place) or the background names,
+    /// with the deity's favoured weapons while a held feature grants them. `start` is the Build's and `state` a point
+    /// of it.
+    pub(super) fn proficient(
+        &self,
+        start: &BuildStart,
+        state: &CharacterState,
+        weapon: &Weapon,
+    ) -> bool {
+        let key = &weapon.key;
+        let martial = || state.feat_count(&FeatKey::new(MARTIAL_WEAPONS_PROFICIENCY)) > 0;
+        let listed = match weapon.proficiency {
+            None => true,
+            Some(WeaponProficiency::Simple) => {
+                state.feat_count(&FeatKey::new(SIMPLE_WEAPON_PROFICIENCY)) > 0
+            }
+            Some(WeaponProficiency::Martial) => martial(),
+            Some(WeaponProficiency::Exotic) => {
+                state.has_feat_for(
+                    &FeatKey::new(EXOTIC_WEAPON_PROFICIENCY),
+                    &Parameter::Weapon(key.clone()),
+                ) || (martial()
+                    && self
+                        .racial_weapons(start)
+                        .is_some_and(|(_, as_martial)| as_martial.contains(key)))
+            }
+        };
+        listed
+            || (self.racial_weapons(start)).is_some_and(|(weapons, _)| weapons.contains(key))
+            || (start.background.as_ref())
+                .and_then(|background| self.background(background))
+                .is_some_and(|background| background.weapons.contains(key))
+            || (state.features.keys())
+                .filter_map(|feature| self.feature_weapons(feature))
+                .any(|weapons| weapons.contains(key))
+            || state
+                .deity()
+                .and_then(|deity| self.deity(deity))
+                .is_some_and(|deity| {
+                    deity.favoured_weapons.contains(key)
+                        && (self.features.favoured_weapons.iter())
+                            .any(|feature| state.features.contains_key(feature))
+                })
     }
 
     /// The feats a follower of `deity` holds for its favoured weapons while holding a feature that grants them,

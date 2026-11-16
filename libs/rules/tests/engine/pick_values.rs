@@ -30,6 +30,7 @@ fn world_with_pick_values() -> GameData {
         parameter: None,
         repeat: Repeat::Once,
         extra_pick_of: BTreeSet::new(),
+        requires_proficiency: false,
         prerequisite: None,
     };
     data.feats.push(metamagic(

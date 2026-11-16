@@ -1122,6 +1122,7 @@ fn an_option_rows_bonus_slot_names_its_list() {
             guide: Some(rules::GuideRef::new("cleric")),
             ignores_prerequisites: false,
             every_feat: false,
+            skips_proficiency: false,
             feats: BTreeSet::from([FeatKey::new("toughness"), FeatKey::new("dodge")]),
         });
     assert_eq!(

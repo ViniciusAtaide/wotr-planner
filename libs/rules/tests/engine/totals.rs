@@ -47,6 +47,7 @@ fn world_with_bonus_items() -> GameData {
             parameter: None,
             repeat: Repeat::Once,
             extra_pick_of: BTreeSet::new(),
+            requires_proficiency: false,
             prerequisite: None,
         });
     }
@@ -65,6 +66,7 @@ fn world_with_bonus_items() -> GameData {
         repeat: Repeat::Once,
         removes_racial_penalty: false,
         extra_pick: None,
+        requires_proficiency: false,
         prerequisite: None,
     });
     data.mythic_abilities.push(MythicAbility {

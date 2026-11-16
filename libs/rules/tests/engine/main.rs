@@ -51,6 +51,7 @@ mod prerequisites;
 mod rank_levels;
 mod ranks_and_pools;
 mod removable;
+mod required_proficiency;
 mod shared_options;
 mod slot_entries;
 mod slots;

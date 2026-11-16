@@ -575,14 +575,12 @@ fn links_made_before_the_splits_open_with_the_same_picks() {
             fields.next().unwrap(),
             fields.next().unwrap(),
         );
-        let build = engine
-            .open_link(link)
-            .unwrap_or_else(|_| panic!("{name}: opens"));
-        assert_eq!(
-            rules::decode_build(link, &keys).as_ref(),
-            Ok(&build),
-            "{name}"
-        );
+        let build = rules::decode_build(link, &keys).unwrap_or_else(|_| panic!("{name}: decodes"));
+        // It opens, but for its weapon feats in weapons the character isn't proficient with, which fail since ticket
+        // 251.
+        let kept = without_unproficient_picks(build.clone());
+        assert_eq!(engine.open_link(link).is_ok(), kept == build, "{name}");
+        assert!(engine.is_possible(&kept), "{name}");
         assert_eq!(picks(&build), expected, "{name}");
         count += 1;
     }

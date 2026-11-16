@@ -418,7 +418,6 @@ fn a_warpriest_takes_weapon_focus_in_a_weapon_of_his_choosing() {
 /// The game's Weapon Focus keeps its proficiency check where the slot ignores prerequisites: the warpriest's slot
 /// opens only the weapons he is proficient with.
 #[test]
-#[ignore = "waits on ticket 251: the game gives the warpriest's slot only the weapons he is proficient with"]
 fn a_warpriests_weapon_focus_slot_opens_only_the_weapons_he_is_proficient_with() {
     // Game: WarpriestWeaponFocusSelection ac384183dbfbbd7499410a21d749bef1 (IgnorePrerequisites); WeaponFocus
     // 1e1f627d26ad36f43bbd26cc2bf8ac7e has RequireProficiency, which
@@ -637,4 +636,61 @@ const NEW_STRAIN: &str =
 fn plague_mutation_new_strain_repeats_four_times() {
     // Game: PlagueHexIncreaseDamageStepFeature 505648df95f5489fa13ddbd1af9473fd, Ranks 4.
     assert_eq!(selection_option(NEW_STRAIN).repeat, Repeat::Times(4));
+}
+
+/// The feats taken for a weapon the character must be proficient with: those whose blueprint sets
+/// `RequireProficiency` (ticket 251).
+#[test]
+fn the_feats_that_require_proficiency_are_the_games() {
+    // Game: RequireProficiency is set on WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e, WeaponFocusGreater
+    // 09c9e82965fb4334b984a1e9df3bd088, WeaponSpecialization 31470b17e8446ae4ea0dacd6c5817d86,
+    // WeaponSpecializationGreater 7cf5edc65e785a24f9cf93af987d66b3, ImprovedCritical f4201c85a991369408740c6888362e20,
+    // TricksterImprovedImprovedCritical 56f94badbba018b4b8277ce6e2e79e72, TricksterImprovedImprovedImprovedCritical
+    // 006a966007802a0478c9e21007207aac, TricksterImprovedImprovedImprovedCriticalImproved
+    // 319c882ab3cc51544ad2f3f43633d5b1 and ImprovedCriticalMythicFeat 8bc0190a4ec04bd489eec290aeaa6d07, each a
+    // BlueprintParametrizedFeature taken for a weapon. (FencingGrace, SlashingGrace, PointBlankMaster,
+    // WeaponFocusMythicFeat and WeaponSpecializationMythicFeat set it too, but the planner takes them for no weapon.)
+    let feats: BTreeSet<&str> = (DATA.feats.iter())
+        .filter(|feat| feat.requires_proficiency)
+        .map(|feat| feat.key.as_str())
+        .collect();
+    assert_eq!(
+        feats,
+        BTreeSet::from([
+            "greater-weapon-focus",
+            "greater-weapon-specialization",
+            "improved-critical",
+            "improved-improved-critical",
+            "improved-improved-improved-critical",
+            "improved-improved-improved-critical-improved",
+            "weapon-focus",
+            "weapon-specialization",
+        ])
+    );
+    let mythic: BTreeSet<&str> = (DATA.mythic_feats.iter())
+        .filter(|feat| feat.requires_proficiency)
+        .map(|feat| feat.key.as_str())
+        .collect();
+    assert_eq!(mythic, BTreeSet::from(["improved-critical-mythic"]));
+}
+
+/// The Sword Saint's chosen weapon is any melee weapon, proficient or not: the game's pick there is a feature of its
+/// own that gives Weapon Focus and proficiency with the weapon.
+#[test]
+fn a_sword_saint_chooses_a_weapon_he_isnt_proficient_with_yet() {
+    // Game: SwordSaintChosenWeaponSelection 3130e3083845b7b4fa2ac5b6f1a1ae6e offers SwordSaintChosenWeaponFeature
+    // c0b4ec0175e3ff940a45fc21f318a39a (no RequireProficiency; KensaiChosenWeapon gives Weapon Focus), and the Sword
+    // Saint is proficient with simple weapons only (the selection's AddFacts SimpleWeaponProficiency).
+    let saint = archetype_build("magus", "magus/sword-saint", 1);
+    assert!(
+        !engine()
+            .proficient_weapons(&saint.start, &at(&saint, 1))
+            .contains(&rules::WeaponKey::new("longsword"))
+    );
+    let mut build = saint;
+    build.picks.insert(
+        class_slot(1),
+        Pick::feat_for(FeatKey::new("weapon-focus"), weapon("longsword")),
+    );
+    assert!(possible(&build));
 }

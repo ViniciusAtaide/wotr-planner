@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use crate::build::{GearSpot, Pick, SlotId};
 use crate::engine::SlotKind;
 use crate::game_data::{Ability, DeityDomains};
-use crate::keys::{ClassKey, DeityKey, MythicPathKey, SkillKey};
+use crate::keys::{ClassKey, DeityKey, MythicPathKey, SkillKey, WeaponKey};
 use crate::prerequisite::Prerequisite;
 
 /// Where a choice sits in a Build: what [`Engine::removable`](crate::Engine::removable) answers for, and where a
@@ -113,6 +113,10 @@ pub enum Issue {
         deity: DeityKey,
         limit: DeityDomains,
     },
+    /// A feat taken for a weapon the character isn't proficient with, where the feat requires proficiency
+    /// ([`Feat::requires_proficiency`](crate::Feat::requires_proficiency)), whatever its slot ignores ("Not
+    /// proficient with Bastard Sword").
+    NotProficient { weapon: WeaponKey },
     /// A picker's option that would break a later choice (a later pick of the same feat, or one that needs what
     /// the option replaces): the later choice comes off first, as choices come off from the leaves inward
     /// ([`Engine::removable`](crate::Engine::removable)).

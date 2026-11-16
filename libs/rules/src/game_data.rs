@@ -582,6 +582,10 @@ impl BackgroundGroup {
 pub const DOMAIN_SELECTION: &str = "cleric/domain";
 /// The feat a follower holds for an exotic favoured weapon, taken for that weapon (Achaekek: Sawtooth Saber).
 pub const EXOTIC_WEAPON_PROFICIENCY: &str = "exotic-weapon-proficiency";
+/// The feat that makes a character proficient with every simple weapon.
+pub const SIMPLE_WEAPON_PROFICIENCY: &str = "simple-weapon-proficiency";
+/// The feat that makes a character proficient with every martial weapon.
+pub const MARTIAL_WEAPONS_PROFICIENCY: &str = "martial-weapons-proficiency";
 /// The feat a follower holds for the unarmed strike as favoured weapon (Irori).
 pub const IMPROVED_UNARMED_STRIKE: &str = "improved-unarmed-strike";
 /// The weapon that is the unarmed strike.
@@ -727,6 +731,11 @@ pub struct Feat {
     /// Channel).
     #[serde(default)]
     pub extra_pick_of: BTreeSet<FeatureSelectionKey>,
+    /// The weapon it is taken for must be one the character is proficient with, in every slot, whatever the slot's
+    /// list ignores: the game's `RequireProficiency`, which `BlueprintParametrizedFeature.CanSelect` checks on the
+    /// feature's own flag, not the selection's (WrathDecompiled 6ce4a6b). Read only for a weapon value.
+    #[serde(default)]
+    pub requires_proficiency: bool,
     /// `None`: the guide lists no prerequisites, so there are none.
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
@@ -793,6 +802,13 @@ pub struct FeatList {
     /// counts as held afterwards. Unset, the prerequisites are checked.
     #[serde(default)]
     pub ignores_prerequisites: bool,
+    /// Set where the game's pick through the list is a feature of its own that grants the feat and proficiency with
+    /// its weapon, so a feat that requires proficiency ([`Feat::requires_proficiency`]) skips that check and is taken
+    /// for any weapon (the Sword Saint's chosen weapon: `SwordSaintChosenWeaponFeature`
+    /// c0b4ec0175e3ff940a45fc21f318a39a, whose `KensaiChosenWeapon` gives Weapon Focus, has no `RequireProficiency`).
+    /// The proficiency the game grants with it isn't held on the sheet.
+    #[serde(default)]
+    pub skips_proficiency: bool,
     /// Set on a list of every feat in the data (Gold Dragon's Dragon Feats: "any three feats"), which then names
     /// no feats of its own: the members would only copy the feat catalog.
     #[serde(default)]
@@ -1680,6 +1696,9 @@ pub struct MythicFeat {
     /// feat"). `None`: it gives none.
     #[serde(default)]
     pub extra_pick: Option<MythicExtraPick>,
+    /// As [`Feat::requires_proficiency`] (Improved Critical (Mythic)).
+    #[serde(default)]
+    pub requires_proficiency: bool,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
 }

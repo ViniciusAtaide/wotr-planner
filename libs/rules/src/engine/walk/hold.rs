@@ -2,7 +2,7 @@
 //! follow from it.
 
 use super::gear::WornGear;
-use super::judge::check_pick;
+use super::judge::{check_pick, deferrable};
 use super::{Checkpoint, Deferred, GrantSource, Held, Pending, Probe, RankGrant, Walker};
 use crate::build::{AbilityScores, Pick, SlotId};
 use crate::choice::{Choice, Issue};
@@ -25,8 +25,9 @@ impl<'a> Walker<'a> {
     }
 
     /// Checks the slot's pick against the state just before it and, when it holds, adds it to the state. While a
-    /// level's band is filled ([`fill_bands`](Self::fill_bands)), a pick refused for an unmet prerequisite is deferred,
-    /// to be tried again after the band's other picks ([`retry`](Self::retry)), rather than failing now.
+    /// level's band is filled ([`fill_bands`](Self::fill_bands)), a pick refused for what the band's other picks may
+    /// give ([`deferrable`]) is deferred, to be tried again after them ([`retry`](Self::retry)), rather than failing
+    /// now.
     pub(super) fn fill(&mut self, id: SlotId, kind: SlotKind, rank: Option<u8>) -> Slot {
         let source = rank.map(|rank| GrantSource {
             rank,
@@ -57,7 +58,7 @@ impl<'a> Walker<'a> {
             match self.check_pick(&kind, pick) {
                 Ok(()) => self.hold_noted(&id, &kind, pick, source.as_ref()),
                 Err(issue) => match self.deferred.as_mut() {
-                    Some(deferred) if matches!(issue, Issue::Unmet(_)) => deferred.push(Deferred {
+                    Some(deferred) if deferrable(&issue) => deferred.push(Deferred {
                         id: id.clone(),
                         kind: kind.clone(),
                         pick: pick.clone(),
@@ -118,7 +119,13 @@ impl<'a> Walker<'a> {
     }
 
     fn check_pick(&self, kind: &SlotKind, pick: &Pick) -> Result<(), Issue> {
-        check_pick(&self.engine.catalog, &self.state, kind, pick)
+        check_pick(
+            &self.engine.catalog,
+            &self.build.start,
+            &self.state,
+            kind,
+            pick,
+        )
     }
 
     fn hold_pick(&mut self, kind: &SlotKind, pick: &Pick, source: Option<&GrantSource>) {
