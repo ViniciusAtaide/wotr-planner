@@ -4,7 +4,9 @@
 use std::path::{Path, PathBuf};
 
 use game_check::write::span::Value;
-use game_check::write::{Change, WriteError, apply, apply_with, entry_file, read_back};
+use game_check::write::{
+    Change, WriteArea, WriteError, apply, apply_with, entry_file, read_back, run,
+};
 use rules::DataAt;
 
 use crate::support::data_copy;
@@ -398,4 +400,97 @@ fn a_write_that_parses_but_breaks_a_data_rule_is_rejected_by_the_real_check() {
         "{error}"
     );
     assert_eq!(all_files(dir.path()), before);
+}
+
+/// The check over a data folder, with the fixture's dump.
+fn report_of(dir: &Path) -> game_check::Report {
+    let (pins, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
+    let data = seeds::read_game_data_files(dir).unwrap();
+    game_check::check(&pins, &dump, &data, &game_check::Known::parse("").unwrap()).unwrap()
+}
+
+fn write_items(dir: &Path) -> game_check::write::Outcome {
+    let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
+    run(&dump, dir, &[WriteArea::Items], |_| Ok(())).unwrap()
+}
+
+#[test]
+fn writing_items_leaves_only_the_slot_finding() {
+    let dir = data_copy();
+    let circlet = read(dir.path(), "gear/circlet-of-test.ron");
+    let tome = read(dir.path(), "gear/tome-of-test.ron");
+    let belt = read(dir.path(), "gear/belt-of-test-strength.ron");
+    let outcome = write_items(dir.path());
+    assert!(outcome.unexpressed.is_empty(), "{:?}", outcome.unexpressed);
+    let files: Vec<_> = outcome
+        .applied
+        .files
+        .iter()
+        .map(|file| file.display().to_string())
+        .collect();
+    assert_eq!(
+        files,
+        [
+            "gear/cloak-of-test.ron",
+            "gear/headband-of-test.ron",
+            "gear/ring-of-nothing.ron"
+        ]
+    );
+    // The items the game agrees with, and the tome, are the same bytes.
+    assert_eq!(read(dir.path(), "gear/circlet-of-test.ron"), circlet);
+    assert_eq!(read(dir.path(), "gear/tome-of-test.ron"), tome);
+    assert_eq!(read(dir.path(), "gear/belt-of-test-strength.ron"), belt);
+    let cloak = read(dir.path(), "gear/cloak-of-test.ron");
+    assert!(cloak.contains("GearStat(stat: AllSaves, value: 3, descriptor: Resistance)"));
+    assert!(cloak.starts_with("// Planted: +3 in the game.\n"));
+    assert!(cloak.contains("always_on"), "the other fields stay");
+    let headband = read(dir.path(), "gear/headband-of-test.ron");
+    assert!(
+        headband.contains("GearStat(stat: Skill(\"perception\"), value: 1, descriptor: Insight)")
+    );
+    assert!(headband.contains("GearStat(stat: Initiative, value: 1, descriptor: Morale)"));
+    assert!(
+        headband
+            .contains("GearStat(stat: Ability(Intelligence), value: 2, descriptor: Enhancement)")
+    );
+    assert!(
+        !headband.trim_end().contains('\n'),
+        "a one-line file stays one line"
+    );
+    assert!(read(dir.path(), "gear/ring-of-nothing.ron").contains("components: []"));
+
+    // What is left of the items' findings is the slot, which no bonus fixes.
+    let report = report_of(dir.path());
+    let text = report.text();
+    let mut in_items = false;
+    let mut lines = Vec::new();
+    for line in text.lines() {
+        if !line.starts_with("  ") {
+            in_items = line.starts_with("items / ");
+            if in_items {
+                lines.push(line.to_owned());
+            }
+            continue;
+        }
+        if in_items {
+            lines.push(line.to_owned());
+        }
+    }
+    assert_eq!(lines.len(), 2, "{lines:?}");
+    assert!(lines[0].starts_with("items / slot differs"), "{lines:?}");
+    assert!(
+        lines[1].starts_with("  gear item headband-of-test |"),
+        "{lines:?}"
+    );
+}
+
+#[test]
+fn a_second_items_run_writes_nothing() {
+    let dir = data_copy();
+    write_items(dir.path());
+    let after = all_files(dir.path());
+    let again = write_items(dir.path());
+    assert!(again.changes.is_empty(), "{:?}", again.changes);
+    assert!(again.applied.files.is_empty());
+    assert_eq!(all_files(dir.path()), after);
 }
