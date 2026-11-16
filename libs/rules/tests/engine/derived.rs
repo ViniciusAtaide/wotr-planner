@@ -327,3 +327,15 @@ fn destiny_beyond_birth_removes_the_races_ability_penalty() {
     assert_eq!(at_7.ability_scores.dexterity, 16);
     assert_eq!(at_7.base_ability_scores.constitution, 10);
 }
+
+#[test]
+fn an_archetypes_bab_replaces_its_classes() {
+    // The fighter's BAB is full: 4 at class level 4. An armiger with half BAB: 2.
+    let mut data = world();
+    first_archetype_mut(&mut data, "fighter").bab = Some(rules::BabProgression::Half);
+    let engine = engine_on(data);
+
+    let bab = |build: &rules::Build| engine.evaluate(build).at(4).unwrap().bab;
+    assert_eq!(bab(&armiger_build(4)), 2);
+    assert_eq!(bab(&build("human", &times("fighter", 4))), 4);
+}

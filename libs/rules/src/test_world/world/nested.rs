@@ -212,6 +212,7 @@ fn class_into(class: Class, data: &mut GameData) -> crate::Class {
             class_skills: archetype.class_skills,
             spontaneous: archetype.spontaneous,
             casting_ability: archetype.casting_ability,
+            bab: None,
             fort: archetype.fort,
             reflex: archetype.reflex,
             will: archetype.will,

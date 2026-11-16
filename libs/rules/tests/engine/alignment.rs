@@ -55,6 +55,7 @@ fn archetype(key: &str, prerequisite: Prerequisite) -> Archetype {
     Archetype {
         components: Vec::new(),
         casting_ability: None,
+        bab: None,
         key: ArchetypeKey::new(key),
         class: ClassKey::new("monk"),
         blueprint: None,

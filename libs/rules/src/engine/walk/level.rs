@@ -638,8 +638,8 @@ impl<'a> Walker<'a> {
             // A level past the class's table (which fails) adds none.
             if entry.level <= class_level_cap(class) {
                 let level = entry.level;
-                bab = bab.saturating_add(class.base_attack_bonus(level));
                 let archetype = catalog.archetype_of(class, entry.archetype.as_ref());
+                bab = bab.saturating_add(class.base_attack_bonus(level, archetype));
                 let [f, r, w] =
                     Save::ALL.map(|save| class.save_bonus(save, level, prestige, archetype));
                 fort = fort.saturating_add(f);

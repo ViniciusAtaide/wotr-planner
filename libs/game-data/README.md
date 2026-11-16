@@ -64,9 +64,9 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   `will`: `Good`/`Poor`) and the rules compute the numbers, with the prestige save formula for prestige classes. A
   save cell the guide prints differently goes in `save_exceptions: [(level: 20, save: Will, value: 20)]`, exactly as
   printed; the check refuses one the progression gives anyway. An archetype whose saves differ from its class's
-  names the progressions it replaces (`fort: Some(Poor)`, `reflex: ...`, `will: Some(Good)`; left out, the class's).
+  names the progressions it replaces (`fort: Some(Poor)`, `reflex: ...`, `will: Some(Good)`, and `bab: Some(Half)`; left out, the class's).
   A replaced save takes the archetype's formula at every level, without the class's `save_exceptions` for that save;
-  the check refuses one equal to the class's.
+  the check refuses one equal to the class's (a BAB too).
 - An archetype has a row only at the levels where it differs from its base class. A row's `features`, `feats`,
   `feats_for` and `selections` replace the base row's in full (a row with none takes them away), and
   `spell_levels: (arcane: 1, divine: 0)` replaces the base row's spell levels when set. A level without a row is
