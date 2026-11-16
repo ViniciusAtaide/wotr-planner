@@ -76,6 +76,8 @@ pub enum SpanError {
     CommentInside { field: &'static str },
     /// No field before it in the declared order is in the text, so there is nowhere to put it.
     NoAnchor { field: &'static str },
+    /// The text holds a `/*` block comment, which the writer does not scan.
+    BlockComment,
 }
 
 impl fmt::Display for SpanError {
@@ -85,6 +87,7 @@ impl fmt::Display for SpanError {
             SpanError::NoAnchor { field } => {
                 write!(f, "no field before `{field}` to put it after")
             }
+            SpanError::BlockComment => write!(f, "a `/*` block comment in the text"),
         }
     }
 }
@@ -174,6 +177,9 @@ pub fn write_field(
     value: Option<&Value>,
     declared: &[&str],
 ) -> Result<String, SpanError> {
+    if text.contains("/*") {
+        return Err(SpanError::BlockComment);
+    }
     match (field_span(text, name), value) {
         (Some(span), Some(value)) => {
             refuse_comment(text, &span, name)?;
@@ -238,9 +244,11 @@ fn insert(
         .find_map(|field| field_span(text, field).map(|span| (*field, span)))
         .ok_or(SpanError::NoAnchor { field: name })?;
     let (_, span) = anchor;
-    // A field alone on its line, indented: the file is pretty.
-    match indent_of(text, span.start).filter(|indent| !indent.is_empty()) {
+    refuse_comment(text, &span, name)?;
+    // The file is pretty when its first line holds no field: its fields are one a line, at the indent of the first.
+    match pretty_indent(text) {
         Some(indent) => {
+            let indent = indent.as_str();
             let mut at = span.end;
             if text.as_bytes().get(at) == Some(&b',') {
                 at += 1;
@@ -354,4 +362,30 @@ fn skip_string(bytes: &[u8], mut at: usize) -> usize {
         }
     }
     at
+}
+
+/// The indent of a pretty file's fields: the file is pretty when the line of its opening `(` holds nothing else, and
+/// its fields are at the indent of the first line after it that isn't blank or a comment.
+fn pretty_indent(text: &str) -> Option<String> {
+    let mut lines = text.lines().peekable();
+    // Skip leading comments and blanks to the line holding the opening bracket.
+    let open = loop {
+        let line = lines.next()?;
+        let trimmed = line.trim_start();
+        if !(trimmed.is_empty() || trimmed.starts_with("//")) {
+            break trimmed;
+        }
+    };
+    let after = open.find('(').map(|at| &open[at + 1..])?;
+    let after = after.trim();
+    if !(after.is_empty() || after.starts_with("//")) {
+        return None;
+    }
+    lines
+        .find(|line| {
+            let trimmed = line.trim_start();
+            !(trimmed.is_empty() || trimmed.starts_with("//"))
+        })
+        .map(|line| line[..line.len() - line.trim_start().len()].to_owned())
+        .filter(|indent| !indent.is_empty())
 }
