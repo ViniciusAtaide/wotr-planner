@@ -19,6 +19,7 @@ use crate::test_world::world::{guide, plain_feature};
 pub(super) fn deities() -> Vec<Deity> {
     use Alignment::*;
     let deity = |key: &str, alignments: &[Alignment], weapons: &[&str], domains: &[&str]| Deity {
+        components: Vec::new(),
         key: DeityKey::new(key),
         blueprint: None,
         name: capitalised(key),

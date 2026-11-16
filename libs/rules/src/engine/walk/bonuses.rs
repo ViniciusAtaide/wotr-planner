@@ -48,11 +48,7 @@ impl Walker<'_> {
     pub(super) fn note_start_bonuses(&mut self) {
         let (engine, start) = (self.engine, &self.build.start);
         self.bonuses_noted.clear();
-        let own_subrace = start.subrace.as_ref().filter(|key| {
-            (engine.catalog.subrace(key))
-                .is_some_and(|(owner, _)| start.race.as_ref() == Some(&owner.key))
-        });
-        let racial = match own_subrace {
+        let racial = match engine.catalog.own_subrace(start) {
             Some(subrace) => Some((BonusItemKind::Subrace, subrace.as_str())),
             None => (start.race.as_ref()).map(|race| (BonusItemKind::Race, race.as_str())),
         };
@@ -148,6 +144,18 @@ impl Walker<'_> {
                 bonus.clone()
             });
         }
+        // The components' stat bonuses after them (ticket 295): built afresh at every level, each keyed past the
+        // gear's.
+        let components = self.component_bonuses_in_force();
+        let new = if components.is_empty() {
+            new
+        } else {
+            let mut list = new.unwrap_or_else(|| last[..keys.len().min(last.len())].to_vec());
+            let past = bonuses.len() + self.gear.bonuses.len();
+            keys.extend((0..components.len()).map(|at| (past + at, None)));
+            list.extend(components);
+            Some(list)
+        };
         // The last level's list stands, or its first entries do (its last ones are no longer in force).
         let new = new.or_else(|| (keys.len() < last.len()).then(|| last[..keys.len()].to_vec()));
         if let Some(new) = new {

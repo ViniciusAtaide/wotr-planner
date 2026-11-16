@@ -84,7 +84,25 @@ pub enum Prerequisite {
         ability: Ability,
         score: u8,
     },
+    /// An ability score with every bonus counted, not only the permanent ones (the game's `PrerequisiteFullStatValue`:
+    /// `Designers/Mechanics/Prerequisites/PrerequisiteFullStatValue.cs`, WrathDecompiled 6ce4a6b). Only a
+    /// [`Requires`](crate::Component::Requires) component compiles into it.
+    FullAbilityScore {
+        ability: Ability,
+        score: u8,
+    },
     BaseAttackBonus(u8),
+    /// Spells of this level castable from one class's spellbook (the game's `PrerequisiteClassSpellLevel`,
+    /// `GetClassSpellLevel`: the class's spellbook's `MaxSpellLevel`). Only a [`Requires`](crate::Component::Requires)
+    /// component compiles into it.
+    ClassSpellLevel {
+        class: ClassKey,
+        level: u8,
+    },
+    /// A class whose spells are of this type, whatever level it casts yet (the game's `PrerequisiteCasterType`,
+    /// `CheckInternal`: a class with a spellbook of the type). Only a [`Requires`](crate::Component::Requires)
+    /// component compiles into it.
+    CasterType(SpellType),
     /// Spell-level access: can cast spells of this level and type. Not the same as caster level.
     SpellLevel {
         spell_type: SpellType,

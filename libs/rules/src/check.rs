@@ -13,6 +13,10 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fmt;
 
 use crate::bonus::{BonusAmount, BonusItem, BonusTarget, BonusType, SpellScope};
+use crate::component::{
+    Component, Condition, Fact, Pool, RankBase, StatRef, StatRule, StatTarget, Value,
+    compile_requires,
+};
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
     AbilityBonus, Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION,
@@ -344,6 +348,19 @@ pub enum DataIssue {
     StepsWithoutLevels,
     /// A text that is there but empty: what it is (`slot label`, `interactions note`, `name`, `guide reference`).
     EmptyText(&'static str),
+    /// An entry holding a hand field and the component kind that replaces it (ticket 295): the field. One fact has one
+    /// source (`prerequisite` beside a `Requires`, `ability_bonuses` beside an ability `StatBonus`, …).
+    FieldAndComponent(&'static str),
+    /// A component on an entry it has no meaning on: its kind (a `Requires` on a feature, which is never picked; a
+    /// `NoSelectionIf` off a selection).
+    ComponentOnWrongEntry(&'static str),
+    /// A component granting or removing what is chosen, never granted: a class, an archetype, a race or a deity.
+    NotGrantable,
+    /// A rank progression dividing by a step of 0.
+    ZeroStep,
+    /// A `Stat` condition on a skill's full value, which no prerequisite of the planner reads: a skill's prerequisite
+    /// reads its ranks.
+    FullSkillValue,
 }
 
 impl fmt::Display for DataProblem {
@@ -577,6 +594,19 @@ impl fmt::Display for DataProblem {
             DataIssue::SharesOwnOption(option) => {
                 write!(f, "shares {option}, which is one of its own options")
             }
+            DataIssue::FieldAndComponent(field) => {
+                write!(f, "holds `{field}` and the component that replaces it")
+            }
+            DataIssue::ComponentOnWrongEntry(kind) => {
+                write!(f, "holds a `{kind}` component, which means nothing on it")
+            }
+            DataIssue::NotGrantable => f.write_str(
+                "a component grants or removes a class, archetype, race or deity, which are chosen",
+            ),
+            DataIssue::ZeroStep => f.write_str("a rank progression divides by a step of 0"),
+            DataIssue::FullSkillValue => {
+                f.write_str("a condition reads a skill's full value: a skill's prerequisite reads its ranks")
+            }
         }
     }
 }
@@ -737,6 +767,7 @@ impl GameData {
         check.favoured_weapon_features(self);
         check.counts_toward_features(self);
         check.option_levels(self);
+        check.entry_components(self);
         check.unknown_keys(self);
         check.blueprints(self);
         for list in &self.feat_lists {
@@ -1234,7 +1265,9 @@ impl Checker {
             }
             P::MythicFeat(feat) => self.names(at, DataAt::MythicFeat(feat.clone())),
             P::MythicAbility(ability) => self.names(at, DataAt::MythicAbility(ability.clone())),
-            P::ClassLevel { class, .. } => self.names(at, DataAt::Class(class.clone())),
+            P::ClassLevel { class, .. } | P::ClassSpellLevel { class, .. } => {
+                self.names(at, DataAt::Class(class.clone()));
+            }
             P::Archetype(archetype) => self.names(at, DataAt::Archetype(archetype.clone())),
             P::Feature { feature, .. } => self.names(at, DataAt::Feature(feature.clone())),
             P::SelectionOption(option) => self.names(at, DataAt::SelectionOption(option.clone())),
@@ -1250,7 +1283,9 @@ impl Checker {
             | P::Not(_)
             | P::NoOtherOptionOfGroup(_)
             | P::AbilityScore { .. }
+            | P::FullAbilityScore { .. }
             | P::BaseAttackBonus(_)
+            | P::CasterType(_)
             | P::SpellLevel { .. }
             | P::SpontaneousSpellLevel { .. }
             | P::CasterLevel(_)
@@ -1987,6 +2022,382 @@ impl Checker {
             }
         }
     }
+
+    /// Every entry's components (ticket 295): the keys they name, a `Requires` checked as the prerequisite it compiles
+    /// into, each kind only on an entry it has a meaning on, and never beside the hand field it replaces.
+    fn entry_components(&mut self, data: &GameData) {
+        use DataAt as At;
+        for feat in &data.feats {
+            let fields = [(
+                "prerequisite",
+                feat.prerequisite.is_some(),
+                is_requires as Replaces,
+            )];
+            let at = At::Feat(feat.key.clone());
+            self.components(&at, &feat.components, true, feat.parameter, &fields);
+        }
+        for option in &data.options {
+            let takes = (option.chosen_feat.as_ref())
+                .and_then(|feat| self.parameters.get(feat).copied().flatten())
+                .or(option.parameter);
+            let fields = [(
+                "prerequisite",
+                option.prerequisite.is_some(),
+                is_requires as Replaces,
+            )];
+            let at = At::SelectionOption(option.key.clone());
+            self.components(&at, &option.components, true, takes, &fields);
+        }
+        for ability in &data.mythic_abilities {
+            let fields = [(
+                "prerequisite",
+                ability.prerequisite.is_some(),
+                is_requires as Replaces,
+            )];
+            let at = At::MythicAbility(ability.key.clone());
+            self.components(&at, &ability.components, true, ability.parameter, &fields);
+        }
+        for feat in &data.mythic_feats {
+            let fields = [(
+                "prerequisite",
+                feat.prerequisite.is_some(),
+                is_requires as Replaces,
+            )];
+            let at = At::MythicFeat(feat.key.clone());
+            self.components(&at, &feat.components, true, feat.parameter, &fields);
+        }
+        for class in data.all_classes() {
+            let fields = [
+                (
+                    "prerequisite",
+                    class.prerequisite.is_some(),
+                    is_requires as Replaces,
+                ),
+                (
+                    "class_skills",
+                    !class.class_skills.is_empty(),
+                    is_class_skill,
+                ),
+            ];
+            let at = At::Class(class.key.clone());
+            if let Some(compiled) = self.components(&at, &class.components, true, None, &fields) {
+                self.alignment_on_its_own(&at, Some(&compiled));
+            }
+        }
+        for archetype in &data.archetypes {
+            let fields = [
+                (
+                    "prerequisite",
+                    archetype.prerequisite.is_some(),
+                    is_requires as Replaces,
+                ),
+                (
+                    "class_skills",
+                    archetype.class_skills.is_some(),
+                    is_class_skill,
+                ),
+            ];
+            let at = At::Archetype(archetype.key.clone());
+            if let Some(compiled) = self.components(&at, &archetype.components, true, None, &fields)
+            {
+                self.alignment_on_its_own(&at, Some(&compiled));
+            }
+        }
+        for feature in &data.features {
+            let fields = [
+                (
+                    "ability_bonuses",
+                    !feature.ability_bonuses.is_empty(),
+                    is_ability_bonus as Replaces,
+                ),
+                (
+                    "weapons",
+                    !feature.weapons.is_empty(),
+                    is_weapon_proficiency,
+                ),
+                (
+                    "bab_at_least_mythic_rank_plus",
+                    feature.bab_at_least_mythic_rank_plus.is_some(),
+                    is_bab_bonus,
+                ),
+            ];
+            let at = At::Feature(feature.key.clone());
+            self.components(&at, &feature.components, false, None, &fields);
+        }
+        for selection in &data.selections {
+            let fields = [(
+                "only_without_option",
+                selection.only_without_option,
+                is_own_options_rule as Replaces,
+            )];
+            let at = At::FeatureSelection(selection.key.clone());
+            self.components(&at, &selection.components, false, None, &fields);
+        }
+        for race in &data.races {
+            let fields = [
+                (
+                    "ability_modifiers",
+                    !race.ability_modifiers.is_empty(),
+                    is_ability_bonus as Replaces,
+                ),
+                ("skill_points", race.skill_points > 0, is_skill_points),
+                ("weapons", !race.weapons.is_empty(), is_weapon_proficiency),
+            ];
+            let at = At::Race(race.key.clone());
+            self.components(&at, &race.components, false, None, &fields);
+        }
+        for subrace in &data.subraces {
+            let fields = [
+                (
+                    "ability_modifiers",
+                    !subrace.ability_modifiers.is_empty(),
+                    is_ability_bonus as Replaces,
+                ),
+                ("skill_points", subrace.skill_points > 0, is_skill_points),
+                (
+                    "weapons",
+                    !subrace.weapons.is_empty(),
+                    is_weapon_proficiency,
+                ),
+            ];
+            let at = At::Subrace(subrace.key.clone());
+            self.components(&at, &subrace.components, false, None, &fields);
+        }
+        for background in &data.backgrounds {
+            let fields = [
+                (
+                    "class_skills",
+                    !background.class_skills.is_empty(),
+                    is_class_skill as Replaces,
+                ),
+                (
+                    "feats",
+                    !background.feats.is_empty() || !background.feats_for.is_empty(),
+                    is_feat_grant,
+                ),
+                (
+                    "weapons",
+                    !background.weapons.is_empty(),
+                    is_weapon_proficiency,
+                ),
+            ];
+            let at = At::Background(background.key.clone());
+            self.components(&at, &background.components, false, None, &fields);
+        }
+        for deity in &data.deities {
+            let at = At::Deity(deity.key.clone());
+            self.components(&at, &deity.components, false, None, &[]);
+        }
+    }
+
+    /// One entry's components. `picked` is set on an entry that has a prerequisite, with what its pick takes, and
+    /// `fields` are the hand fields a kind replaces, each with whether the entry holds it. The `Requires` compiled,
+    /// when there are any.
+    fn components(
+        &mut self,
+        at: &DataAt,
+        components: &[Component],
+        picked: bool,
+        takes: Option<ParameterKind>,
+        fields: &[(&'static str, bool, Replaces)],
+    ) -> Option<Prerequisite> {
+        if components.is_empty() {
+            return None;
+        }
+        for &(field, held, replaces) in fields {
+            if held && components.iter().any(replaces) {
+                self.problem(at, DataIssue::FieldAndComponent(field));
+            }
+        }
+        for component in components {
+            self.component(at, component, picked);
+        }
+        let classes = &self.archetype_classes;
+        let compiled = compile_requires(components, |archetype| classes.get(archetype))?;
+        self.prerequisite(at, Some(&compiled), takes);
+        Some(compiled)
+    }
+
+    /// One component: the keys it names, and whether it fits its entry.
+    fn component(&mut self, at: &DataAt, component: &Component, picked: bool) {
+        let wrong = |kind| DataIssue::ComponentOnWrongEntry(kind);
+        match component {
+            Component::Requires { condition, .. } => {
+                if !picked {
+                    self.problem(at, wrong(component.kind()));
+                }
+                if condition_reads_full_skill(condition) {
+                    self.problem(at, DataIssue::FullSkillValue);
+                }
+            }
+            Component::PrerequisiteClassLevels {
+                class,
+                from,
+                only_for,
+                ..
+            } => {
+                self.names(at, DataAt::Class(class.clone()));
+                self.names(at, DataAt::Class(from.clone()));
+                if let Some(Pool::Options(selection)) = only_for {
+                    self.names(at, DataAt::FeatureSelection(selection.clone()));
+                }
+            }
+            Component::PrerequisiteStat { stat, rule } => {
+                self.stat_names(at, stat);
+                match rule {
+                    StatRule::ClassLevel(class)
+                    | StatRule::PlusClassLevel(class)
+                    | StatRule::MagusBaseAttack(class) => {
+                        self.names(at, DataAt::Class(class.clone()));
+                    }
+                    StatRule::Ability(_) | StatRule::AtLeast(_) | StatRule::Plus(_) => {}
+                }
+            }
+            Component::NoSelectionIf { facts, .. } => {
+                if !matches!(at, DataAt::FeatureSelection(_)) {
+                    self.problem(at, wrong(component.kind()));
+                }
+                for fact in facts {
+                    self.fact_names(at, fact);
+                }
+            }
+            Component::Grant(facts) => {
+                for fact in facts {
+                    self.granted(at, fact);
+                }
+            }
+            Component::GrantAtClassLevel {
+                fact,
+                classes,
+                archetypes,
+                ..
+            } => {
+                self.granted(at, fact);
+                self.names_each(at, classes, DataAt::Class);
+                self.names_each(at, archetypes, DataAt::Archetype);
+            }
+            Component::GrantIf { has, fact, .. } => {
+                self.fact_names(at, has);
+                self.granted(at, fact);
+            }
+            Component::GrantOnApply(fact) | Component::RemoveOnApply(fact) => {
+                self.granted(at, fact)
+            }
+            Component::GrantWithValue { feat, value } => {
+                let granted = FeatValue {
+                    feat: feat.clone(),
+                    value: value.clone(),
+                };
+                self.feats_for(at, &BTreeSet::from([granted]));
+            }
+            Component::StatBonus {
+                stat,
+                value,
+                only_if,
+                ..
+            } => {
+                if let StatTarget::Skill(skill) = stat {
+                    self.names(at, DataAt::Skill(skill.clone()));
+                }
+                self.value(at, value);
+                for fact in only_if.iter().flat_map(|only| &only.facts) {
+                    self.fact_names(at, fact);
+                }
+            }
+            Component::ClassSkill(skill) => self.names(at, DataAt::Skill(skill.clone())),
+            Component::Proficiency {
+                weapons,
+                lists,
+                armour,
+            } => {
+                self.names_each(at, weapons, DataAt::Weapon);
+                // A list or a group is held as the planner's proficiency feat for it.
+                let feats = (lists.iter().map(|list| list.feat()))
+                    .chain(armour.iter().map(|group| group.feat()));
+                for feat in feats {
+                    self.names(at, DataAt::Feat(feat));
+                }
+            }
+            Component::SkillPoints(_) | Component::Flag(_) => {}
+        }
+    }
+
+    /// A fact a component grants or removes: one of the data, and never one that is chosen.
+    fn granted(&mut self, at: &DataAt, fact: &Fact) {
+        self.fact_names(at, fact);
+        if !fact.is_grantable() {
+            self.problem(at, DataIssue::NotGrantable);
+        }
+    }
+
+    /// The key a fact names.
+    fn fact_names(&mut self, at: &DataAt, fact: &Fact) {
+        let named = match fact {
+            Fact::Feat(key) => DataAt::Feat(key.clone()),
+            Fact::Feature(key) => DataAt::Feature(key.clone()),
+            Fact::Option(key) => DataAt::SelectionOption(key.clone()),
+            Fact::Selection(key) => DataAt::FeatureSelection(key.clone()),
+            Fact::MythicAbility(key) => DataAt::MythicAbility(key.clone()),
+            Fact::MythicFeat(key) => DataAt::MythicFeat(key.clone()),
+            Fact::Class(key) => DataAt::Class(key.clone()),
+            Fact::Archetype(key) => DataAt::Archetype(key.clone()),
+            Fact::Race(key) => DataAt::Race(key.clone()),
+            Fact::Deity(key) => DataAt::Deity(key.clone()),
+        };
+        self.names(at, named);
+    }
+
+    /// The key a stat names: a skill's.
+    fn stat_names(&mut self, at: &DataAt, stat: &StatRef) {
+        if let StatRef::Skill(skill) = stat {
+            self.names(at, DataAt::Skill(skill.clone()));
+        }
+    }
+
+    /// The keys a value reads, and its progressions' steps.
+    fn value(&mut self, at: &DataAt, value: &Value) {
+        match value {
+            Value::Flat(_) | Value::PerRank(_) => {}
+            Value::Rank(config) => {
+                if config.progression.step() == Some(0) {
+                    self.problem(at, DataIssue::ZeroStep);
+                }
+                match &config.base {
+                    RankBase::ClassLevel { classes, .. } => {
+                        self.names_each(at, classes, DataAt::Class);
+                    }
+                    RankBase::ClassLevelWithArchetype {
+                        classes,
+                        archetypes,
+                        features,
+                        ..
+                    } => {
+                        self.names_each(at, classes, DataAt::Class);
+                        self.names_each(at, archetypes, DataAt::Archetype);
+                        for fact in features {
+                            self.fact_names(at, fact);
+                        }
+                    }
+                    RankBase::FeatureRank(fact) => self.fact_names(at, fact),
+                    RankBase::FeatureList(facts) | RankBase::FeatureListRanks(facts) => {
+                        for fact in facts {
+                            self.fact_names(at, fact);
+                        }
+                    }
+                    RankBase::BaseStat(stat) => self.stat_names(at, stat),
+                    RankBase::CharacterLevel
+                    | RankBase::MythicLevel
+                    | RankBase::StatBonus(_)
+                    | RankBase::BaseAttack => {}
+                }
+            }
+            Value::Shared(shared) => {
+                for part in [&shared.count, &shared.bonus].into_iter().flatten() {
+                    self.value(at, part);
+                }
+            }
+        }
+    }
 }
 
 /// The selections a Mythic path's rank rows grant, and the selections the rows of the options they offer grant, and
@@ -2043,5 +2454,78 @@ fn item_at(item: &BonusItem) -> DataAt {
         BonusItem::MythicAbility(key) => DataAt::MythicAbility(key.clone()),
         BonusItem::Feature(key) => DataAt::Feature(key.clone()),
         BonusItem::SelectionOption(key) => DataAt::SelectionOption(key.clone()),
+    }
+}
+
+/// Whether a component replaces a hand field of its entry ([`DataIssue::FieldAndComponent`]).
+type Replaces = fn(&Component) -> bool;
+
+fn is_requires(component: &Component) -> bool {
+    matches!(component, Component::Requires { .. })
+}
+
+fn is_class_skill(component: &Component) -> bool {
+    matches!(component, Component::ClassSkill(_))
+}
+
+fn is_ability_bonus(component: &Component) -> bool {
+    matches!(
+        component,
+        Component::StatBonus {
+            stat: StatTarget::Ability(_),
+            ..
+        }
+    )
+}
+
+fn is_bab_bonus(component: &Component) -> bool {
+    matches!(
+        component,
+        Component::StatBonus {
+            stat: StatTarget::BaseAttack,
+            ..
+        }
+    )
+}
+
+fn is_weapon_proficiency(component: &Component) -> bool {
+    matches!(component, Component::Proficiency { weapons, .. } if !weapons.is_empty())
+}
+
+fn is_skill_points(component: &Component) -> bool {
+    matches!(component, Component::SkillPoints(_))
+}
+
+fn is_feat_grant(component: &Component) -> bool {
+    match component {
+        Component::Grant(facts) => facts.iter().any(|fact| matches!(fact, Fact::Feat(_))),
+        Component::GrantWithValue { .. } => true,
+        _ => false,
+    }
+}
+
+fn is_own_options_rule(component: &Component) -> bool {
+    matches!(
+        component,
+        Component::NoSelectionIf {
+            any_option: true,
+            ..
+        }
+    )
+}
+
+/// Whether a condition reads a skill's full value anywhere in it ([`DataIssue::FullSkillValue`]).
+fn condition_reads_full_skill(condition: &Condition) -> bool {
+    match condition {
+        Condition::Stat {
+            stat: StatRef::Skill(_),
+            full: true,
+            ..
+        } => true,
+        Condition::All(conditions) | Condition::Any(conditions) => {
+            conditions.iter().any(condition_reads_full_skill)
+        }
+        Condition::Not(condition) => condition_reads_full_skill(condition),
+        _ => false,
     }
 }

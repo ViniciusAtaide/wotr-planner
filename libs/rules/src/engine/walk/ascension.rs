@@ -42,6 +42,8 @@ impl<'a> Walker<'a> {
             self.state.mythic_path = Some(path.key.clone());
         }
         self.set_mythic_rank(rank);
+        // A Mythic rank is a mythic class's level gained (`UnitProgressionData.AddClassLevel`, `OnGainClassLevel`).
+        self.level_components();
         self.advance_by_mythic_rank();
 
         // The general pick first, then the slot its mythic feat gives (Extra Feat, Extra Mythic Ability): a mythic

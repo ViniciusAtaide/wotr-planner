@@ -1,7 +1,7 @@
 # The component vocabulary: the engine reads the game's components
 
 Type: build (rules)
-Status: open
+Status: resolved
 Blocked by: [244, the layout by blueprint](244-the-game-data-laid-out-by-blueprint.md) (the per-blueprint files it adds a field to); 248, 251, 253 (the engine rules it builds on)
 Model: Opus to build: a new data form and its evaluation, beside the old one.
 Map: [WotR Build Planner](../map.md)
@@ -61,6 +61,55 @@ This ticket builds the vocabulary's core in `rules`, beside the hand fields. Lat
   - `check_refuses_an_unknown_key_in_a_component_and_a_field_beside_its_component`.
 - Agreement: `agreement::judge` finds no disagreement on a test world whose entries use components only.
 - Real data: none changes; the snapshot check and every real-data test pass unchanged (no data moves). Each `--list` name printed.
+
+## Answer
+
+**Built** (2026-11-16) as written, with the user's decisions of 2026-11-15 (the staged plan; every reachable feature an entry; components compiled at load into the engine's current structures) and the four recommendations above taken (the main session's, under the user's instruction).
+
+**The browser JSON, measured first** (the user asked, for "every reachable feature becomes an entry"). Today's document: 2,097,210 bytes raw, 240,816 gzip -9, 170,591 brotli -q 11 (1,622 features at 413 bytes each, summaries included). The design's walk (`vocab/reach.pkl`) reaches 3,458 feature-like facts the data names by no blueprint (2,483 features, 387 progressions, 167 selections, 163 spellbook replacements, 145 permanent buffs, 101 parametrised features, 12 others), 2,529 of them carrying 5,048 components the vocabulary covers. A throwaway serialisation of a stub `Feature` for each (key and name from the blueprint name, empty summary, every hand field at its default as serde writes it today, and each component in its RON-shaped form) adds 1,607,777 bytes raw (464 per entry): **3.70 MB raw, 324 KB gzip (+83 KB), 227 KB brotli (+57 KB)**. Well under a few MB compressed, so the build went on. A summary of about 90 characters on each of the 1,159 shown features would add about 100 KB raw (an estimate). Leaving the default hand fields out of the JSON (as `components` already is) would take about 200 bytes off each entry.
+
+**What was built** (`rules`, no data change):
+- **`component.rs`**: `Component` with the kinds the ticket names (`Requires`, `PrerequisiteClassLevels`, `PrerequisiteStat`, `NoSelectionIf`, `Grant`, `GrantAtClassLevel`, `GrantIf`, `GrantOnApply`, `RemoveOnApply`, `GrantWithValue`, `StatBonus`, `ClassSkill`, `SkillPoints`, `Proficiency`, `Flag`), `Condition` (`Has`, `HasNot`, `FactRank`, `AtLeast`, `ClassLevel`, `NoClassLevel`, `ArchetypeLevel`, `NoArchetype`, `CharacterLevel`, `MythicLevel`, `Stat` with `full`, `ClassSpellLevel`, `CasterTypeSpellLevel`, `CasterType`, `Alignment`, `Proficient`, `NotProficient`, `ParametrizedFeature`, and `All`/`Any`/`Not` for `PrerequisiteCondition`'s tree), `Fact` (a key with its kind), `Value` (`Flat`, `PerRank`, `Rank(RankConfig)`, `Shared(SharedValue)`), `RankConfig` with every base the planner knows and all 15 `ApplyProgression` progressions and `ApplyMinMax`, `Descriptor` with the game's stacking and permanence, `IfHeld`. Each kind's doc cites its game component and the code that gives it its meaning, by file and method at WrathDecompiled 6ce4a6b. Serde form: our own words, keys inside, defaults left out (`group: All`, `descriptor: Untyped`, `multiplier: 1`); the README's example round-trips.
+- **Entries**: features, feats, selections, options, mythic abilities and feats, races, subraces, backgrounds, deities, classes and archetypes hold `components: Vec<Component>` (default empty, left out when written, so the JSON and its hash are unchanged).
+- **Compile at load** (`engine/catalog/components.rs`): `Requires` into the entry's `prerequisite` (an `All` of the `All` group, one `Any` of the `Any` group, a lone condition as itself); `NoSelectionIf`'s own-options rule into `only_without_option`; the rest indexed by entry kind and key.
+- **Evaluation on the walk's holds** (`engine/walk/components.rs`): an entry's components apply when it is first held (`hold`) and go when it is no longer held (`release`), so path switches and traded rows take them along; the race's or own subrace's, the background's, the deity's, a class's and its archetype's apply as those are chosen. Grants hold facts through `Held` (a granted selection opens a slot, `SlotId::OptionSelection`, through a new `Pending::Granted`); `GrantAtClassLevel` and `GrantIf` are looked at on activation and at each class level and Mythic rank gained; stat bonuses feed `ability_scores` and `permanent_ability_scores` (after the gear's and the features'), the BAB (added to the class tables'), and the bonuses in force for the saves, initiative and skills (`BonusSource::Component`, stacked among themselves by the game's rule in `counted`); `SkillPoints` as the game's running total; class skills, proficiencies and flags join the state.
+- **Prerequisite leaves added** for conditions with no planner leaf: `FullAbilityScore`, `ClassSpellLevel`, `CasterType` (state: `class_spell_levels` and `caster_types`, worked out only for data whose prerequisites read them); `ClassLevel`, `AbilityScore`, `SkillRanks` and `BaseAttackBonus` read the held facts' `PrerequisiteClassLevels` and `PrerequisiteStat` (state: `prerequisite_class_levels`, `prerequisite_stats`, `flags`). Labels give each new leaf its reason.
+- **`GameData::check`**: unknown keys in components (`UnknownKey`, through the compiled tree for `Requires`, which also gets every prerequisite rule); `FieldAndComponent(field)` for `prerequisite`/`Requires`, `ability_bonuses`, `ability_modifiers` and `bab_at_least_mythic_rank_plus` beside the matching `StatBonus`, `weapons` beside a weapon `Proficiency`, `class_skills` beside `ClassSkill`, `skill_points` beside `SkillPoints`, a background's `feats` beside a feat grant, `only_without_option` beside `NoSelectionIf(any_option)`; `ComponentOnWrongEntry(kind)`; `NotGrantable`; `ZeroStep`; `FullSkillValue`.
+- **`libs/game-data/README.md`** describes the field.
+
+**Decisions.**
+- User: the staged plan, every reachable feature an entry (measured above), compile at load.
+- Main session: the four recommendations (compile; stats with no line accepted and counted in no total; `GrantIf` one-way; a hand field beside its component refused).
+- Mine:
+  - `FactRank` takes a feature only (the one kind with ranks); `Proficient`/`NotProficient` conditions take armour groups only, as the planner's proficiency feats: a weapon category needs the catalog, which a state check has not (not built, below).
+  - `AddStatBonus`'s `Value × rank` is its own `Value::PerRank`; `ContextCalculateSharedValue`'s `Modifier` is an integer (1, 2, −1 and 5 in every reachable blueprint); `ClassLevelsForPrerequisites`' `Modifier` is `Share::Full`/`Half` (1.0 and 0.5 in every blueprint) and its `ForSelection` a `Pool` (`Feats` for `BasicFeatSelection`, `Options(selection)`).
+  - Component bonuses stack among themselves by the game's rule; gear's keep the planner's rule among themselves, and the two pools don't meet yet (no data has both; 297 moves gear onto components).
+  - `GrantIf` and `GrantAtClassLevel` are looked at right after the class level is taken: the game raises `HandleUnitGainLevel` from `UnitProgressionData.AddClassLevel`, before the level's picks.
+  - `SkillPoints`: `AddSkillPointPerCharacterLevel` adds the character level to the running total `ApplySkillPoints.Apply` counts over every level, and `ApplySkillPoints` comes before `Features` (`LevelUpActionPriority`), so an entry picked at a level gives its points from the next, all of the earlier levels' at once.
+  - An option a component grants is held through its defining selection without its rows by option level (rows are 298's progression header).
+
+**Tests** (`libs/rules/tests/engine/components.rs`, hand-made data on the test world; expected values from the cited code):
+- `requires_all_and_any_compile_into_the_prerequisite_tree_with_its_reasons`: `BlueprintFeature.MeetsPrerequisites`.
+- `a_class_level_prerequisite_counts_the_classes_a_held_fact_adds`: `PrerequisiteClassLevel.GetClassLevel`, `(int)(0.5 × 4) = 2`, `(int)(0.5 × 3) = 1`.
+- `a_grant_holds_its_facts_and_a_granted_selection_opens_its_slot`: `AddFacts.OnActivate`/`UpdateFacts`, `LevelUpHelper.AddFeaturesFromProgression`.
+- `a_grant_at_class_level_comes_at_the_level_and_counts_its_additional_classes_and_archetypes`: `AddFeatureOnClassLevel.IsFeatureShouldBeApplied`, `ReplaceCasterLevelOfAbility.CalculateClassLevel`/`CheckArchetype`.
+- `before_this_level_takes_it_away_at_the_level`: `IsFeatureShouldBeApplied` with `BeforeThisLevel`, `Apply`.
+- `a_grant_if_held_adds_once_and_never_removes`: `AddFeatureIfHasFact.Apply`; `UnitProgressionData.AddClassLevel` → `OnGainClassLevel`.
+- `a_stat_bonus_of_one_type_counts_the_largest_and_untyped_ones_stack`: `ModifiableValue.ApplyModifiersFiltered`, `ModifierDescriptorHelper.DefaultStackingDescriptors`.
+- `an_untyped_ability_bonus_counts_on_the_sheet_and_not_for_prerequisites`: `Modifier.IsPermanent`, `ModifiableValueAttributeStat.CalculatePermanentValue`, `PrerequisiteStatValue.GetStatValue`, `PrerequisiteFullStatValue`.
+- `a_rank_config_reads_each_base_and_applies_each_progression`: `ContextRankConfig.GetValue`, `GetBaseValue`, `ApplyProgression` (every progression), `ApplyMinMax`.
+- `a_custom_rank_progression_takes_the_first_band_at_or_above_the_value`: `ApplyProgression` `Custom`; Skill Focus's shape, `SkillFocusAcrobatics` 52dd89af385466c499338b7297896ded.
+- `a_shared_value_below_zero_with_at_least_zero_adds_nothing`: Perfect Body's shape, `DragonLevel2StrengthOverride` 9ed55389d2079714eab8495957964af2; `ContextCalculateSharedValue.Calculate`, `AddContextStatBonus.OnTurnOn` with `HasMinimal`.
+- `a_stat_bonus_if_held_follows_its_fact`: `AddStatBonusIfHasFact.ShouldApplyBonus`.
+- `class_skills_skill_points_and_proficiencies_from_components_join_the_state`: `AddClassSkill.OnTurnOn`, `AddSkillPointPerCharacterLevel.HandleUnitCalculateSkillPointsOnLevelup`, `ApplySkillPoints.Apply`, `LevelUpActionPriority`, `AddProficiencies.OnTurnOn`.
+- `a_class_spell_level_and_a_caster_type_read_the_classes_spellbooks`: `PrerequisiteClassSpellLevel.GetClassSpellLevel`, `PrerequisiteCasterType.CheckInternal`.
+- `check_refuses_an_unknown_key_in_a_component_and_a_field_beside_its_component`.
+- `every_picker_agrees_with_the_walk_on_a_world_of_components`: the test world with every prerequisite a condition exists for moved into `Requires` (55 entries), `agreement::judge_all` over the sample corpus finds no disagreement, and each sample Build walks to the very sheet the hand-shaped world gives.
+- The code was written before these tests (not test-first); three mutations (no `Custom` fallback, a full share for `Half`, every descriptor stacking) each make a test above fail.
+
+**Real data**: no file changed; every real-data test, the gold builds and the self-checks' short runs pass unchanged; the JSON the browser gets is byte-for-byte the same (an empty `components` is left out). The state gained fields (`class_spell_levels`, `caster_types`, `prerequisite_class_levels`, `prerequisite_stats`, `flags`), empty for real data, so a hash of a state's `Debug` text changes while every value stays.
+
+**Not built** (each a later stage's or a gap): weapon categories in `Proficient`/`NotProficient` (a state check has no catalog); `SelectionPossible` (needs `CanSelect` over a selection's options: 298's nested selections); a skill's full value (`FullSkillValue` refuses it); the `Property` value and the attack, caster, spellbook, gear and one-blueprint kinds (297 and after); a feature `Requires` (refused: features are never picked until 298 makes options of them); the sheet's `leaves_out` naming the stats with no line (no data has one yet).
 
 ## Done when
 

@@ -16,6 +16,7 @@
 
 use serde::{Deserialize, Serialize};
 
+use crate::component::{Descriptor, Holder, game_stacking};
 use crate::game_data::{Ability, Save};
 use crate::keys::{
     BackgroundKey, FeatKey, FeatureKey, GearKey, MythicAbilityKey, MythicFeatKey, RaceKey,
@@ -75,6 +76,12 @@ pub struct BonusInForce {
 pub enum BonusSource {
     Item(BonusItem),
     Gear(GearKey),
+    /// A [`StatBonus`](crate::Component::StatBonus) component of an entry held (ticket 295), with its type as the game
+    /// has it.
+    Component {
+        holder: Holder,
+        descriptor: Descriptor,
+    },
 }
 
 /// What a [`BonusInForce`] adds to: a number an Item bonus can add to, or the caster level, which only gear raises
@@ -135,8 +142,9 @@ pub fn stacked(bonuses: &[(BonusType, i16)]) -> i16 {
 }
 
 /// Of the bonuses in force that add to one number, those that count, in their order: every Item bonus (a feat's or
-/// feature's still adds as it always did, until ticket 144), and gear's under the stacking rule among themselves
-/// ([`stacking`]): two belts' worth of enhancement count as the higher one.
+/// feature's still adds as it always did, until ticket 144), gear's under the stacking rule among themselves
+/// ([`stacking`]): two belts' worth of enhancement count as the higher one; and the components' under the game's
+/// among themselves ([`game_stacking`]).
 pub fn counted<'a>(adding: impl IntoIterator<Item = &'a BonusInForce>) -> Vec<&'a BonusInForce> {
     let adding: Vec<&BonusInForce> = adding.into_iter().collect();
     let gear: Vec<(BonusType, i16)> = adding
@@ -144,15 +152,24 @@ pub fn counted<'a>(adding: impl IntoIterator<Item = &'a BonusInForce>) -> Vec<&'
         .filter(|bonus| matches!(bonus.source, BonusSource::Gear(_)))
         .map(|bonus| (bonus.kind, bonus.amount))
         .collect();
-    if gear.is_empty() {
+    let components: Vec<(Descriptor, i16)> = adding
+        .iter()
+        .filter_map(|bonus| match &bonus.source {
+            BonusSource::Component { descriptor, .. } => Some((*descriptor, bonus.amount)),
+            _ => None,
+        })
+        .collect();
+    if gear.is_empty() && components.is_empty() {
         return adding;
     }
-    let mut counts = stacking(&gear).into_iter();
+    let mut gear_counts = stacking(&gear).into_iter();
+    let mut component_counts = game_stacking(&components).into_iter();
     adding
         .into_iter()
         .filter(|bonus| match bonus.source {
             BonusSource::Item(_) => true,
-            BonusSource::Gear(_) => counts.next().unwrap_or(true),
+            BonusSource::Gear(_) => gear_counts.next().unwrap_or(true),
+            BonusSource::Component { .. } => component_counts.next().unwrap_or(true),
         })
         .collect()
 }

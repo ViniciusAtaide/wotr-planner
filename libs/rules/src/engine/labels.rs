@@ -834,6 +834,14 @@ impl Engine {
                     spell_text(*spell_type, *level)
                 ),
             ),
+            Prerequisite::ClassSpellLevel { class, level } => (
+                Lead::For,
+                format!(
+                    "a caster of {}-level {} spells",
+                    ordinal(*level),
+                    self.class_name(class)
+                ),
+            ),
             Prerequisite::PickedThrough(selection) => {
                 (Lead::As, self.selection_name(selection).to_owned())
             }
@@ -851,6 +859,7 @@ impl Engine {
             Prerequisite::ClassLevel { .. }
             | Prerequisite::SkillRanks { .. }
             | Prerequisite::AbilityScore { .. }
+            | Prerequisite::FullAbilityScore { .. }
             | Prerequisite::BaseAttackBonus(_)
             | Prerequisite::CasterLevel(_)
             | Prerequisite::CharacterLevel(_)
@@ -865,6 +874,7 @@ impl Engine {
             | Prerequisite::Feature { .. }
             | Prerequisite::SelectionOption(_)
             | Prerequisite::Selection(_)
+            | Prerequisite::CasterType(_)
             | Prerequisite::Story(_) => (Lead::With, text()),
             Prerequisite::Deity(deity) => (
                 Lead::For,
@@ -1086,6 +1096,18 @@ impl Engine {
             Prerequisite::SpontaneousSpellLevel { spell_type, level } => {
                 spell_need(*spell_type, *level, true, has)
             }
+            Prerequisite::FullAbilityScore { ability, score } => {
+                have(format!("{} {score} with every bonus", ability.short_name()))
+            }
+            Prerequisite::ClassSpellLevel { class, level } => format!(
+                "to cast {}-level {} spells{}",
+                ordinal(*level),
+                self.class_name(class),
+                spells_had(has)
+            ),
+            Prerequisite::CasterType(spell_type) => {
+                format!("a class casting {} spells", spell_type_name(*spell_type))
+            }
             Prerequisite::CasterLevel(level) => have(format!("caster level {level}")),
             Prerequisite::CharacterLevel(level) => have(format!("character level {level}")),
             Prerequisite::MythicRank(rank) => have(format!("Mythic rank {rank}")),
@@ -1217,21 +1239,37 @@ fn or_list(items: &[&str]) -> String {
 /// "to cast 3rd-level arcane spells (have 1st)", or "(can't cast any)".
 fn spell_need(spell_type: SpellType, level: u8, spontaneous: bool, has: Option<u8>) -> String {
     let how = if spontaneous { " spontaneously" } else { "" };
-    let have = match has {
+    format!(
+        "to cast {}{how}{}",
+        spell_text(spell_type, level),
+        spells_had(has)
+    )
+}
+
+/// " (have 1st)", " (can't cast any)", or nothing without a value.
+fn spells_had(has: Option<u8>) -> String {
+    match has {
         Some(0) => " (can't cast any)".to_owned(),
         Some(value) => format!(" (have {})", ordinal(value)),
         None => String::new(),
-    };
-    format!("to cast {}{how}{have}", spell_text(spell_type, level))
+    }
 }
 
 /// "3rd-level arcane spells".
 fn spell_text(spell_type: SpellType, level: u8) -> String {
-    let spell_type = match spell_type {
+    format!(
+        "{}-level {} spells",
+        ordinal(level),
+        spell_type_name(spell_type)
+    )
+}
+
+/// "arcane", "divine".
+fn spell_type_name(spell_type: SpellType) -> &'static str {
+    match spell_type {
         SpellType::Arcane => "arcane",
         SpellType::Divine => "divine",
-    };
-    format!("{}-level {spell_type} spells", ordinal(level))
+    }
 }
 
 /// 1st, 2nd, 3rd, 4th, …, 11th, 12th, 13th, 21st.

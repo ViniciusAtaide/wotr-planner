@@ -38,6 +38,7 @@ fn world_with_bonus_items() -> GameData {
     let mut data = world();
     for key in ["improved-initiative", "iron-will"] {
         data.feats.push(Feat {
+            components: Vec::new(),
             key: feat(key),
             blueprint: None,
             name: key.into(),
@@ -56,6 +57,7 @@ fn world_with_bonus_items() -> GameData {
     (stat_focus.parameter, stat_focus.repeat) = (Some(ParameterKind::Stat), Repeat::PerValue);
     stat_focus.prerequisite = None;
     data.mythic_feats.push(MythicFeat {
+        components: Vec::new(),
         key: MythicFeatKey::new("improved-initiative-mythic"),
         blueprint: None,
         name: "improved-initiative-mythic".into(),
@@ -70,6 +72,7 @@ fn world_with_bonus_items() -> GameData {
         prerequisite: None,
     });
     data.mythic_abilities.push(MythicAbility {
+        components: Vec::new(),
         key: MythicAbilityKey::new("grace"),
         blueprint: None,
         name: "grace".into(),
@@ -83,6 +86,7 @@ fn world_with_bonus_items() -> GameData {
         repeat: rules::Repeat::Once,
     });
     data.backgrounds.push(Background {
+        components: Vec::new(),
         key: BackgroundKey::new("pickpocket"),
         blueprint: None,
         name: "pickpocket".into(),
@@ -94,6 +98,7 @@ fn world_with_bonus_items() -> GameData {
         weapons: BTreeSet::new(),
     });
     data.subraces.push(Subrace {
+        components: Vec::new(),
         key: SubraceKey::new("half-elf/kindred"),
         race: RaceKey::new("half-elf"),
         blueprint: None,

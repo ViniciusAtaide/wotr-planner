@@ -304,6 +304,9 @@ impl<'a> Walker<'a> {
             }
             _ => {}
         }
+        if self.engine.catalog.has_components() {
+            self.hold_components(&item);
+        }
         let option_row = match &item {
             Held::Feature(key) => self.engine.catalog.option_row(key),
             _ => None,
@@ -468,6 +471,9 @@ impl<'a> Walker<'a> {
             }
             _ => {}
         }
+        if self.engine.catalog.has_components() {
+            self.release_components(item);
+        }
     }
 
     /// The feats a feature holds for the deity's favoured weapons while it's held (Cleric Proficiencies), as granted
@@ -520,7 +526,10 @@ impl<'a> Walker<'a> {
         let by_rank = state
             .bab_at_least_mythic_rank_plus
             .map_or(0, |plus| plus.saturating_add(state.mythic_rank));
-        self.state.bab = self.class_bab.max(raised).max(by_rank);
+        // The stat bonuses held add to the class tables' (`AddStatBonus` on `BaseAttackBonus`).
+        let class_bab = u8::try_from((i16::from(self.class_bab) + self.component_bab()).max(0))
+            .unwrap_or(u8::MAX);
+        self.state.bab = class_bab.max(raised).max(by_rank);
     }
 
     /// The floors of the features held (Perfect Mind: BAB 15 + MR, skill totals at the Mythic rank), and the BAB they
@@ -543,11 +552,25 @@ impl<'a> Walker<'a> {
     /// do (with the gear's bonuses that count there). Both from one base ([`own_base`](Self::own_base)).
     pub(super) fn refresh_ability_scores(&mut self) {
         let (base, gear) = (self.own_base(), &self.gear);
-        self.state.ability_scores = self.with_feature_bonuses(WornGear::onto(gear.scores, base));
-        self.state.permanent_ability_scores = if gear.permanent == gear.scores {
-            self.state.ability_scores
+        let scores = self.with_feature_bonuses(WornGear::onto(gear.scores, base));
+        let permanent = if gear.permanent == gear.scores {
+            scores
         } else {
             self.with_feature_bonuses(WornGear::onto(gear.permanent, base))
+        };
+        // The components' stat bonuses after the gear's and the features', each score's stacked by type; an ability
+        // prerequisite counts only the permanent ones (ticket 295).
+        (
+            self.state.ability_scores,
+            self.state.permanent_ability_scores,
+        ) = if self.engine.catalog.has_components() {
+            let (every, lasting) = self.component_ability_amounts();
+            (
+                WornGear::onto(every, scores),
+                WornGear::onto(lasting, permanent),
+            )
+        } else {
+            (scores, permanent)
         };
     }
 
@@ -556,7 +579,12 @@ impl<'a> Walker<'a> {
     ///
     /// [`with_feature_bonuses`]: Self::with_feature_bonuses
     pub(super) fn own_scores(&self) -> AbilityScores {
-        self.with_feature_bonuses(self.own_base())
+        let scores = self.with_feature_bonuses(self.own_base());
+        if self.engine.catalog.has_components() {
+            WornGear::onto(self.component_ability_amounts().0, scores)
+        } else {
+            scores
+        }
     }
 
     /// The base scores, without the race's penalties while a mythic feat removes them (Destiny Beyond Birth).

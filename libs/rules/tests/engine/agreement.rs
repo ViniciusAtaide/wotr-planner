@@ -15,7 +15,7 @@ const KNOWN: &[&str] = &[];
 
 /// The levels the suite's sample judges each plan at, filled and just after the level's class: the first levels,
 /// MR 1 (level 6) and MR 3 (level 9), the first ascension and path choices.
-const SAMPLE: &[u8] = &[1, 2, 6, 9];
+pub(crate) const SAMPLE: &[u8] = &[1, 2, 6, 9];
 
 /// The suite's sample: every plan grown with one seed and judged at the Build start and the [`SAMPLE`] levels. Each
 /// disagreement it finds is pinned in [`KNOWN`]; the whole corpus finds them all.
@@ -213,7 +213,7 @@ fn plans() -> Vec<Plan> {
 /// then just after the class only at the [`SAMPLE`] levels, every third level and from 17 on, so the whole corpus
 /// holds the sample). Each Build is keyed by its plan's name, which pins its disagreements ([`KNOWN`]) whatever the
 /// seeds draw.
-fn corpus(
+pub(crate) fn corpus(
     engine: &Engine,
     seeds: std::ops::RangeInclusive<u64>,
     at: Option<&[u8]>,

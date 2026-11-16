@@ -12,6 +12,7 @@ use super::{
 use crate::build::{Build, Faith, LevelUp, Pick, SlotId, has_ability_increase};
 use crate::choice::{Choice, Failure, Issue};
 use crate::codec::{StaleLink, decode_build};
+use crate::component::{Fact, Holder};
 use crate::game_data::Ability;
 use crate::keys::{
     ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey,
@@ -22,6 +23,7 @@ use crate::state::CharacterState;
 
 mod ascension;
 mod bonuses;
+mod components;
 mod cursor;
 mod gear;
 mod hold;
@@ -234,6 +236,10 @@ struct Walker<'a> {
     bonus_keys_next: Vec<bonuses::BonusKey>,
     /// Set while the walk only answers whether a choice fails ([`holds`](Self::holds)).
     recheck: Option<RecheckWalk>,
+    /// The entries whose components apply, with what they hold (ticket 295).
+    components: components::HeldComponents,
+    /// The skill points the components' `SkillPoints` have given so far, over every level.
+    skill_points_given: u16,
     /// What the Build's gear adds, worked out at the Build start; nothing for a Build without gear.
     gear: gear::WornGear,
     /// The Mythic rank being taken, while one is: what gives the slots filled meanwhile.
@@ -267,6 +273,8 @@ enum Pending {
     Row(SlotKind, SelectionOptionKey),
     /// A Feature selection slot a feat pick gives (Extra Rage Power), of the selection its extra pick is of.
     Feat(FeatKey),
+    /// A Feature selection slot a held entry's [`Grant`](crate::Component::Grant) gives (ticket 295).
+    Granted(FeatureSelectionKey),
 }
 
 /// What a walk that only answers whether a choice fails keeps instead of the failed choices.
@@ -354,6 +362,8 @@ impl<'a> Walker<'a> {
             bonus_keys: Vec::new(),
             bonus_keys_next: Vec::new(),
             recheck: None,
+            components: components::HeldComponents::default(),
+            skill_points_given: 0,
             gear: gear::WornGear::default(),
             ascending: None,
             rank_slots: Vec::new(),
@@ -599,6 +609,12 @@ impl<'a> Walker<'a> {
         self.state.base_ability_scores = scores;
         self.wear_gear();
         self.refresh_ability_scores();
+        // The race's components, or its subrace's in their place, as its ability modifiers are.
+        match (catalog.own_subrace(start), &start.race) {
+            (Some(subrace), _) => self.apply_components(|| Holder::Subrace(subrace.clone())),
+            (None, Some(race)) => self.apply_components(|| Holder::Fact(Fact::Race(race.clone()))),
+            (None, None) => {}
+        }
         if self.sheet {
             self.note_start_bonuses();
         }
@@ -624,6 +640,7 @@ impl<'a> Walker<'a> {
             return;
         };
         self.state.deity_domains = deity.domains.clone();
+        self.apply_components(|| Holder::Fact(Fact::Deity(key.clone())));
     }
 
     /// The background's skills become class skills and its feats are held from the start, as a class row's
@@ -650,6 +667,7 @@ impl<'a> Walker<'a> {
                 None,
             );
         }
+        self.apply_components(|| Holder::Background(key.clone()));
     }
 
     // ---- Level-up -----------------------------------------------------------------------------------------
@@ -673,6 +691,7 @@ impl<'a> Walker<'a> {
             self.refresh_ability_scores();
         }
         self.recompute_tables();
+        self.level_components();
         // Options' rows this level reaches, before any slot is filled.
         self.option_slots = 0;
         self.option_feat_slots = 0;

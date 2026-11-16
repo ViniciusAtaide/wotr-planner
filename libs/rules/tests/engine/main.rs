@@ -18,6 +18,7 @@ mod check;
 mod class_rules;
 mod codec;
 mod combat_styles;
+mod components;
 mod deities;
 mod derived;
 mod edits;

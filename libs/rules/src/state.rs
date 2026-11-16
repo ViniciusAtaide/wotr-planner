@@ -6,6 +6,7 @@ use std::sync::Arc;
 use crate::bonus::BonusInForce;
 use crate::build::{AbilityScores, Faith};
 use crate::choice::Unmet;
+use crate::component::{MechanicsFlag, Pool, StatRef, StatRule};
 use crate::game_data::{Alignment, OptionGroup, SpellType};
 use crate::keys::{
     ArchetypeKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
@@ -112,6 +113,19 @@ pub struct CharacterState {
     /// Set while a feature makes every skill's total count at least the Mythic rank for its ranks (Perfect Mind).
     /// Prerequisites still read the ranks spent.
     pub skill_ranks_at_least_mythic_rank: bool,
+    /// The highest spell level castable from each class that casts (with the prestige levels that advance it): what a
+    /// [`Prerequisite::ClassSpellLevel`] reads. Classes that cast none yet are left out.
+    pub class_spell_levels: BTreeMap<ClassKey, u8>,
+    /// The spell types of the classes taken that cast spells, whatever level they reach yet: what a
+    /// [`Prerequisite::CasterType`] reads.
+    pub caster_types: BTreeSet<SpellType>,
+    /// The class levels the facts held add to the levels a `ClassLevel` prerequisite reads
+    /// ([`Component::PrerequisiteClassLevels`](crate::Component::PrerequisiteClassLevels)), each with the picks it counts for; empty for data without components.
+    pub prerequisite_class_levels: Vec<PrerequisiteClassLevels>,
+    /// How the facts held change the stats a prerequisite reads ([`Component::PrerequisiteStat`](crate::Component::PrerequisiteStat)), in the order held.
+    pub prerequisite_stats: Vec<(StatRef, StatRule)>,
+    /// The mechanics flags the facts held set ([`Component::Flag`](crate::Component::Flag)), with how many hold each.
+    pub flags: BTreeMap<MechanicsFlag, u8>,
     /// The Mythic rank reached: 3 after a Legend switch, whatever the rank before.
     pub mythic_rank: u8,
     pub mythic_path: Option<MythicPathKey>,
@@ -123,6 +137,16 @@ pub struct CharacterState {
     /// [`Engine::evaluate`]: crate::Engine::evaluate
     /// [`LevelSheet`]: crate::LevelSheet
     pub bonuses_in_force: Arc<[BonusInForce]>,
+}
+
+/// Class levels a held fact adds to the levels a `ClassLevel` prerequisite reads of `class`
+/// ([`Component::PrerequisiteClassLevels`](crate::Component::PrerequisiteClassLevels)).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PrerequisiteClassLevels {
+    pub class: ClassKey,
+    pub levels: i16,
+    /// The picks it counts for; `None`: every pick.
+    pub only_for: Option<Pool>,
 }
 
 /// The levels taken in one class.
@@ -243,6 +267,38 @@ impl CharacterState {
             .get(class)
             .copied()
             .unwrap_or_else(|| self.class_level(class))
+    }
+
+    /// The class level a `ClassLevel` prerequisite reads for the pick being checked: `has` plus the levels the facts
+    /// held add to it for that pick (`PrerequisiteClassLevel.GetClassLevel`: a `ClassLevelsForPrerequisites` counts
+    /// for the picks of its `ForSelection`, or for every pick without one).
+    fn prerequisite_class_level(&self, class: &ClassKey, has: u8, picking: &Picking<'_>) -> u8 {
+        let added: i16 = self
+            .prerequisite_class_levels
+            .iter()
+            .filter(|added| &added.class == class)
+            .filter(|added| match &added.only_for {
+                None => true,
+                Some(Pool::Feats) => picking.for_feat,
+                Some(Pool::Options(selection)) => picking.selection == Some(selection),
+            })
+            .map(|added| added.levels)
+            .sum();
+        u8::try_from((i16::from(has) + added).max(0)).unwrap_or(u8::MAX)
+    }
+
+    /// The value a prerequisite reads of a stat whose own value is `has`: changed by each fact held that replaces it
+    /// for prerequisites, in the order held (`PrerequisiteStatValue.GetStatValue`, `ReplaceStatForPrerequisites.ResultStat`).
+    fn prerequisite_stat(&self, is_stat: impl Fn(&StatRef) -> bool, has: u8) -> u8 {
+        if self.prerequisite_stats.is_empty() {
+            return has;
+        }
+        let value = self
+            .prerequisite_stats
+            .iter()
+            .filter(|(of, _)| is_stat(of))
+            .fold(i16::from(has), |value, (_, rule)| rule.apply(value, self));
+        u8::try_from(value.max(0)).unwrap_or(u8::MAX)
     }
 
     /// Whether an option of `group` other than `option` is held.
@@ -385,7 +441,7 @@ impl CharacterState {
                 } else {
                     self.class_level(class)
                 };
-                numeric(has, *level)
+                numeric(self.prerequisite_class_level(class, has, picking), *level)
             }
             P::Archetype(archetype) => flag(
                 self.classes
@@ -400,11 +456,32 @@ impl CharacterState {
                 flag(!self.holds_other_option_of(*group, picking.option))
             }
             P::PickedThrough(selection) => flag(picking.selection == Some(selection)),
-            P::SkillRanks { skill, ranks } => numeric(self.skill_ranks(skill), *ranks),
-            P::AbilityScore { ability, score } => {
-                numeric(self.permanent_ability_scores.get(*ability), *score)
+            P::SkillRanks { skill, ranks } => numeric(
+                self.prerequisite_stat(
+                    |stat| matches!(stat, StatRef::Skill(of) if of == skill),
+                    self.skill_ranks(skill),
+                ),
+                *ranks,
+            ),
+            P::AbilityScore { ability, score } => numeric(
+                self.prerequisite_stat(
+                    |stat| *stat == StatRef::Ability(*ability),
+                    self.permanent_ability_scores.get(*ability),
+                ),
+                *score,
+            ),
+            P::FullAbilityScore { ability, score } => {
+                numeric(self.ability_scores.get(*ability), *score)
             }
-            P::BaseAttackBonus(bab) => numeric(self.bab, *bab),
+            P::BaseAttackBonus(bab) => numeric(
+                self.prerequisite_stat(|stat| *stat == StatRef::BaseAttack, self.bab),
+                *bab,
+            ),
+            P::ClassSpellLevel { class, level } => numeric(
+                self.class_spell_levels.get(class).copied().unwrap_or(0),
+                *level,
+            ),
+            P::CasterType(spell_type) => flag(self.caster_types.contains(spell_type)),
             P::SpellLevel { spell_type, level } => numeric(self.spell_level(*spell_type), *level),
             P::SpontaneousSpellLevel { spell_type, level } => {
                 numeric(self.spontaneous_spell_level(*spell_type), *level)
