@@ -92,6 +92,9 @@ pub struct CharacterState {
     /// Each mythic ability that takes a value, with the values it's held for (Favorite Metamagic: Persistent Spell
     /// and Quicken Spell; ticket 249).
     pub mythic_ability_values: BTreeMap<MythicAbilityKey, BTreeSet<Parameter>>,
+    /// How many picks hold each mythic ability without a value (a link from before the ability took one), so a
+    /// release of a valued pick leaves the ability held while one of these stays.
+    pub mythic_ability_open_holds: BTreeMap<MythicAbilityKey, u8>,
     pub mythic_feats: BTreeSet<MythicFeatKey>,
     /// Each parameterised mythic feat held, with the values it's held for (Improved Critical (Mythic): Longsword).
     pub mythic_feat_values: BTreeMap<MythicFeatKey, BTreeSet<Parameter>>,

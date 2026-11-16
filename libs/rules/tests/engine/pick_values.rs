@@ -5,7 +5,7 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Build, DataIssue, Element, Engine, Feat, FeatCategory, GameData, Issue, MythicAbility,
+    Build, DataIssue, Edit, Element, Engine, Feat, FeatCategory, GameData, Issue, MythicAbility,
     MythicAbilityGroup, MythicAbilityKey, Parameter, ParameterKind, Pick, Prerequisite, Repeat,
     SlotId, SlotOption, Stat, encode_build,
 };
@@ -208,6 +208,38 @@ fn favorite_metamagic_is_taken_again_for_another_metamagic_but_not_the_same() {
     let mut same = build;
     same.picks.insert(MR_3, persistent);
     assert_eq!(why_not_in(&engine, &same, &MR_3), Some(Issue::AlreadyHeld));
+}
+
+/// Ticket 249 review: a Path switch that takes the later valued pick away (Legend keeps the general picks of MR 1
+/// and 2) leaves the older valueless one holding the ability, as it did before the valued pick.
+#[test]
+fn releasing_a_valued_pick_keeps_an_older_valueless_one_held() {
+    let engine = pick_engine();
+    let mut build = mythic_fighter();
+    build.picks.insert(MR_1, favorite(None));
+    build
+        .picks
+        .insert(MR_3, favorite(Some(metamagic("metamagic-empower-spell"))));
+    assert!(engine.is_possible(&build));
+    let key = MythicAbilityKey::new(FAVORITE_METAMAGIC);
+    let before = engine.evaluate(&build);
+    let before = before.at(20).unwrap();
+    assert!(before.mythic_abilities.contains(&key));
+    assert!(before.has_mythic_ability_for(&key, &metamagic("metamagic-empower-spell")));
+
+    engine.apply(&mut build, &Edit::PathSwitch(Some(path("legend"))));
+    let sheet = engine.evaluate(&build);
+    let after = sheet.at(20).unwrap();
+    // The valued pick is lost to the switch; the valueless one at MR 1 still holds the ability.
+    assert!(!after.has_mythic_ability_for(&key, &metamagic("metamagic-empower-spell")));
+    assert!(after.mythic_abilities.contains(&key), "{after:?}");
+
+    // A second valueless pick is refused as held (the picker doesn't offer a pick without a value).
+    let mut again = mythic_fighter();
+    again.picks.insert(MR_1, favorite(None));
+    assert!(engine.is_possible(&again));
+    again.picks.insert(MR_3, favorite(None));
+    assert!(!engine.is_possible(&again));
 }
 
 #[test]

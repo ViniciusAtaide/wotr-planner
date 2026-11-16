@@ -204,6 +204,12 @@ impl<'a> Walker<'a> {
                         .entry(key.clone())
                         .or_default()
                         .insert(value.clone());
+                } else {
+                    let holds = state
+                        .mythic_ability_open_holds
+                        .entry(key.clone())
+                        .or_default();
+                    *holds = holds.saturating_add(1);
                 }
             }
             Held::MythicFeat(key, value) => {
@@ -323,17 +329,28 @@ impl<'a> Walker<'a> {
                 }
             }
             Held::MythicAbility(key, value) => {
-                // One that takes a value stays held while it's held for another.
-                let values = state.mythic_ability_values.get_mut(key);
-                let left = match (values, value) {
-                    (Some(values), Some(value)) => {
-                        values.remove(value);
-                        !values.is_empty()
+                // Held while any pick holds it: for another value, or without one.
+                match value {
+                    Some(value) => {
+                        if let Some(values) = state.mythic_ability_values.get_mut(key) {
+                            values.remove(value);
+                            if values.is_empty() {
+                                state.mythic_ability_values.remove(key);
+                            }
+                        }
                     }
-                    _ => false,
-                };
-                if !left {
-                    state.mythic_ability_values.remove(key);
+                    None => {
+                        if let Some(holds) = state.mythic_ability_open_holds.get_mut(key) {
+                            *holds = holds.saturating_sub(1);
+                            if *holds == 0 {
+                                state.mythic_ability_open_holds.remove(key);
+                            }
+                        }
+                    }
+                }
+                if !state.mythic_ability_values.contains_key(key)
+                    && !state.mythic_ability_open_holds.contains_key(key)
+                {
                     state.mythic_abilities.remove(key);
                 }
             }
