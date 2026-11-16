@@ -20,12 +20,12 @@ use crate::choice::{Choice, Issue};
 use crate::codec::LinkKeys;
 use crate::game_data::{
     Ability, AbilityModifier, Advancement, Archetype, ArchetypeLevelRow, Background, Class,
-    ClassLevelRow, Deity, FeatCategory, FeatList, FeatSlot, FeatValue, Race, Skill, SpellLevels,
+    ClassLevelRow, Deity, FeatCategory, FeatValue, FeatureSelection, Race, Skill, SpellLevels,
     Subrace,
 };
 use crate::keys::{
-    ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
-    RaceKey, SubraceKey,
+    ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicPathKey, RaceKey,
+    SubraceKey,
 };
 use crate::parameter::{Parameter, ParameterKind};
 use crate::state::CharacterState;
@@ -178,9 +178,15 @@ impl Engine {
         Some(self.catalog.pick_item(pick)?.parameter)
     }
 
-    /// A feat list by key, wherever it's defined.
-    pub fn feat_list(&self, key: &FeatListKey) -> Option<&FeatList> {
-        self.catalog.feat_list(key)
+    /// A Feature selection by key, of options or of feats.
+    pub fn selection(&self, key: &FeatureSelectionKey) -> Option<&FeatureSelection> {
+        self.catalog.selection(key)
+    }
+
+    /// Whether a row's selection is one of feats, whose slot is a Feat slot
+    /// ([`FeatureSelection::offers_feats`]); `false` for one the data lacks.
+    pub fn offers_feats(&self, key: &FeatureSelectionKey) -> bool {
+        self.catalog.offers_feats(key)
     }
 
     /// The daily choices a character holds (Mixed Bloodline): the sheet shows each as a note, since the game asks
@@ -287,7 +293,6 @@ pub struct EffectiveRow<'a> {
     pub features: &'a [FeatureKey],
     pub feats: &'a BTreeSet<FeatKey>,
     pub feats_for: &'a BTreeSet<FeatValue>,
-    pub feat_slots: &'a [FeatSlot],
     pub selections: &'a [FeatureSelectionKey],
 }
 
@@ -333,7 +338,6 @@ fn merged_row<'a>(base: &'a ClassLevelRow, own: Option<&'a ArchetypeLevelRow>) -
         features: &base.features,
         feats: &base.feats,
         feats_for: &base.feats_for,
-        feat_slots: &base.feat_slots,
         selections: &base.selections,
     };
     let Some(own) = own else {
@@ -344,7 +348,6 @@ fn merged_row<'a>(base: &'a ClassLevelRow, own: Option<&'a ArchetypeLevelRow>) -
         features: &own.features,
         feats: &own.feats,
         feats_for: &own.feats_for,
-        feat_slots: &own.feat_slots,
         selections: &own.selections,
         ..base_row
     }
@@ -434,7 +437,9 @@ pub struct Slot {
 /// What a slot accepts.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SlotKind {
-    Feat(FeatSlot),
+    /// A feat of a selection of feats ([`FeatureSelection::offers_feats`], ticket 301).
+    Feat(FeatureSelectionKey),
+    /// An option of any other selection.
     Selection(FeatureSelectionKey),
     MythicAbility,
     MythicFeat,

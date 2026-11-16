@@ -4,8 +4,8 @@
 //! wouldn't.
 
 use rules::{
-    Ability, ArchetypeKey, Build, ClassChoice, Engine, FeatSlot, FeatureSelectionKey, SlotId,
-    SlotKind, SpellLevels, effective_row,
+    Ability, ArchetypeKey, Build, ClassChoice, Engine, FeatureSelectionKey, SlotId, SlotKind,
+    SpellLevels, effective_row,
 };
 
 use crate::support::*;
@@ -41,11 +41,11 @@ fn a_class_level_gets_the_row_of_its_own_number_when_the_table_has_a_gap() {
 
     assert!(effective_row(fighter, None, 2).is_none());
     let row_3 = effective_row(fighter, None, 3).unwrap();
-    assert_eq!((row_3.level, row_3.feat_slots), (3, &[][..]));
+    assert_eq!((row_3.level, row_3.selections), (3, &[][..]));
     let row_4 = effective_row(fighter, None, 4).unwrap();
     assert_eq!(
-        (row_4.level, row_4.feat_slots),
-        (4, &[FeatSlot::CombatFeat][..])
+        (row_4.level, row_4.selections),
+        (4, &[feat_list("combat-feats")][..])
     );
 }
 

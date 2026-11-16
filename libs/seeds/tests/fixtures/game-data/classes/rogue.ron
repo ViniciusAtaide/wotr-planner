@@ -14,6 +14,6 @@ Class(
         // Ticket 32: a feat granted for one value.
         (level: 1, features: ["rogue/sneak-attack"], feats_for: [(feat: "weapon-focus", value: Weapon("dagger"))]),
         (level: 2, selections: ["rogue/rogue-talents"]),
-        (level: 3, features: ["rogue/sneak-attack"], feat_slots: [OneOf(list: "rogue/skill-focus")]),
+        (level: 3, features: ["rogue/sneak-attack"], selections: ["rogue/skill-focus"]),
     ],
 )

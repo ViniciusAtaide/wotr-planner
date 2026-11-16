@@ -1,1 +1,0 @@
-(key: "ranger/combat-style-feat/two-handed-weapon-feats-2", blueprint: "f489d9f696c588d43907b879d89451be", name: "Two-Handed Weapon Feats (from level 2)", guide: "ranger#two-handed-weapon-feats", ignores_prerequisites: true, feats: ["cleave", "dodge", "great-fortitude", "intimidating-prowess", "iron-will", "lightning-reflexes", "power-attack", "toughness"])

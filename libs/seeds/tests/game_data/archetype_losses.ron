@@ -314,7 +314,7 @@
             (item: Feature("bloodrager/bloodline-spell-2nd")),
             (item: Feature("bloodrager/bloodline-spell-3rd")),
             (item: Feature("bloodrager/bloodline-spell-4th")),
-            (item: Slot(OptionList(selection: "bloodrager/bloodline"))),
+            (item: Selection("bloodrager/bloodline-feats")),
             (item: Selection("bloodrager/bloodline")),
             (item: SpellLevels, waits_on: "ticket 281", why: "the game removes the spellbook (RemoveSpellbook)"),
         ],
@@ -401,7 +401,7 @@
         loses: [
             (item: Feature("cavalier/greater-tactician")),
             (item: Feature("cavalier/tactician")),
-            (item: Slot(Category(Teamwork))),
+            (item: Selection("teamwork-feats")),
         ],
     ),
     // Game: GendarmeArchetype 48fd69254e9e5c540bd65101d3252184
@@ -411,7 +411,7 @@
             (item: Feature("cavalier/greater-tactician")),
             (item: Feature("cavalier/supreme-charge")),
             (item: Feature("cavalier/tactician")),
-            (item: Slot(Category(Teamwork))),
+            (item: Selection("teamwork-feats")),
         ],
     ),
     // Game: GhostRiderArchetype c0503d9864b94134ab1237a2bf2d38a0
@@ -425,7 +425,7 @@
             (item: Feature("cavalier/greater-tactician")),
             (item: Feature("cavalier/mighty-charge")),
             (item: Feature("cavalier/tactician")),
-            (item: Slot(Category(Teamwork))),
+            (item: Selection("teamwork-feats")),
         ],
     ),
     // Game: KnightOfTheWallArchetype 112dd0e61f95c3a459ac0a565472e685: the entries waiting on a ticket are the game's
@@ -434,7 +434,7 @@
         loses: [
             (item: Feature("cavalier/greater-tactician")),
             (item: Feature("cavalier/tactician")),
-            (item: Slot(Category(Teamwork))),
+            (item: Selection("teamwork-feats")),
             (item: Feature("cavalier/demanding-challenge"), waits_on: "ticket 273", why: "the game removes Demanding Challenge at 12 for its own challenge"),
         ],
     ),
@@ -599,7 +599,7 @@
         archetype: "fighter/aldori-defender",
         loses: [
             (item: Feature("armor-training")),
-            (item: Slot(CombatFeat), at: [6, 8, 10], why: "table has no combat bonus feats at these levels; its rows there show 6: Disarming Strike; 8: Steel Net; 10: Counterattack"),
+            (item: Selection("combat-feats"), at: [6, 8, 10], why: "table has no combat bonus feats at these levels; its rows there show 6: Disarming Strike; 8: Steel Net; 10: Counterattack"),
         ],
     ),
     // Game: ArmigerArchetype fdee5f25a5d0fe0448d093b462435c0c
@@ -607,7 +607,7 @@
         archetype: "fighter/armiger",
         loses: [
             (item: Feature("fighter/bravery")),
-            (item: Slot(CombatFeat), at: [1, 10], why: "table has no combat bonus feats at these levels; its rows there show 1: Studious Squire (level 0: Fighter Proficiencies, Order); 10: nothing"),
+            (item: Selection("combat-feats"), at: [1, 10], why: "table has no combat bonus feats at these levels; its rows there show 1: Studious Squire (level 0: Fighter Proficiencies, Order); 10: nothing"),
         ],
     ),
     // Game: DefenderOfTheHearthArchetype 6c96dc1f5573487399336cd351ef8f2c
@@ -616,7 +616,7 @@
         loses: [
             (item: Feature("fighter/weapon-mastery")),
             (item: Feature("fighter/weapon-training"), at: [5], why: "table has no Weapon Training at these levels; its rows there show 5: Heaven Strike"),
-            (item: Slot(CombatFeat), at: [1], why: "table has no combat bonus feats at these levels; its rows there show 1: Shield Block (level 0: Fighter Proficiencies)"),
+            (item: Selection("combat-feats"), at: [1], why: "table has no combat bonus feats at these levels; its rows there show 1: Shield Block (level 0: Fighter Proficiencies)"),
         ],
     ),
     // Game: DragonheirScionArchetype 8dff97413c63c1147be8a5ca229abefc
@@ -627,7 +627,7 @@
             (item: Feature("armor-training")),
             (item: Feature("fighter/bravery")),
             (item: Feature("fighter/weapon-mastery")),
-            (item: Slot(CombatFeat), at: [1, 4, 6], why: "table has no combat bonus feats at these levels; its rows there show 1: Arcane Strike (level 0: Fighter Proficiencies, Draconic Bloodline); 4: Draconic Strike; 6: Draconic Presence"),
+            (item: Selection("combat-feats"), at: [1, 4, 6], why: "table has no combat bonus feats at these levels; its rows there show 1: Arcane Strike (level 0: Fighter Proficiencies, Draconic Bloodline); 4: Draconic Strike; 6: Draconic Presence"),
         ],
     ),
     // Game: MutationWarriorArchetype 758e0061a077e54409a3bf0eb51511e5
@@ -646,7 +646,7 @@
             (item: Feature("fighter/armor-mastery"), count: 0, waits_on: "ticket 285", why: "the game removes nothing at 19 and keeps Armor Mastery"),
             (item: Feature("armor-training")),
             (item: Feature("fighter/weapon-training")),
-            (item: Slot(CombatFeat), at: [2, 6, 10, 14, 18], why: "table has no combat bonus feats at these levels; its rows there show 2: Massive Attacks, Bravery; 6: Massive Attacks; 10: Massive Attacks; 14: Massive Attacks; 18: Massive Attacks"),
+            (item: Selection("combat-feats"), at: [2, 6, 10, 14, 18], why: "table has no combat bonus feats at these levels; its rows there show 2: Massive Attacks, Bravery; 6: Massive Attacks; 10: Massive Attacks; 14: Massive Attacks; 18: Massive Attacks"),
         ],
     ),
     // Game: TowerShieldSpecialistArchetype a599da9a8a6b9e54083b0a4d2a25db59
@@ -692,7 +692,7 @@
         archetype: "hunter/divine-hunter",
         loses: [
             (item: Feature("hunter/hunter-tactics")),
-            (item: Slot(OneOf(list: "hunter/bonus-feats-3"))),
+            (item: Selection("hunter/bonus-feats-3")),
         ],
     ),
     // Game: ForesterArchetype 74ee8172df6782f4792ea0f8647dea34: the game swaps in its own Animal Focus (equivalent model; its option list is the game check's)
@@ -703,7 +703,7 @@
             (item: Feature("hunter/hunter-tactics")),
             (item: Feature("hunter/raise-animal-companion")),
             (item: Feature("hunter/second-animal-focus")),
-            (item: Slot(OneOf(list: "hunter/bonus-feats-2"))),
+            (item: Selection("hunter/bonus-feats-2")),
         ],
     ),
     // Game: TandemExecutionerArchetype 6d42902b472c4b84b146196fad4bd3c4
@@ -721,7 +721,7 @@
             (item: Feature("hunter/animal-companion"), replaced_by: [Feature("hunter/urban-hunter/animal-companion-urban-hunter")]),
             (item: Feature("hunter/hunter-tactics")),
             (item: Feature("hunter/one-with-the-wild")),
-            (item: Slot(OneOf(list: "hunter/bonus-feats-3"))),
+            (item: Selection("hunter/bonus-feats-3")),
         ],
     ),
     // Game: WanderingMarksmanArchetype 0be343c549776574286730b33ae5c676
@@ -729,7 +729,7 @@
         archetype: "hunter/wandering-marksman",
         loses: [
             (item: Feature("hunter/hunter-tactics")),
-            (item: Slot(OneOf(list: "hunter/bonus-feats-3"))),
+            (item: Selection("hunter/bonus-feats-3")),
         ],
     ),
     // Game: FaithHunterArchetype ac87f40932cfd324c90b441f93857c40: the game swaps in its own Judgment (equivalent model; its option list is the game check's); own copies stand for the base features the game keeps (equivalent model)
@@ -746,7 +746,7 @@
             (item: Feature("inquisitor/bane")),
             (item: Feature("inquisitor/greater-bane")),
             (item: Feature("inquisitor/solo-tactics")),
-            (item: Slot(Category(Teamwork))),
+            (item: Selection("teamwork-feats")),
         ],
     ),
     // Game: LivingGrimoireArchetype b68b52e5e802426d989a3d4f8c986761: own copies stand for the base features the game keeps (equivalent model); the entries waiting on a ticket are the game's
@@ -801,7 +801,7 @@
             (item: Feature("inquisitor/exploit-weakness"), count: 0, waits_on: "ticket 284", why: "the game removes nothing at 14 and keeps Exploit Weakness"),
             (item: Feature("inquisitor/solo-tactics")),
             (item: Feature("inquisitor/stern-gaze")),
-            (item: Slot(Category(Teamwork)), at: [6, 12, 15], why: "table has no teamwork bonus feats at these levels; its rows there show 6: Domain Ability^2; 12: Greater Bane; 15: nothing"),
+            (item: Selection("teamwork-feats"), at: [6, 12, 15], why: "table has no teamwork bonus feats at these levels; its rows there show 6: Domain Ability^2; 12: Greater Bane; 15: nothing"),
         ],
     ),
     // Game: BloodKineticistArchetype 365b50dba54efb74fa24c07e9b7a838c: own copies stand for the base features the game keeps (equivalent model)
@@ -902,7 +902,7 @@
     (
         archetype: "magus/bladebound",
         loses: [
-            (item: Slot(General), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Weapon +2, Changeable Gist) and has one at 11 and 17 only; the overview says it gains fewer magus arcana and bonus feats"),
+            (item: Selection("feats"), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Weapon +2, Changeable Gist) and has one at 11 and 17 only; the overview says it gains fewer magus arcana and bonus feats"),
             (item: Selection("magus/magus-arcana"), at: [3, 9, 12], waits_on: "ticket 283", why: "the game removes Magus Arcana at 3, 9 and 12"),
             (item: Feature("magus/true-magus"), waits_on: "ticket 283", why: "the game removes True Magus at 20"),
         ],
@@ -949,7 +949,7 @@
             (item: Feature("arcane-weapon-5")),
             (item: Feat("armor-proficiency-heavy-armor")),
             (item: Feat("armor-proficiency-medium-armor")),
-            (item: Slot(General), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Movement, Spell Dance (II)) and has one at 11 and 17 only; the overview is silent on it, the table settles it"),
+            (item: Selection("feats"), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Movement, Spell Dance (II)) and has one at 11 and 17 only; the overview is silent on it, the table settles it"),
         ],
     ),
     // Game: SwordSaintArchetype 7d6678f2160018049814838af2ab4236: own copies stand for the base features the game keeps (equivalent model)
@@ -1002,9 +1002,9 @@
         archetype: "monk/scaled-fist",
         loses: [
             (item: Feature("monk/still-mind")),
-            (item: Slot(OneOf(list: "monk/bonus-feats-1")), replaced_by: [Slot(OneOf(list: "monk/scaled-fist/bonus-feats-1"))]),
-            (item: Slot(OneOf(list: "monk/bonus-feats-10")), replaced_by: [Slot(OneOf(list: "monk/scaled-fist/bonus-feats-10"))]),
-            (item: Slot(OneOf(list: "monk/bonus-feats-6")), replaced_by: [Slot(OneOf(list: "monk/scaled-fist/bonus-feats-6"))]),
+            (item: Selection("monk/bonus-feats-1"), replaced_by: [Selection("monk/scaled-fist/bonus-feats-1")]),
+            (item: Selection("monk/bonus-feats-10"), replaced_by: [Selection("monk/scaled-fist/bonus-feats-10")]),
+            (item: Selection("monk/bonus-feats-6"), replaced_by: [Selection("monk/scaled-fist/bonus-feats-6")]),
             (item: Selection("monk/ki-power"), at: [12], why: "table has no Ki Power at these levels; its rows there show 12: Dragon Breath"),
         ],
     ),
@@ -1017,9 +1017,9 @@
             (item: Feature("monk/flurry-of-blows")),
             (item: Feature("improved-evasion")),
             (item: Feature("monk/ki-power-extra-attack"), count: 0, waits_on: "ticket 279", why: "the game keeps the level-3 ki power feature"),
-            (item: Slot(OneOf(list: "monk/bonus-feats-1")), at: [2], why: "table has no bonus feats from list monk/bonus-feats-1 at these levels; its rows there show 2: Insightful Strike"),
-            (item: Slot(OneOf(list: "monk/bonus-feats-10")), at: [10, 14], why: "table has no bonus feats from list monk/bonus-feats-10 at these levels; its rows there show 10: Ki Power, Ki Strike - Lawful, Mystic Wisdom; 14: Ki Power"),
-            (item: Slot(OneOf(list: "monk/bonus-feats-6"))),
+            (item: Selection("monk/bonus-feats-1"), at: [2], why: "table has no bonus feats from list monk/bonus-feats-1 at these levels; its rows there show 2: Insightful Strike"),
+            (item: Selection("monk/bonus-feats-10"), at: [10, 14], why: "table has no bonus feats from list monk/bonus-feats-10 at these levels; its rows there show 10: Ki Power, Ki Strike - Lawful, Mystic Wisdom; 14: Ki Power"),
+            (item: Selection("monk/bonus-feats-6")),
         ],
     ),
     // Game: SoheiArchetype fad7c56737ed12e42aacc330acc86428: the game keeps the unarmed strike and swaps its steps and the ki strikes for its own (equivalent model; its option list is the game check's); own copies stand for the base features the game keeps (equivalent model)
@@ -1033,9 +1033,9 @@
             (item: Feature("monk/stunning-fist-fatigue")),
             (item: Feature("monk/stunning-fist-sicken")),
             (item: Feature("monk/unarmed-strike")),
-            (item: Slot(OneOf(list: "monk/bonus-feats-1")), replaced_by: [Slot(OneOf(list: "monk/sohei/bonus-feats-1"))]),
-            (item: Slot(OneOf(list: "monk/bonus-feats-10")), replaced_by: [Slot(OneOf(list: "monk/sohei/bonus-feats-10"))]),
-            (item: Slot(OneOf(list: "monk/bonus-feats-6")), replaced_by: [Slot(OneOf(list: "monk/sohei/bonus-feats-6"))]),
+            (item: Selection("monk/bonus-feats-1"), replaced_by: [Selection("monk/sohei/bonus-feats-1")]),
+            (item: Selection("monk/bonus-feats-10"), replaced_by: [Selection("monk/sohei/bonus-feats-10")]),
+            (item: Selection("monk/bonus-feats-6"), replaced_by: [Selection("monk/sohei/bonus-feats-6")]),
             (item: Selection("monk/ki-power"), at: [4], why: "table has no Ki Power at these levels; its rows there show 4: Ki Weapon, Still Mind"),
         ],
     ),
@@ -1047,8 +1047,8 @@
             (item: Feature("monk/fast-movement")),
             (item: Feature("improved-evasion")),
             (item: Feature("monk/ki-power-extra-attack"), count: 0, waits_on: "ticket 279", why: "the game keeps the level-3 ki power feature"),
-            (item: Slot(OneOf(list: "monk/bonus-feats-10")), replaced_by: [Slot(OneOf(list: "monk/student-of-stone/bonus-feats-10"))]),
-            (item: Slot(OneOf(list: "monk/bonus-feats-6")), replaced_by: [Slot(OneOf(list: "monk/student-of-stone/bonus-feats-6"))]),
+            (item: Selection("monk/bonus-feats-10"), replaced_by: [Selection("monk/student-of-stone/bonus-feats-10")]),
+            (item: Selection("monk/bonus-feats-6"), replaced_by: [Selection("monk/student-of-stone/bonus-feats-6")]),
             (item: Selection("monk/ki-power"), at: [6, 12], why: "table has no Ki Power at these levels; its rows there show 6: Bonus Feat; 12: Soul of Stone"),
         ],
     ),
@@ -1074,9 +1074,9 @@
             (item: Feature("monk/stunning-fist-fatigue")),
             (item: Feature("monk/stunning-fist-sicken")),
             (item: Feature("monk/style-strike")),
-            (item: Slot(OneOf(list: "monk/bonus-feats-1")), replaced_by: [Slot(OneOf(list: "monk/zen-archer/bonus-feats-1"))]),
-            (item: Slot(OneOf(list: "monk/bonus-feats-10")), replaced_by: [Slot(OneOf(list: "monk/zen-archer/bonus-feats-10"))]),
-            (item: Slot(OneOf(list: "monk/bonus-feats-6")), replaced_by: [Slot(OneOf(list: "monk/zen-archer/bonus-feats-6"))]),
+            (item: Selection("monk/bonus-feats-1"), replaced_by: [Selection("monk/zen-archer/bonus-feats-1")]),
+            (item: Selection("monk/bonus-feats-10"), replaced_by: [Selection("monk/zen-archer/bonus-feats-10")]),
+            (item: Selection("monk/bonus-feats-6"), replaced_by: [Selection("monk/zen-archer/bonus-feats-6")]),
             (item: Selection("monk/ki-power"), at: [10], why: "table has no Ki Power at these levels; its rows there show 10: Bonus Feat, Ki Strike - Lawful"),
         ],
     ),
@@ -1272,7 +1272,7 @@
         archetype: "ranger/nomad",
         loses: [
             (item: Feature("ranger/hunters-bond")),
-            (item: Slot(OptionList(selection: "ranger/combat-style-feat"))),
+            (item: Selection("ranger/combat-style-feats")),
             (item: Selection("ranger/combat-style-feat")),
         ],
     ),
@@ -1296,7 +1296,7 @@
             (item: Feature("improved-evasion")),
             (item: Feature("improved-quarry")),
             (item: Feature("quarry")),
-            (item: Slot(OptionList(selection: "ranger/combat-style-feat"))),
+            (item: Selection("ranger/combat-style-feats")),
             (item: Selection("ranger/combat-style-feat")),
         ],
     ),
@@ -1712,7 +1712,7 @@
     (
         archetype: "sorcerer/geomancer",
         loses: [
-            (item: Slot(OptionList(selection: "sorcerer/bloodline"))),
+            (item: Selection("sorcerer/bloodline-feats")),
         ],
     ),
     // Game: NineTailedHeirArchetype 65a630aa291f65047b90a2af5df75d83: the game swaps in its own bloodline selection (equivalent model; its option list is the game check's)
@@ -1724,8 +1724,8 @@
     (
         archetype: "sorcerer/overwhelming-mage",
         loses: [
-            (item: Slot(Category(Magic))),
-            (item: Slot(OptionList(selection: "sorcerer/bloodline"))),
+            (item: Selection("magic-feats")),
+            (item: Selection("sorcerer/bloodline-feats")),
         ],
     ),
     // Game: SageSorcererArchetype 00b990c8be2117e45ae6514ee4ef561c: own copies stand for the base features the game keeps (equivalent model)
@@ -1767,8 +1767,8 @@
             (item: Feat("armor-proficiency-medium-armor")),
             (item: Feat("martial-weapons-proficiency")),
             (item: Feat("shield-proficiency"), count: 0, waits_on: "ticket 268", why: "the game's own proficiencies grant shields"),
-            (item: Slot(CombatFeat), at: [3, 9, 12, 15], why: "table has no combat bonus feats at these levels; its rows there show 3: Sneak Attack; 9: nothing; 12: Hide in Plain Sight, Sacred Weapon +3; 15: nothing"),
-            (item: Slot(OneOf(list: "warpriest/weapon-focus"))),
+            (item: Selection("combat-feats"), at: [3, 9, 12, 15], why: "table has no combat bonus feats at these levels; its rows there show 3: Sneak Attack; 9: nothing; 12: Hide in Plain Sight, Sacred Weapon +3; 15: nothing"),
+            (item: Selection("warpriest/weapon-focus")),
         ],
     ),
     // Game: DisenchanterArchetype 384a9d0c3f1b0634ba183b77d75618c0
@@ -1776,7 +1776,7 @@
         archetype: "warpriest/disenchanter",
         loses: [
             (item: Feature("warpriest/channel-energy")),
-            (item: Slot(CombatFeat)),
+            (item: Selection("combat-feats")),
         ],
     ),
     // Game: FeralChampionArchetype f68ca492c9c15e241ab73735fbd0fb9f
@@ -1797,8 +1797,8 @@
             (item: Feat("armor-proficiency-heavy-armor")),
             (item: Feat("armor-proficiency-medium-armor")),
             (item: Feat("shield-proficiency")),
-            (item: Slot(CombatFeat), at: [3, 9, 12], why: "table has no combat bonus feats at these levels; its rows there show 3: Deadly Fascination; 9: nothing; 12: Saber Fighting, Sacred Weapon +3"),
-            (item: Slot(OneOf(list: "warpriest/weapon-focus"))),
+            (item: Selection("combat-feats"), at: [3, 9, 12], why: "table has no combat bonus feats at these levels; its rows there show 3: Deadly Fascination; 9: nothing; 12: Saber Fighting, Sacred Weapon +3"),
+            (item: Selection("warpriest/weapon-focus")),
             (item: Selection("warpriest/blessings"), count: 0, waits_on: "ticket 268", why: "the game keeps both blessings"),
         ],
     ),
@@ -1817,7 +1817,7 @@
             (item: Feature("warpriest/channel-energy"), replaced_by: [Feature("warpriest/shieldbearer/channel-energy-shieldbearer")]),
             (item: Feature("warpriest/sacred-armor")),
             (item: Feature("warpriest/sacred-weapon"), at: [4], waits_on: "ticket 268", why: "the game swaps only the level-4 enhancement for its shield enchantment and keeps the base damage and the later steps"),
-            (item: Slot(OneOf(list: "warpriest/weapon-focus")), count: 0, waits_on: "ticket 268", why: "the game keeps the Weapon Focus pick"),
+            (item: Selection("warpriest/weapon-focus"), count: 0, waits_on: "ticket 268", why: "the game keeps the Weapon Focus pick"),
         ],
     ),
     // Game: ElementalWitchArchetype d7c7cdbc760041fabaedc1623a53a431: own copies stand for the base features the game keeps (equivalent model); the entries waiting on a ticket are the game's
@@ -1893,7 +1893,7 @@
     (
         archetype: "wizard/cruromancer",
         loses: [
-            (item: Slot(Category(Magic)), at: [5], why: "table has no bonus feat at 5 and has one at 1, 10, 15 and 20; the overview is silent on it, the table settles it"),
+            (item: Selection("magic-feats"), at: [5], why: "table has no bonus feat at 5 and has one at 1, 10, 15 and 20; the overview is silent on it, the table settles it"),
             (item: Selection("wizard/school"), replaced_by: [Selection("wizard/cruromancer/school")]),
         ],
     ),
@@ -1915,21 +1915,21 @@
     (
         archetype: "wizard/scroll-savant",
         loses: [
-            (item: Slot(Category(Magic)), at: [1, 5, 10], why: "table has no magic bonus feats at these levels; its rows there show 1: Scroll Focus, Arcane Bond, Specialisation abilities (level 0: Wizard Proficiencies, Cantrips, Scribe Scrolls); 5: Scroll Specialization; 10: Scroll Mastery"),
+            (item: Selection("magic-feats"), at: [1, 5, 10], why: "table has no magic bonus feats at these levels; its rows there show 1: Scroll Focus, Arcane Bond, Specialisation abilities (level 0: Wizard Proficiencies, Cantrips, Scribe Scrolls); 5: Scroll Specialization; 10: Scroll Mastery"),
         ],
     ),
     // Game: ShadowCasterArchetype 9e1211f2c3db4d0c8313013df72d7187
     (
         archetype: "wizard/shadowcaster",
         loses: [
-            (item: Slot(Category(Magic)), at: [5, 10, 15, 20], why: "table has no magic bonus feats at these levels; its rows there show 5: Shadowsight; 10: Umbral Mind; 15: nothing; 20: Shadowform, Specialisation ability"),
+            (item: Selection("magic-feats"), at: [5, 10, 15, 20], why: "table has no magic bonus feats at these levels; its rows there show 5: Shadowsight; 10: Umbral Mind; 15: nothing; 20: Shadowform, Specialisation ability"),
         ],
     ),
     // Game: SpellMasterArchetype bb571f1b6cea462e99db7893685a0982: own copies stand for the base features the game keeps (equivalent model)
     (
         archetype: "wizard/spell-master",
         loses: [
-            (item: Slot(Category(Magic)), at: [5, 15], why: "table has no magic bonus feats at these levels; its rows there show 5: Item Bond Specialization; 15: nothing"),
+            (item: Selection("magic-feats"), at: [5, 15], why: "table has no magic bonus feats at these levels; its rows there show 5: Item Bond Specialization; 15: nothing"),
             (item: Selection("wizard/school"), replaced_by: [Selection("wizard/spell-master/school")]),
         ],
     ),

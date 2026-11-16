@@ -6,13 +6,13 @@
     summary: "Cavalier with extra combat feats instead of teamwork abilities.",
     guide: "cavalier#gendarme",
     levels: [
-        (level: 1, features: ["cavalier-mount", "cavalier/challenge"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [CombatFeat], selections: ["cavalier/order"]),
-        (level: 3, features: ["cavalier/cavaliers-charge"], feat_slots: [CombatFeat]),
+        (level: 1, features: ["cavalier-mount", "cavalier/challenge"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cavalier/order", "combat-feats"]),
+        (level: 3, features: ["cavalier/cavaliers-charge"], selections: ["combat-feats"]),
         (level: 5, features: ["banner"]),
-        (level: 9, feat_slots: [CombatFeat]),
+        (level: 9, selections: ["combat-feats"]),
         (level: 10, features: ["banner", "cavalier/challenge"]),
-        (level: 15, features: ["banner"], feat_slots: [CombatFeat]),
+        (level: 15, features: ["banner"], selections: ["combat-feats"]),
         (level: 17),
-        (level: 20, features: ["banner", "cavalier/gendarme/transfixing-charge"], feat_slots: [CombatFeat]),
+        (level: 20, features: ["banner", "cavalier/gendarme/transfixing-charge"], selections: ["combat-feats"]),
     ],
 )

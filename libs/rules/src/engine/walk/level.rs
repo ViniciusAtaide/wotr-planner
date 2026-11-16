@@ -12,7 +12,7 @@ use crate::engine::catalog::Catalog;
 use crate::engine::{
     SkillPoints, Slot, SlotKind, advanced_spellcasting, class_level_cap, most_advanced,
 };
-use crate::game_data::{Ability, Band, Class, CountsToward, FeatSlot, Save, SpellType};
+use crate::game_data::{Ability, BASIC_FEAT_SELECTION, Band, Class, CountsToward, Save, SpellType};
 use crate::keys::{ClassKey, FeatKey, FeatureKey, FeatureSelectionKey};
 use crate::state::{CharacterState, ClassLevels};
 
@@ -172,9 +172,12 @@ impl<'a> Walker<'a> {
                     None,
                 );
             }
-            // Its selections are held from here, whatever their slots hold.
+            // Its selections are held from here, whatever their slots hold; its selections of feats aren't facts yet
+            // (ticket 305).
             for selection in row.selections {
-                self.hold(Held::Selection(selection.clone()), None);
+                if !catalog.offers_feats(selection) {
+                    self.hold(Held::Selection(selection.clone()), None);
+                }
             }
         }
         class_level
@@ -283,8 +286,10 @@ impl<'a> Walker<'a> {
     }
 
     /// The slots of a Level-up, in checking order: the class row's Feature selections (filtered pools last, since
-    /// the others admit their options), its feat slots (option-list ones last, since they depend on the selections), the
-    /// race's (level 1), then the general slot (odd levels).
+    /// the others admit their options), its selections of feats (those taking an option's lists last, since they depend
+    /// on the selections), the race's (level 1), then the general slot (odd levels). A row numbers its selections of
+    /// feats and its other selections apart, each in row order (ticket 301), so a link's slot ids are the ones the
+    /// feat slots had.
     /// So a race or general pick can rely on what the class grants at the same level (a human warpriest's Dazzling
     /// Display on the class's Weapon Focus).
     pub(super) fn level_slots(&self, level: u8, level_up: &LevelUp) -> Vec<(SlotKind, SlotId)> {
@@ -306,15 +311,23 @@ impl<'a> Walker<'a> {
                 .find(|c| c.class == level_up.class)
         {
             let row = catalog.row(class, entry.archetype.as_ref(), entry.level);
-            for (index, slot) in row.iter().flat_map(|row| row.feat_slots).enumerate() {
-                let kind = (SlotKind::Feat(slot.clone()), feat(FeatSource::Class, index));
-                if matches!(slot, FeatSlot::OptionList { .. }) {
+            let (feat_selections, row_selections) =
+                catalog.split_selections(row.iter().flat_map(|row| row.selections));
+            for (index, selection) in feat_selections.into_iter().enumerate() {
+                let kind = (
+                    SlotKind::Feat(selection.clone()),
+                    feat(FeatSource::Class, index),
+                );
+                if catalog
+                    .selection(selection)
+                    .is_some_and(|selection| selection.option_lists.is_some())
+                {
                     option_lists.push(kind);
                 } else {
                     class_slots.push(kind);
                 }
             }
-            for (index, selection) in row.iter().flat_map(|row| row.selections).enumerate() {
+            for (index, selection) in row_selections.into_iter().enumerate() {
                 selections.push((
                     SlotKind::Selection(selection.clone()),
                     SlotId::Selection {
@@ -336,21 +349,25 @@ impl<'a> Walker<'a> {
         slots.extend(class_slots);
         slots.extend(option_lists);
         if level == 1 {
-            for (index, slot) in self.race_slots().iter().enumerate() {
-                slots.push((SlotKind::Feat(slot.clone()), feat(FeatSource::Race, index)));
+            for (index, selection) in self.race_slots().iter().enumerate() {
+                slots.push((
+                    SlotKind::Feat(selection.clone()),
+                    feat(FeatSource::Race, index),
+                ));
             }
         }
         if level % 2 == 1 {
             slots.push((
-                SlotKind::Feat(FeatSlot::General),
+                SlotKind::Feat(FeatureSelectionKey::new(BASIC_FEAT_SELECTION)),
                 feat(FeatSource::General, 0),
             ));
         }
         slots
     }
 
-    /// The race's feat slots at level 1, or its subrace's in their place (a Dual Heritage half-elf has none).
-    fn race_slots(&self) -> &'a [FeatSlot] {
+    /// The race's selections of feats at level 1, or its subrace's in their place (a Dual Heritage half-elf has
+    /// none).
+    fn race_slots(&self) -> &'a [FeatureSelectionKey] {
         let catalog = &self.engine.catalog;
         let Some(race) = self.state.race.as_ref().and_then(|key| catalog.race(key)) else {
             return &[];
@@ -364,8 +381,8 @@ impl<'a> Walker<'a> {
             .filter(|(owner, _)| owner.key == race.key)
             .map(|(_, subrace)| subrace);
         match subrace {
-            Some(subrace) => &subrace.feat_slots,
-            None => &race.feat_slots,
+            Some(subrace) => &subrace.selections,
+            None => &race.selections,
         }
     }
 
@@ -436,7 +453,7 @@ impl<'a> Walker<'a> {
     /// Mythic rank's or a later level's. Any other refusal at its turn is final, though the game's player could take
     /// the band's picks in another order: trying every order is left out. So a pick is still refused when another
     /// pick of its band whose slot comes first holds what it refuses (a `Not`, a `NoOtherOptionOfGroup`, an
-    /// `AlreadyHeld` or `MaxTimes`), or when its slot's list depends on the state (an `OptionList` slot's,
+    /// `AlreadyHeld` or `MaxTimes`), or when its slot's list depends on the state (a selection of feats taking an option's lists,
     /// [`Catalog::slot_lists`]) and the option that gives it is a later pick of the band (`NotAllowed`). The slots
     /// come back in the level's slot order, then the granted ones in the order granted.
     pub(super) fn fill_bands(

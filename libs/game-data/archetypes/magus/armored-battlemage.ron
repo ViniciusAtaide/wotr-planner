@@ -8,12 +8,12 @@
     levels: [
         (level: 1, features: ["magus/armored-battlemage/arcane-pool-armored-battlemage", "magus/armored-battlemage/armored-battlemage-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
         (level: 3, features: ["magus/armored-battlemage/armor-training"]),
-        (level: 5, features: ["magus/armored-battlemage/arcane-armor-2"], feat_slots: [General]),
+        (level: 5, features: ["magus/armored-battlemage/arcane-armor-2"], selections: ["feats"]),
         (level: 7, features: ["magus/armored-battlemage/arcane-heavy-armor"], feats: ["armor-proficiency-heavy-armor"]),
         (level: 8, features: ["magus/armored-battlemage/armor-training"]),
         (level: 9, features: ["magus/armored-battlemage/arcane-armor-3"], selections: ["magus/magus-arcana"]),
         (level: 13, features: ["magus/armored-battlemage/arcane-armor-4", "magus/armored-battlemage/armor-training"]),
-        (level: 17, features: ["magus/armored-battlemage/arcane-armor-5"], feat_slots: [General]),
+        (level: 17, features: ["magus/armored-battlemage/arcane-armor-5"], selections: ["feats"]),
         (level: 18, features: ["magus/armored-battlemage/armor-training"]),
     ],
 )

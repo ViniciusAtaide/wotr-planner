@@ -7,7 +7,7 @@
         guide: "kineticist#kineticist-bonus-feat",
         prerequisite: ClassLevel(class: "kineticist", level: 2),
         levels: [
-            (level: 1, feat_slots: [OptionList(selection: "kineticist/element", label: "Wild talent feat")]),
+            (level: 1, selections: ["kineticist/wild-talent-feats"]),
         ],
     ),
 )

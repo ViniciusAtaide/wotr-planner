@@ -3,8 +3,8 @@
 use std::collections::{BTreeSet, HashMap};
 
 use rules::{
-    Build, ClassKey, FeatKey, FeatSlot, Issue, LevelUp, Parameter, Pick, Repeat,
-    SelectionOptionKey, SlotId, SlotKind, SlotOption,
+    Build, ClassKey, FeatKey, Issue, LevelUp, Parameter, Pick, Repeat, SelectionOptionKey, SlotId,
+    SlotOption,
 };
 
 use crate::support::*;
@@ -164,9 +164,9 @@ fn combat_trick_repeats_and_grants_a_combat_feat_slot_each_time() {
         trick
             .levels
             .iter()
-            .map(|row| (row.level, row.feat_slots.clone()))
+            .map(|row| (row.level, row.selections.clone()))
             .collect::<Vec<_>>(),
-        [(1, vec![FeatSlot::CombatFeat])]
+        [(1, vec![rules::FeatureSelectionKey::new("combat-feats")])]
     );
     let engine = engine();
     let build = with_picks(
@@ -182,7 +182,7 @@ fn combat_trick_repeats_and_grants_a_combat_feat_slot_each_time() {
         let slot = sheet
             .slot(&option_feat_slot(level))
             .expect("a Combat Trick slot");
-        assert_eq!(slot.kind, SlotKind::Feat(FeatSlot::CombatFeat));
+        assert_eq!(slot.kind, feat_kind("combat-feats"));
         assert_eq!(engine.slot_label(slot), "Combat feat");
     }
     // Its feat's prerequisites are checked; a feat that isn't a Combat feat isn't offered. Game: CombatTrick
@@ -323,7 +323,7 @@ fn combat_trick_grants_its_slot_through_every_selection_offering_it() {
                 .evaluate(&build)
                 .slot(&option_feat_slot(level))
                 .map(|slot| slot.kind.clone()),
-            Some(SlotKind::Feat(FeatSlot::CombatFeat)),
+            Some(feat_kind("combat-feats")),
             "{:?}",
             build.class_choices
         );

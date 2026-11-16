@@ -7,12 +7,12 @@
     guide: "ranger#nomad",
     levels: [
         (level: 1, features: ["ranger/favored-enemy", "ranger/nomad/animal-companion"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
-        (level: 2, feat_slots: [OneOf(list: "ranger/bonus-feats-2b")]),
+        (level: 2, selections: ["ranger/bonus-feats-2b"]),
         (level: 4),
         (level: 5, features: ["ranger/favored-enemy"], feats: ["point-blank-master"]),
-        (level: 6, feat_slots: [OneOf(list: "ranger/bonus-feats-6b")]),
-        (level: 10, features: ["ranger/favored-enemy"], feat_slots: [OneOf(list: "ranger/bonus-feats-10b")]),
-        (level: 14, feat_slots: [OneOf(list: "ranger/bonus-feats-10b")]),
-        (level: 18, features: ["ranger/favored-terrain"], feat_slots: [OneOf(list: "ranger/bonus-feats-10b")]),
+        (level: 6, selections: ["ranger/bonus-feats-6b"]),
+        (level: 10, features: ["ranger/favored-enemy"], selections: ["ranger/bonus-feats-10b"]),
+        (level: 14, selections: ["ranger/bonus-feats-10b"]),
+        (level: 18, features: ["ranger/favored-terrain"], selections: ["ranger/bonus-feats-10b"]),
     ],
 )

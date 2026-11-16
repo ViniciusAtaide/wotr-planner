@@ -11,6 +11,8 @@ mod paths;
 mod races;
 mod selections;
 
+use std::collections::BTreeSet;
+
 use crate::*;
 
 use self::backgrounds::backgrounds;
@@ -30,7 +32,6 @@ pub fn world() -> GameData {
         progression: progression(),
         races: vec![],
         subraces: vec![],
-        feat_lists: vec![],
         archetypes: vec![],
         features: vec![],
         selections: vec![],
@@ -95,8 +96,93 @@ pub fn world() -> GameData {
         ],
     };
     nested::flatten(nested, &mut data);
+    data.selections.extend(pools(&data.feats));
+    list_feats_in_pools(&mut data);
     attach_bonuses(&mut data);
     data
+}
+
+/// Lists `data`'s feats as they are now in the general and category selections ([`pools`]) and Gold Dragon's Dragon
+/// Feats (every feat), so a feat a test adds to the world is offered as the world's own are.
+pub fn list_feats_in_pools(data: &mut GameData) {
+    let mut pools = pools(&data.feats);
+    pools.push(FeatureSelection {
+        feats: data.feats.iter().map(|feat| feat.key.clone()).collect(),
+        ..feat_selection("gold-dragon/dragon-feats", "")
+    });
+    for selection in &mut data.selections {
+        if let Some(pool) = pools.iter().find(|pool| pool.key == selection.key) {
+            selection.feats.clone_from(&pool.feats);
+        }
+    }
+}
+
+/// The selections of feats of the general slot and the category slots, each listing the feats it offers (ticket
+/// 301): every feat, the Combat feats, the Magic feats and the Teamwork feats.
+fn pools(feats: &[Feat]) -> Vec<FeatureSelection> {
+    let pool = |key: &str, name: &str, offers: &dyn Fn(&Feat) -> bool| FeatureSelection {
+        feats: (feats.iter())
+            .filter(|feat| offers(feat))
+            .map(|feat| feat.key.clone())
+            .collect(),
+        ..feat_selection(key, name)
+    };
+    vec![
+        pool(BASIC_FEAT_SELECTION, "Feat", &|_| true),
+        pool("combat-feats", "Combat feat", &|feat| {
+            feat.category.is_combat()
+        }),
+        pool("magic-feats", "Magic feat", &|feat| {
+            feat.category == FeatCategory::Magic
+        }),
+        pool("teamwork-feats", "Teamwork feat", &|feat| {
+            feat.category == FeatCategory::Teamwork
+        }),
+    ]
+}
+
+/// A selection of feats with nothing set, named `name`.
+fn feat_selection(key: &str, name: &str) -> FeatureSelection {
+    FeatureSelection {
+        components: Vec::new(),
+        key: feat_list(key),
+        blueprint: None,
+        name: name.into(),
+        summary: String::new(),
+        guide: guide(key),
+        options: BTreeSet::new(),
+        feats: BTreeSet::new(),
+        ignores_prerequisites: false,
+        skips_proficiency: false,
+        option_lists: None,
+        shared_options: BTreeSet::new(),
+        option_levels: BTreeSet::new(),
+        option_level_archetypes: std::collections::BTreeMap::new(),
+        half_other_classes: false,
+        skipped_levels: BTreeSet::new(),
+        replaced_by: std::collections::BTreeMap::new(),
+        feat_lists_only: false,
+        only_without_option: false,
+        filtered_by: None,
+        later_rows_behind: 0,
+        level_from: None,
+        level_also_from: None,
+        once_per_option: false,
+        deity_domains: None,
+        band: Band::Features,
+    }
+}
+
+/// A selection of feats whose lists are those of the options held that `of` offers ([`FeatureSelection::option_lists`]),
+/// at `at_level` or the option's own level, named as the option-list slots were: `of`'s name and "feat".
+fn option_list(key: &str, of: &str, at_level: Option<u8>) -> FeatureSelection {
+    FeatureSelection {
+        option_lists: Some(OptionLists {
+            selection: FeatureSelectionKey::new(of),
+            at_level,
+        }),
+        ..feat_selection(key, &format!("{of} feat"))
+    }
 }
 
 fn progression() -> Progression {
@@ -132,16 +218,11 @@ fn skill_row(key: &str, name: &str, ability: Ability) -> Skill {
     }
 }
 
-fn list(key: &str, ignores_prerequisites: bool, feats: &[&str]) -> FeatList {
-    FeatList {
-        key: feat_list(key),
-        blueprint: None,
-        name: key.into(),
-        guide: guide(key),
+fn list(key: &str, ignores_prerequisites: bool, feats: &[&str]) -> FeatureSelection {
+    FeatureSelection {
         ignores_prerequisites,
-        every_feat: false,
-        skips_proficiency: false,
         feats: feats.iter().map(|key| feat(key)).collect(),
+        ..feat_selection(key, key)
     }
 }
 

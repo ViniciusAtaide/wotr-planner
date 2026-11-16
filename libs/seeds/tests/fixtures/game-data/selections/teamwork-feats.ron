@@ -1,0 +1,9 @@
+(
+    key: "teamwork-feats",
+    blueprint: "d87e2f6a9278ac04caeb0f93eff95fcb",
+    name: "Teamwork feat",
+    feats: [
+        "outflank",
+        "shield-wall",
+    ],
+)

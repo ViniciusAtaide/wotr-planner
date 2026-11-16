@@ -6,7 +6,7 @@
     summary: "Dance of Masks skald: you share sneak attacks with allies and your song enrages and weakens enemies; fewer rage powers.",
     guide: "skald#inciter",
     levels: [
-        (level: 1, features: ["skald/inciter/insult", "skald/inciter/mind-games", "skald/inciter/serpents-tongue", "skald/inspired-rage", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
+        (level: 1, features: ["skald/inciter/insult", "skald/inciter/mind-games", "skald/inciter/serpents-tongue", "skald/inspired-rage", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["magic-feats"]),
         (level: 2, features: ["sneak-attack"]),
         (level: 4, features: ["uncanny-dodge"], selections: ["rogue/rogue-talents"]),
         (level: 6, selections: ["barbarian/rage-power"]),

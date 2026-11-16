@@ -1,0 +1,11 @@
+(
+    key: "hunter/bonus-feats-2",
+    blueprint: "75e9a5179aeff4140a8235ebdeaf8df7",
+    name: "Precise Companion",
+    guide: "hunter#precise-companion",
+    ignores_prerequisites: true,
+    feats: [
+        "outflank",
+        "precise-shot",
+    ],
+)

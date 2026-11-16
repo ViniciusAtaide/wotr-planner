@@ -2,8 +2,8 @@
 //! prerequisites. A grant of a feat already held adds nothing; picking a granted feat later is "already held".
 
 use rules::{
-    ArchetypeKey, Build, ClassChoice, FeatSlot, Issue, Pick, Prerequisite, SlotId, SlotKind,
-    SlotOption, Unmet, effective_row,
+    ArchetypeKey, Build, ClassChoice, Issue, Pick, Prerequisite, SlotId, SlotKind, SlotOption,
+    Unmet, effective_row,
 };
 
 use crate::support::*;
@@ -64,7 +64,7 @@ fn a_wizards_scribe_scrolls_is_held_with_no_pick() {
         kinds,
         [
             SlotKind::Selection(rules::FeatureSelectionKey::new("wizard/school")),
-            SlotKind::Feat(FeatSlot::General),
+            SlotKind::Feat(feat_list("feats")),
         ]
     );
     assert!(engine().is_possible(&build));

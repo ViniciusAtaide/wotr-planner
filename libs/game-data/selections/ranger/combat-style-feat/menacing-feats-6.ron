@@ -1,0 +1,19 @@
+(
+    key: "ranger/combat-style-feat/menacing-feats-6",
+    blueprint: "a9998f05a0472bb4f8950304fe26ec0c",
+    name: "Menacing Feats (from level 6)",
+    guide: "ranger#menacing-feats",
+    ignores_prerequisites: true,
+    feats: [
+        "cornugon-smash",
+        "dazzling-display",
+        "dodge",
+        "great-fortitude",
+        "intimidating-prowess",
+        "iron-will",
+        "lightning-reflexes",
+        "power-attack",
+        "shatter-defenses",
+        "toughness",
+    ],
+)

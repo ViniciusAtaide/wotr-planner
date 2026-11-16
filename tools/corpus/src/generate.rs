@@ -4,8 +4,7 @@
 //! corpus, so a change to one changes the Builds the self-checks run on. The quirks are documented where they live.
 
 use rules::{
-    AbilityScores, Build, Edit, Engine, Faith, FeatSlot, GameData, Issue, SkillKey, SlotId,
-    SlotKind,
+    AbilityScores, Build, Edit, Engine, Faith, GameData, Issue, SkillKey, SlotId, SlotKind,
 };
 
 use crate::Named;
@@ -229,7 +228,7 @@ pub fn fill_first_choices(engine: &Engine, build: &mut Build) {
                     continue;
                 }
                 let fill = match &slot.kind {
-                    SlotKind::Feat(FeatSlot::OneOf { list }) => matches!(
+                    SlotKind::Feat(list) => matches!(
                         list.as_str(),
                         "warpriest/weapon-focus"
                             | "rogue/master-of-all/skill-focus"

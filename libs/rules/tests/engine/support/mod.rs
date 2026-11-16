@@ -107,12 +107,9 @@ pub fn own_option_mut<'a>(
     own_options_mut(data, selection).swap_remove(n)
 }
 
-/// A feat list of the data, to change for a test.
-pub fn feat_list_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::FeatList {
-    data.feat_lists
-        .iter_mut()
-        .find(|l| l.key.as_str() == key)
-        .unwrap()
+/// A selection of feats of the data (ticket 301: a feat list is a selection), to change for a test.
+pub fn feat_list_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::FeatureSelection {
+    selection_mut(data, key)
 }
 
 /// A selection option of the data, to change for a test.

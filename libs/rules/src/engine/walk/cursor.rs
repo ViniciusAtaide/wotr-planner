@@ -27,7 +27,7 @@ use crate::engine::{
     AdvancesOption, Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK, SkillPoints,
     SlotKind, class_level_cap, most_advanced,
 };
-use crate::game_data::{Class, FeatList};
+use crate::game_data::{Class, FeatureSelection};
 use crate::keys::{ArchetypeKey, ClassKey, FeatKey};
 use crate::prerequisite::Prerequisite;
 use crate::state::CharacterState;
@@ -86,7 +86,7 @@ impl<'a> Cursor<'a> {
         let kind = walker.probed.kind?;
         // A feat slot's lists, worked out once for every feat.
         let lists = match &kind {
-            SlotKind::Feat(feat_slot) => self.engine.catalog.slot_lists(feat_slot, &state),
+            SlotKind::Feat(selection) => self.engine.catalog.slot_lists(selection, &state),
             _ => Vec::new(),
         };
         Some(AtSlot {
@@ -514,7 +514,7 @@ pub(crate) struct AtSlot<'c, 'a> {
     state: CharacterState,
     kind: SlotKind,
     /// A feat slot's lists for this character ([`Catalog::slot_lists`](crate::engine::catalog::Catalog)).
-    lists: Vec<&'a FeatList>,
+    lists: Vec<&'a FeatureSelection>,
     /// The feats a later check can see ([`Cursor::named_feats`]), once a feat is open.
     named: OnceCell<HashSet<&'a FeatKey>>,
     /// The verdict for the slot left empty, which every feat no later check names shares.
@@ -546,7 +546,7 @@ impl<'a> AtSlot<'_, 'a> {
     }
 
     /// A feat slot's lists for this character (empty for any other slot), which say which feats it offers.
-    pub(crate) fn lists(&self) -> &[&'a FeatList] {
+    pub(crate) fn lists(&self) -> &[&'a FeatureSelection] {
         &self.lists
     }
 

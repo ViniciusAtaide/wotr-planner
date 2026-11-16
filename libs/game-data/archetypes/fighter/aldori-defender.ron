@@ -6,7 +6,7 @@
     summary: "Dexterity fighter who defends with the Aldori dueling sword, with fewer bonus feats and no Armor Training.",
     guide: "fighter#aldori-defender",
     levels: [
-        (level: 1, features: ["fighter/aldori-defender/weapon-proficiency-dueling-sword"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "tower-shield-proficiency"], feat_slots: [CombatFeat]),
+        (level: 1, features: ["fighter/aldori-defender/weapon-proficiency-dueling-sword"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "tower-shield-proficiency"], selections: ["combat-feats"]),
         (level: 3, features: ["fighter/aldori-defender/defensive-parry"]),
         (level: 6, features: ["fighter/aldori-defender/disarming-strike", "fighter/bravery"]),
         (level: 7, features: ["fighter/aldori-defender/defensive-parry"]),

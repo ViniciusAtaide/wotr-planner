@@ -137,11 +137,12 @@ impl<'a> Walker<'a> {
                 // A list whose pick skips the proficiency check makes the character proficient with its weapon
                 // (the Sword Saint's chosen weapon). Only a feat that requires proficiency can skip it.
                 let catalog = &self.engine.catalog;
-                if let (SlotKind::Feat(slot), Some(Parameter::Weapon(weapon))) = (kind, parameter)
+                if let (SlotKind::Feat(selection), Some(Parameter::Weapon(weapon))) =
+                    (kind, parameter)
                     && catalog
                         .feat(key)
                         .is_some_and(|feat| feat.requires_proficiency)
-                    && skips_proficiency(&catalog.slot_lists(slot, &self.state), key)
+                    && skips_proficiency(&catalog.slot_lists(selection, &self.state), key)
                 {
                     self.hold(Held::Proficiency(weapon.clone()), source.cloned());
                 }

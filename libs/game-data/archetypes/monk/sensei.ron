@@ -7,7 +7,7 @@
     guide: "monk#sensei",
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth"],
     levels: [
-        (level: 1, features: ["monk/ac-bonus", "monk/monk-proficiencies", "monk/sensei/advice", "monk/sensei/inspire-courage", "monk/stunning-fist", "monk/unarmed-strike"], feats: ["improved-unarmed-strike"], feat_slots: [OneOf(list: "monk/bonus-feats-1")]),
+        (level: 1, features: ["monk/ac-bonus", "monk/monk-proficiencies", "monk/sensei/advice", "monk/sensei/inspire-courage", "monk/stunning-fist", "monk/unarmed-strike"], feats: ["improved-unarmed-strike"], selections: ["monk/bonus-feats-1"]),
         (level: 2, features: ["monk/sensei/insightful-strike"]),
         (level: 3, features: ["monk/ki-pool", "monk/ki-strike-magic", "monk/sensei/inspire-competence"]),
         (level: 6, features: ["monk/sensei/mystic-powers"], selections: ["monk/ki-power"]),

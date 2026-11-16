@@ -6,6 +6,6 @@
     guide: "rogue#combat-trick",
     repeat: Unlimited,
     levels: [
-        (level: 1, feat_slots: [CombatFeat]),
+        (level: 1, selections: ["combat-feats"]),
     ],
 )

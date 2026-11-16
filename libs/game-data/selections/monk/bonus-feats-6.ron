@@ -1,0 +1,17 @@
+(
+    key: "monk/bonus-feats-6",
+    blueprint: "b993f42cb119b4f40ac423ae76394374",
+    name: "Monk Bonus Feats (from level 6)",
+    guide: "monk#monk-bonus-feats",
+    ignores_prerequisites: true,
+    feats: [
+        "blind-fight",
+        "combat-reflexes",
+        "crane-style",
+        "deflect-arrows",
+        "disarm",
+        "dodge",
+        "improved-initiative",
+        "trip",
+    ],
+)

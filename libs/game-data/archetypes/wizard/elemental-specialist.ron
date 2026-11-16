@@ -6,6 +6,6 @@
     summary: "Evocation specialist focused on one element, with three opposition schools.",
     guide: "wizard#elemental-specialist",
     levels: [
-        (level: 1, features: ["arcane-bond", "wizard-cantrips", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/elemental-specialist/focused-element", "wizard/elemental-specialist/school"]),
+        (level: 1, features: ["arcane-bond", "wizard-cantrips", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], selections: ["wizard/elemental-specialist/focused-element", "wizard/elemental-specialist/school", "magic-feats"]),
     ],
 )

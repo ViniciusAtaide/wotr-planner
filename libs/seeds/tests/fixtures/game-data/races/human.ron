@@ -4,5 +4,5 @@
     summary: "Versatile; +2 to one ability and a bonus feat.",
     guide: "character-creation#human",
     ability_modifiers: [Chosen(amount: 2)],
-    feat_slots: [General],
+    selections: ["feats"],
 )

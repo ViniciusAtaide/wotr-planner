@@ -5,6 +5,6 @@ MythicPath(
     guide: "trickster",
     ranks: [
         (rank: 3, features: ["trickster/trickster-tricks"], selections: ["trickster/tricks"]),
-        (rank: 4, feat_slots: [OneOf(list: "trickster/bonus-feats")], selections: ["trickster/tricks"]),
+        (rank: 4, selections: ["trickster/tricks", "trickster/bonus-feats"]),
     ],
 )

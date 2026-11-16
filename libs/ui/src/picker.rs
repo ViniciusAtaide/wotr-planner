@@ -11,7 +11,7 @@ use std::time::Duration;
 use leptos::prelude::*;
 use rules::{
     Address, Alignment, Build, Choice, ClassKey, ClassOption, Edit, Engine, FIRST_ASCENSION_RANK,
-    Faith, FeatCategory, FeatSlot, Issue, Place, SlotEntry, SlotId, SlotKind, SlotOption,
+    Faith, FeatCategory, Issue, Place, SlotEntry, SlotId, SlotKind, SlotOption,
 };
 
 use crate::icons::feat_icon;
@@ -496,10 +496,15 @@ fn SlotPicker(id: SlotId) -> impl IntoView {
     let title = engine.choice_label(&Address::Slot(slot.clone()), Some(&found));
     // A slot whose list comes from a held option (a sorcerer's bloodline feat) has none until that option is chosen.
     let empty = match &found.kind {
-        SlotKind::Feat(FeatSlot::OptionList { selection, .. }) => Some(format!(
-            "Nothing to choose yet: choose the {} first.",
-            engine.selection_name(selection)
-        )),
+        SlotKind::Feat(key) => engine
+            .selection(key)
+            .and_then(|selection| selection.option_lists.as_ref())
+            .map(|lists| {
+                format!(
+                    "Nothing to choose yet: choose the {} first.",
+                    engine.selection_name(&lists.selection)
+                )
+            }),
         _ => None,
     };
     let remove = Some(Choice::Slot(slot.clone()));

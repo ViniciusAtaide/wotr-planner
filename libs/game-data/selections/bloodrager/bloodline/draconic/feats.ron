@@ -1,0 +1,15 @@
+(
+    key: "bloodrager/bloodline/draconic/feats",
+    blueprint: "8a2a8d623f6cb574f9e0b6c82ae65c74",
+    name: "Draconic Bloodline Feats",
+    guide: "bloodrager#bonus-feats-draconic",
+    feats: [
+        "blind-fight",
+        "cleave",
+        "great-fortitude",
+        "improved-initiative",
+        "intimidating-prowess",
+        "power-attack",
+        "toughness",
+    ],
+)

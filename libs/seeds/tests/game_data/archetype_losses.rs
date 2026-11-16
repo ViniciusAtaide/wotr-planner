@@ -1,12 +1,13 @@
-//! Ticket 195: an archetype row replaces the base row's features, feats, feat slots and selections in full, so a row
+//! Ticket 195: an archetype row replaces the base row's features, feats and selections in full, so a row
 //! written for one reason can drop something else the base row gives at that level. For every archetype row, what the
 //! base row gives and the row lacks must be on the archetype's list in `archetype_losses.ron`, with the guide's
 //! reason; anything else is a carry-over the row forgot.
 //!
 //! What is compared, per level where the archetype has a row (a level without one is the base row, which drops
 //! nothing):
-//! - the multiset of features, of feat slots and of selection slots, and the sets of granted feats and of granted
-//!   feats-for-a-value: the shortfall is how many of each the base row has more than the row;
+//! - the multiset of features and of selections (a feat slot is a selection of feats since ticket 301), and the sets
+//!   of granted feats and of granted feats-for-a-value: the shortfall is how many of each the base row has more than
+//!   the row;
 //! - the spell levels, when the row sets them below the base row's (a row that raises them is a grant).
 //!
 //! A list entry is `(item, at, count, replaced_by, why)`. With no `at` the archetype loses the item at every level
@@ -39,7 +40,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 
 use rules::{
-    Archetype, ArchetypeKey, ArchetypeLevelRow, Class, ClassLevelRow, FeatKey, FeatSlot, FeatValue,
+    Archetype, ArchetypeKey, ArchetypeLevelRow, Class, ClassLevelRow, FeatKey, FeatValue,
     FeatureKey, FeatureSelectionKey,
 };
 use serde::Deserialize;
@@ -58,7 +59,6 @@ enum Item {
     Feature(FeatureKey),
     Feat(FeatKey),
     FeatFor(FeatValue),
-    Slot(FeatSlot),
     Selection(FeatureSelectionKey),
     SpellLevels,
 }
@@ -129,22 +129,20 @@ fn tally<'a, T: 'a>(
     }
 }
 
-/// A row's features, granted feats, granted feats for a value, feat slots and selections.
+/// A row's features, granted feats, granted feats for a value and selections (of options and of feats, ticket 301).
 type Grants<'a> = (
     &'a [FeatureKey],
     &'a BTreeSet<FeatKey>,
     &'a BTreeSet<FeatValue>,
-    &'a [FeatSlot],
     &'a [FeatureSelectionKey],
 );
 
-/// The five grants of a row (a class's or an archetype's), tallied into `into` at `level`.
+/// The four grants of a row (a class's or an archetype's), tallied into `into` at `level`.
 fn tally_row(into: &mut ByLevel, level: u8, grants: Grants) {
-    let (features, feats, feats_for, feat_slots, selections) = grants;
+    let (features, feats, feats_for, selections) = grants;
     tally(into, level, features, |k| Item::Feature(k.clone()));
     tally(into, level, feats, |k| Item::Feat(k.clone()));
     tally(into, level, feats_for, |v| Item::FeatFor(v.clone()));
-    tally(into, level, feat_slots, |s| Item::Slot(s.clone()));
     tally(into, level, selections, |k| Item::Selection(k.clone()));
 }
 
@@ -156,7 +154,6 @@ fn gives(base: &[ClassLevelRow]) -> ByLevel {
             &row.features[..],
             &row.feats,
             &row.feats_for,
-            &row.feat_slots[..],
             &row.selections[..],
         );
         tally_row(&mut gives, row.level, grants);
@@ -178,7 +175,6 @@ fn rows_grant(rows: &[ArchetypeLevelRow]) -> ByLevel {
             &row.features[..],
             &row.feats,
             &row.feats_for,
-            &row.feat_slots[..],
             &row.selections[..],
         );
         tally_row(&mut own, row.level, grants);
@@ -266,7 +262,6 @@ fn written(item: &Item) -> String {
         Item::Feature(key) => format!("Feature({:?})", key.as_str()),
         Item::Feat(key) => format!("Feat({:?})", key.as_str()),
         Item::FeatFor(value) => format!("FeatFor({})", ron_text(value)),
-        Item::Slot(slot) => format!("Slot({})", ron_text(slot)),
         Item::Selection(key) => format!("Selection({:?})", key.as_str()),
         Item::SpellLevels => "SpellLevels".to_owned(),
     }
@@ -279,7 +274,6 @@ fn described(item: &Item, names: &BTreeMap<String, String>) -> String {
         Item::Feat(key) => ("granted feat", Some(key.as_str())),
         Item::Selection(key) => ("selection", Some(key.as_str())),
         Item::FeatFor(value) => return format!("granted feat {}", ron_text(value)),
-        Item::Slot(slot) => return format!("feat slot {}", ron_text(slot)),
         Item::SpellLevels => return "spell levels".to_owned(),
     };
     let key = key.unwrap_or_default();
@@ -825,15 +819,15 @@ fn replaced_by_names_what_the_rows_grant_in_the_items_place() {
     let names = BTreeMap::new();
     let key = ArchetypeKey::new("warpriest/dis");
     let base = base_rows(
-        r#"[(level: 3, feat_slots: [CombatFeat], features: ["w/channel"]), (level: 9, features: ["w/channel"])]"#,
+        r#"[(level: 3, selections: ["combat-feats"], features: ["w/channel"]), (level: 9, features: ["w/channel"])]"#,
     );
     let rows = archetype_rows(
-        r#"[(level: 3, feat_slots: [OneOf(list: "w/dis/bonus-3")], features: ["w/dis/channel"]),
+        r#"[(level: 3, selections: ["w/dis/bonus-3"], features: ["w/dis/channel"]),
             (level: 9, features: ["w/dis/channel"])]"#,
     );
 
     let right = entries(
-        r#"[(item: Slot(CombatFeat), replaced_by: [Slot(OneOf(list: "w/dis/bonus-3"))]),
+        r#"[(item: Selection("combat-feats"), replaced_by: [Selection("w/dis/bonus-3")]),
             (item: Feature("w/channel"), replaced_by: [Feature("w/dis/channel")])]"#,
     );
     let found = check("w", &key, &base, &rows, &names, &right, View::Data);
@@ -844,7 +838,7 @@ fn replaced_by_names_what_the_rows_grant_in_the_items_place() {
 
     // Naming something the rows don't grant is stale, and the message says which row to look at.
     let wrong = entries(
-        r#"[(item: Slot(CombatFeat), replaced_by: [Slot(OneOf(list: "w/dis/elsewhere"))]),
+        r#"[(item: Selection("combat-feats"), replaced_by: [Selection("w/dis/elsewhere")]),
             (item: Feature("w/channel"))]"#,
     );
     let found = check("w", &key, &base, &rows, &names, &wrong, View::Data);
@@ -858,7 +852,7 @@ fn replaced_by_names_what_the_rows_grant_in_the_items_place() {
 
     // A delay: lost at 3, the copy granted only at 9, still a replacement.
     let delayed_rows = archetype_rows(
-        r#"[(level: 3, feat_slots: [CombatFeat]), (level: 9, features: ["w/dis/channel"])]"#,
+        r#"[(level: 3, selections: ["combat-feats"]), (level: 9, features: ["w/dis/channel"])]"#,
     );
     let delayed =
         entries(r#"[(item: Feature("w/channel"), replaced_by: [Feature("w/dis/channel")])]"#);

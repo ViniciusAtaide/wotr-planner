@@ -1,6 +1,6 @@
-//! What a choice offers: each selection's options (its own and the ones it shares) and each feat list's feats against
-//! the blueprint's `m_AllFeatures`, and the planner's feats, mythic abilities and mythic feats against the game's
-//! general pools (`BasicFeatSelection`, `MythicAbilitySelection`, `MythicFeatSelection`).
+//! What a choice offers: each selection's options (its own and the ones it shares) or feats (ticket 301) against the
+//! blueprint's `m_AllFeatures`, and the planner's feats, mythic abilities and mythic feats against the game's general
+//! pools (`BasicFeatSelection`, `MythicAbilitySelection`, `MythicFeatSelection`).
 
 use std::collections::BTreeSet;
 
@@ -17,36 +17,32 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
     let data = ctx.planner.data;
     for selection in &data.selections {
         let at = DataAt::FeatureSelection(selection.key.clone());
-        // A filtered pool (`filtered_by`, ticket 243) offers all its options, as the game's one selection does
-        // before its options' prerequisites filter it (an oracle's revelations).
-        let options = selection
-            .offered()
-            .into_iter()
-            .map(|key| DataAt::SelectionOption(key.clone()));
-        let planner = guids(ctx, out, options);
-        list(ctx, out, &at, selection.blueprint.as_ref(), planner, None);
-    }
-    for feat_list in &data.feat_lists {
-        let at = DataAt::FeatList(feat_list.key.clone());
-        if feat_list.every_feat {
-            out.skip(AREA, "a list of every feat");
+        if selection.option_lists.is_some() {
+            out.skip(AREA, "a selection of a held option's feat lists (302)");
             continue;
         }
-        let planner = guids(
-            ctx,
-            out,
-            feat_list
-                .feats
-                .iter()
-                .map(|feat| DataAt::Feat(feat.clone())),
-        );
+        // A filtered pool (`filtered_by`, ticket 243) offers all its options, as the game's one selection does
+        // before its options' prerequisites filter it (an oracle's revelations).
+        let offered = (selection.offered().into_iter())
+            .map(|key| DataAt::SelectionOption(key.clone()))
+            .chain(
+                selection
+                    .feats
+                    .iter()
+                    .map(|feat| DataAt::Feat(feat.clone())),
+            );
+        let planner = guids(ctx, out, offered);
+        // Whether a pick ignores prerequisites is a selection of feats' own (a bonus list's).
+        let ignores = selection
+            .offers_feats()
+            .then_some(selection.ignores_prerequisites);
         list(
             ctx,
             out,
             &at,
-            feat_list.blueprint.as_ref(),
+            selection.blueprint.as_ref(),
             planner,
-            Some(feat_list.ignores_prerequisites),
+            ignores,
         );
     }
     let pools = [

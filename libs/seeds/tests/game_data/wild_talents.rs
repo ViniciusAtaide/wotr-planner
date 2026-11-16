@@ -145,10 +145,7 @@ fn element_feats(elements: &[&str]) -> BTreeSet<String> {
         .iter()
         .flat_map(|element| {
             let key = format!("kineticist/element/{element}/wild-talent-feats");
-            DATA.feat_lists
-                .iter()
-                .find(|list| list.key.as_str() == key)
-                .unwrap_or_else(|| panic!("no list {key}"))
+            any_selection(&key)
                 .feats
                 .iter()
                 .map(|feat| feat.to_string())

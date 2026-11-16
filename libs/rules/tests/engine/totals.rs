@@ -120,7 +120,7 @@ fn world_with_bonus_items() -> GameData {
         summary: String::new(),
         guide: Some(GuideRef::new("half-elf/kindred")),
         ability_modifiers: Vec::new(),
-        feat_slots: Vec::new(),
+        selections: Vec::new(),
         skill_points: 0,
         weapons: BTreeSet::new(),
         weapons_as_martial: BTreeSet::new(),

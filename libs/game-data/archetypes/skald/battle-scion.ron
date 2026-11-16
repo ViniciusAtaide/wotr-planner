@@ -6,7 +6,7 @@
     summary: "You can trade rage powers for teamwork feats, which your Inspired Rage shares with allies.",
     guide: "skald#battle-scion",
     levels: [
-        (level: 1, features: ["skald/battle-scion/bardic-knowledge-battle-scion", "skald/battle-scion/courtly-presence", "skald/inspired-rage", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
+        (level: 1, features: ["skald/battle-scion/bardic-knowledge-battle-scion", "skald/battle-scion/courtly-presence", "skald/inspired-rage", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], selections: ["magic-feats"]),
         (level: 3, features: ["skald/battle-scion/battle-prowess"], selections: ["skald/battle-scion/rage-power-or-teamwork-feat"]),
         (level: 6, features: ["skald/battle-scion/battle-prowess", "skald/song-of-strength"], selections: ["skald/battle-scion/rage-power-or-teamwork-feat"]),
         (level: 9, features: ["skald/battle-scion/battle-prowess", "skald/damage-reduction"], selections: ["skald/battle-scion/rage-power-or-teamwork-feat"]),

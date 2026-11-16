@@ -4,8 +4,8 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Build, ClassChoice, ClassKey, FeatKey, FeatSlot, Issue, LevelUp, Pick, SelectionOptionKey,
-    SlotId, SlotKind,
+    Build, ClassChoice, ClassKey, FeatKey, Issue, LevelUp, Pick, SelectionOptionKey, SlotId,
+    SlotKind,
 };
 
 use crate::support::*;
@@ -70,7 +70,7 @@ fn the_war_domain_grants_a_bonus_combat_feat_at_8() {
     let sheet = engine().evaluate(&build);
     assert_eq!(
         sheet.slot(&slot).expect("the War domain's slot").kind,
-        SlotKind::Feat(FeatSlot::CombatFeat)
+        feat_kind("combat-feats")
     );
     let feats = feats_offered(&build, &slot);
     assert!(feats.contains("power-attack"));
@@ -322,7 +322,7 @@ fn a_kineticist_holds_the_elements_class_skills_list_and_defensive_talent() {
     assert_eq!(
         one.option_feat_lists
             .get(&SelectionOptionKey::new("kineticist/element/earth")),
-        Some(&rules::FeatListKey::new(
+        Some(&rules::FeatureSelectionKey::new(
             "kineticist/element/earth/wild-talent-feats"
         ))
     );

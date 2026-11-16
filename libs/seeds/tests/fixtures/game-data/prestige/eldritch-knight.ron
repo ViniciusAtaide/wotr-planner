@@ -15,7 +15,7 @@ Class(
         (class: "fighter", toward: Feature("fighter/bravery")),
     ],
     levels: [
-        (level: 1, feat_slots: [CombatFeat]),
+        (level: 1, selections: ["combat-feats"]),
         (level: 2, advances_arcane: true),
     ],
 )

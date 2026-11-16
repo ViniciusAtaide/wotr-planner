@@ -7,7 +7,7 @@
         guide: "skald#battle-prowess",
         repeat: Unlimited,
         levels: [
-            (level: 1, feat_slots: [Category(Teamwork)]),
+            (level: 1, selections: ["teamwork-feats"]),
         ],
     ),
 )

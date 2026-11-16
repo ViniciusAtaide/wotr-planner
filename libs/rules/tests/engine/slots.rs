@@ -1,9 +1,7 @@
 //! Slots at each level: general slots, bonus slots from race, subrace, class and archetype, Feature selection
 //! slots, and the order a level's slots are checked in.
 
-use rules::{
-    ArchetypeKey, Build, FeatSlot, FeatureSelectionKey, LevelSheet, SlotId, SlotKind, SubraceKey,
-};
+use rules::{ArchetypeKey, Build, FeatureSelectionKey, LevelSheet, SlotId, SlotKind, SubraceKey};
 
 use crate::support::*;
 
@@ -30,7 +28,7 @@ fn a_general_slot_comes_at_every_odd_character_level() {
     assert_eq!(slot_ids(&sheet.levels[3]), []);
     assert_eq!(
         kind_of(&sheet.levels[2], &general_slot(3)),
-        SlotKind::Feat(FeatSlot::General)
+        SlotKind::Feat(feat_list("feats"))
     );
 }
 
@@ -41,7 +39,7 @@ fn a_human_gets_a_bonus_general_slot_at_level_1_only() {
     assert_eq!(slot_ids(&sheet.levels[0]), [race_slot(0), general_slot(1)]);
     assert_eq!(
         kind_of(&sheet.levels[0], &race_slot(0)),
-        SlotKind::Feat(FeatSlot::General)
+        SlotKind::Feat(feat_list("feats"))
     );
     assert_eq!(slot_ids(&sheet.levels[2]), [general_slot(3)]);
 
@@ -56,7 +54,7 @@ fn fighter_levels_give_combat_feat_bonus_slots_by_class_level() {
     assert_eq!(slot_ids(&sheet.levels[1]), [class_slot(2, 0)]);
     assert_eq!(
         kind_of(&sheet.levels[1], &class_slot(2, 0)),
-        SlotKind::Feat(FeatSlot::CombatFeat)
+        SlotKind::Feat(feat_list("combat-feats"))
     );
     assert_eq!(
         slot_ids(&sheet.levels[2]),
@@ -94,9 +92,7 @@ fn an_archetype_chosen_on_entry_replaces_the_class_rows() {
     );
     assert_eq!(
         kind_of(&sheet.levels[1], &class_slot(2, 0)),
-        SlotKind::Feat(FeatSlot::OneOf {
-            list: feat_list("fighter/armiger/bonus-feats"),
-        })
+        SlotKind::Feat(feat_list("fighter/armiger/bonus-feats"))
     );
 }
 

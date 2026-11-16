@@ -1,0 +1,13 @@
+// A bonus feat of the player's choosing: one parameterised feat, the pick names the skill.
+(
+    why: "A feat list the planner made, with no game blueprint.",
+    entry: (
+        key: "rogue/skill-focus",
+        name: "Skill Focus",
+        guide: "rogue#skill-focus",
+        ignores_prerequisites: true,
+        feats: [
+            "skill-focus",
+        ],
+    ),
+)

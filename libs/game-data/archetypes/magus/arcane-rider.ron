@@ -10,7 +10,7 @@
         (level: 4),
         (level: 7),
         (level: 8, features: ["magus/arcane-rider/dimensional-ride", "magus/improved-spell-combat"]),
-        (level: 11, feat_slots: [General]),
+        (level: 11, selections: ["feats"]),
         (level: 13, features: ["arcane-weapon-4"]),
         (level: 14, features: ["magus/arcane-rider/greater-dimensional-ride", "magus/greater-spell-combat"]),
     ],

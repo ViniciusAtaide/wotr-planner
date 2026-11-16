@@ -1,0 +1,19 @@
+(
+    key: "hunter/urban-hunter/bonus-feats-12",
+    blueprint: "9839caff86642584bbf07699e8238c1b",
+    name: "Captor (from level 12)",
+    guide: "hunter#captor",
+    ignores_prerequisites: true,
+    feats: [
+        "bull-rush",
+        "combat-reflexes",
+        "dirty-trick",
+        "disarm",
+        "greater-bull-rush",
+        "greater-dirty-trick",
+        "greater-disarm",
+        "greater-trip",
+        "lunge",
+        "trip",
+    ],
+)

@@ -12,7 +12,7 @@
         (level: 5, features: ["inquisitor/living-grimoire/blessed-script"]),
         (level: 8, features: ["inquisitor/living-grimoire/sacred-word"]),
         (level: 10, features: ["inquisitor/living-grimoire/blessed-script"]),
-        (level: 12, features: ["inquisitor/living-grimoire/sacred-word"], feat_slots: [Category(Teamwork)]),
+        (level: 12, features: ["inquisitor/living-grimoire/sacred-word"], selections: ["teamwork-feats"]),
         (level: 16, features: ["inquisitor/living-grimoire/blessed-script", "inquisitor/living-grimoire/sacred-word"]),
         (level: 20, features: ["inquisitor/living-grimoire/sacred-word", "inquisitor/living-grimoire/word-of-god"]),
     ],

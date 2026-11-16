@@ -1,0 +1,12 @@
+(
+    why: "A feat list the planner made, with no game blueprint.",
+    entry: (
+        key: "sorcerer/bloodline/abyssal-feats",
+        name: "Abyssal Bloodline Feats",
+        guide: "character-creation#abyssal-bloodline",
+        feats: [
+            "power-attack",
+            "toughness",
+        ],
+    ),
+)

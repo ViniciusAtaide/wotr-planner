@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use crate::test_world::world::nested::{Archetype, Class, FeatureSelection};
 use crate::*;
 
-use crate::test_world::builds::{class, feat, option, skill};
+use crate::test_world::builds::{class, feat, feat_list, option, skill};
 use crate::test_world::world::classes::{archetype, archetype_row, row};
 use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option,
@@ -114,7 +114,7 @@ pub(in crate::test_world::world) fn cleric() -> Class {
                         levels: vec![
                             option_row(1, &["cleric/domain/war/battle-rage"]),
                             OptionLevelRow {
-                                feat_slots: vec![FeatSlot::CombatFeat],
+                                selections: vec![feat_list("combat-feats")],
                                 ..option_row(8, &[])
                             },
                         ],

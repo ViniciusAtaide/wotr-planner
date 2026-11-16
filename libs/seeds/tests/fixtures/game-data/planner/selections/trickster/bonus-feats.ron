@@ -1,0 +1,12 @@
+(
+    why: "A feat list the planner made, with no game blueprint.",
+    entry: (
+        key: "trickster/bonus-feats",
+        name: "Trickster Bonus Feats",
+        guide: "trickster#trickster-bonus-feats",
+        feats: [
+            "dirty-trick",
+            "toughness",
+        ],
+    ),
+)

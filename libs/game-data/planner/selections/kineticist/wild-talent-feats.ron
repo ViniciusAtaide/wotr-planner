@@ -1,0 +1,8 @@
+(
+    why: "The game has one bonus-feat selection per element (WildTalentBonusFeatAir and the others); the planner's one slot offers the held element's list until nested selections (ticket 302).",
+    entry: (
+        key: "kineticist/wild-talent-feats",
+        name: "Wild talent feat",
+        option_lists: (selection: "kineticist/element"),
+    ),
+)

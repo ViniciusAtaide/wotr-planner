@@ -1,0 +1,17 @@
+(
+    key: "ranger/combat-style-feat/menacing-feats-2",
+    blueprint: "1c5988e90e0657645972e7b28ba4ce8b",
+    name: "Menacing Feats (from level 2)",
+    guide: "ranger#menacing-feats",
+    ignores_prerequisites: true,
+    feats: [
+        "dazzling-display",
+        "dodge",
+        "great-fortitude",
+        "intimidating-prowess",
+        "iron-will",
+        "lightning-reflexes",
+        "power-attack",
+        "toughness",
+    ],
+)

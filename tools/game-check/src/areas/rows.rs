@@ -16,13 +16,13 @@
 //! game selection and a planner feat slot at one level. What's left is in one side only, or a further rank of a
 //! feature the other side gives earlier (never of a selection or a pick: granted again, it is another pick).
 
-use rules::{BlueprintGuid, Class, DataAt, FeatCategory, FeatSlot, effective_row};
+use rules::{BlueprintGuid, Class, DataAt, effective_row};
 use serde_json::Value;
 
 use super::Ctx;
 use super::fixed::{
-    FIRST_ASCENSION_SELECTION, FIRST_LEVELS, MYTHIC_ABILITY_SELECTION, MYTHIC_FEAT_SELECTION,
-    MYTHIC_STARTING_CLASS, MYTHIC_STARTING_PROGRESSION, guid,
+    FEAT_POOLS, FIRST_ASCENSION_SELECTION, FIRST_LEVELS, MYTHIC_ABILITY_SELECTION,
+    MYTHIC_FEAT_SELECTION, MYTHIC_STARTING_CLASS, MYTHIC_STARTING_PROGRESSION, guid,
 };
 use crate::dump::{
     component_kind, components, flag, int, is_feature_kind, level_entries, reference, references,
@@ -32,7 +32,8 @@ use crate::report::{Area, Out};
 /// How deep the unfolding goes: a bundle in a nested progression in a row is 3.
 const DEPTH: u8 = 4;
 
-/// One grant: a blueprint, or a pick of a group (a game selection the planner doesn't map, or a planner feat slot).
+/// One grant: a blueprint, or a pick of a group (a game selection the planner doesn't map or a feat pool, or a planner
+/// feat pool's slot).
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 enum Item {
     Guid(BlueprintGuid),
@@ -44,7 +45,7 @@ enum How {
     Grant,
     /// A fact a mapped feature adds: it matches a planner grant at its level or goes.
     Optional,
-    /// A planner feat slot whose list comes from a held option: it pairs with any game pick at its level.
+    /// A planner selection of feats whose list comes from a held option: it pairs with any game pick at its level.
     AnyPick,
 }
 
@@ -57,7 +58,7 @@ struct Placed {
     /// A selection's `Group`, or a slot's.
     group: Option<String>,
     how: How,
-    /// A selection (the game's `BlueprintFeatureSelection`, or the planner's selection or feat list): granted
+    /// A selection (the game's `BlueprintFeatureSelection`, or the planner's selection of options or of feats): granted
     /// again, it is another pick, never a further rank (`BlueprintFeature.MeetsPrerequisites` lets an
     /// `IFeatureSelection` through at any rank).
     choice: bool,
@@ -243,7 +244,6 @@ pub fn compare_mythic(ctx: &Ctx, out: &mut Out) {
                 features: &row.features,
                 feats: &[],
                 feats_for: &[],
-                slots: &row.feat_slots,
                 selections: &row.selections,
             };
             grants.place(ctx, out, AREA, i64::from(row.rank), &mut planner);
@@ -300,7 +300,7 @@ impl Unfold<'_> {
             })
         };
         let json = ctx.dump.json(grant);
-        if ctx.planner.maps(grant) || depth >= DEPTH {
+        if (ctx.planner.maps(grant) && !is_pool(grant)) || depth >= DEPTH {
             keep(placed);
             for fact in json
                 .map(|json| feature_facts(ctx, json))
@@ -430,7 +430,6 @@ fn planner_class_rows(
             features: row.features,
             feats: &feats,
             feats_for: &feats_for,
-            slots: row.feat_slots,
             selections: row.selections,
         };
         grants.place(ctx, out, area, i64::from(level), &mut placed);
@@ -443,7 +442,6 @@ struct Grants<'a> {
     features: &'a [rules::FeatureKey],
     feats: &'a [&'a rules::FeatKey],
     feats_for: &'a [&'a rules::FeatKey],
-    slots: &'a [FeatSlot],
     selections: &'a [rules::FeatureSelectionKey],
 }
 
@@ -456,8 +454,7 @@ impl Grants<'_> {
             Some(guid) => {
                 let group = group_of(ctx, guid);
                 placed.push(Placed {
-                    choice: group.is_some()
-                        || matches!(at, DataAt::FeatureSelection(_) | DataAt::FeatList(_)),
+                    choice: group.is_some() || matches!(at, DataAt::FeatureSelection(_)),
                     group,
                     ..Placed::new(
                         Item::Guid(guid.clone()),
@@ -478,45 +475,46 @@ impl Grants<'_> {
             out.skip(area, "a feat granted for one value, compared as the feat");
             entry(DataAt::Feat((*feat).clone()), out, placed);
         }
-        for selection in self.selections {
-            entry(DataAt::FeatureSelection(selection.clone()), out, placed);
-        }
-        for slot in self.slots {
-            let group = match slot {
-                FeatSlot::OneOf { list } => {
-                    entry(DataAt::FeatList(list.clone()), out, placed);
-                    continue;
-                }
-                FeatSlot::OptionList { .. } => {
-                    placed.push(Placed {
-                        how: How::AnyPick,
-                        ..Placed::new(
-                            Item::Pick("an option's list".to_owned()),
-                            level,
-                            "an option-list feat slot".to_owned(),
-                        )
-                    });
-                    continue;
-                }
-                FeatSlot::General => "Feat".to_owned(),
-                FeatSlot::CombatFeat => "CombatFeat".to_owned(),
-                FeatSlot::Category(FeatCategory::Teamwork) => "TeamworkFeat".to_owned(),
-                FeatSlot::Category(FeatCategory::MountedCombat) => "MountedCombatFeat".to_owned(),
-                // Inference: the game's bonus metamagic and item creation feats are the `WizardFeat` group
-                // (`WizardFeatSelection`, `SkaldFeatSelection`, `SorcererBonusFeat`).
-                FeatSlot::Category(FeatCategory::Magic) => "WizardFeat".to_owned(),
-                FeatSlot::Category(category) => format!("{category:?} (no game group)"),
-            };
-            placed.push(Placed {
-                group: Some(group.clone()),
-                ..Placed::new(
-                    Item::Pick(group.clone()),
-                    level,
-                    format!("a {group} feat slot"),
-                )
-            });
+        for key in self.selections {
+            let selection = ctx.planner.data.selection(key);
+            // A selection of feats whose list is a held option's (ticket 301: the option-list feat slot).
+            if selection.is_some_and(|selection| selection.option_lists.is_some()) {
+                placed.push(Placed {
+                    how: How::AnyPick,
+                    ..Placed::new(
+                        Item::Pick("an option's list".to_owned()),
+                        level,
+                        "an option-list feat slot".to_owned(),
+                    )
+                });
+                continue;
+            }
+            // A feat pool's slot: a pick of its group (the general slot's `Feat`, `CombatFeat`, `TeamworkFeat`,
+            // `MountedCombatFeat`; `WizardFeat` for the Magic feats, an inference: the game's bonus metamagic and item
+            // creation feats are that group, `WizardFeatSelection`, `SkaldFeatSelection`, `SorcererBonusFeat`).
+            let pool = (selection.and_then(|selection| selection.blueprint.as_ref()))
+                .filter(|guid| is_pool(guid));
+            if let Some(guid) = pool {
+                let group = group_of(ctx, guid).unwrap_or_else(|| "None".to_owned());
+                placed.push(Placed {
+                    group: Some(group.clone()),
+                    ..Placed::new(
+                        Item::Pick(group.clone()),
+                        level,
+                        format!("a {group} feat slot"),
+                    )
+                });
+                continue;
+            }
+            entry(DataAt::FeatureSelection(key.clone()), out, placed);
         }
     }
+}
+
+/// Whether a blueprint is one of the game's feat pools ([`FEAT_POOLS`]), which the rows compare as a pick of its group
+/// whether or not the planner maps it.
+fn is_pool(guid: &BlueprintGuid) -> bool {
+    FEAT_POOLS.contains(&guid.as_str())
 }
 
 /// The two sides' grants, paired as the module says.

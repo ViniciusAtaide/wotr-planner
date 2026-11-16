@@ -1,0 +1,20 @@
+(
+    key: "teamwork-feats",
+    blueprint: "d87e2f6a9278ac04caeb0f93eff95fcb",
+    name: "Teamwork feat",
+    feats: [
+        "allied-spellcaster",
+        "back-to-back",
+        "coordinated-defense",
+        "coordinated-maneuvers",
+        "outflank",
+        "precise-strike",
+        "seize-the-moment",
+        "shake-it-off",
+        "shield-wall",
+        "shielded-caster",
+        "spell-chain",
+        "tandem-trip",
+        "volley-fire",
+    ],
+)

@@ -6,14 +6,18 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Build, Choice, Edit, FeatCategory, FeatSlot, LevelFrom, MythicPathKey, SlotId, SlotKind,
+    Build, Choice, Edit, FeatCategory, FeatureSelectionKey, LevelFrom, MythicPathKey, SlotId,
+    SlotKind,
 };
 
 use crate::support::*;
 
 const LBF: &str = "azata/superpowers/life-bonding-friendship";
 
-const TEAMWORK: SlotKind = SlotKind::Feat(FeatSlot::Category(FeatCategory::Teamwork));
+/// The teamwork feat slot (ticket 301: the teamwork feats' selection).
+fn teamwork_slot() -> SlotKind {
+    feat_kind("teamwork-feats")
+}
 
 fn path_feat(rank: u8) -> SlotId {
     SlotId::PathFeat { rank, index: 0 }
@@ -54,21 +58,21 @@ fn life_bonding_friendship_gives_a_teamwork_feat_slot_at_its_rows_1_and_2_and_no
         .map(|option| option.key.as_str())
         .collect();
     assert_eq!(with_rows, [LBF]);
-    let rows: Vec<(u8, Vec<FeatSlot>)> = selection_option(LBF)
+    let rows: Vec<(u8, Vec<FeatureSelectionKey>)> = selection_option(LBF)
         .levels
         .iter()
-        .map(|row| (row.level, row.feat_slots.clone()))
+        .map(|row| (row.level, row.selections.clone()))
         .collect();
-    let teamwork = || vec![FeatSlot::Category(FeatCategory::Teamwork)];
+    let teamwork = || vec![FeatureSelectionKey::new("teamwork-feats")];
     // Game: AzataSuperpowersSelection 8a30e92cd04ff5b459ba7cb03584fda0's option LifeBondingFriendshipSelection
     // cfad18f581584ac4ba066df067956477 is itself a teamwork selection granting LifeBondingFriendshipFeature
     // 5b63a6690ebbaa4459df3e04fe094cbd; LifeBondingFriendshipSelection1 69a33d6ced23446e819667149d088898, at each
     // Azata level of AzataProgression 9db53de4bf21b564ca1a90ff5bd16586, needs that feature and not its own, so it
     // gives one more teamwork feat, once; no other superpower has more (equivalent model: rows 1 and 2).
     assert_eq!(rows, [(1, teamwork()), (2, teamwork())]);
-    // The rows give nothing else.
+    // The rows give nothing else (their one selection is the teamwork feat's, above).
     for row in &selection_option(LBF).levels {
-        assert!(row.features.is_empty() && row.feats.is_empty() && row.selections.is_empty());
+        assert!(row.features.is_empty() && row.feats.is_empty());
     }
     // No other path selection is levelled by Mythic rank.
     let by_rank: Vec<&str> = DATA
@@ -93,14 +97,14 @@ fn taken_at_mr_6_it_gives_a_teamwork_feat_slot_at_mr_6_and_mr_7() {
         [
             (SlotId::Mythic { rank: 6 }, SlotKind::MythicFeat),
             (path_selection(6), superpowers()),
-            (path_feat(6), TEAMWORK),
+            (path_feat(6), teamwork_slot()),
         ]
     );
     assert_eq!(
         rank_slots(&build, 7),
         [
             (SlotId::Mythic { rank: 7 }, SlotKind::MythicAbility),
-            (path_feat(7), TEAMWORK),
+            (path_feat(7), teamwork_slot()),
         ]
     );
     let sheet = engine().evaluate(&build);
@@ -243,11 +247,11 @@ fn taken_at_mr_4_or_8_the_second_slot_comes_at_the_next_rank() {
         assert!(possible(&build), "MR {rank}");
         assert_eq!(
             rank_slots(&build, rank).last(),
-            Some(&(path_feat(rank), TEAMWORK))
+            Some(&(path_feat(rank), teamwork_slot()))
         );
         assert_eq!(
             rank_slots(&build, rank + 1).last(),
-            Some(&(path_feat(rank + 1), TEAMWORK)),
+            Some(&(path_feat(rank + 1), teamwork_slot())),
             "MR {rank}"
         );
     }
@@ -267,7 +271,7 @@ fn taken_at_mr_10_it_gives_one_slot() {
         [
             (SlotId::Mythic { rank: 10 }, SlotKind::MythicFeat),
             (path_selection(10), superpowers()),
-            (path_feat(10), TEAMWORK),
+            (path_feat(10), teamwork_slot()),
         ]
     );
     let sheet = engine().evaluate(&build);
@@ -277,7 +281,7 @@ fn taken_at_mr_10_it_gives_one_slot() {
         .iter()
         .flat_map(|level| &level.slots)
         .chain(sheet.ranks.iter().flat_map(|rank| &rank.slots))
-        .filter(|slot| slot.kind == TEAMWORK)
+        .filter(|slot| slot.kind == teamwork_slot())
         .count();
     assert_eq!(teamwork_slots, 1);
 }

@@ -8,7 +8,7 @@
     levels: [
         (level: 1, features: ["hunter/animal-companion", "hunter/colluding-scoundrel/scapegoat", "hunter/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 8, features: ["hunter/colluding-scoundrel/backstabber", "hunter/colluding-scoundrel/scapegoat"]),
-        (level: 15, features: ["hunter/colluding-scoundrel/backstabber", "hunter/colluding-scoundrel/scapegoat"], feat_slots: [OneOf(list: "hunter/bonus-feats-3")]),
+        (level: 15, features: ["hunter/colluding-scoundrel/backstabber", "hunter/colluding-scoundrel/scapegoat"], selections: ["hunter/bonus-feats-3"]),
         (level: 20, features: ["hunter/colluding-scoundrel/master-backstabber"]),
     ],
 )

@@ -191,15 +191,13 @@ fn a_crusaders_bonus_feats_still_skip_every_prerequisite_and_the_data_says_so() 
         .unwrap()
         .levels
         .iter()
-        .flat_map(|row| &row.feat_slots)
-        .filter_map(|slot| match slot {
-            rules::FeatSlot::OneOf { list } => Some(list.to_string()),
-            _ => None,
-        })
+        .flat_map(|row| &row.selections)
+        .filter(|key| is_feat_list(any_selection(key.as_str())))
+        .map(ToString::to_string)
         .collect();
     assert!(!lists.is_empty());
     for list in lists {
-        let file = seeds::game_data_dir().join(format!("feat-lists/{list}.ron"));
+        let file = seeds::game_data_dir().join(format!("selections/{list}.ron"));
         let text = std::fs::read_to_string(&file).unwrap();
         assert!(
             text.contains("// Crusader Bonus Feats:"),

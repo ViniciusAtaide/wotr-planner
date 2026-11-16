@@ -21,7 +21,7 @@ small hand-written example of the layout.
 
 One file per entry (ticket 244), in a folder by kind, named by its key: `features/sneak-attack.ron` holds the feature
 keyed `sneak-attack`, `archetypes/rogue/thug.ron` the archetype keyed `rogue/thug`. An entry holds no other entry:
-classes, archetypes, paths and options name the features, selections and feat lists their rows grant by key, and a
+classes, archetypes, paths, options and races name the features and selections they grant by key, and a
 feature the game has once is one entry, whichever classes grant it (`sneak-attack`; the sheet's holder of a feature
 is what grants it, not its key). A key says nothing of an owner; keys of entries made before ticket 244 still start
 with one, and keys that links name never change.
@@ -30,10 +30,10 @@ with one, and keys that links name never change.
 | --- | --- |
 | `races/`, `subraces/` | `Race`; `Subrace`, naming its `race` |
 | `weapons/` | `Weapon`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack, Kinetic Blast and Bomb; each weapon's stats for the attack line (ticket 114) |
-| `feats/`, `feat-lists/` | `Feat`; `FeatList`, the named lists fixed-list slots pick from (a race's, class's, archetype's, option's or path's) |
+| `feats/` | `Feat` |
 | `classes/`, `prestige/` | one base or prestige `Class`: its tables and level rows |
 | `archetypes/` | `Archetype`, naming its `class`: the rows where it differs from its class |
-| `features/`, `selections/`, `options/` | `Feature`; `FeatureSelection`, whose `options` are the keys of its own options and `shared_options` others'; `SelectionOption` |
+| `features/`, `selections/`, `options/` | `Feature`; `FeatureSelection`, whose `options` are the keys of its own options and `shared_options` others', or whose `feats` are the feats it offers (a selection of feats, ticket 301: what `feat-lists/` and the feat slots were); `SelectionOption` |
 | `mythic/abilities/`, `mythic/feats/`, `mythic/paths/` | `MythicAbility`; `MythicFeat`; `MythicPath`: its rank table and switch rule |
 | `backgrounds/` | `Background`: the user's list (ticket 34) |
 | `deities/` | `Deity`: the guide's deity table (`character-creation#deities`, ticket 86): the alignments a follower may have, the favoured weapons and the domains (`cleric/domain` options) |
@@ -68,7 +68,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   A replaced save takes the archetype's formula at every level, without the class's `save_exceptions` for that save;
   the check refuses one equal to the class's.
 - An archetype has a row only at the levels where it differs from its base class. A row's `features`, `feats`,
-  `feat_slots` and `selections` replace the base row's in full (a row with none takes them away), and
+  `feats_for` and `selections` replace the base row's in full (a row with none takes them away), and
   `spell_levels: (arcane: 1, divine: 0)` replaces the base row's spell levels when set. A level without a row is
   the base class's. The check refuses a row that changes nothing and spell levels equal to the base row's.
 - A feature that improves in steps is granted again at each step, on the row of the level the game's level-up names it
@@ -189,8 +189,8 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   the planner doesn't model is its `note` ("Proficient with scimitar. +2 CMD against trip."). `group` is the game's
   heading (`Craftsman`, `Noble`, `Oblate`, `Regional`, `Scholar`, `StreetUrchin`, `Wanderer`, `Warrior`). There's
   no "None" background: a Build start without one simply has none (user, 2026-11-02).
-- A selection option's key extends its selection's: `rogue/rogue-talents/fast-stealth`. A feature's, a
-  selection's and a feat list's key starts with its owner's (the archetype's when an archetype defines it), and
+- A selection option's key extends its selection's: `rogue/rogue-talents/fast-stealth`. A feature's and a
+  selection's key starts with its owner's (the archetype's when an archetype defines it), and
   the schema checks it: Hard to Kill is each path's own `aeon/hard-to-kill`, not one shared key.
 - An option is defined once, in the selection whose list it is, and another selection that offers it lists its
   key in `shared_options: [...]` after its own `options` (one key per line): the slayer's talents share the 36
@@ -233,7 +233,8 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   second domain, `cleric/separatist/domain`: its first row at once, the later ones two levels late; ticket 253), only some options (Hag-Riven), or one option, which
   is then granted with no pick (a Sage Sorcerer's Arcane bloodline). `only_without_option: true` grants the
   selection only to a character holding none of its options (Dragon Disciple's Blood of Dragons). A bonus slot
-  that picks from the held option's list is `OptionList(selection: "sorcerer/bloodline")`. The option features
+  that picks from the held option's list is a selection of feats with `option_lists: (selection:
+  "sorcerer/bloodline")` (`sorcerer/bloodline-feats`, ticket 301; an `OptionList` slot before). The option features
   are the class's (`sorcerer/bloodline/abyssal/grow-claws`; the ten dragons share `sorcerer/bloodline/draconic/...`).
   Spells stay out. A Primalist's choice replaces the bloodline's row with `replaces_row_of:
   "bloodrager/bloodline"`; a feature can grant one row of a held option, `option_row: (selection:
@@ -283,7 +284,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
     per element (none for Earth). The Divine Hunter skips no domain level. The Signifer's order is
     `hellknight-signifer/order`, sharing the Hellknight's seven.
 - Ticket 35 (the user's decisions on tickets 32 and 33):
-  - A subrace's `feat_slots` replace its race's, as its ability modifiers do (the guide lists each subrace's own
+  - A subrace's selections of feats replace its race's, as its ability modifiers do (the guide lists each subrace's own
     traits): none written means none, so the half-elf's Dual Heritage and Kindred Raised get no Adaptability. They
     may name the race's lists.
   - `level_also_from: "arcanist/magic-deceiver/ways-of-the-deceiver/living-deity"` beside `level_from:
@@ -700,24 +701,35 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   rises, so the sheet and the attack line read it too.
 - Mythic abilities and feats name their group as the guide heads it: `group: Melee`, `ArmourAndShield`,
   `CombatManoeuvre` and so on.
-- Feat slots are `General`, `CombatFeat`, `Category(Teamwork)` or a named list, `OneOf(list: "monk/bonus-feats-1")`.
-  The lists are in the file of the class, archetype or path that owns them, in a `feat_lists: [...]` block before
-  its `levels`/`ranks`: `(key: "monk/bonus-feats-1", name: "Monk Bonus Feats", guide: "monk#monk-bonus-feats",
+- A feat slot is a selection of feats (ticket 301), as the game's are `BlueprintFeatureSelection`s listing their
+  feats: a row, a race or a path rank names it in its `selections` as it names any selection, and the slot it makes is
+  a Feat slot. The general feat at odd levels is the engine's `feats` (the game's `BasicFeatSelection`, every feat the
+  planner has); the category ones are `combat-feats` (`FighterFeatSelection`), `teamwork-feats` (the inquisitor's
+  `TeamworkFeat`), `magic-feats` (`WizardFeatSelection`) and `mounted-combat-feats` (`CavalierBonusFeatSelection`),
+  each listing the planner's feats of its category (the game's lists are 293's); a race's or row's `feats` reads
+  "Bonus feat" on the sheet. A named list is its own selection, `selections/monk/bonus-feats-1.ron`: `(key:
+  "monk/bonus-feats-1", blueprint: …, name: "Monk Bonus Feats", guide: "monk#monk-bonus-feats",
   ignores_prerequisites: true, feats: ["crane-style", "dodge"])`. The key starts with the owner's key; any row may
   name any list. A list that grows with level is one list per stage. A list that is the class's own bonus-feat
   list (a monk's bonus feats, a ranger's combat style) sets `ignores_prerequisites: true`: a pick from it skips
   the feat's prerequisites. Only class and archetype rows, and a path's ranks naming the path's own list, may name
   such a list; left out, prerequisites are checked. A list of every feat (Gold Dragon's Dragon Feats: "any three
-  feats") sets `every_feat: true` and names no feats. The check refuses a list of fewer than two feats (unless
-  it's every feat, or its one feat takes a value) and one no slot names. A bonus feat of the player's choosing
+  feats") names every feat. A selection lists feats or options, never both. A row numbers its selections of feats and
+  its other selections apart, each in row order, so the slot ids of links are the feat slots' (an option row's and a
+  path rank's other selections' slots come first, then its selections of feats'). The selections of feats aren't
+  held as facts (ticket 305). The check refuses a list of fewer than two feats (unless its one feat takes a value)
+  and one nothing names. A bonus feat of the player's choosing
   (the warpriest's "Weapon Focus as a bonus feat in a weapon of his choosing", the Master of All's Skill Focus at
   3, 9 and 15, the Sword Saint's Chosen Weapon) is a bonus list of that one parameterised feat: the pick names the
   value. A list whose game pick is a feature of its own that gives the feat and proficiency with the weapon sets
   `skips_proficiency: true` (ticket 251; the Sword Saint's Chosen Weapon, `SwordSaintChosenWeaponFeature`, whose
   `KensaiChosenWeapon` adds the weapon to the unit's proficiencies): its feat is taken for any weapon the list
   offers, `requires_proficiency` unchecked, and the pick makes the character proficient with that weapon. A race
-  may own lists too, in a `feat_lists` block before its subraces, and its slots may name only its
-  own (the half-elf's Adaptability: Skill Focus as a bonus feat).
+  may own lists too, and its `selections`, all of feats, may name only its own bonus lists (the half-elf's
+  Adaptability: Skill Focus as a bonus feat). The ticket entries above that name `feat_slots`, `OneOf`, `General`,
+  `CombatFeat`, `Category(…)` or an `OptionList` slot read as the selection ticket 301 made of each: the general or
+  category selection, the named list, or the selection of feats with that `option_lists` (the label an `OptionList`
+  slot carried is its selection's name, "Wild talent feat" for `kineticist/wild-talent-feats`).
 - A feat the class gives outright is a granted feat, not a slot: `feats: ["scribe-scrolls"]` on the level row
   (class or archetype). It's held with no pick, whatever its prerequisites, and it's in no Build or link. A
   parameterised one granted for one value is `feats_for: [(feat: "weapon-focus", value: Weapon("sawtooth-saber"))]`

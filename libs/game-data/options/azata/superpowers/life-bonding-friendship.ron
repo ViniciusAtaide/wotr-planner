@@ -5,7 +5,7 @@
     summary: "Gain a teamwork feat now and next rank, share teamwork feats within 50 ft; allies below 0 HP fight on, then die after combat or Cha-mod hits.",
     guide: "azata#life-bonding-friendship",
     levels: [
-        (level: 1, feat_slots: [Category(Teamwork)]),
-        (level: 2, feat_slots: [Category(Teamwork)]),
+        (level: 1, selections: ["teamwork-feats"]),
+        (level: 2, selections: ["teamwork-feats"]),
     ],
 )

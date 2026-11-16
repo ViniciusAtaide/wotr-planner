@@ -35,7 +35,6 @@ pub(in crate::test_world::world) fn row(level: u8) -> ClassLevelRow {
         features: vec![],
         feats: BTreeSet::new(),
         feats_for: BTreeSet::new(),
-        feat_slots: vec![],
         selections: vec![],
     }
 }
@@ -48,7 +47,6 @@ fn archetype_row(level: u8) -> ArchetypeLevelRow {
         features: vec![],
         feats: BTreeSet::new(),
         feats_for: BTreeSet::new(),
-        feat_slots: vec![],
         selections: vec![],
     }
 }

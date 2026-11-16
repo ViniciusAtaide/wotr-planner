@@ -1,0 +1,8 @@
+(
+    why: "The planner's slot offers a held option's list until nested selections (ticket 302).",
+    entry: (
+        key: "sorcerer/bloodline-feats-1",
+        name: "Bloodline feat",
+        option_lists: (selection: "sorcerer/bloodline", at_level: 1),
+    ),
+)

@@ -7,8 +7,8 @@
 use std::collections::BTreeMap;
 
 use rules::{
-    ArchetypeKey, Build, CharacterState, ClassChoice, FeatSlot, FeatureKey, FeatureSelectionKey,
-    Issue, Prerequisite, SlotId, SlotKind, SpellType, Unmet,
+    ArchetypeKey, Build, CharacterState, ClassChoice, FeatureKey, FeatureSelectionKey, Issue,
+    Prerequisite, SlotId, SlotKind, SpellType, Unmet,
 };
 
 use crate::support::*;
@@ -678,11 +678,7 @@ fn a_style_slot_follows_the_style_picked_at_the_same_level_and_grows_with_it() {
     assert_eq!(ids, [selection_slot(2, 0), class_slot(2, 0)]);
     assert_eq!(
         sheet.slot(&class_slot(2, 0)).unwrap().kind,
-        SlotKind::Feat(FeatSlot::OptionList {
-            selection: FeatureSelectionKey::new("ranger/combat-style"),
-            at_level: None,
-            label: None,
-        })
+        SlotKind::Feat(feat_list("ranger/combat-style-feats"))
     );
     assert_eq!(offered(&build, &class_slot(2, 0)), ["dodge", "toughness"]);
     // At 6 the style's next list, ignoring prerequisites (Great Cleave without Cleave).
@@ -831,7 +827,7 @@ fn an_option_rows_feat_slot_is_a_slot_at_the_level_that_reaches_it() {
     let found = sheet
         .slot(&slot)
         .expect("the War domain's bonus feat slot at 8");
-    assert_eq!(found.kind, SlotKind::Feat(FeatSlot::CombatFeat));
+    assert_eq!(found.kind, SlotKind::Feat(feat_list("combat-feats")));
     let seven = engine().evaluate(&cleric_with("cleric/domain/war", 7));
     assert!(
         seven

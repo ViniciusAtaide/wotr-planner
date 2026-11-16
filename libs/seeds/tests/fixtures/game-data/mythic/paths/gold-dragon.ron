@@ -9,7 +9,7 @@ MythicPath(
     guide: "other-mythic-paths#gold-dragon",
     ranks: [
         (rank: 8, features: ["gold-dragon/breath", "gold-dragon/perfect-body"], selections: ["gold-dragon/breaths"]),
-        (rank: 9, features: ["gold-dragon/dragon-might"], feat_slots: [OneOf(list: "gold-dragon/dragon-feats"), OneOf(list: "gold-dragon/dragon-feats")], selections: ["gold-dragon/breaths"]),
+        (rank: 9, features: ["gold-dragon/dragon-might"], selections: ["gold-dragon/breaths", "gold-dragon/dragon-feats", "gold-dragon/dragon-feats"]),
     ],
     switch: (from: ["trickster"], kept_through_rank: 7, path_kept_through_rank: 2, dropped_features: ["trickster/trickster-tricks"], dropped_selections: ["trickster/tricks"], further_ascensions: true),
 )

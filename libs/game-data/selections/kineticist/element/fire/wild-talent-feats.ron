@@ -1,0 +1,14 @@
+(
+    key: "kineticist/element/fire/wild-talent-feats",
+    blueprint: "4d14baf0ee4da2a4cb05fb4312921ee4",
+    name: "Wild Talent Bonus Feats (Fire)",
+    guide: "kineticist#elemental-focus-fire",
+    ignores_prerequisites: true,
+    feats: [
+        "dazzling-display",
+        "dreadful-carnage",
+        "improved-iron-will",
+        "iron-will",
+        "persuasive",
+    ],
+)

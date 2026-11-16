@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use crate::test_world::world::nested::{Class, FeatureSelection};
 use crate::*;
 
-use crate::test_world::builds::{class, feature, option, skill};
+use crate::test_world::builds::{class, feat_list, feature, option, skill};
 use crate::test_world::world::classes::row;
 use crate::test_world::world::selections::levelled_selection;
 use crate::test_world::world::{bonus_feature, fixed, guide};
@@ -114,7 +114,7 @@ pub(in crate::test_world::world) fn eldritch_knight() -> Class {
             let mut r = row(l);
             r.advances_arcane = l >= 2;
             if l % 4 == 1 {
-                r.feat_slots.push(FeatSlot::CombatFeat);
+                r.selections.push(feat_list("combat-feats"));
             }
             r
         })

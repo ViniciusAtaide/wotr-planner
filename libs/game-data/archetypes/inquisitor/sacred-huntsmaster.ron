@@ -7,11 +7,11 @@
     guide: "inquisitor#sacred-huntsmaster",
     levels: [
         (level: 1, features: ["inquisitor/inquisitor-proficiencies", "inquisitor/sacred-huntsmaster/animal-companion", "inquisitor-orisons", "inquisitor/stern-gaze"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["inquisitor/sacred-huntsmaster/domain"]),
-        (level: 3, features: ["inquisitor/sacred-huntsmaster/hunter-tactics"], feat_slots: [Category(Teamwork)]),
+        (level: 3, features: ["inquisitor/sacred-huntsmaster/hunter-tactics"], selections: ["teamwork-feats"]),
         (level: 5, features: ["inquisitor/bane", "inquisitor/sacred-huntsmaster/favored-enemy"]),
         (level: 8),
         (level: 10, features: ["inquisitor/sacred-huntsmaster/favored-enemy"]),
-        (level: 15, features: ["inquisitor/sacred-huntsmaster/favored-enemy"], feat_slots: [Category(Teamwork)]),
+        (level: 15, features: ["inquisitor/sacred-huntsmaster/favored-enemy"], selections: ["teamwork-feats"]),
         (level: 16),
         (level: 20, features: ["inquisitor/sacred-huntsmaster/favored-enemy"]),
     ],

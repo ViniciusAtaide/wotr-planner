@@ -6,7 +6,7 @@
     summary: "Skald with a bonded horn: higher sonic spell DCs and a sonic cone blast from 11th level.",
     guide: "skald#herald-of-the-horn",
     levels: [
-        (level: 1, features: ["skald/herald-of-the-horn/arcane-bond-object", "skald-bardic-knowledge", "skald/inspired-rage", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
+        (level: 1, features: ["skald/herald-of-the-horn/arcane-bond-object", "skald-bardic-knowledge", "skald/inspired-rage", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], selections: ["magic-feats"]),
         (level: 7, features: ["skald/herald-of-the-horn/horn-call", "skald/raging-song-move-action"], selections: ["rogue/rogue-talents"]),
         (level: 11, features: ["skald/herald-of-the-horn/crumbling-blast"]),
         (level: 13, features: ["skald/herald-of-the-horn/horn-call", "skald/raging-song-swift-action"]),

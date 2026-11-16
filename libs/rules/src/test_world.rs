@@ -10,4 +10,4 @@ mod builds;
 mod world;
 
 pub use builds::*;
-pub use world::world;
+pub use world::{list_feats_in_pools, world};

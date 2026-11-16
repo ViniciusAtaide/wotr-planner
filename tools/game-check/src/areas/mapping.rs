@@ -136,7 +136,6 @@ fn fits(at: &DataAt, kind: &str) -> bool {
         | DataAt::MythicFeat(_)
         | DataAt::Background(_)
         | DataAt::Deity(_) => feature,
-        DataAt::FeatList(_) => kind == "BlueprintFeatureSelection",
         DataAt::Class(_) | DataAt::MythicPath(_) => kind == "BlueprintCharacterClass",
         DataAt::Archetype(_) => kind == "BlueprintArchetype",
         DataAt::Weapon(_) => kind == "BlueprintWeaponType",

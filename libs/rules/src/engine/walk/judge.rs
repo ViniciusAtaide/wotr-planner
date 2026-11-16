@@ -6,7 +6,8 @@ use crate::build::{BuildStart, Pick};
 use crate::choice::{Issue, Unmet};
 use crate::engine::SlotKind;
 use crate::engine::catalog::Catalog;
-use crate::game_data::{Class, DeityDomains, FeatList, SelectionOption};
+use crate::engine::slots::lists_feat;
+use crate::game_data::{Class, DeityDomains, FeatureSelection, SelectionOption};
 use crate::keys::{ArchetypeKey, FeatKey};
 use crate::parameter::{Parameter, Repeat};
 use crate::prerequisite::Prerequisite;
@@ -24,7 +25,7 @@ pub(super) fn check_pick(
     pick: &Pick,
 ) -> Result<(), Issue> {
     let lists = match (kind, pick) {
-        (SlotKind::Feat(slot), Pick::Feat { .. }) => catalog.slot_lists(slot, state),
+        (SlotKind::Feat(selection), Pick::Feat { .. }) => catalog.slot_lists(selection, state),
         _ => Vec::new(),
     };
     check_pick_with(catalog, start, state, kind, &lists, pick)
@@ -37,17 +38,15 @@ pub(super) fn check_pick_with(
     start: &BuildStart,
     state: &CharacterState,
     kind: &SlotKind,
-    lists: &[&FeatList],
+    lists: &[&FeatureSelection],
     pick: &Pick,
 ) -> Result<(), Issue> {
     let value = pick.parameter();
     let prerequisite = match (kind, pick) {
         (_, Pick::Feat { feat: key, .. }) => {
             let feat = catalog.feat(key).ok_or(Issue::UnknownKey)?;
-            let SlotKind::Feat(slot) = kind else {
-                return Err(Issue::NotAllowed);
-            };
-            if !catalog.slot_accepts_with(slot, feat, lists)
+            if !matches!(kind, SlotKind::Feat(_))
+                || !lists_feat(lists, feat)
                 || !catalog.value_fits(feat.parameter, value)
             {
                 return Err(Issue::NotAllowed);
@@ -59,7 +58,7 @@ pub(super) fn check_pick_with(
             // A bonus list the slot offers it from that ignores them.
             if lists
                 .iter()
-                .any(|list| list.ignores_prerequisites && list.contains(&feat.key))
+                .any(|list| list.ignores_prerequisites && list.feats.contains(&feat.key))
             {
                 return Ok(());
             }
@@ -205,10 +204,10 @@ pub(super) fn deferrable(issue: &Issue) -> bool {
 }
 
 /// Whether a slot offers `feat` from a list whose pick skips the proficiency check
-/// ([`FeatList::skips_proficiency`]): the game's pick there is a feature that makes the character proficient with the
-/// weapon (the Sword Saint's chosen weapon), which the walk holds with it.
-pub(super) fn skips_proficiency(lists: &[&FeatList], feat: &FeatKey) -> bool {
-    (lists.iter()).any(|list| list.skips_proficiency && list.contains(feat))
+/// ([`FeatureSelection::skips_proficiency`]): the game's pick there is a feature that makes the character proficient
+/// with the weapon (the Sword Saint's chosen weapon), which the walk holds with it.
+pub(super) fn skips_proficiency(lists: &[&FeatureSelection], feat: &FeatKey) -> bool {
+    (lists.iter()).any(|list| list.skips_proficiency && list.feats.contains(feat))
 }
 
 /// Whether a feat that requires proficiency may be taken for `value`: a weapon the character is proficient with

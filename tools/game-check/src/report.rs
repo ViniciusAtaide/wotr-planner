@@ -19,7 +19,7 @@ pub enum Area {
     ClassTables,
     /// Each level's grants, for classes, archetypes and prestige classes.
     ProgressionRows,
-    /// A selection's or feat list's options, and the general and mythic pools.
+    /// A selection's options or feats, and the general and mythic pools.
     OptionLists,
     MythicRanks,
     /// Gear's always-on bonuses and slot.

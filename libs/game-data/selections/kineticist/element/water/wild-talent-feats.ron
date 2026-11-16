@@ -1,0 +1,14 @@
+(
+    key: "kineticist/element/water/wild-talent-feats",
+    blueprint: "31c18eae013b09c4f9ee51da71a2d61c",
+    name: "Wild Talent Bonus Feats (Water)",
+    guide: "kineticist#elemental-focus-water",
+    ignores_prerequisites: true,
+    feats: [
+        "blind-fight",
+        "bull-rush",
+        "greater-blind-fight",
+        "greater-bull-rush",
+        "improved-blind-fight",
+    ],
+)

@@ -10,7 +10,7 @@ use crate::test_world::world::classes::{archetype_row, row};
 use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option,
 };
-use crate::test_world::world::{guide, list, plain_feature};
+use crate::test_world::world::{guide, list, option_list, plain_feature};
 
 /// Rogue: 3/4 BAB, good Reflex, Sneak Attack at odd levels, a rogue talent at even levels.
 pub(in crate::test_world::world) fn rogue() -> Class {
@@ -24,9 +24,7 @@ pub(in crate::test_world::world) fn rogue() -> Class {
                 r.selections.push(talents.clone());
             }
             if l == 3 {
-                r.feat_slots.push(FeatSlot::OneOf {
-                    list: feat_list("rogue/skill-focus"),
-                });
+                r.selections.push(feat_list("rogue/skill-focus"));
             }
             r
         })
@@ -241,7 +239,15 @@ pub(in crate::test_world::world) fn slayer() -> Class {
             },
             slayer_style(),
         ],
-        feat_lists: vec![],
+        feat_lists: [2, 6, 10]
+            .map(|stage| {
+                option_list(
+                    &format!("slayer/combat-style-feats-{stage}"),
+                    "slayer/combat-style",
+                    Some(stage),
+                )
+            })
+            .into(),
         levels,
         archetypes: vec![],
     }
@@ -282,12 +288,10 @@ fn combat_style(stage: u8, prerequisite: Option<Prerequisite>) -> SelectionOptio
         ..levelled_option(
             &format!("slayer/slayer-talents/combat-style-feat-{stage}"),
             vec![OptionLevelRow {
-                selections: vec![style.clone()],
-                feat_slots: vec![FeatSlot::OptionList {
-                    selection: style,
-                    at_level: Some(stage),
-                    label: None,
-                }],
+                selections: vec![
+                    style,
+                    feat_list(&format!("slayer/combat-style-feats-{stage}")),
+                ],
                 ..option_row(1, &[])
             }],
         )

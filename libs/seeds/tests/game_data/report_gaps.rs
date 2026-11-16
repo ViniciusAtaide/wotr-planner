@@ -4,7 +4,7 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    ArchetypeKey, Build, ClassKey, FeatKey, FeatSlot, FeatureKey, Issue, Pick, Prerequisite,
+    ArchetypeKey, Build, ClassKey, FeatKey, FeatureKey, Issue, Pick, Prerequisite,
     SelectionOptionKey, SkillKey, SlotKind, Unmet,
 };
 
@@ -188,11 +188,7 @@ fn a_shamans_wandering_hex_is_a_daily_choice_from_6() {
 
 /// The slot a sorcerer's bloodline feats take at 7, 13 and 19: the held bloodline's list.
 fn bloodline_feat_slot() -> SlotKind {
-    SlotKind::Feat(FeatSlot::OptionList {
-        selection: rules::FeatureSelectionKey::new("sorcerer/bloodline"),
-        at_level: None,
-        label: None,
-    })
+    feat_kind("sorcerer/bloodline-feats")
 }
 
 /// A sorcerer bloodline's bonus-feat list, by key: `bloodline_feats(&["abyssal"])`; several lists together.
@@ -201,10 +197,7 @@ fn bloodline_feats(bloodlines: &[&str]) -> BTreeSet<String> {
         .iter()
         .flat_map(|bloodline| {
             let key = format!("sorcerer/bloodline/{bloodline}/feats");
-            DATA.feat_lists
-                .iter()
-                .find(|list| list.key.as_str() == key)
-                .unwrap_or_else(|| panic!("no list {key}"))
+            any_selection(&key)
                 .feats
                 .iter()
                 .map(|feat| feat.to_string())

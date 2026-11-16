@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{Build, FeatSlot, Issue, WeaponKey, WeaponProficiency};
+use rules::{Build, Issue, WeaponKey, WeaponProficiency};
 
 use crate::support::*;
 
@@ -36,12 +36,11 @@ const STORMWALKER_ARCHERY: [&str; 3] = [
     "ranger/bonus-feats-10b",
 ];
 
-/// Every feat list of the data, by key.
-fn any_feat_list(key: &str) -> &'static rules::FeatList {
-    DATA.feat_lists
-        .iter()
-        .find(|list| list.key.as_str() == key)
-        .unwrap_or_else(|| panic!("no feat list {key}"))
+/// Every feat list of the data (ticket 301: a selection of feats), by key.
+fn any_feat_list(key: &str) -> &'static rules::FeatureSelection {
+    let list = any_selection(key);
+    assert!(is_feat_list(list), "{key} is no feat list");
+    list
 }
 
 fn list_feats(key: &str) -> BTreeSet<String> {
@@ -56,7 +55,7 @@ fn feat_set(keys: &[&str]) -> BTreeSet<String> {
     keys.iter().map(|k| k.to_string()).collect()
 }
 
-/// The `OneOf` lists of the rows in force for `class` (with `archetype`) at levels 1 to 20, by level.
+/// The feat lists the rows in force for `class` (with `archetype`) name at levels 1 to 20, by level.
 fn one_of_lists(class_key: &str, archetype: Option<&str>) -> Vec<(u8, String)> {
     let class = class(class_key);
     let archetype = archetype.map(|key| {
@@ -67,12 +66,9 @@ fn one_of_lists(class_key: &str, archetype: Option<&str>) -> Vec<(u8, String)> {
     (1..=20)
         .filter_map(|level| rules::effective_row(class, archetype, level))
         .flat_map(|row| {
-            row.feat_slots
-                .iter()
-                .filter_map(move |slot| match slot {
-                    FeatSlot::OneOf { list } => Some((row.level, list.to_string())),
-                    _ => None,
-                })
+            (row.selections.iter())
+                .filter(|key| is_feat_list(any_selection(key.as_str())))
+                .map(move |list| (row.level, list.to_string()))
                 .collect::<Vec<_>>()
         })
         .collect()
@@ -146,8 +142,9 @@ fn each_bonus_feat_choice_is_a_slot_at_its_tables_levels() {
             .find(|a| a.key.as_str() == TITAN);
         (1..=20)
             .filter(|level| {
-                rules::effective_row(class, titan, *level)
-                    .is_some_and(|row| row.feat_slots.contains(&FeatSlot::CombatFeat))
+                rules::effective_row(class, titan, *level).is_some_and(|row| {
+                    (row.selections.iter()).any(|key| key.as_str() == "combat-feats")
+                })
             })
             .collect()
     };
@@ -250,7 +247,7 @@ fn the_bonus_feat_lists_are_the_guides() {
         let list = any_feat_list(MASSIVE_ATTACKS[i]);
         // Game: TitanFighterStyleTwoWeaponSelection2 9c3e4b49b9f243f080c0432d2a1e5cbf, …6
         // 855b2b531df740cfa4536d0ba0729fd8, …10 0e41c3c5e88c42c3af31162743982c22 (IgnorePrerequisites)
-        assert!(list.ignores_prerequisites && !list.every_feat);
+        assert!(list.ignores_prerequisites);
         assert_eq!(list.name, names[i]);
         assert_eq!(list.guide.as_ref().unwrap().0, "fighter#massive-attacks");
         // Game: RangerStyleTwoWeaponSelection2 019e68517c95c5447bff125b8a91c73f, …6 59d5445392ac62245a5ece9b01c05ee8,
@@ -332,18 +329,16 @@ fn the_stormwalkers_lists_are_the_rangers_archery_lists() {
     }
 }
 
-/// The keys of the feat lists `archetype`'s rows name in their `OneOf` slots.
+/// The keys of the feat lists `archetype`'s rows name.
 fn archetype_feat_lists(class_key: &str, archetype: &str) -> BTreeSet<String> {
     DATA.archetypes_of(&class(class_key).key)
         .find(|a| a.key.as_str() == archetype)
         .unwrap_or_else(|| panic!("no {archetype}"))
         .levels
         .iter()
-        .flat_map(|row| &row.feat_slots)
-        .filter_map(|slot| match slot {
-            FeatSlot::OneOf { list } => Some(list.to_string()),
-            _ => None,
-        })
+        .flat_map(|row| &row.selections)
+        .filter(|key| is_feat_list(any_selection(key.as_str())))
+        .map(ToString::to_string)
         .collect()
 }
 

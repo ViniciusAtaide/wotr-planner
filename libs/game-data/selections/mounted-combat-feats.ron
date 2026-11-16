@@ -1,0 +1,12 @@
+(
+    key: "mounted-combat-feats",
+    blueprint: "dd17090d14958ef48ba601688b611970",
+    name: "Mounted Combat feat",
+    feats: [
+        "indomitable-mount",
+        "mounted-combat",
+        "mounted-shield",
+        "spirited-charge",
+        "trample",
+    ],
+)

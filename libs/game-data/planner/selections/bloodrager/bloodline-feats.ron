@@ -1,0 +1,8 @@
+(
+    why: "The game grants each bloodline's own feat selection from the bloodline's progression; the planner's one slot offers the held bloodline's list until nested selections (ticket 302).",
+    entry: (
+        key: "bloodrager/bloodline-feats",
+        name: "Bloodline feat",
+        option_lists: (selection: "bloodrager/bloodline"),
+    ),
+)

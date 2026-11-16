@@ -6,6 +6,6 @@
     summary: "Wizard with two extra slots per spell level for one school, and two schools forbidden entirely.",
     guide: "wizard#thassilonian-specialist",
     levels: [
-        (level: 1, features: ["arcane-bond", "wizard-cantrips", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/thassilonian-specialist/school"]),
+        (level: 1, features: ["arcane-bond", "wizard-cantrips", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], selections: ["wizard/thassilonian-specialist/school", "magic-feats"]),
     ],
 )

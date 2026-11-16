@@ -4,9 +4,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{
-    Build, Choice, Edit, FeatSlot, FeatureSelectionKey, Issue, Pick, RankStatus, SlotId, SlotKind,
-};
+use rules::{Build, Choice, Edit, FeatureSelectionKey, Issue, Pick, RankStatus, SlotId, SlotKind};
 
 use crate::support::*;
 
@@ -59,7 +57,7 @@ fn extra_feat_gives_a_feat_slot_at_its_rank_offering_what_the_general_slot_does(
         slots,
         [
             (general_mythic(2), SlotKind::MythicFeat),
-            (extra(2), SlotKind::Feat(FeatSlot::General)),
+            (extra(2), SlotKind::Feat(feat_list("feats"))),
         ]
     );
     assert_eq!(engine.slot_label(&sheet.ranks[1].slots[1]), "Feat");

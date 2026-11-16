@@ -7,9 +7,9 @@
     guide: "bloodrager#greenrager",
     levels: [
         (level: 3, features: ["bloodrager/greenrager/unfettered-fury"]),
-        (level: 6, features: ["bloodrager/greenrager/summoning-rager"], feat_slots: [OptionList(selection: "bloodrager/bloodline")]),
+        (level: 6, features: ["bloodrager/greenrager/summoning-rager"], selections: ["bloodrager/bloodline-feats"]),
         (level: 7, features: ["bloodrager/greenrager/bloodline-spell-1st", "damage-reduction"]),
-        (level: 9, features: ["bloodrager/greenrager/furious-summoning"], feat_slots: [OptionList(selection: "bloodrager/bloodline")]),
+        (level: 9, features: ["bloodrager/greenrager/furious-summoning"], selections: ["bloodrager/bloodline-feats"]),
         (level: 10, features: ["bloodrager/greenrager/bloodline-spell-2nd", "damage-reduction"]),
         (level: 11, features: ["bloodrager/greater-bloodrage", "bloodrager/greenrager/furious-summoning"]),
         (level: 13, features: ["bloodrager/greenrager/bloodline-spell-3rd", "damage-reduction"]),

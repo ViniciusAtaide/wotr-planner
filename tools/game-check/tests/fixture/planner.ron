@@ -64,7 +64,7 @@
                 // Agrees: the game's bundle of Steady Hand.
                 (level: 1, features: ["warden/guard"], feats: ["steady-hand"]),
                 // Planted: Sense, which the game gives at 3.
-                (level: 2, features: ["warden/sense"], selections: ["warden/trick"], feat_slots: [CombatFeat]),
+                (level: 2, features: ["warden/sense"], selections: ["warden/trick", "combat-feats"]),
                 // Planted: Ghost, which the game doesn't give; the game's extra feature is missing. Planted: a second
                 // Trick, which the game doesn't give (another pick, not a further rank), and a further rank of Guard.
                 // The game's second combat feat selection here is missing.
@@ -126,12 +126,6 @@
     backgrounds: [],
     deities: [],
     subraces: [],
-    feat_lists: [
-        // Planted: the game's list ignores no prerequisites and holds Wide Stance, not Keen Eye.
-        (key: "warden/drills", blueprint: "000000000000000000000000000000d1", name: "Drills", guide: "warden#drills", ignores_prerequisites: true, feats: ["steady-hand", "keen-eye"]),
-        // Agrees.
-        (key: "seraph/feats", blueprint: "000000000000000000000000000000d2", name: "Seraph Feats", guide: "seraph#feats", feats: ["steady-hand", "keen-eye"]),
-    ],
     archetypes: [
         (
             key: "warden/stoic",
@@ -166,6 +160,12 @@
         (key: "seraph/summon", blueprint: "00000000000000000000000000000204", name: "Summon", guide: "seraph#summon"),
     ],
     selections: [
+        // Planted: the game's list ignores no prerequisites and holds Wide Stance, not Keen Eye.
+        (key: "warden/drills", blueprint: "000000000000000000000000000000d1", name: "Drills", guide: "warden#drills", ignores_prerequisites: true, feats: ["steady-hand", "keen-eye"]),
+        // Agrees.
+        (key: "seraph/feats", blueprint: "000000000000000000000000000000d2", name: "Seraph Feats", guide: "seraph#feats", feats: ["steady-hand", "keen-eye"]),
+        // Agrees: the combat feats (ticket 301), FighterFeatSelection in the fixture's dump.
+        (key: "combat-feats", blueprint: "41c8486641f7d6d4283ca9dae4147a9f", name: "Combat feat", feats: ["element-kind", "element-mastery", "faithful", "focus-kind", "full-grip", "keen-eye", "lost-feat", "mastery", "misnamed", "old-habit", "pet-wise", "plain-bar", "steady-hand", "stranger", "wide-stance"]),
         (
             key: "warden/trick",
             blueprint: "000000000000000000000000000000e1",

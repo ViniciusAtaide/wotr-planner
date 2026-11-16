@@ -5,6 +5,6 @@
     summary: "An extra feat at 1st level and one extra skill point every level.",
     guide: "character-creation#human",
     ability_modifiers: [Chosen(amount: 2)],
-    feat_slots: [General],
+    selections: ["feats"],
     skill_points: 1,
 )

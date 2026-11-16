@@ -23,7 +23,6 @@ fn as_serialised(mut data: GameData) -> GameData {
         subraces,
         weapons,
         feats,
-        feat_lists,
         classes,
         prestige_classes,
         archetypes,
