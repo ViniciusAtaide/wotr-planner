@@ -67,7 +67,7 @@ enum Outcome {
     Written(String),
 }
 
-const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>";
+const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items, class-tables)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>";
 
 fn run() -> Result<Outcome, String> {
     let mut binz_path = None;
@@ -218,8 +218,12 @@ fn write_run(
         text.push_str("dry run: nothing written\n");
     }
     for area in areas {
-        let (name, kind) = (area.name(), area.kind());
-        let changes: Vec<_> = outcome.changes.iter().filter(|c| c.kind == kind).collect();
+        let (name, kinds) = (area.name(), area.kinds());
+        let changes: Vec<_> = outcome
+            .changes
+            .iter()
+            .filter(|c| kinds.contains(&c.kind))
+            .collect();
         let files: std::collections::BTreeSet<_> = changes.iter().map(|c| &c.file).collect();
         text.push_str(&format!(
             "{name}: {} fields {}, {} files\n",
