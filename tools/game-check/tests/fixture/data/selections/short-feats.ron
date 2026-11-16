@@ -1,0 +1,7 @@
+// The game's list holds a feat the planner has no entry for: the selection stays as it is.
+(
+    key: "short-feats",
+    blueprint: "000000000000000000000000000000b32",
+    name: "Short feat",
+    feats: ["bonus-one"],
+)

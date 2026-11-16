@@ -1,0 +1,7 @@
+// Planted: the game's list holds Bonus Two, not Bonus Stray, and its picks ignore prerequisites.
+(
+    key: "bonus-feats",
+    blueprint: "000000000000000000000000000000b31",
+    name: "Bonus feat",
+    feats: ["bonus-one", "bonus-stray"],
+)

@@ -417,6 +417,7 @@ fn write_items(dir: &Path) -> game_check::write::Outcome {
         &dump,
         dir,
         &[WriteArea::Items],
+        None,
         false,
         &Facts::default(),
         |_| Ok(()),
@@ -588,6 +589,7 @@ fn an_item_with_a_bonus_the_importer_cannot_read_or_name_stays_unwritten_and_lis
         &dump,
         dir.path(),
         &[WriteArea::Items],
+        None,
         false,
         &Facts::default(),
         |_| Ok(()),
@@ -782,6 +784,7 @@ fn a_dry_run_writes_nothing() {
         &dump,
         dir.path(),
         &[WriteArea::Items],
+        None,
         true,
         &Facts::default(),
         |_| panic!("a dry run checks nothing written"),
@@ -798,7 +801,9 @@ fn items_with_facts(
 ) -> Result<game_check::write::Outcome, game_check::write::WriteError> {
     let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
     let facts = Facts::parse(facts).unwrap();
-    run(&dump, dir, &[WriteArea::Items], false, &facts, |_| Ok(()))
+    run(&dump, dir, &[WriteArea::Items], None, false, &facts, |_| {
+        Ok(())
+    })
 }
 
 #[test]
@@ -961,9 +966,15 @@ fn write_tables(
 ) -> game_check::write::Outcome {
     let (_, dump) = crate::support::dump(&crate::support::binz(&records, 2));
     let facts = Facts::parse(facts).unwrap();
-    run(&dump, dir, &[WriteArea::ClassTables], false, &facts, |_| {
-        Ok(())
-    })
+    run(
+        &dump,
+        dir,
+        &[WriteArea::ClassTables],
+        None,
+        false,
+        &facts,
+        |_| Ok(()),
+    )
     .unwrap()
 }
 
@@ -1274,4 +1285,139 @@ fn every_kind_in_the_registry_is_one_the_check_emits() {
             "`{kind}` is no kind the check emits for {area:?}"
         );
     }
+}
+
+// The selections target (ticket 306a). The fixture's dump holds `TestBonusFeatSelection` (two feats, its picks ignore
+// prerequisites), `TestShortFeatSelection` (a feat the data has no entry for) and `TestPathAbilitySelection` (two
+// mythic abilities); the data's three selections each differ from them.
+
+fn write_lists(
+    dir: &Path,
+    only: Option<&[&str]>,
+) -> Result<game_check::write::Outcome, game_check::write::WriteError> {
+    let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
+    let only: Option<std::collections::BTreeSet<String>> =
+        only.map(|keys| keys.iter().map(|key| (*key).to_owned()).collect());
+    run(
+        &dump,
+        dir,
+        &[WriteArea::OptionLists],
+        only.as_ref(),
+        false,
+        &Facts::default(),
+        |_| Ok(()),
+    )
+}
+
+#[test]
+fn writing_a_feat_list_brings_it_to_the_game() {
+    let dir = data_copy();
+    let outcome = write_lists(dir.path(), None).unwrap();
+    // TestBonusFeatSelection lists TestBonusOneFeat 000000000000000000000000000000b11 and TestBonusTwoFeat ...b12.
+    let bonus = read(dir.path(), "selections/bonus-feats.ron");
+    assert!(
+        bonus.contains("feats: [\"bonus-one\", \"bonus-two\"],"),
+        "{bonus}"
+    );
+    // TestPathAbilitySelection lists ...b21 and ...b22.
+    let path = read(dir.path(), "selections/path-abilities.ron");
+    assert!(
+        path.contains("mythic_abilities: [\"path-one\", \"path-two\"],"),
+        "{path}"
+    );
+    let planned: Vec<_> = outcome
+        .changes
+        .iter()
+        .map(|c| (c.at.to_string(), c.field, c.old.as_str(), c.new.as_str()))
+        .collect();
+    assert_eq!(
+        planned,
+        [
+            (
+                "selection bonus-feats".to_owned(),
+                "feats",
+                "bonus-stray",
+                "bonus-two"
+            ),
+            (
+                "selection bonus-feats".to_owned(),
+                "ignores_prerequisites",
+                "false",
+                "true"
+            ),
+            (
+                "selection path-abilities".to_owned(),
+                "mythic_abilities",
+                "",
+                "path-two"
+            ),
+        ]
+    );
+}
+
+#[test]
+fn ignores_prerequisites_is_written_where_it_differs() {
+    let dir = data_copy();
+    write_lists(dir.path(), None).unwrap();
+    // TestBonusFeatSelection: IgnorePrerequisites true; the data's selection had it unset.
+    let bonus = read(dir.path(), "selections/bonus-feats.ron");
+    assert!(bonus.contains("ignores_prerequisites: true,"), "{bonus}");
+    // Planted comment and the other fields stay.
+    assert!(bonus.starts_with("// Planted: "), "{bonus}");
+    assert!(bonus.contains("name: \"Bonus feat\","), "{bonus}");
+    // A selection of mythic abilities has no such flag.
+    let path = read(dir.path(), "selections/path-abilities.ron");
+    assert!(!path.contains("ignores_prerequisites"), "{path}");
+}
+
+#[test]
+fn a_member_with_no_feat_entry_leaves_the_selection_unwritten() {
+    let dir = data_copy();
+    let short = read(dir.path(), "selections/short-feats.ron");
+    let outcome = write_lists(dir.path(), None).unwrap();
+    // TestShortFeatSelection lists TestBonusLostFeat ...b13, which no feat names.
+    assert_eq!(read(dir.path(), "selections/short-feats.ron"), short);
+    assert!(
+        outcome
+            .changes
+            .iter()
+            .all(|c| c.at.to_string() != "selection short-feats")
+    );
+    assert_eq!(outcome.unexpressed.len(), 1, "{:?}", outcome.unexpressed);
+    assert_eq!(
+        outcome.unexpressed[0].at.to_string(),
+        "selection short-feats"
+    );
+    assert!(
+        outcome.unexpressed[0]
+            .what
+            .contains("no feat entry: TestBonusLostFeat"),
+        "{}",
+        outcome.unexpressed[0].what
+    );
+}
+
+#[test]
+fn only_writes_only_the_selections_named() {
+    let dir = data_copy();
+    let bonus = read(dir.path(), "selections/bonus-feats.ron");
+    let outcome = write_lists(dir.path(), Some(&["path-abilities"])).unwrap();
+    assert_eq!(read(dir.path(), "selections/bonus-feats.ron"), bonus);
+    assert_eq!(outcome.changes.len(), 1);
+    assert!(read(dir.path(), "selections/path-abilities.ron").contains("path-two"));
+    // The unwritten selection outside the set is not listed either.
+    assert!(outcome.unexpressed.is_empty(), "{:?}", outcome.unexpressed);
+    // A key that is no selection is refused, with nothing written.
+    let error = write_lists(dir.path(), Some(&["no-such-selection"])).unwrap_err();
+    assert!(error.to_string().contains("no-such-selection"), "{error}");
+}
+
+#[test]
+fn a_second_option_lists_run_writes_nothing() {
+    let dir = data_copy();
+    write_lists(dir.path(), None).unwrap();
+    let written = all_files(dir.path());
+    let again = write_lists(dir.path(), None).unwrap();
+    assert!(again.changes.is_empty(), "{:?}", again.changes);
+    assert_eq!(all_files(dir.path()), written);
 }

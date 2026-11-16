@@ -10,7 +10,7 @@
 //! doesn't parse, or nothing could be read.
 //!
 //! `game-check --write <area>[,<area>...] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]` (ticket 293): brings
-//! the data's text to the game's values for the areas named (`items`), changing only the fields the importer owns and
+//! the data's text to the game's values for the areas named (`items`, `class-tables`, `option-lists`; `--only` limits `option-lists` to the selections named), changing only the fields the importer owns and
 //! keeping every other byte. It prints, per area, the fields written and the files touched, then what it left
 //! unwritten. `--dry-run` plans and runs the guards and writes nothing. `--log` writes one TSV row per change (not with
 //! `--dry-run`, which has no report after). Exit status: 0 when it wrote or had nothing to write, 2 when a guard
@@ -67,7 +67,7 @@ enum Outcome {
     Written(String),
 }
 
-const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items, class-tables)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>";
+const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--only <key>[,<key>...]] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items, class-tables, option-lists)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>";
 
 fn run() -> Result<Outcome, String> {
     let mut binz_path = None;
@@ -75,6 +75,7 @@ fn run() -> Result<Outcome, String> {
     let mut write_areas: Option<String> = None;
     let mut log_path = None;
     let mut dry_run = false;
+    let mut only: Option<std::collections::BTreeSet<String>> = None;
     let mut words = Vec::new();
     let mut args = std::env::args().skip(1);
     while let Some(arg) = args.next() {
@@ -88,6 +89,12 @@ fn run() -> Result<Outcome, String> {
             "--data" => data_dir = Some(value(&mut args)?),
             "--log" => log_path = Some(value(&mut args)?),
             "--dry-run" => dry_run = true,
+            "--only" => {
+                let list = args
+                    .next()
+                    .ok_or_else(|| format!("--only takes selection keys\n{USAGE}"))?;
+                only = Some(list.split(',').map(str::to_owned).collect());
+            }
             "--write" => {
                 write_areas = Some(
                     args.next()
@@ -124,6 +131,9 @@ fn run() -> Result<Outcome, String> {
     if (dry_run || log_path.is_some()) && write_areas.is_none() {
         return Err(format!("--dry-run and --log go with --write\n{USAGE}"));
     }
+    if only.is_some() && write_areas.is_none() {
+        return Err(format!("--only goes with --write\n{USAGE}"));
+    }
     if dry_run && log_path.is_some() {
         return Err(format!(
             "--log records what was written, so not with --dry-run\n{USAGE}"
@@ -134,7 +144,7 @@ fn run() -> Result<Outcome, String> {
     if let Some(areas) = write_areas {
         let areas = parse_areas(&areas)?;
         return write_run(
-            &areas,
+            (&areas, only.as_ref()),
             dry_run,
             log_path.as_deref(),
             &data_dir,
@@ -193,8 +203,9 @@ fn parse_areas(list: &str) -> Result<Vec<WriteArea>, String> {
 }
 
 /// `--write`: the check before, the writer, the check after (for the log), and what it did as text.
+/// `wanted` is the areas and, for `option-lists`, the selections `--only` names.
 fn write_run(
-    areas: &[WriteArea],
+    wanted: (&[WriteArea], Option<&std::collections::BTreeSet<String>>),
     dry_run: bool,
     log_path: Option<&Path>,
     data_dir: &Path,
@@ -210,8 +221,9 @@ fn write_run(
             .map(|_| ())
             .map_err(|error| error.to_string())
     };
+    let (areas, only) = wanted;
     let facts = Facts::embedded().map_err(|error| error.to_string())?;
-    let outcome = write(&dump, data_dir, areas, dry_run, &facts, validate)
+    let outcome = write(&dump, data_dir, areas, only, dry_run, &facts, validate)
         .map_err(|error| error.to_string())?;
     let mut text = String::new();
     if dry_run {

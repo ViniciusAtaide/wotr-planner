@@ -1,0 +1,2 @@
+// Planted: on the planner's bonus list, not on the game's.
+(key: "bonus-stray", blueprint: "00000000000000000000000000000b14", name: "Bonus Stray", category: Weapon, guide: "feats#bonus-stray")
