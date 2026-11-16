@@ -10,7 +10,7 @@
 //!   base attack bonus and base saves, the totals with their parts, the caster line for a spell of each school and of
 //!   the subschools and energies a bonus names, with and without metamagic, the attack line of the Build's default
 //!   weapon and of the longsword, and each held feature's steps;
-//! - `offers.bin` and `offers-kinds.txt` (ticket 311): every option the slot pickers offer at every slot of the walk, as
+//! - `offers.bin` and `offers-kinds.txt` (ticket 311; only with `FORM_PROOF_OFFERS=1`): every option the slot pickers offer at every slot of the walk, as
 //!   9 bytes an option (a hash of its slot and pick, and the index of its status's kind: `ok`, `Unmet`, `Taken`, …),
 //!   about 160 MB for the corpus, written and read a Build at a time;
 //! - `summary.txt`: the counts and a hash of each file.
@@ -28,7 +28,9 @@
 //!   hold with this tree's data (the old links against the new keys) and compares what they decode to, the slots
 //!   and the sheet. It prints the first differences of each kind, naming the Build and the first line that
 //!   differs, and fails on any. The counts it prints go in the ticket's Answer.
-//! - **The offers** compare as the record: for each option, its status kind before and now. `compare` prints each
+//! - **The offers** are for a ticket that changes what a picker offers or how often an entry repeats (as 303 did):
+//!   `record` writes them only with `FORM_PROOF_OFFERS=1` (it takes about 8 times as long, 47 s against 6 s), and
+//!   `compare` checks them only when the recorded folder has them. They compare as the record: for each option, its status kind before and now. `compare` prints each
 //!   change as `count pick key: kind before -> kind now (n Builds)` (the first 40, `FORM_PROOF_OFFERS_SHOWN` for
 //!   another number), with the options that appeared or disappeared, and fails on any. It judges the Builds the old
 //!   links open to. A record without `offers.bin` (an older one) compares everything else and says offers were not
@@ -762,6 +764,11 @@ fn map_slot_kinds(slots: &str, map: &BTreeMap<String, String>) -> (String, usize
     (lines.join("\n"), mapped)
 }
 
+/// Whether `record` writes the offers: only with `FORM_PROOF_OFFERS=1`, since they roughly octuple its time.
+fn offers_wanted(variable: Option<&str>) -> bool {
+    variable == Some("1")
+}
+
 /// Records the offers of every corpus Build to `offers.bin` and `offers-kinds.txt` in `out`; one summary line.
 fn write_offers(out: &Path) -> String {
     let (engine, data) = corpus::engine().expect("the game data loads");
@@ -816,7 +823,9 @@ fn record() {
     let entries = record_all();
     let out = env_dir("FORM_PROOF_OUT");
     let mut summary = write_entries(&out, &entries);
-    summary += &write_offers(&out);
+    if offers_wanted(std::env::var("FORM_PROOF_OFFERS").ok().as_deref()) {
+        summary += &write_offers(&out);
+    }
     println!("{summary}");
 }
 
@@ -972,6 +981,13 @@ mod pieces {
             found.push(build);
         }
         (found, kinds)
+    }
+
+    #[test]
+    fn the_offers_are_recorded_only_when_asked_for() {
+        assert!(!offers_wanted(None));
+        assert!(!offers_wanted(Some("0")));
+        assert!(offers_wanted(Some("1")));
     }
 
     #[test]
