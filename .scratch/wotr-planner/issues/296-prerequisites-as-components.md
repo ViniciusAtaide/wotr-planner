@@ -10,7 +10,7 @@ Map: [WotR Build Planner](../map.md)
 
 The component vocabulary ([295](295-the-component-vocabulary.md)) gives the engine the game's prerequisite components. The user decided its staged plan on 2026-11-15. Each blueprint entry still holds the hand-shaped `prerequisite` field. This ticket moves them to the vocabulary's `Requires` form, in the same values and a new form, so the importer ([293](293-the-importer.md)) later writes one form.
 
-The design is in the main session's scratch `vocab/design.md`, §3 and §4.
+The design is in [research/component-vocabulary-2026-11-15.md](../research/component-vocabulary-2026-11-15.md), §3 and §4.
 
 ## Change
 

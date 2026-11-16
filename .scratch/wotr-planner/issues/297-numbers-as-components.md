@@ -16,7 +16,7 @@ The staged component plan (user, 2026-11-15; [295](295-the-component-vocabulary.
 - gear bonuses;
 - the attack and caster lines' named feats.
 
-The design is in the main session's scratch `vocab/design.md`, §3 kinds 10, 11, 13, 14 and 16, and §4.
+The design is in [research/component-vocabulary-2026-11-15.md](../research/component-vocabulary-2026-11-15.md), §3 kinds 10, 11, 13, 14 and 16, and §4.
 
 ## Change
 

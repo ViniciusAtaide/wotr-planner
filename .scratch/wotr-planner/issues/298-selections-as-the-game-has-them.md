@@ -24,7 +24,7 @@ The staged component plan (user, 2026-11-15; [295](295-the-component-vocabulary.
 - the 11 differing selection groups, which need research in the game;
 - the ranger archery feat-list pairs.
 
-The domains are [294](294-the-domain-split-with-a-slot-aware-link-migration.md)'s. The design is in the main session's scratch `vocab/design.md`, §3 and §4.
+The domains are [294](294-the-domain-split-with-a-slot-aware-link-migration.md)'s. The design is in [research/component-vocabulary-2026-11-15.md](../research/component-vocabulary-2026-11-15.md), §3 and §4.
 
 ## Change
 
