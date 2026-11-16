@@ -46,7 +46,7 @@ for. Run again, it moves nothing. Also run on the seeds fixture; game-check's `p
 - Where the planner's list and the game's differ, the planner's stays: the game check reports them under 293.
 
 **What it does not model.** The game's per-class and per-option feat selections (293, 302); a selection of feats held
-as a fact (305).
+as a fact (305, since held).
 
 **Tests.** `libs/seeds/tests/game_data/feat_slots_as_selections.rs`: no feat lists or feat slots remain; the general
 slot is `BasicFeatSelection`; the bloodline feat slot is `SorcererFeatSelection` at 7, 13 and 19; the monk's 1st-level

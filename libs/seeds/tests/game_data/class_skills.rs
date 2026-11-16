@@ -430,8 +430,8 @@ fn an_overwhelming_mage_and_a_seeker_hold_their_bloodlines_class_skill_and_no_cl
                 assert!(held.is_superset(&expected), "{archetype} {bloodline}");
             }
             let class_skill_features: Vec<&FeatureKey> = state
-                .features
-                .keys()
+                .features()
+                .map(|(feature, _)| feature)
                 .filter(|feature| feature.as_str().ends_with("/class-skill"))
                 .collect();
             assert_eq!(

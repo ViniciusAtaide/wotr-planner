@@ -61,13 +61,9 @@ fn a_shared_talent_taken_in_a_slayer_slot_is_held_under_the_rogue_talents_key() 
     assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
     let state = sheet.at(2).unwrap();
-    assert!(
-        state
-            .selection_options
-            .contains_key(&option("rogue/rogue-talents/combat-trick"))
-    );
+    assert!(state.option_count(&option("rogue/rogue-talents/combat-trick")) > 0);
     // The option's feat comes with it, as in the rogue's own slot.
-    assert!(state.feats.contains_key(&feat("combat-expertise")));
+    assert!(state.has_feat(&feat("combat-expertise")));
 }
 
 #[test]

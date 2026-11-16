@@ -2,8 +2,8 @@
 //! the components of the feats held for that weapon (ticket 297). Unconditional numbers only.
 
 use rules::{
-    CharacterState, Component, Dice, Engine, Feat, FeatKey, GameData, Handedness, MechanicsFlag,
-    Prerequisite, Ranged, Weapon, WeaponKey, WeaponStats,
+    CharacterState, Component, Dice, Engine, Fact, Feat, FeatKey, GameData, Handedness,
+    MechanicsFlag, Prerequisite, Ranged, Weapon, WeaponKey, WeaponStats,
 };
 
 use crate::support::{self, *};
@@ -295,13 +295,10 @@ fn a_two_handed_weapon_adds_one_and_a_half_times_the_strength_bonus_but_only_the
 /// The character holding a feat, for nothing or (with `value`) for one weapon.
 fn holding(mut state: CharacterState, key: &str, value: Option<&str>) -> CharacterState {
     let feat = FeatKey::new(key);
-    state.feats.insert(feat.clone(), 1);
+    let held = state.held.entry(Fact::Feat(feat)).or_default();
+    held.holds = 1;
     if let Some(value) = value {
-        state
-            .feat_values
-            .entry(feat)
-            .or_default()
-            .insert(weapon(value), 1);
+        held.values.insert(weapon(value), 1);
     }
     state
 }

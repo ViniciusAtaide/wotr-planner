@@ -958,7 +958,7 @@ struct Gains<'a> {
 /// A feat's names: itself, and with each value it's held for.
 fn feat_names(engine: &Engine, state: &CharacterState, feat: &FeatKey) -> Vec<String> {
     let name = engine.feat_name(feat);
-    match state.feat_values.get(feat) {
+    match state.feat_values_of(feat) {
         Some(values) => values
             .keys()
             .map(|value| format!("{name} ({})", engine.parameter_name(value)))
@@ -971,29 +971,31 @@ fn feat_names(engine: &Engine, state: &CharacterState, feat: &FeatKey) -> Vec<St
 /// abilities and mythic feats (with their values).
 fn held_names(engine: &Engine, state: &CharacterState) -> BTreeSet<String> {
     let mut names = BTreeSet::new();
-    for feat in state.feats.keys() {
+    for (feat, _) in state.feats() {
         names.extend(feat_names(engine, state, feat));
     }
-    for feature in state.features.keys() {
+    for (feature, _) in state.features() {
         names.insert(engine.feature_name(feature).to_owned());
         names.insert(engine.feature_name_apart(feature));
     }
     names.extend(
         state
-            .selection_options
-            .keys()
-            .map(|option| engine.option_name(option).to_owned()),
+            .options()
+            .map(|(option, _)| engine.option_name(option).to_owned()),
     );
     names.extend(
         state
-            .mythic_abilities
-            .iter()
+            .mythic_abilities()
             .map(|ability| engine.mythic_ability_name(ability).to_owned()),
     );
-    for feat in &state.mythic_feats {
+    for feat in state.mythic_feats() {
         let name = engine.mythic_feat_name(feat);
         names.insert(name.to_owned());
-        for value in state.mythic_feat_values.get(feat).into_iter().flatten() {
+        for value in state
+            .mythic_feat_values_of(feat)
+            .into_iter()
+            .flat_map(BTreeMap::keys)
+        {
             names.insert(format!("{name} ({})", engine.parameter_name(value)));
         }
     }
@@ -1016,12 +1018,12 @@ impl<'a> Gains<'a> {
             if let Some(ability) = level_up.ability_increase {
                 names.insert(ability.increase_name());
             }
-            for (feat, times) in &state.feats {
-                let new_values: Vec<String> = match state.feat_values.get(feat) {
+            for (feat, times) in state.feats() {
+                let new_values: Vec<String> = match state.feat_values_of(feat) {
                     Some(values) => values
                         .iter()
                         .filter(|(value, times)| {
-                            let had = before.feat_values.get(feat).and_then(|v| v.get(*value));
+                            let had = before.feat_values_of(feat).and_then(|v| v.get(*value));
                             had.copied().unwrap_or(0) < **times
                         })
                         .map(|(value, _)| {
@@ -1029,21 +1031,21 @@ impl<'a> Gains<'a> {
                             format!("{name} ({})", engine.parameter_name(value))
                         })
                         .collect(),
-                    None if before.feats.get(feat).copied().unwrap_or(0) < *times => {
+                    None if before.feat_count(feat) < times => {
                         vec![engine.feat_name(feat).to_owned()]
                     }
                     None => Vec::new(),
                 };
                 names.extend(new_values);
             }
-            for (feature, times) in &state.features {
-                if before.feature_count(feature) < *times {
+            for (feature, times) in state.features() {
+                if before.feature_count(feature) < times {
                     names.insert(engine.feature_name(feature).to_owned());
                     names.insert(engine.feature_name_apart(feature));
                 }
             }
-            for (option, times) in &state.selection_options {
-                if before.selection_options.get(option).copied().unwrap_or(0) < *times {
+            for (option, times) in state.options() {
+                if before.option_count(option) < times {
                     names.insert(engine.option_name(option).to_owned());
                 }
             }

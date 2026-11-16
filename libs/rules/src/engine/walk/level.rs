@@ -174,12 +174,10 @@ impl<'a> Walker<'a> {
                     None,
                 );
             }
-            // Its selections are held from here, whatever their slots hold; its selections of feats aren't facts yet
-            // (ticket 305).
+            // Its selections are held from here, whatever their slots hold, its selections of feats too: the game adds
+            // each selection a progression grants as a fact (`LevelUpHelper.AddFeaturesFromProgression`; ticket 305).
             for selection in row.selections {
-                if !catalog.offers_feats(selection) {
-                    self.hold(Held::Selection(selection.clone()), None);
-                }
+                self.hold(Held::Selection(selection.clone()), None);
             }
         }
         class_level
@@ -362,6 +360,25 @@ impl<'a> Walker<'a> {
             ));
         }
         slots
+    }
+
+    /// Holds the selections of feats of the race's slots (level 1) and of the general slot (odd levels) among a
+    /// level's slots, as the game holds each selection the race or a progression grants as a fact of its own
+    /// (`SelectRace.Apply` and `LevelUpHelper.AddFeaturesFromProgression`: `unit.AddFact`; BasicFeatSelection
+    /// 247a4068296e8be42890143f451b4b45; ticket 305). The class row's are held with its row.
+    pub(super) fn hold_feat_selections(&mut self, slots: &[(SlotKind, SlotId)]) {
+        for (kind, id) in slots {
+            if let (
+                SlotKind::Feat(selection),
+                SlotId::Feat {
+                    source: FeatSource::Race | FeatSource::General,
+                    ..
+                },
+            ) = (kind, id)
+            {
+                self.hold(Held::Selection(selection.clone()), None);
+            }
+        }
     }
 
     /// The race's selections of feats at level 1, or its subrace's in their place (a Dual Heritage half-elf has

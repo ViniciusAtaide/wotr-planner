@@ -174,11 +174,11 @@ impl Engine {
         let mut before = &empty;
         for level in &sheet.levels {
             let state = &level.state;
-            let focus = (state.feat_values.keys()).filter(|feat| {
+            let focus = (state.feat_values()).filter(|(feat, _)| {
                 self.feat_kind(feat) == Some(Kind::Focus) && self.feat_depth(feat) == 0
             });
-            let first = focus.into_iter().find_map(|feat| {
-                (state.feat_values[feat].keys())
+            let first = focus.into_iter().find_map(|(feat, values)| {
+                (values.keys())
                     .filter(|value| !before.has_feat_for(feat, value))
                     .find_map(|value| match value {
                         Parameter::Weapon(key) => self
@@ -238,7 +238,7 @@ impl Engine {
         // The feats held for the weapon with a kind the line reads, focus before specialization, a feat after those it
         // requires.
         let value = Parameter::Weapon(weapon.clone());
-        let mut feats: Vec<(&FeatKey, Kind)> = (state.feat_values.iter())
+        let mut feats: Vec<(&FeatKey, Kind)> = (state.feat_values())
             .filter(|(_, values)| values.contains_key(&value))
             .filter_map(|(feat, _)| Some((feat, self.feat_kind(feat)?)))
             .collect();
@@ -271,7 +271,7 @@ impl Engine {
             }
         }
         let attack: i16 = parts.iter().map(|part| part.attack).sum();
-        let power_attack = (state.feats.keys()).any(|feat| {
+        let power_attack = (state.feats()).any(|(feat, _)| {
             (self.catalog.feat_components(feat).iter())
                 .any(|component| matches!(component, Component::PowerAttack))
         });

@@ -72,7 +72,11 @@ fn extra_feat_gives_a_feat_slot_at_its_rank_offering_what_the_general_slot_does(
     with_pick.picks.insert(extra(2), pick_feat("power-attack"));
     assert!(engine.is_possible(&with_pick));
     assert_eq!(
-        engine.evaluate(&with_pick).at(7).unwrap().feats[&feat("power-attack")],
+        engine
+            .evaluate(&with_pick)
+            .at(7)
+            .unwrap()
+            .feat_count(&feat("power-attack")),
         1
     );
     let mut unmet = build;
@@ -205,8 +209,8 @@ fn a_switch_that_drops_the_ranks_general_pick_drops_the_extra_slots_pick_too() {
     engine().apply(&mut build, &Edit::PathSwitch(Some(path("legend"))));
     assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
-    assert!(sheet.at(16).unwrap().feats.contains_key(&feat("dodge")));
-    assert!(!sheet.at(17).unwrap().feats.contains_key(&feat("dodge")));
+    assert!(sheet.at(16).unwrap().has_feat(&feat("dodge")));
+    assert!(!sheet.at(17).unwrap().has_feat(&feat("dodge")));
     let rank_4 = &sheet.ranks[3];
     assert_eq!(rank_4.status, RankStatus::Dropped);
     assert!(rank_4.dropped_slots.contains(&extra(4)));

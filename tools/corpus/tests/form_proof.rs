@@ -244,7 +244,7 @@ fn numbers(engine: &Engine, build: &Build) -> String {
                 .unwrap();
             }
         }
-        let steps: Vec<String> = (state.features.keys())
+        let steps: Vec<String> = (state.features().map(|(feature, _)| feature))
             .filter_map(|feature| {
                 let step = engine.steps_reached(state, feature);
                 (step > 0).then(|| format!("{feature}={step}"))

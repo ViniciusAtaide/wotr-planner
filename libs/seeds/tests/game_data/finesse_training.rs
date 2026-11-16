@@ -150,7 +150,10 @@ fn a_rogue_chooses_a_weapon_at_3_11_and_19() {
     let last = at(&filled, 20);
     assert_eq!(last.option_count(&SelectionOptionKey::new(OPTION)), 3);
     assert_eq!(
-        last.option_values[&SelectionOptionKey::new(OPTION)]
+        (last.option_values())
+            .find(|(option, _)| option.as_str() == OPTION)
+            .unwrap()
+            .1
             .keys()
             .cloned()
             .collect::<BTreeSet<_>>(),

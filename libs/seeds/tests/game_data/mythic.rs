@@ -136,7 +136,7 @@ fn a_devil_from_aeon_loses_the_gaze_picks_and_keeps_the_rest() {
     assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
     let at_17 = sheet.at(17).unwrap();
-    assert!(at_17.selection_options.is_empty());
+    assert!(at_17.options().next().is_none());
     // Game: DevilProgression 87bc9abf00b240a44bb344fea50ec9bc removes AeonGazeFeature
     // 2689d57a889951241912f4bc7d6bb77e and keeps AeonBaneFeature 0b25e8d8b0488c84c9b5714e9ca0a204 (equivalent
     // model: the game leaves the gaze picks held with no gaze to act on).
@@ -232,7 +232,7 @@ fn all_skilled_grants_every_weapon_armour_and_shield_proficiency() {
         .insert(path_selection(4), pick("azata/superpowers/all-skilled"));
     assert!(engine().is_possible(&build));
     let sheet = engine().evaluate(&build);
-    let feats = &sheet.at(11).unwrap().feats;
+    let held = sheet.at(11).unwrap();
     // Game: AllSkilledFeature f3bc6f9c855b2fb4e9aea364b8163aca's AddProficiencies: light, medium and heavy armour,
     // buckler, light, heavy and tower shields, and every simple and martial weapon category (equivalent model:
     // proficiencies the game adds, the planner holds as the feats).
@@ -246,9 +246,9 @@ fn all_skilled_grants_every_weapon_armour_and_shield_proficiency() {
         "shield-proficiency",
         "tower-shield-proficiency",
     ] {
-        assert!(feats.contains_key(&FeatKey::new(feat)), "{feat}");
+        assert!(held.has_feat(&FeatKey::new(feat)), "{feat}");
     }
-    assert!(!feats.contains_key(&FeatKey::new("armor-proficiency-light-barding")));
+    assert!(!held.has_feat(&FeatKey::new("armor-proficiency-light-barding")));
     // The guide's 16 and the Sawtooth Saber (ticket 32); which of them All-Skilled gives:
     // `all_skilled_grants_every_exotic_weapon_but_the_sawtooth_saber`.
     assert_eq!(exotic_weapons().len(), 17);
@@ -382,8 +382,7 @@ fn extra_feat_at_mr_2_gives_a_feat_slot_at_level_7_offering_what_the_general_slo
             .evaluate(&with_pick)
             .at(7)
             .unwrap()
-            .feats
-            .contains_key(&FeatKey::new("toughness"))
+            .has_feat(&FeatKey::new("toughness"))
     );
     let mut unmet = build;
     unmet
@@ -697,9 +696,8 @@ fn a_shamans_hex_doesnt_open_witch_wandering_hex() {
     let shaman = with_selections_filled(build("shaman", 6));
     assert!(
         at(&shaman, 6)
-            .selection_options
-            .keys()
-            .any(|option| option.as_str().starts_with("shaman/hex/"))
+            .options()
+            .any(|(option, _)| option.as_str().starts_with("shaman/hex/"))
     );
     // Game: WitchWanderingHex fb8490d1721bd5a4883c3b6559310351's Any prerequisites name WitchClass, RogueClass with
     // SylvanTricksterArchetype and MagusClass with HexcrafterArchetype, no shaman.

@@ -149,8 +149,8 @@ fn favorite_metamagic_taken_for_a_metamagic_names_it() {
         sheet
             .at(20)
             .unwrap()
-            .mythic_abilities
-            .contains(&MythicAbilityKey::new(FAVORITE_METAMAGIC))
+            .mythic_ability_count(&MythicAbilityKey::new(FAVORITE_METAMAGIC))
+            > 0
     );
 }
 
@@ -229,7 +229,7 @@ fn releasing_a_valued_pick_keeps_an_older_valueless_one_held() {
     let key = MythicAbilityKey::new(FAVORITE_METAMAGIC);
     let before = engine.evaluate(&build);
     let before = before.at(20).unwrap();
-    assert!(before.mythic_abilities.contains(&key));
+    assert!(before.mythic_abilities().any(|held| held == &key));
     assert!(before.has_mythic_ability_for(&key, &metamagic("metamagic-empower-spell")));
 
     engine.apply(&mut build, &Edit::PathSwitch(Some(path("legend"))));
@@ -237,7 +237,10 @@ fn releasing_a_valued_pick_keeps_an_older_valueless_one_held() {
     let after = sheet.at(20).unwrap();
     // The valued pick is lost to the switch; the valueless one at MR 1 still holds the ability.
     assert!(!after.has_mythic_ability_for(&key, &metamagic("metamagic-empower-spell")));
-    assert!(after.mythic_abilities.contains(&key), "{after:?}");
+    assert!(
+        after.mythic_abilities().any(|held| held == &key),
+        "{after:?}"
+    );
 
     // A second valueless pick is refused as held (the picker doesn't offer a pick without a value).
     let mut again = mythic_fighter();

@@ -153,11 +153,10 @@ fn the_earth_bloodline_has_its_own_elemental_movement_at_15() {
     // BloodlineElementalEarthElementalMovementFeature 277d9c2a2392e8940a452888aa67f32e.
     assert!(
         earth
-            .features
-            .keys()
-            .any(|key| key.as_str().contains("elemental-movement")),
+            .features()
+            .any(|(key, _)| key.as_str().contains("elemental-movement")),
         "{:?}",
-        earth.features
+        earth.features().collect::<Vec<_>>()
     );
 }
 

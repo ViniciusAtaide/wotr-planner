@@ -310,7 +310,7 @@ impl Fact {
             Self::Feat(key) => state.feat_count(key),
             Self::Feature(key) => state.feature_count(key),
             Self::Option(key) => state.option_count(key),
-            Self::Selection(key) => state.selections.get(key).copied().unwrap_or(0),
+            Self::Selection(key) => state.selection_count(key),
             Self::MythicAbility(key) => state.mythic_ability_count(key),
             Self::MythicFeat(key) => state.mythic_feat_count(key),
             Self::Class(key) => u8::from(state.class_level(key) > 0),

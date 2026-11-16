@@ -6,10 +6,11 @@ use super::judge::{check_pick, deferrable, skips_proficiency};
 use super::{Checkpoint, Deferred, GrantSource, Held, Pending, Probe, RankGrant, Walker};
 use crate::build::{AbilityScores, Pick, SlotId};
 use crate::choice::{Choice, Issue};
+use crate::component::Fact;
 use crate::engine::{Slot, SlotKind, with_floors};
 use crate::keys::{FeatKey, FeatureKey, MythicFeatKey, SelectionOptionKey};
 use crate::parameter::Parameter;
-use crate::state::CharacterState;
+use crate::state::{CharacterState, FactRef};
 
 impl<'a> Walker<'a> {
     /// Fills a Mythic ascension's slots in order.
@@ -198,16 +199,10 @@ impl<'a> Walker<'a> {
         let state = &mut self.state;
         match &item {
             Held::Feat(key, values) => {
-                let holds = state.feats.entry(key.clone()).or_default();
-                *holds = holds.saturating_add(1);
+                let held = state.held.entry(Fact::Feat(key.clone())).or_default();
+                held.holds = held.holds.saturating_add(1);
                 for value in values {
-                    let holds = state
-                        .feat_values
-                        .entry(key.clone())
-                        .or_default()
-                        .entry(value.clone())
-                        .or_default();
-                    *holds = holds.saturating_add(1);
+                    held.count_value(value);
                 }
             }
             Held::Feature(key) => {
@@ -217,8 +212,8 @@ impl<'a> Walker<'a> {
                 }
             }
             Held::SelectionOption(key, through) => {
-                let times = state.selection_options.entry(key.clone()).or_default();
-                *times = times.saturating_add(1);
+                let held = state.held.entry(Fact::Option(key.clone())).or_default();
+                held.holds = held.holds.saturating_add(1);
                 let times = state
                     .options_through
                     .entry(through.clone())
@@ -241,40 +236,25 @@ impl<'a> Walker<'a> {
                 }
             }
             Held::OptionValue(key, value) => {
-                let holds = state
-                    .option_values
-                    .entry(key.clone())
-                    .or_default()
-                    .entry(value.clone())
-                    .or_default();
-                *holds = holds.saturating_add(1);
+                (state.held.entry(Fact::Option(key.clone())).or_default()).count_value(value);
             }
+            // Its values are held once each, however many picks name one.
             Held::MythicAbility(key, value) => {
-                state.mythic_abilities.insert(key.clone());
-                if let Some(value) = value {
-                    state
-                        .mythic_ability_values
-                        .entry(key.clone())
-                        .or_default()
-                        .insert(value.clone());
-                } else {
-                    let holds = state
-                        .mythic_ability_open_holds
-                        .entry(key.clone())
-                        .or_default();
-                    *holds = holds.saturating_add(1);
+                let held = (state.held)
+                    .entry(Fact::MythicAbility(key.clone()))
+                    .or_default();
+                match value {
+                    Some(value) => {
+                        held.values.insert(value.clone(), 1);
+                    }
+                    None => held.holds = held.holds.saturating_add(1),
                 }
             }
             Held::MythicFeat(key, value) => {
-                state.mythic_feats.insert(key.clone());
-                let holds = state.mythic_feat_holds.entry(key.clone()).or_default();
-                *holds = holds.saturating_add(1);
+                let held = state.held.entry(Fact::MythicFeat(key.clone())).or_default();
+                held.holds = held.holds.saturating_add(1);
                 if let Some(value) = value {
-                    state
-                        .mythic_feat_values
-                        .entry(key.clone())
-                        .or_default()
-                        .insert(value.clone());
+                    held.values.insert(value.clone(), 1);
                 }
             }
             Held::ClassSkill(key) => {
@@ -283,8 +263,8 @@ impl<'a> Walker<'a> {
                 state.class_skills.insert(key.clone());
             }
             Held::Selection(key) => {
-                let holds = state.selections.entry(key.clone()).or_default();
-                *holds = holds.saturating_add(1);
+                let held = state.held.entry(Fact::Selection(key.clone())).or_default();
+                held.holds = held.holds.saturating_add(1);
             }
             Held::Proficiency(key) => {
                 let holds = state.weapon_proficiencies.entry(key.clone()).or_default();
@@ -319,46 +299,29 @@ impl<'a> Walker<'a> {
     pub(super) fn release(&mut self, item: &Held) {
         let state = &mut self.state;
         match item {
-            Held::Feat(key, values) => {
-                if let Some(holds) = state.feats.get_mut(key) {
-                    *holds = holds.saturating_sub(1);
-                    if *holds == 0 {
-                        state.feats.remove(key);
-                    }
+            Held::Feat(key, values) => state.release_fact(FactRef::Feat(key), |held| {
+                held.holds = held.holds.saturating_sub(1);
+                for value in values {
+                    held.uncount_value(value);
                 }
-                if let Some(held) = state.feat_values.get_mut(key) {
-                    for value in values {
-                        if let Some(holds) = held.get_mut(value) {
-                            *holds = holds.saturating_sub(1);
-                            if *holds == 0 {
-                                held.remove(value);
-                            }
-                        }
-                    }
-                    if held.is_empty() {
-                        state.feat_values.remove(key);
-                    }
-                }
-            }
+            }),
             Held::Feature(key) => {
-                if let Some(count) = state.features.get_mut(key) {
-                    *count = count.saturating_sub(1);
-                    if *count == 0 {
-                        state.features.remove(key);
-                    }
-                }
+                state.release_fact(FactRef::Feature(key), |held| {
+                    held.holds = held.holds.saturating_sub(1);
+                });
                 for (feat, values) in self.favoured_weapon_feats(key) {
                     self.release(&Held::Feat(feat, values));
                 }
             }
             Held::SelectionOption(key, through) => {
-                if let Some(times) = state.selection_options.get_mut(key) {
-                    *times = times.saturating_sub(1);
-                    if *times == 0 {
-                        state.selection_options.remove(key);
-                        state.option_groups.remove(key);
-                        state.option_selections.remove(key);
-                    }
+                let mut emptied = false;
+                state.release_fact(FactRef::Option(key), |held| {
+                    emptied = held.holds == 1;
+                    held.holds = held.holds.saturating_sub(1);
+                });
+                if emptied {
+                    state.option_groups.remove(key);
+                    state.option_selections.remove(key);
                 }
                 if let Some(options) = state.options_through.get_mut(through) {
                     if let Some(times) = options.get_mut(key) {
@@ -373,62 +336,29 @@ impl<'a> Walker<'a> {
                 }
             }
             Held::OptionValue(key, value) => {
-                if let Some(held) = state.option_values.get_mut(key) {
-                    if let Some(holds) = held.get_mut(value) {
-                        *holds = holds.saturating_sub(1);
-                        if *holds == 0 {
-                            held.remove(value);
-                        }
-                    }
-                    if held.is_empty() {
-                        state.option_values.remove(key);
-                    }
-                }
+                state.release_fact(FactRef::Option(key), |held| held.uncount_value(value));
             }
+            // Held while any pick holds it: for another value, or without one.
             Held::MythicAbility(key, value) => {
-                // Held while any pick holds it: for another value, or without one.
-                match value {
+                state.release_fact(FactRef::MythicAbility(key), |held| match value {
                     Some(value) => {
-                        if let Some(values) = state.mythic_ability_values.get_mut(key) {
-                            values.remove(value);
-                            if values.is_empty() {
-                                state.mythic_ability_values.remove(key);
-                            }
-                        }
+                        held.values.remove(value);
                     }
-                    None => {
-                        if let Some(holds) = state.mythic_ability_open_holds.get_mut(key) {
-                            *holds = holds.saturating_sub(1);
-                            if *holds == 0 {
-                                state.mythic_ability_open_holds.remove(key);
-                            }
-                        }
-                    }
-                }
-                if !state.mythic_ability_values.contains_key(key)
-                    && !state.mythic_ability_open_holds.contains_key(key)
-                {
-                    state.mythic_abilities.remove(key);
-                }
-            }
-            Held::MythicFeat(key, value) => {
-                // Held while another pick holds it: for another value, or again (Extra Feat).
-                if let (Some(values), Some(value)) = (state.mythic_feat_values.get_mut(key), value)
-                {
-                    values.remove(value);
-                    if values.is_empty() {
-                        state.mythic_feat_values.remove(key);
-                    }
-                }
-                let holds = state.mythic_feat_holds.get_mut(key).map(|holds| {
-                    *holds = holds.saturating_sub(1);
-                    *holds
+                    None => held.holds = held.holds.saturating_sub(1),
                 });
-                if holds.unwrap_or(0) == 0 {
-                    state.mythic_feat_holds.remove(key);
-                    state.mythic_feat_values.remove(key);
-                    state.mythic_feats.remove(key);
-                }
+            }
+            // Held while another pick holds it: for another value, or again (Extra Feat); its values go with its
+            // last pick.
+            Held::MythicFeat(key, value) => {
+                state.release_fact(FactRef::MythicFeat(key), |held| {
+                    if let Some(value) = value {
+                        held.values.remove(value);
+                    }
+                    held.holds = held.holds.saturating_sub(1);
+                    if held.holds == 0 {
+                        held.values.clear();
+                    }
+                });
             }
             Held::ClassSkill(key) => {
                 if let Some(holds) = self.class_skill_holds.get_mut(key) {
@@ -439,14 +369,9 @@ impl<'a> Walker<'a> {
                     }
                 }
             }
-            Held::Selection(key) => {
-                if let Some(holds) = state.selections.get_mut(key) {
-                    *holds = holds.saturating_sub(1);
-                    if *holds == 0 {
-                        state.selections.remove(key);
-                    }
-                }
-            }
+            Held::Selection(key) => state.release_fact(FactRef::Selection(key), |held| {
+                held.holds = held.holds.saturating_sub(1);
+            }),
             Held::Proficiency(key) => {
                 if let Some(holds) = state.weapon_proficiencies.get_mut(key) {
                     *holds = holds.saturating_sub(1);
@@ -509,7 +434,7 @@ impl<'a> Walker<'a> {
             .catalog
             .bab_options()
             .iter()
-            .filter(|(key, _)| state.selection_options.contains_key(key))
+            .filter(|(key, _)| state.option_count(key) > 0)
             .map(|(_, rule)| {
                 let extra = if full { rule.extra_at_full_bab } else { 0 };
                 state.skill_ranks(&rule.skill).saturating_add(extra)
@@ -555,8 +480,7 @@ impl<'a> Walker<'a> {
     fn own_base(&self) -> AbilityScores {
         if self
             .state
-            .mythic_feats
-            .iter()
+            .mythic_feats()
             .any(|key| self.removes_penalty(key))
         {
             self.without_racial(|amount| amount < 0)
@@ -580,6 +504,9 @@ impl<'a> Walker<'a> {
 }
 
 fn add_feature(state: &mut CharacterState, feature: &FeatureKey) {
-    let count = state.features.entry(feature.clone()).or_default();
-    *count = count.saturating_add(1);
+    let held = state
+        .held
+        .entry(Fact::Feature(feature.clone()))
+        .or_default();
+    held.holds = held.holds.saturating_add(1);
 }

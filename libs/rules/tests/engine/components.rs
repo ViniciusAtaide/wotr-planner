@@ -341,7 +341,7 @@ fn a_grant_holds_its_facts_and_a_granted_selection_opens_no_slot() {
     let state = sheet.at(1).unwrap();
     assert_eq!(state.feature_count(&feature("granted")), 1);
     assert_eq!(state.feat_count(&feat("dodge")), 1);
-    assert_eq!(state.selections.get(&talents), Some(&1));
+    assert_eq!(state.selection_count(&talents), 1);
     // The selection is held and offers no pick: the fighter 1's slots are those of a fighter 1 without the grant.
     let plain = walked(&engine, &holding("dodge", &["fighter"]));
     let ids = |sheet: &rules::Sheet| -> Vec<SlotId> {

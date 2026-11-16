@@ -56,12 +56,7 @@ fn a_one_feat_selection_still_takes_a_pick() {
         found.kind,
         SlotKind::Feat(feat_list("warpriest/weapon-focus"))
     );
-    assert!(
-        !sheet.levels[0]
-            .state
-            .feats
-            .contains_key(&feat("weapon-focus"))
-    );
+    assert!(!sheet.levels[0].state.has_feat(&feat("weapon-focus")));
     let offered: Vec<_> = engine
         .options(&empty, &slot)
         .unwrap()

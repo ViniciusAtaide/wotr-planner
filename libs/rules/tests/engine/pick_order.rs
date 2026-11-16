@@ -66,8 +66,8 @@ fn two_picks_of_one_level_lean_on_each_other_in_either_slot_order() {
     );
     later.picks.insert(class_slot(1, 0), pick_feat("cleave"));
     assert!(engine().failures(&later).is_empty());
-    let held = &walked(&engine(), &later).levels[0].state.feats;
-    assert!(held.contains_key(&feat("cleave")) && held.contains_key(&feat("power-attack")));
+    let held = &walked(&engine(), &later).levels[0].state;
+    assert!(held.has_feat(&feat("cleave")) && held.has_feat(&feat("power-attack")));
     agrees(&engine(), &later, "fighter 1, Cleave first");
 
     // In the earlier slot it holds for the later one, as before.

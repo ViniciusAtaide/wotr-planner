@@ -152,7 +152,8 @@ enum Held {
     /// Proficiency with a weapon, from a pick whose list skips the proficiency check (the Sword Saint's chosen
     /// weapon).
     Proficiency(WeaponKey),
-    /// A Feature selection a row granted, whatever its slot holds ([`Prerequisite::Selection`]).
+    /// A Feature selection a row, the race or the general feat slot granted, whatever its slot holds
+    /// ([`Prerequisite::Selection`]).
     ///
     /// [`Prerequisite::Selection`]: crate::Prerequisite::Selection
     Selection(FeatureSelectionKey),
@@ -733,6 +734,7 @@ impl<'a> Walker<'a> {
         self.skill_points = skill_points;
 
         let level_slots = self.level_slots(level, level_up);
+        self.hold_feat_selections(&level_slots);
         let level_slots = self.grant_selections(level_slots);
         let mut slots = self.fill_bands(level, level_slots);
 

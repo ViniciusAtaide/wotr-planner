@@ -90,7 +90,7 @@ fn a_sorcerer_holds_the_bloodlines_rows_as_sorcerer_levels_reach_them() {
     ));
     let at_15 = at(&build, 15);
     assert!(holds(&at_15, "sorcerer/bloodline/abyssal/added-summonings"));
-    assert!(at_15.feats.contains_key(&feat("toughness")));
+    assert!(at_15.has_feat(&feat("toughness")));
     assert!(!holds(
         &at(&build, 19),
         "sorcerer/bloodline/abyssal/demonic-might"

@@ -1,12 +1,15 @@
 //! What a character has at one point of its Build, and Prerequisite checks against it.
 
+use std::borrow::Borrow;
+use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
+use std::ops::Bound;
 use std::sync::Arc;
 
 use crate::bonus::BonusInForce;
 use crate::build::{AbilityScores, Faith};
 use crate::choice::Unmet;
-use crate::component::{MechanicsFlag, Pool, StatRef, StatRule};
+use crate::component::{Fact, MechanicsFlag, Pool, StatRef, StatRule};
 use crate::game_data::{Alignment, OptionGroup, SpellType};
 use crate::keys::{
     ArchetypeKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
@@ -65,26 +68,16 @@ pub struct CharacterState {
     /// The class levels a feat's prerequisites see, for each class another class's levels count as there
     /// (Diverse Training: fighter 1 + Eldritch Knight 3 is fighter 4). Classes left out are their class level.
     pub feat_class_levels: BTreeMap<ClassKey, u8>,
-    /// Each feat held, with how many picks and grants hold it (Extra Hex taken twice: 2). A class grant and a pick
-    /// may both hold one, so losing one of them keeps the feat.
-    pub feats: BTreeMap<FeatKey, u8>,
-    /// Each parameterised feat held, with the values it's held for and how many picks and grants hold each
-    /// (Weapon Focus: Longsword 1, Dagger 1).
-    pub feat_values: BTreeMap<FeatKey, BTreeMap<Parameter, u8>>,
-    /// Each feature with the number of times it has been granted ("Sneak Attack: 3").
-    pub features: BTreeMap<FeatureKey, u8>,
-    /// Each selection option held, with how many times it was taken (Increased Damage Reduction: 2).
-    pub selection_options: BTreeMap<SelectionOptionKey, u8>,
+    /// The facts held, one list as the game keeps them (`UnitProgressionData.Features`, a `FeatureCollection`; ticket
+    /// 305): each feat, feature, selection option, Feature selection, mythic ability and mythic feat, by its kind and
+    /// key, with how many hold it and the values it's held for ([`HeldFact`]). An entry no pick or grant holds any
+    /// more is removed. The kinds are read through views that iterate in key order ([`feats`](Self::feats),
+    /// [`features`](Self::features), [`options`](Self::options), …) and counts by kind
+    /// ([`feat_count`](Self::feat_count), …).
+    pub held: BTreeMap<Fact, HeldFact>,
     /// The options held through each selection that gave them, with how many times (Expanded Element: the
     /// elements picked at 7 and 15). An option granted outside a selection's slot isn't here.
     pub options_through: BTreeMap<FeatureSelectionKey, BTreeMap<SelectionOptionKey, u8>>,
-    /// Each Feature selection a row has granted, with how many rows hold it, whatever their slots hold (ticket 247):
-    /// what [`Prerequisite::Selection`] reads. A feat's selection (Extra Rage Power's slot) isn't a row's grant.
-    pub selections: BTreeMap<FeatureSelectionKey, u8>,
-    /// Each option held whose pick names a value of the option's own (not a chosen feat's, which `feat_values`
-    /// holds), with the values and how many picks hold each (Finesse Training: Dagger 1, Light Shield Bash 1;
-    /// ticket 172).
-    pub option_values: BTreeMap<SelectionOptionKey, BTreeMap<Parameter, u8>>,
     /// The weapons a pick makes the character proficient with, with how many picks hold each: the weapon of a pick
     /// from a list that skips the proficiency check (the Sword Saint's chosen weapon,
     /// [`FeatureSelection::skips_proficiency`](crate::FeatureSelection::skips_proficiency); ticket 251).
@@ -97,19 +90,6 @@ pub struct CharacterState {
     /// The option level of each option held through a selection with option levels (a sorcerer 5 / Dragon
     /// Disciple 5's bloodline: 10).
     pub option_levels: BTreeMap<SelectionOptionKey, u8>,
-    pub mythic_abilities: BTreeSet<MythicAbilityKey>,
-    /// Each mythic ability that takes a value, with the values it's held for (Favorite Metamagic: Persistent Spell
-    /// and Quicken Spell; ticket 249).
-    pub mythic_ability_values: BTreeMap<MythicAbilityKey, BTreeSet<Parameter>>,
-    /// How many picks hold each mythic ability without a value (a link from before the ability took one), so a
-    /// release of a valued pick leaves the ability held while one of these stays.
-    pub mythic_ability_open_holds: BTreeMap<MythicAbilityKey, u8>,
-    pub mythic_feats: BTreeSet<MythicFeatKey>,
-    /// How many picks hold each mythic feat held (Extra Feat taken at two ranks: 2; ticket 303), so a release leaves
-    /// it held while another pick holds it.
-    pub mythic_feat_holds: BTreeMap<MythicFeatKey, u8>,
-    /// Each parameterised mythic feat held, with the values it's held for (Improved Critical (Mythic): Longsword).
-    pub mythic_feat_values: BTreeMap<MythicFeatKey, BTreeSet<Parameter>>,
     /// While an entry held raises the BAB to at least this plus the Mythic rank
     /// ([`BaseAttackAtLeast`](crate::Component::BaseAttackAtLeast), Perfect Mind: 15), this; `None` otherwise.
     /// [`bab`](Self::bab) already counts it.
@@ -144,6 +124,151 @@ pub struct CharacterState {
     /// [`LevelSheet`]: crate::LevelSheet
     pub bonuses_in_force: Arc<[BonusInForce]>,
 }
+
+/// One fact held ([`CharacterState::held`]): how many hold it and the values it's held for, the game's `Feature`
+/// with its rank and its instance per `Param` (`FeatureCollection.PrepareFactForAttach`). Each kind keeps the
+/// planner's own count:
+/// - a feat, a feature, a selection option and a Feature selection: `holds` counts the picks and grants that hold
+///   it (Extra Hex taken twice: 2; Sneak Attack: 3), and `values` how many hold each value (Weapon Focus: Longsword
+///   1, Dagger 1; an option's own value, Finesse Training: Dagger 1, ticket 172);
+/// - a mythic ability: `holds` counts the picks without a value (a link from before the ability took one), and
+///   `values` the values it's held for, each once (Favorite Metamagic: Persistent Spell and Quicken Spell; ticket
+///   249);
+/// - a mythic feat: `holds` counts its picks (Extra Feat at two ranks: 2; ticket 303), and `values` the values it's
+///   held for, each once (Improved Critical (Mythic): Longsword).
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct HeldFact {
+    pub holds: u8,
+    pub values: BTreeMap<Parameter, u8>,
+}
+
+impl HeldFact {
+    /// One more hold of `value`.
+    pub(crate) fn count_value(&mut self, value: &Parameter) {
+        let holds = self.values.entry(value.clone()).or_default();
+        *holds = holds.saturating_add(1);
+    }
+
+    /// One hold of `value` fewer; the value goes with its last.
+    pub(crate) fn uncount_value(&mut self, value: &Parameter) {
+        if let Some(holds) = self.values.get_mut(value) {
+            *holds = holds.saturating_sub(1);
+            if *holds == 0 {
+                self.values.remove(value);
+            }
+        }
+    }
+
+    fn is_empty(&self) -> bool {
+        self.holds == 0 && self.values.is_empty()
+    }
+}
+
+/// A [`Fact`] by reference, to find one in [`CharacterState::held`] without a copy of its key. Its variants are
+/// `Fact`'s, in `Fact`'s order, so the two order alike.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub(crate) enum FactRef<'a> {
+    Feat(&'a FeatKey),
+    Feature(&'a FeatureKey),
+    Option(&'a SelectionOptionKey),
+    Selection(&'a FeatureSelectionKey),
+    MythicAbility(&'a MythicAbilityKey),
+    MythicFeat(&'a MythicFeatKey),
+    Class(&'a ClassKey),
+    Archetype(&'a ArchetypeKey),
+    Race(&'a RaceKey),
+    Deity(&'a DeityKey),
+}
+
+/// What a key of [`CharacterState::held`] is looked up by: a [`Fact`], or a [`FactRef`] to one.
+pub(crate) trait AsFactRef {
+    fn fact_ref(&self) -> FactRef<'_>;
+}
+
+impl AsFactRef for Fact {
+    fn fact_ref(&self) -> FactRef<'_> {
+        match self {
+            Self::Feat(key) => FactRef::Feat(key),
+            Self::Feature(key) => FactRef::Feature(key),
+            Self::Option(key) => FactRef::Option(key),
+            Self::Selection(key) => FactRef::Selection(key),
+            Self::MythicAbility(key) => FactRef::MythicAbility(key),
+            Self::MythicFeat(key) => FactRef::MythicFeat(key),
+            Self::Class(key) => FactRef::Class(key),
+            Self::Archetype(key) => FactRef::Archetype(key),
+            Self::Race(key) => FactRef::Race(key),
+            Self::Deity(key) => FactRef::Deity(key),
+        }
+    }
+}
+
+impl AsFactRef for FactRef<'_> {
+    fn fact_ref(&self) -> FactRef<'_> {
+        *self
+    }
+}
+
+impl<'a> Borrow<dyn AsFactRef + 'a> for Fact {
+    fn borrow(&self) -> &(dyn AsFactRef + 'a) {
+        self
+    }
+}
+
+impl PartialEq for dyn AsFactRef + '_ {
+    fn eq(&self, other: &Self) -> bool {
+        self.fact_ref() == other.fact_ref()
+    }
+}
+
+impl Eq for dyn AsFactRef + '_ {}
+
+impl PartialOrd for dyn AsFactRef + '_ {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for dyn AsFactRef + '_ {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.fact_ref().cmp(&other.fact_ref())
+    }
+}
+
+/// The key of a kind [`CharacterState::held`] holds, for the views of one kind.
+trait HeldKey: Sized + 'static {
+    /// The kind's first place in the map's order, where a view of it starts: the kind with the empty key.
+    fn first() -> FactRef<'static>;
+
+    /// The key of a fact of this kind; `None` for another kind.
+    fn of(fact: &Fact) -> Option<&Self>;
+}
+
+macro_rules! held_key {
+    ($($key:ident => $variant:ident),* $(,)?) => {$(
+        impl HeldKey for $key {
+            fn first() -> FactRef<'static> {
+                static FIRST: $key = $key(String::new());
+                FactRef::$variant(&FIRST)
+            }
+
+            fn of(fact: &Fact) -> Option<&Self> {
+                match fact {
+                    Fact::$variant(key) => Some(key),
+                    _ => None,
+                }
+            }
+        }
+    )*};
+}
+
+held_key!(
+    FeatKey => Feat,
+    FeatureKey => Feature,
+    SelectionOptionKey => Option,
+    FeatureSelectionKey => Selection,
+    MythicAbilityKey => MythicAbility,
+    MythicFeatKey => MythicFeat,
+);
 
 /// Class levels a held fact adds to the levels a `ClassLevel` prerequisite reads of `class`
 /// ([`Component::PrerequisiteClassLevels`](crate::Component::PrerequisiteClassLevels)).
@@ -196,43 +321,142 @@ impl CharacterState {
         self.skill_ranks(skill).max(floor)
     }
 
+    /// The entry held for a fact; `None` when nothing holds it.
+    pub(crate) fn held_fact(&self, fact: FactRef<'_>) -> Option<&HeldFact> {
+        self.held.get(&fact as &dyn AsFactRef)
+    }
+
+    /// Changes the entry held for a fact with `change`, if one is, and removes it once nothing holds it.
+    pub(crate) fn release_fact(&mut self, fact: FactRef<'_>, change: impl FnOnce(&mut HeldFact)) {
+        let key = &fact as &dyn AsFactRef;
+        if let Some(held) = self.held.get_mut(key) {
+            change(held);
+            if held.is_empty() {
+                self.held.remove(key);
+            }
+        }
+    }
+
+    /// The entries held of one kind, in key order.
+    fn kind<K: HeldKey>(&self) -> impl Iterator<Item = (&K, &HeldFact)> {
+        let first = K::first();
+        self.held
+            .range::<dyn AsFactRef, _>((
+                Bound::Included(&first as &dyn AsFactRef),
+                Bound::Unbounded,
+            ))
+            .map_while(|(fact, held)| K::of(fact).map(|key| (key, held)))
+    }
+
+    /// The entries of one kind that `holds` counts, with it, in key order.
+    fn counted<K: HeldKey>(&self) -> impl Iterator<Item = (&K, u8)> {
+        (self.kind())
+            .filter(|(_, held)| held.holds > 0)
+            .map(|(key, held)| (key, held.holds))
+    }
+
+    /// The entries of one kind held for values, with them, in key order.
+    fn valued<K: HeldKey>(&self) -> impl Iterator<Item = (&K, &BTreeMap<Parameter, u8>)> {
+        (self.kind())
+            .filter(|(_, held)| !held.values.is_empty())
+            .map(|(key, held)| (key, &held.values))
+    }
+
+    /// Each feat held, with how many picks and grants hold it (Extra Hex taken twice: 2), in key order. A class
+    /// grant and a pick may both hold one, so losing one of them keeps the feat.
+    pub fn feats(&self) -> impl Iterator<Item = (&FeatKey, u8)> {
+        self.counted()
+    }
+
+    /// Each parameterised feat held, with the values it's held for and how many picks and grants hold each (Weapon
+    /// Focus: Longsword 1, Dagger 1), in key order.
+    pub fn feat_values(&self) -> impl Iterator<Item = (&FeatKey, &BTreeMap<Parameter, u8>)> {
+        self.valued()
+    }
+
+    /// Each feature held, with the number of times it has been granted ("Sneak Attack: 3"), in key order.
+    pub fn features(&self) -> impl Iterator<Item = (&FeatureKey, u8)> {
+        self.counted()
+    }
+
+    /// Each selection option held, with how many times it was taken (Increased Damage Reduction: 2), in key order.
+    pub fn options(&self) -> impl Iterator<Item = (&SelectionOptionKey, u8)> {
+        self.counted()
+    }
+
+    /// Each option held whose pick names a value of the option's own (not a chosen feat's, which
+    /// [`feat_values`](Self::feat_values) gives), with the values and how many picks hold each (Finesse Training:
+    /// Dagger 1, Light Shield Bash 1; ticket 172), in key order.
+    pub fn option_values(
+        &self,
+    ) -> impl Iterator<Item = (&SelectionOptionKey, &BTreeMap<Parameter, u8>)> {
+        self.valued()
+    }
+
+    /// Each Feature selection held, with how many grants hold it, whatever their slots hold (ticket 247), in key
+    /// order: what [`Prerequisite::Selection`] reads.
+    pub fn selections(&self) -> impl Iterator<Item = (&FeatureSelectionKey, u8)> {
+        self.counted()
+    }
+
+    /// Each mythic ability held, in key order.
+    pub fn mythic_abilities(&self) -> impl Iterator<Item = &MythicAbilityKey> {
+        self.kind().map(|(key, _)| key)
+    }
+
+    /// Each mythic feat held, in key order.
+    pub fn mythic_feats(&self) -> impl Iterator<Item = &MythicFeatKey> {
+        self.counted().map(|(key, _)| key)
+    }
+
     /// Whether a mythic ability that takes a value is held for this one.
     pub fn has_mythic_ability_for(&self, ability: &MythicAbilityKey, value: &Parameter) -> bool {
-        self.mythic_ability_values
-            .get(ability)
-            .is_some_and(|values| values.contains(value))
+        self.held_fact(FactRef::MythicAbility(ability))
+            .is_some_and(|held| held.values.contains_key(value))
     }
 
     /// How many picks hold a mythic ability: one for each value it's held for, and each pick without one; 0 when it
     /// isn't held.
     pub fn mythic_ability_count(&self, ability: &MythicAbilityKey) -> u8 {
-        let values = self
-            .mythic_ability_values
-            .get(ability)
-            .map_or(0, BTreeSet::len);
-        let open = self
-            .mythic_ability_open_holds
-            .get(ability)
-            .copied()
-            .unwrap_or(0);
-        u8::try_from(values).unwrap_or(u8::MAX).saturating_add(open)
+        self.held_fact(FactRef::MythicAbility(ability))
+            .map_or(0, |held| {
+                u8::try_from(held.values.len())
+                    .unwrap_or(u8::MAX)
+                    .saturating_add(held.holds)
+            })
     }
 
     /// How many picks hold a mythic feat; 0 when none.
     pub fn mythic_feat_count(&self, feat: &MythicFeatKey) -> u8 {
-        self.mythic_feat_holds.get(feat).copied().unwrap_or(0)
+        self.holds(FactRef::MythicFeat(feat))
+    }
+
+    /// The values a parameterised mythic feat is held for, each once; `None` when it's held for none.
+    pub fn mythic_feat_values_of(&self, feat: &MythicFeatKey) -> Option<&BTreeMap<Parameter, u8>> {
+        self.held_fact(FactRef::MythicFeat(feat))
+            .map(|held| &held.values)
+            .filter(|values| !values.is_empty())
     }
 
     /// Whether a parameterised mythic feat is held for a value.
     pub fn has_mythic_feat_for(&self, feat: &MythicFeatKey, value: &Parameter) -> bool {
-        self.mythic_feat_values
-            .get(feat)
-            .is_some_and(|values| values.contains(value))
+        self.held_fact(FactRef::MythicFeat(feat))
+            .is_some_and(|held| held.values.contains_key(value))
     }
 
     /// How many times a feature has been granted; 0 when never.
     pub fn feature_count(&self, feature: &FeatureKey) -> u8 {
-        self.features.get(feature).copied().unwrap_or(0)
+        self.holds(FactRef::Feature(feature))
+    }
+
+    /// How many grants hold a Feature selection; 0 when none.
+    pub fn selection_count(&self, selection: &FeatureSelectionKey) -> u8 {
+        self.holds(FactRef::Selection(selection))
+    }
+
+    /// How many picks and grants hold a fact (its entry's `holds`); 0 when none.
+    fn holds(&self, fact: FactRef<'_>) -> u8 {
+        self.held_fact(fact).map_or(0, |held| held.holds)
     }
 
     pub fn spell_level(&self, spell_type: SpellType) -> u8 {
@@ -264,26 +488,37 @@ impl CharacterState {
 
     /// How many picks and grants hold a feat; 0 when none.
     pub fn feat_count(&self, feat: &FeatKey) -> u8 {
-        self.feats.get(feat).copied().unwrap_or(0)
+        self.holds(FactRef::Feat(feat))
+    }
+
+    /// Whether a pick or a grant holds a feat.
+    pub fn has_feat(&self, feat: &FeatKey) -> bool {
+        self.feat_count(feat) > 0
     }
 
     /// Whether a parameterised feat is held for a value.
     pub fn has_feat_for(&self, feat: &FeatKey, value: &Parameter) -> bool {
-        self.feat_values
-            .get(feat)
-            .is_some_and(|values| values.contains_key(value))
+        self.held_fact(FactRef::Feat(feat))
+            .is_some_and(|held| held.values.contains_key(value))
+    }
+
+    /// The values a parameterised feat is held for, with how many picks and grants hold each; `None` when it's held
+    /// for none.
+    pub fn feat_values_of(&self, feat: &FeatKey) -> Option<&BTreeMap<Parameter, u8>> {
+        self.held_fact(FactRef::Feat(feat))
+            .map(|held| &held.values)
+            .filter(|values| !values.is_empty())
     }
 
     /// How many times a selection option was taken; 0 when never.
     pub fn option_count(&self, option: &SelectionOptionKey) -> u8 {
-        self.selection_options.get(option).copied().unwrap_or(0)
+        self.holds(FactRef::Option(option))
     }
 
     /// Whether an option that takes a value of its own is held for a value (Finesse Training for the dagger).
     pub fn has_option_for(&self, option: &SelectionOptionKey, value: &Parameter) -> bool {
-        self.option_values
-            .get(option)
-            .is_some_and(|values| values.contains_key(value))
+        self.held_fact(FactRef::Option(option))
+            .is_some_and(|held| held.values.contains_key(value))
     }
 
     /// The class level a feat's prerequisites see: the class level plus the levels of classes that count as it
@@ -458,17 +693,17 @@ impl CharacterState {
                     })
                 };
             }
-            P::Feat(feat) => flag(self.feats.contains_key(feat)),
+            P::Feat(feat) => flag(self.has_feat(feat)),
             P::FeatFor { feat, value } => flag(self.has_feat_for(feat, value)),
             P::FeatForSameValue(feat) => {
                 flag(value.is_some_and(|value| self.has_feat_for(feat, value)))
             }
             P::FeatIfValue { value: when, feat } => {
-                flag(value != Some(when) || self.feats.contains_key(feat))
+                flag(value != Some(when) || self.has_feat(feat))
             }
             P::Not(child) => flag(self.check_in(child, picking).is_err()),
-            P::MythicFeat(feat) => flag(self.mythic_feats.contains(feat)),
-            P::MythicAbility(ability) => flag(self.mythic_abilities.contains(ability)),
+            P::MythicFeat(feat) => flag(self.mythic_feat_count(feat) > 0),
+            P::MythicAbility(ability) => flag(self.mythic_ability_count(ability) > 0),
             P::ClassLevel { class, level } => {
                 let has = if for_feat {
                     self.feat_class_level(class)
@@ -484,8 +719,8 @@ impl CharacterState {
             ),
             P::Feature { feature, count } => numeric(self.feature_count(feature), *count),
             P::Rank { fact, rank } => numeric(fact.rank(self), *rank),
-            P::SelectionOption(option) => flag(self.selection_options.contains_key(option)),
-            P::Selection(selection) => flag(self.selections.contains_key(selection)),
+            P::SelectionOption(option) => flag(self.option_count(option) > 0),
+            P::Selection(selection) => flag(self.selection_count(selection) > 0),
             P::NoOptionFrom(selection) => flag(!self.holds_option_of(selection)),
             P::NoOtherOptionOfGroup(group) => {
                 flag(!self.holds_other_option_of(*group, picking.option))

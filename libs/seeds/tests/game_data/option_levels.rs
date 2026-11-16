@@ -32,7 +32,7 @@ fn a_sorcerer_holds_the_bloodlines_powers_at_1_3_9_15_and_20() {
     // Game: BloodlineAbyssalProgression d3a4cb7be97a6694290f0dcfbd147113's wings at 15; the strength chain
     // BloodlineAbyssalStrengthAbilityAddLevel1 489c8c4a53a111d4094d239054b26e32 (+2, then +4 at 13 by
     // AddFeatureOnClassLevel) and BloodlineAbyssalStrengthAbilityAddLevel2 48d81d94ddf0cc84abbde97718cb25f2 (+6 at 17).
-    assert!(at(&build, 15).feats.contains_key(&FeatKey::new("wings")));
+    assert!(at(&build, 15).has_feat(&FeatKey::new("wings")));
     assert_eq!(at(&build, 8).ability_scores.strength, 10);
     assert_eq!(at(&build, 9).ability_scores.strength, 12);
     assert_eq!(at(&build, 17).ability_scores.strength, 16);
@@ -264,9 +264,5 @@ fn a_cavalier_of_the_cockatrice_gets_dazzling_display_at_2() {
     );
     // Game: CavalierOrderOfTheCockatriceProgression 4e2fb051c9c4c144dbad08d994906f99 at 2:
     // DazzlingDisplayIgnoreWeaponNeed 4d2b28040c8d4552aa401cc627881b09 (equivalent model: the feat).
-    assert!(
-        at(&build, 2)
-            .feats
-            .contains_key(&FeatKey::new("dazzling-display"))
-    );
+    assert!(at(&build, 2).has_feat(&FeatKey::new("dazzling-display")));
 }

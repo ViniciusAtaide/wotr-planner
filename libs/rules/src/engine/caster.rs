@@ -187,7 +187,7 @@ impl Engine {
 
     /// Whether a feat held lets the character apply a metamagic ([`Component::Metamagic`]).
     fn applies_metamagic(&self, state: &CharacterState, metamagic: MetamagicKind) -> bool {
-        (state.feats.keys()).any(|feat| {
+        (state.feats()).any(|(feat, _)| {
             (self.catalog.feat_components(feat)).contains(&Component::Metamagic(metamagic))
         })
     }

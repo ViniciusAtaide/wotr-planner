@@ -198,14 +198,14 @@ fn gold_dragon_keeps_the_general_picks_of_mr_1_to_7_but_the_old_paths_grants_of_
 
     // The tricks and the bonus feat are held until the switch.
     let at_16 = sheet.at(16).unwrap();
-    assert_eq!(at_16.selection_options.len(), 2);
-    assert!(at_16.feats.contains_key(&feat("dodge")));
+    assert_eq!(at_16.options().count(), 2);
+    assert!(at_16.has_feat(&feat("dodge")));
     let at_17 = sheet.at(17).unwrap();
     assert_eq!(at_17.mythic_path, Some(path("gold-dragon")));
     // The general picks of MR 1-7 stay (with MR 8's and 9's, both at 17).
-    assert_eq!(at_17.mythic_abilities.len(), 5);
+    assert_eq!(at_17.mythic_abilities().count(), 5);
     assert_eq!(
-        at_17.mythic_feats,
+        at_17.mythic_feats().cloned().collect::<BTreeSet<_>>(),
         [
             MythicFeatKey::new("extra-mythic-ability"),
             MythicFeatKey::new("improved-critical-mythic"),
@@ -221,7 +221,7 @@ fn gold_dragon_keeps_the_general_picks_of_mr_1_to_7_but_the_old_paths_grants_of_
         at_17.feature_count(&feature("trickster/trickster-tricks")),
         0
     );
-    assert!(at_17.selection_options.is_empty());
+    assert!(at_17.options().next().is_none());
     assert_eq!(at_17.feature_count(&feature("gold-dragon/breath")), 1);
 
     use RankStatus::*;
@@ -263,16 +263,16 @@ fn a_legend_switch_keeps_the_old_paths_mr_1_and_2_rows_and_drops_every_pick_of_m
     let sheet = engine().evaluate(&build);
     // Before the switch, every pick of MR 1-7 is held.
     let at_16 = sheet.at(16).unwrap();
-    assert_eq!(at_16.mythic_abilities.len(), 4);
-    assert_eq!(at_16.selection_options.len(), 2);
+    assert_eq!(at_16.mythic_abilities().count(), 4);
+    assert_eq!(at_16.options().count(), 2);
     let at_17 = sheet.at(17).unwrap();
     assert_eq!(at_17.feature_count(&feature("trickster/bit-of-fun")), 1);
     assert_eq!(at_17.feature_count(&feature("trickster/hard-to-kill")), 1);
     assert_eq!(
-        at_17.mythic_abilities,
-        [MythicAbilityKey::new("mythic-charge")].into()
+        at_17.mythic_abilities().collect::<Vec<_>>(),
+        [&MythicAbilityKey::new("mythic-charge")]
     );
-    assert!(at_17.selection_options.is_empty());
+    assert!(at_17.options().next().is_none());
 
     // The track marks MR 3-7 dropped, with their picks lost from the switch on.
     use RankStatus::*;
@@ -498,7 +498,7 @@ fn devil_from_aeon_keeps_mr_1_to_7_but_loses_the_gaze_picks_and_extra_gaze() {
     assert!(engine().is_possible(&build));
 
     let at_16 = sheet.at(16).unwrap();
-    assert_eq!(at_16.selection_options.len(), 4);
+    assert_eq!(at_16.options().count(), 4);
     assert_eq!(
         at_16.feature_count(&feature("aeon/enforcing-gaze-extra-gaze")),
         1
@@ -506,7 +506,7 @@ fn devil_from_aeon_keeps_mr_1_to_7_but_loses_the_gaze_picks_and_extra_gaze() {
 
     let at_17 = sheet.at(17).unwrap();
     assert_eq!(at_17.mythic_path, Some(path("devil")));
-    assert!(at_17.selection_options.is_empty());
+    assert!(at_17.options().next().is_none());
     assert_eq!(
         at_17.feature_count(&feature("aeon/enforcing-gaze-extra-gaze")),
         0
@@ -514,8 +514,8 @@ fn devil_from_aeon_keeps_mr_1_to_7_but_loses_the_gaze_picks_and_extra_gaze() {
     // The rest of the Aeon's MR 1-7 stays, general picks included (MR 8 and 9 add theirs at 17).
     assert_eq!(at_17.feature_count(&feature("aeon/aeon-bane")), 1);
     assert_eq!(at_17.feature_count(&feature("aeon/force-reality")), 1);
-    assert_eq!(at_17.mythic_abilities.len(), 5);
-    assert_eq!(at_17.mythic_feats.len(), 4);
+    assert_eq!(at_17.mythic_abilities().count(), 5);
+    assert_eq!(at_17.mythic_feats().count(), 4);
     assert_eq!(at_17.feature_count(&feature("devil/hells-dominance")), 1);
 
     // The ranks with a gaze pick are partly dropped, the gaze lost from the switch on; MR 7's empty gaze slot is
@@ -681,12 +681,11 @@ fn a_trickster_who_becomes_a_legend_keeps_the_feats_perception_ii_unlocked() {
     assert!(engine().is_possible(&build));
     let at_20 = sheet.at(20).unwrap();
     // Perception II itself is gone with the Trickster's MR 3-7, the feat it unlocked stays.
-    assert!(
-        !at_20
-            .selection_options
-            .contains_key(&option("trickster/tricks/perception-2"))
+    assert_eq!(
+        at_20.option_count(&option("trickster/tricks/perception-2")),
+        0
     );
-    assert!(at_20.feats.contains_key(&feat("stat-focus")));
+    assert!(at_20.has_feat(&feat("stat-focus")));
 }
 
 #[test]
@@ -772,7 +771,7 @@ fn gold_dragons_dragon_feats_are_three_picks_of_any_feat_ignoring_prerequisites(
     assert!(engine().is_possible(&build));
     let at_17 = sheet.at(17).unwrap();
     for key in ["great-cleave", "crane-wing", "cleaving-finish"] {
-        assert!(at_17.feats.contains_key(&feat(key)), "{key}");
+        assert!(at_17.has_feat(&feat(key)), "{key}");
     }
 
     // Every feat of the data is offered (a parameterised one once per value), and each one not held is open, but
@@ -781,12 +780,12 @@ fn gold_dragons_dragon_feats_are_three_picks_of_any_feat_ignoring_prerequisites(
     let offered: std::collections::BTreeSet<_> =
         options.iter().map(|option| option.pick.key()).collect();
     assert_eq!(offered.len(), world().feats.len());
-    let held = engine().state_before(&build, &slot(1)).unwrap().feats;
+    let held = engine().state_before(&build, &slot(1)).unwrap();
     for option in options {
         let rules::Pick::Feat { feat: key, .. } = &option.pick else {
             panic!("{option:?}")
         };
-        let expected = if held.contains_key(key) {
+        let expected = if held.has_feat(key) {
             Err(Issue::AlreadyHeld)
         } else if key == &feat("cleaving-finish") {
             Err(Issue::BreaksLater)
@@ -824,10 +823,10 @@ fn an_option_can_grant_several_feats() {
     let sheet = engine().evaluate(&build);
     assert!(engine().is_possible(&build));
     let at_8 = sheet.at(8).unwrap();
-    assert!(!at_8.feats.contains_key(&feat("shield-proficiency")));
+    assert!(!at_8.has_feat(&feat("shield-proficiency")));
     let at_9 = sheet.at(9).unwrap();
-    assert!(at_9.feats.contains_key(&feat("shield-proficiency")));
-    assert!(at_9.feats.contains_key(&feat("tower-shield-proficiency")));
+    assert!(at_9.has_feat(&feat("shield-proficiency")));
+    assert!(at_9.has_feat(&feat("tower-shield-proficiency")));
 }
 
 #[test]
@@ -839,26 +838,14 @@ fn a_switch_dropping_an_option_drops_its_feats_but_not_the_same_feats_held_other
     };
     // A rogue has them only from the trick, which the Gold Dragon switch drops.
     let rogue = switched("rogue");
-    assert!(
-        rogue
-            .at(16)
-            .unwrap()
-            .feats
-            .contains_key(&feat("shield-proficiency"))
-    );
+    assert!(rogue.at(16).unwrap().has_feat(&feat("shield-proficiency")));
     for key in ["shield-proficiency", "tower-shield-proficiency"] {
-        assert!(
-            !rogue.at(17).unwrap().feats.contains_key(&feat(key)),
-            "{key}"
-        );
+        assert!(!rogue.at(17).unwrap().has_feat(&feat(key)), "{key}");
     }
     // A fighter's class grants them at level 1 too: they stay.
     let fighter = switched("fighter");
     for key in ["shield-proficiency", "tower-shield-proficiency"] {
-        assert!(
-            fighter.at(17).unwrap().feats.contains_key(&feat(key)),
-            "{key}"
-        );
+        assert!(fighter.at(17).unwrap().has_feat(&feat(key)), "{key}");
     }
 }
 

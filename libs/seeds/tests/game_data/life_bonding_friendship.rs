@@ -170,13 +170,7 @@ fn the_slots_offer_the_teamwork_feats_and_no_other_feat() {
         .insert(path_feat(7), feat_pick_plain("allied-spellcaster"));
     assert!(possible(&jack));
     let sheet = engine().evaluate(&jack);
-    let holds = |level: u8, key: &str| {
-        sheet
-            .at(level)
-            .unwrap()
-            .feats
-            .contains_key(&rules::FeatKey::new(key))
-    };
+    let holds = |level: u8, key: &str| sheet.at(level).unwrap().has_feat(&rules::FeatKey::new(key));
     assert!(!holds(14, "shake-it-off") && holds(15, "shake-it-off"));
     assert!(!holds(15, "allied-spellcaster") && holds(16, "allied-spellcaster"));
     // The Enforcer's (a fighter here): Shield Wall at MR 6, Shake It Off at MR 7.

@@ -246,13 +246,7 @@ fn an_option_that_grants_a_feat_makes_the_feat_held() {
         pick_option("rogue/rogue-talents/combat-trick"),
     );
     let sheet = engine().evaluate(&build);
-    assert!(
-        sheet
-            .at(2)
-            .unwrap()
-            .feats
-            .contains_key(&feat("combat-expertise"))
-    );
+    assert!(sheet.at(2).unwrap().has_feat(&feat("combat-expertise")));
     assert_eq!(
         status_of(
             &options(&build, &general_slot(3)),

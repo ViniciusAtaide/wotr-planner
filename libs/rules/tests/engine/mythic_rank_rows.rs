@@ -113,15 +113,15 @@ fn the_slot_offers_only_teamwork_feats_held_from_the_ranks_level() {
         .insert(path_feat(3, 0), pick_feat("outflank"));
     assert!(engine.is_possible(&with_pick));
     let sheet = engine.evaluate(&with_pick);
-    assert!(!sheet.at(8).unwrap().feats.contains_key(&feat("outflank")));
-    assert!(sheet.at(9).unwrap().feats.contains_key(&feat("outflank")));
+    assert!(!sheet.at(8).unwrap().has_feat(&feat("outflank")));
+    assert!(sheet.at(9).unwrap().has_feat(&feat("outflank")));
 
     let mut next = build.clone();
     next.picks.insert(path_feat(4, 1), pick_feat("outflank"));
     assert!(engine.is_possible(&next));
     let sheet = engine.evaluate(&next);
-    assert!(!sheet.at(10).unwrap().feats.contains_key(&feat("outflank")));
-    assert!(sheet.at(11).unwrap().feats.contains_key(&feat("outflank")));
+    assert!(!sheet.at(10).unwrap().has_feat(&feat("outflank")));
+    assert!(sheet.at(11).unwrap().has_feat(&feat("outflank")));
 
     // Not another feat; and prerequisites count (Outflank needs a lawful good character).
     let mut dodge = build.clone();
@@ -185,8 +185,8 @@ fn a_switch_that_drops_the_paths_grants_of_those_ranks_drops_both_picks() {
         engine().apply(&mut build, &Edit::PathSwitch(Some(path("gold-dragon"))));
         assert!(engine().is_possible(&build), "{slot:?}");
         let sheet = engine().evaluate(&build);
-        assert!(sheet.at(16).unwrap().feats.contains_key(&feat("outflank")));
-        assert!(!sheet.at(17).unwrap().feats.contains_key(&feat("outflank")));
+        assert!(sheet.at(16).unwrap().has_feat(&feat("outflank")));
+        assert!(!sheet.at(17).unwrap().has_feat(&feat("outflank")));
         let sheet_rank = &sheet.ranks[usize::from(rank) - 1];
         assert_eq!(sheet_rank.status, RankStatus::PartlyDropped);
         assert!(sheet_rank.dropped_slots.contains(&slot));
