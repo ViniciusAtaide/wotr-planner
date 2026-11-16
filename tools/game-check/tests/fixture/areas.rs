@@ -209,6 +209,13 @@ fn class_tables_find_skill_points_a_save_and_class_skills_for_a_class_and_an_arc
     );
     // The prestige formulas against the game's prestige tables.
     assert_agrees(&report, "class tables", "class sentinel");
+    assert_finding(
+        &report,
+        "class tables / BAB differs",
+        "archetype warden/stray",
+        "+0 at level 1",
+        "+1 at level 1; 3 of 3 levels differ",
+    );
 }
 
 #[test]

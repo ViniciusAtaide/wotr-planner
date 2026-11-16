@@ -946,3 +946,116 @@ fn two_lines_of_one_specificity_are_a_parse_error() {
         );
     }
 }
+
+fn write_class_tables(dir: &Path) -> game_check::write::Outcome {
+    let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
+    run(
+        &dump,
+        dir,
+        &[WriteArea::ClassTables],
+        false,
+        &Facts::default(),
+        |_| Ok(()),
+    )
+    .unwrap()
+}
+
+#[test]
+fn writing_class_tables_brings_bab_and_saves_to_the_game() {
+    let dir = data_copy();
+    let sentinel = read(dir.path(), "prestige/sentinel.ron");
+    let outcome = write_class_tables(dir.path());
+    assert!(outcome.unexpressed.is_empty(), "{:?}", outcome.unexpressed);
+    assert!(outcome.to_the_user.is_empty());
+    let fields: Vec<_> = outcome
+        .changes
+        .iter()
+        .map(|c| format!("{} {}", c.at, c.field))
+        .collect();
+    assert_eq!(
+        fields,
+        [
+            "class warden reflex",
+            "archetype warden/stoic will",
+            "archetype warden/stray bab"
+        ]
+    );
+    // The game's Reflex table is the good one.
+    let warden = read(dir.path(), "classes/warden.ron");
+    assert!(warden.contains("    reflex: Good,\n"), "{warden}");
+    assert!(warden.contains("    // Planted: good in the game.\n"));
+    // The game keeps the class's Will for the Stoic: its override goes, the comment above it stays.
+    let stoic = read(dir.path(), "archetypes/warden/stoic.ron");
+    assert!(!stoic.contains("will:"), "{stoic}");
+    assert!(stoic.contains("// Planted: the game keeps the class's poor Will."));
+    // The Stray's own table is a half-BAB one.
+    let stray = read(dir.path(), "archetypes/warden/stray.ron");
+    assert!(
+        stray.contains("guide: \"warden#stray\", bab: Half)"),
+        "{stray}"
+    );
+    // What the game agrees with is the same bytes.
+    assert_eq!(read(dir.path(), "prestige/sentinel.ron"), sentinel);
+    let report = report_of(dir.path());
+    let report = report.text();
+    for kind in [
+        "BAB differs",
+        "Fortitude differs",
+        "Reflex differs",
+        "Will differs",
+    ] {
+        assert!(
+            !report.contains(&format!("class tables / {kind}")),
+            "{kind} is left:\n{report}"
+        );
+    }
+    // The user's facts are not this target's.
+    assert!(report.contains("class tables / skill points differ"));
+}
+
+#[test]
+fn a_save_table_no_formula_gives_is_none() {
+    use game_check::write::tables::{bab_progression, save_progression};
+    use rules::{BabProgression, SaveProgression};
+    assert_eq!(
+        save_progression(&[0, 2, 3, 3], 3, false),
+        Some(SaveProgression::Good)
+    );
+    assert_eq!(
+        save_progression(&[0, 0, 0, 1], 3, false),
+        Some(SaveProgression::Poor)
+    );
+    // The prestige formulas are not the base ones.
+    assert_eq!(save_progression(&[0, 1, 1, 2], 3, false), None);
+    assert_eq!(
+        save_progression(&[0, 1, 1, 2], 3, true),
+        Some(SaveProgression::Good)
+    );
+    // An odd table, a short one and one that matches only at some levels.
+    assert_eq!(save_progression(&[0, 2, 3, 9], 3, false), None);
+    assert_eq!(save_progression(&[0, 2, 3], 3, false), None);
+    assert_eq!(bab_progression(&[0, 1, 1, 5], 3), None);
+    assert_eq!(
+        bab_progression(&[0, 1, 2, 3], 3),
+        Some(BabProgression::Full)
+    );
+    assert_eq!(
+        bab_progression(&[0, 0, 1, 1], 3),
+        Some(BabProgression::Half)
+    );
+    assert_eq!(
+        bab_progression(&[0, 0, 1, 2, 3], 4),
+        Some(BabProgression::ThreeQuarters)
+    );
+}
+
+#[test]
+fn a_class_table_run_is_idempotent() {
+    let dir = data_copy();
+    write_class_tables(dir.path());
+    let after_one = all_files(dir.path());
+    let again = write_class_tables(dir.path());
+    assert!(again.changes.is_empty(), "{:?}", again.changes);
+    assert!(again.applied.files.is_empty());
+    assert_eq!(all_files(dir.path()), after_one);
+}

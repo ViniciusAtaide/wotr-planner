@@ -16,6 +16,7 @@ pub mod facts;
 pub mod items;
 pub mod log;
 pub mod span;
+pub mod tables;
 
 use std::collections::BTreeMap;
 use std::fmt;
@@ -496,6 +497,8 @@ fn normal(text: &str) -> String {
 pub enum WriteArea {
     /// A gear item's always-on bonuses (`GearStat` components).
     Items,
+    /// A class's and an archetype's BAB and saves, and the save exceptions.
+    ClassTables,
 }
 
 impl WriteArea {
@@ -503,6 +506,7 @@ impl WriteArea {
     pub fn parse(name: &str) -> Option<WriteArea> {
         match name {
             "items" => Some(WriteArea::Items),
+            "class-tables" => Some(WriteArea::ClassTables),
             _ => None,
         }
     }
@@ -510,6 +514,7 @@ impl WriteArea {
     pub fn name(self) -> &'static str {
         match self {
             WriteArea::Items => "items",
+            WriteArea::ClassTables => "class-tables",
         }
     }
 
@@ -517,13 +522,20 @@ impl WriteArea {
     pub fn area(self) -> crate::Area {
         match self {
             WriteArea::Items => crate::Area::Items,
+            WriteArea::ClassTables => crate::Area::ClassTables,
         }
     }
 
-    /// The `kind` of the changes this area plans (`Change::kind`).
-    pub fn kind(self) -> &'static str {
+    /// The `kind`s of the changes this area plans (`Change::kind`).
+    pub fn kinds(self) -> &'static [&'static str] {
         match self {
-            WriteArea::Items => "bonuses",
+            WriteArea::Items => &["bonuses"],
+            WriteArea::ClassTables => &[
+                "BAB differs",
+                "Fortitude differs",
+                "Reflex differs",
+                "Will differs",
+            ],
         }
     }
 }
@@ -570,6 +582,7 @@ pub fn run(
     for area in areas {
         let (more, left) = match area {
             WriteArea::Items => items::changes(&ctx),
+            WriteArea::ClassTables => tables::changes(&ctx),
         };
         for change in more {
             let entry = change.at.to_string();

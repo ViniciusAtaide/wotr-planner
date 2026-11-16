@@ -11,7 +11,7 @@ use rules::{Archetype, BlueprintGuid, Class, DataAt, Save};
 use serde_json::Value;
 
 use super::{Ctx, skill_stat};
-use crate::dump::{flag, int, reference};
+use crate::dump::{Dump, flag, int, reference};
 use crate::report::{Area, Out};
 
 const AREA: Area = Area::ClassTables;
@@ -29,7 +29,6 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
         let mark = out.mark();
         let at = DataAt::Class(class.key.clone());
         let row = Row {
-            ctx,
             at: &at,
             guid,
             name: ctx.name(guid),
@@ -44,12 +43,12 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
         let skills = game_skills(json);
         row.skills(out, &skills, &planner_skills(class.class_skills.iter()));
         let levels = class.levels.len() as u8;
-        let bab = row.progression(json, "m_BaseAttackBonus");
+        let bab = bonuses(ctx.dump, json, "m_BaseAttackBonus");
         row.table(out, "BAB differs", bab.as_deref(), levels, |level| {
             class.base_attack_bonus(level, None)
         });
         for (save, field, kind) in SAVES {
-            let game = row.progression(json, field);
+            let game = bonuses(ctx.dump, json, field);
             row.table(out, kind, game.as_deref(), levels, |level| {
                 class.save_bonus(save, level, prestige, None)
             });
@@ -71,7 +70,7 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
     }
 }
 
-const SAVES: [(Save, &str, &str); 3] = [
+pub(crate) const SAVES: [(Save, &str, &str); 3] = [
     (Save::Fortitude, "m_FortitudeSave", "Fortitude differs"),
     (Save::Reflex, "m_ReflexSave", "Reflex differs"),
     (Save::Will, "m_WillSave", "Will differs"),
@@ -95,7 +94,6 @@ fn archetype_tables(
     let mark = out.mark();
     let at = DataAt::Archetype(archetype.key.clone());
     let row = Row {
-        ctx,
         at: &at,
         guid,
         name: ctx.name(guid),
@@ -124,7 +122,7 @@ fn archetype_tables(
     } else {
         class_json
     };
-    let bab = row.progression(bab_table, "m_BaseAttackBonus");
+    let bab = bonuses(ctx.dump, bab_table, "m_BaseAttackBonus");
     row.table(out, "BAB differs", bab.as_deref(), levels, |level| {
         class.base_attack_bonus(level, Some(archetype))
     });
@@ -134,7 +132,7 @@ fn archetype_tables(
         } else {
             class_json
         };
-        let game = row.progression(table, field);
+        let game = bonuses(ctx.dump, table, field);
         row.table(out, kind, game.as_deref(), levels, |level| {
             class.save_bonus(save, level, false, Some(archetype))
         });
@@ -142,7 +140,14 @@ fn archetype_tables(
     out.compared(AREA, mark);
 }
 
-fn game_skills(json: &Value) -> BTreeSet<String> {
+/// A stat progression's bonuses by level, through the reference in `field` of a blueprint's JSON.
+pub(crate) fn bonuses(dump: &Dump, json: &Value, field: &str) -> Option<Vec<i64>> {
+    let guid = reference(&json[field])?;
+    let table = dump.json(&guid)?;
+    Some(table["Bonuses"].as_array()?.iter().map(int).collect())
+}
+
+pub(crate) fn game_skills(json: &Value) -> BTreeSet<String> {
     json["ClassSkills"]
         .as_array()
         .map(|skills| {
@@ -160,7 +165,6 @@ fn planner_skills<'a>(skills: impl Iterator<Item = &'a rules::SkillKey>) -> BTre
 }
 
 struct Row<'a> {
-    ctx: &'a Ctx<'a>,
     at: &'a DataAt,
     guid: &'a BlueprintGuid,
     name: String,
@@ -188,13 +192,6 @@ impl Row<'_> {
                 list(planner),
             );
         }
-    }
-
-    /// A stat progression's bonuses by level, through the reference in `field`.
-    fn progression(&self, json: &Value, field: &str) -> Option<Vec<i64>> {
-        let guid = reference(&json[field])?;
-        let table = self.ctx.dump.json(&guid)?;
-        Some(table["Bonuses"].as_array()?.iter().map(int).collect())
     }
 
     /// The table at each level from 1 to `levels`: the first level that differs, and how many do.
