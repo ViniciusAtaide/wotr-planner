@@ -100,11 +100,16 @@ enum Held {
     SelectionOption(SelectionOptionKey, FeatureSelectionKey),
     /// The value an option's pick names when it's the option's own (Finesse Training's weapon), not a chosen feat's.
     OptionValue(SelectionOptionKey, Parameter),
-    MythicAbility(MythicAbilityKey),
+    /// A mythic ability, for its value when it takes one.
+    MythicAbility(MythicAbilityKey, Option<Parameter>),
     /// A mythic feat, for its value when it's parameterised.
     MythicFeat(MythicFeatKey, Option<Parameter>),
     /// A class skill, from a class, the background or an option row.
     ClassSkill(SkillKey),
+    /// A Feature selection a row granted, whatever its slot holds ([`Prerequisite::Selection`]).
+    ///
+    /// [`Prerequisite::Selection`]: crate::Prerequisite::Selection
+    Selection(FeatureSelectionKey),
 }
 
 /// Where a Mythic ascension's grant came from, for what a Path switch keeps.

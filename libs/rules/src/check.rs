@@ -672,6 +672,7 @@ impl GameData {
                 &BTreeSet::new(),
                 &ability.selections,
             );
+            check.repeat(&at, ability.repeat, ability.parameter.is_some());
             check.prerequisite(&at, ability.prerequisite.as_ref(), ability.parameter);
         }
         for feat in &self.mythic_feats {
@@ -1253,7 +1254,7 @@ impl Checker {
             P::Archetype(archetype) => self.names(at, DataAt::Archetype(archetype.clone())),
             P::Feature { feature, .. } => self.names(at, DataAt::Feature(feature.clone())),
             P::SelectionOption(option) => self.names(at, DataAt::SelectionOption(option.clone())),
-            P::NoOptionFrom(selection) | P::PickedThrough(selection) => {
+            P::Selection(selection) | P::NoOptionFrom(selection) | P::PickedThrough(selection) => {
                 self.names(at, DataAt::FeatureSelection(selection.clone()));
             }
             P::SkillRanks { skill, .. } => self.names(at, DataAt::Skill(skill.clone())),

@@ -38,6 +38,10 @@
         // A selection of two features, and a feat the game gives either of; agrees.
         (key: "element-kind", blueprint: "00000000000000000000000000000305", name: "Element Kind", category: Weapon, guide: "feats#element-kind"),
         (key: "element-mastery", blueprint: "00000000000000000000000000000306", name: "Element Mastery", category: Weapon, guide: "feats#element-mastery", prerequisite: FeatForSameValue("element-kind")),
+        // The game asks for the Warden's Trick selection, which the class grants; agrees.
+        (key: "extra-trick", blueprint: "00000000000000000000000000000309", name: "Extra Trick", category: Class, guide: "feats#extra-trick", prerequisite: Selection("warden/trick")),
+        // The game asks for the Warden's Trick selection; planted: the Seraph's Boon.
+        (key: "extra-boon", blueprint: "0000000000000000000000000000030a", name: "Extra Boon", category: Class, guide: "feats#extra-boon", prerequisite: Selection("seraph/boon")),
     ],
     classes: [
         (

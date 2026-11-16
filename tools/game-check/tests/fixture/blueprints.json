@@ -172,7 +172,9 @@
     "!bp_000000000000000000000000000000f0",
     "!bp_000000000000000000000000000000a6",
     "!bp_000000000000000000000000000000a7",
-    "!bp_000000000000000000000000000000ab"
+    "!bp_000000000000000000000000000000ab",
+    "!bp_00000000000000000000000000000309",
+    "!bp_0000000000000000000000000000030a"
    ]
   }
  },
@@ -1295,6 +1297,36 @@
   "raw": {
    "$type": "0, BlueprintFeature",
    "Components": []
+  }
+ },
+ {
+  "guid": "00000000000000000000000000000309",
+  "name": "ExtraTrickFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteFeature",
+     "Group": "Any",
+     "m_Feature": "!bp_000000000000000000000000000000e1"
+    }
+   ]
+  }
+ },
+ {
+  "guid": "0000000000000000000000000000030a",
+  "name": "ExtraBoonFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": [
+    {
+     "$type": "0, PrerequisiteFeature",
+     "Group": "Any",
+     "m_Feature": "!bp_000000000000000000000000000000e1"
+    }
+   ]
   }
  }
 ]

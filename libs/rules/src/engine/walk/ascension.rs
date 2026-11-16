@@ -126,6 +126,12 @@ impl<'a> Walker<'a> {
                 ));
             }
             for (index, selection) in row.selections.iter().enumerate() {
+                // Named as the selection, so a switch that drops the selection's picks drops it too.
+                let source = GrantSource {
+                    selection: Some(selection.clone()),
+                    ..GrantSource::row(rank)
+                };
+                self.hold(Held::Selection(selection.clone()), Some(source));
                 slot_kinds.push((
                     SlotKind::Selection(selection.clone()),
                     SlotId::PathSelection {
@@ -198,9 +204,12 @@ impl<'a> Walker<'a> {
             }
             let general_lost = !switch.keeps(sheet.rank, false);
             let path_lost = !switch.keeps(sheet.rank, true);
-            let named_lost = dropped
-                .iter()
-                .any(|grant| grant.source.rank == sheet.rank && grant.source.from_path);
+            // The selection a dropped path row held goes too, but alone it takes nothing the rank shows.
+            let named_lost = dropped.iter().any(|grant| {
+                grant.source.rank == sheet.rank
+                    && grant.source.from_path
+                    && !matches!(grant.item, Held::Selection(_))
+            });
             sheet.status = if general_lost && path_lost {
                 RankStatus::Dropped
             } else if general_lost || path_lost || named_lost {

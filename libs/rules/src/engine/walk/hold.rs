@@ -115,8 +115,14 @@ impl<'a> Walker<'a> {
                     self.take_option(selection, key, parameter.as_ref(), source);
                 }
             }
-            Pick::MythicAbility { ability: key, .. } => {
-                self.hold(Held::MythicAbility(key.clone()), source.cloned());
+            Pick::MythicAbility {
+                ability: key,
+                parameter,
+            } => {
+                self.hold(
+                    Held::MythicAbility(key.clone(), parameter.clone()),
+                    source.cloned(),
+                );
                 if let Some(ability) = self.engine.catalog.mythic_ability(key) {
                     for feature in &ability.features {
                         self.hold(Held::Feature(feature.clone()), source.cloned());
@@ -190,8 +196,21 @@ impl<'a> Walker<'a> {
                     .or_default();
                 *holds = holds.saturating_add(1);
             }
-            Held::MythicAbility(key) => {
+            Held::MythicAbility(key, value) => {
                 state.mythic_abilities.insert(key.clone());
+                if let Some(value) = value {
+                    state
+                        .mythic_ability_values
+                        .entry(key.clone())
+                        .or_default()
+                        .insert(value.clone());
+                } else {
+                    let holds = state
+                        .mythic_ability_open_holds
+                        .entry(key.clone())
+                        .or_default();
+                    *holds = holds.saturating_add(1);
+                }
             }
             Held::MythicFeat(key, value) => {
                 state.mythic_feats.insert(key.clone());
@@ -207,6 +226,10 @@ impl<'a> Walker<'a> {
                 let holds = self.class_skill_holds.entry(key.clone()).or_default();
                 *holds = holds.saturating_add(1);
                 state.class_skills.insert(key.clone());
+            }
+            Held::Selection(key) => {
+                let holds = state.selections.entry(key.clone()).or_default();
+                *holds = holds.saturating_add(1);
             }
         }
         match &item {
@@ -305,8 +328,31 @@ impl<'a> Walker<'a> {
                     }
                 }
             }
-            Held::MythicAbility(key) => {
-                state.mythic_abilities.remove(key);
+            Held::MythicAbility(key, value) => {
+                // Held while any pick holds it: for another value, or without one.
+                match value {
+                    Some(value) => {
+                        if let Some(values) = state.mythic_ability_values.get_mut(key) {
+                            values.remove(value);
+                            if values.is_empty() {
+                                state.mythic_ability_values.remove(key);
+                            }
+                        }
+                    }
+                    None => {
+                        if let Some(holds) = state.mythic_ability_open_holds.get_mut(key) {
+                            *holds = holds.saturating_sub(1);
+                            if *holds == 0 {
+                                state.mythic_ability_open_holds.remove(key);
+                            }
+                        }
+                    }
+                }
+                if !state.mythic_ability_values.contains_key(key)
+                    && !state.mythic_ability_open_holds.contains_key(key)
+                {
+                    state.mythic_abilities.remove(key);
+                }
             }
             Held::MythicFeat(key, value) => {
                 // A parameterised one stays held while it's held for another value.
@@ -329,6 +375,14 @@ impl<'a> Walker<'a> {
                     if *holds == 0 {
                         self.class_skill_holds.remove(key);
                         state.class_skills.remove(key);
+                    }
+                }
+            }
+            Held::Selection(key) => {
+                if let Some(holds) = state.selections.get_mut(key) {
+                    *holds = holds.saturating_sub(1);
+                    if *holds == 0 {
+                        state.selections.remove(key);
                     }
                 }
             }

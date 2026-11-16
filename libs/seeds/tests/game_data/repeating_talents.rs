@@ -120,8 +120,6 @@ fn a_rogue_and_a_slayer_take_the_skill_focus_talent_for_two_skills_but_not_one_t
 /// Longsword and then Dagger through the talent hold, Longsword twice doesn't (the user's "once" of 2026-11-02 gave way
 /// to the game's value, user, 2026-11-15).
 #[test]
-#[ignore = "waits on ticket 249: the game gives the rogue talent Weapon Focus once per \
-            weapon"]
 fn the_rogue_weapon_focus_talent_is_taken_once_per_weapon() {
     // Game: WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e;
     // Blueprints/Classes/Selection/BlueprintFeatureSelection.CanSelect, WrathDecompiled 6ce4a6b (no rank limit for a
@@ -139,7 +137,7 @@ fn the_rogue_weapon_focus_talent_is_taken_once_per_weapon() {
             (4, pick_for(&focus, weapon("dagger"))),
         ],
     );
-    assert_eq!(why_not(&two, &selection_slot(4)), None);
+    assert!(possible(&two));
     let twice = with_picks(
         build("rogue", 4),
         &[
