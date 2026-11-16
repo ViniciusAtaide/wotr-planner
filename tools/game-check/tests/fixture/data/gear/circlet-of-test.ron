@@ -1,0 +1,12 @@
+(
+    key: "circlet-of-test",
+    blueprint: "00000000000000000000000000000106",
+    name: "Circlet of Test",
+    slot: Headwear,
+    components: [
+        GearStat(stat: Ability(Charisma), value: 2, descriptor: Enhancement),
+        GearStat(stat: CasterLevel, value: 2),
+        GearStat(stat: Skill("stealth"), value: 1),
+        GearStat(stat: Skill("stealth"), value: 1),
+    ],
+)

@@ -1,7 +1,7 @@
 # Importer S1, 293b: applying changes, the guard's refusals, the write fixture's tree
 
 Type: build (the importer, stage S1)
-Status: open
+Status: resolved
 Blocked by: 293a
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)
@@ -13,3 +13,13 @@ A slice of [293](293-the-importer.md)'s stage S1, cut to about 10–20 minutes o
 ## Done when
 
 Its section in `slices.md` is built and proved as written there, and the scoped checks pass.
+
+## Answer
+
+Built as written in [research/293/slices.md](../research/293/slices.md) §293b.
+
+- **What:** `tools/game-check/src/write/mod.rs`: `Change`, `Applied`, `WriteError` (`Planner`, `Missing`, `Span`, `ReadBack`, `Invalid`, `Io`, with `Display`), `entry_file(data, at)` and `apply(dir, changes, validate)`. `apply` groups by file, refuses a `planner/` or missing file, builds every new text before writing (a `SpanError` refuses all), writes, reads each file back as a `ron::Value` (only the written fields differ, and hold the written values), runs `validate`, and restores every written file on any failure.
+- **Decisions of mine:** `entry_file` takes `&GameData` and `&DataAt` and covers every kind (the single files for the progression and skills), not only the three the slice names, so later slices need no second function. A file's insert anchor order comes from its folder (`classes/`, `prestige/`, `archetypes/`, `gear/`); another folder has none, so only a replace or removal works there. `Applied` lists the files whose text changed.
+- **The tree:** `tests/fixture/data/` (progression, skills, warden, sentinel, two archetypes, six gear files mixing pretty and one-line, `planner/gear/test-trinket.ron`); `support::data_copy()`.
+- **Tests** (`tests/fixture/write.rs`; no game data, so no game citation): `the_write_fixture_reads_as_game_data`, `applying_a_change_writes_only_its_field`, `a_planner_file_is_refused_and_nothing_is_written`, `a_failed_validation_restores_every_file`.
+- **Proof:** the game check's stdout is byte-identical before and after (`cmp`).

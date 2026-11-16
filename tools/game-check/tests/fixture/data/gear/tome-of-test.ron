@@ -1,0 +1,1 @@
+(key: "tome-of-test", blueprint: "00000000000000000000000000000104", name: "Tome of Test", slot: Usable, components: [GearStat(stat: Ability(Wisdom), value: 2, descriptor: Inherent)])

@@ -1,0 +1,1 @@
+(key: "sentinel", blueprint: "000000000000000000000000000000c2", name: "Sentinel", guide: "sentinel", skill_points: 2, bab: Full, fort: Good, reflex: Poor, will: Poor, levels: [(level: 1, features: ["sentinel/watch"])])

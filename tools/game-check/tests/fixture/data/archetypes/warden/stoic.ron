@@ -1,0 +1,14 @@
+(
+    key: "warden/stoic",
+    class: "warden",
+    blueprint: "000000000000000000000000000000c3",
+    name: "Stoic",
+    guide: "warden#stoic",
+    // Planted: 3 + 1 in the game.
+    skill_points: 5,
+    // Planted: the game keeps the class's poor Will.
+    will: Good,
+    levels: [
+        (level: 1, features: ["warden/stoic/calm"]),
+    ],
+)
