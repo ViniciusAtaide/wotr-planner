@@ -482,12 +482,12 @@ impl<'a> Walker<'a> {
                 Holder::Subrace(_) | Holder::Background(_) => 1,
             };
             let values: Vec<Option<&'s Parameter>> = match holder {
-                Holder::Fact(Fact::Feat(key)) => match state.feat_values.get(key) {
+                Holder::Fact(Fact::Feat(key)) => match state.feat_values_of(key) {
                     Some(values) => values.keys().map(Some).collect(),
                     None => vec![None],
                 },
-                Holder::Fact(Fact::MythicFeat(key)) => match state.mythic_feat_values.get(key) {
-                    Some(values) => values.iter().map(Some).collect(),
+                Holder::Fact(Fact::MythicFeat(key)) => match state.mythic_feat_values_of(key) {
+                    Some(values) => values.keys().map(Some).collect(),
                     None => vec![None],
                 },
                 _ => vec![None],

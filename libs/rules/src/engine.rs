@@ -132,9 +132,8 @@ impl Engine {
         let deity = self.catalog.deity(state.deity()?)?;
         if deity.favoured_weapons.is_empty()
             || !state
-                .features
-                .keys()
-                .any(|feature| self.catalog.grants_favoured_weapons(feature))
+                .features()
+                .any(|(feature, _)| self.catalog.grants_favoured_weapons(feature))
         {
             return None;
         }
@@ -193,10 +192,9 @@ impl Engine {
     /// for it again every day and a Build doesn't record it.
     pub fn daily_choices(&self, state: &CharacterState) -> Vec<FeatureKey> {
         state
-            .features
-            .keys()
-            .filter(|feature| self.catalog.is_daily_choice(feature))
-            .cloned()
+            .features()
+            .filter(|(feature, _)| self.catalog.is_daily_choice(feature))
+            .map(|(feature, _)| feature.clone())
             .collect()
     }
 

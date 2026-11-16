@@ -419,7 +419,7 @@ fn an_exotic_favoured_weapon_is_held_as_its_proficiency() {
     let state = engine().evaluate(&priest("balance", 1)).levels[0]
         .state
         .clone();
-    assert!(!state.feats.contains_key(&feat("exotic-weapon-proficiency")));
+    assert!(!state.has_feat(&feat("exotic-weapon-proficiency")));
 }
 
 #[test]

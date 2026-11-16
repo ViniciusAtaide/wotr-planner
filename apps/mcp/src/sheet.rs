@@ -568,9 +568,9 @@ pub(crate) fn scores(scores: AbilityScores) -> Scores {
 /// parameterised one once per new value ("Weapon Focus (Longsword)").
 fn new_feats(engine: &Engine, before: &CharacterState, after: &CharacterState) -> Vec<Named> {
     let mut feats = Vec::new();
-    for feat in after.feats.keys() {
+    for (feat, _) in after.feats() {
         let name = engine.feat_name(feat);
-        match after.feat_values.get(feat) {
+        match after.feat_values_of(feat) {
             Some(values) => {
                 for value in values.keys() {
                     if !before.has_feat_for(feat, value) {
@@ -579,7 +579,7 @@ fn new_feats(engine: &Engine, before: &CharacterState, after: &CharacterState) -
                     }
                 }
             }
-            None if !before.feats.contains_key(feat) => feats.push(named(feat, name)),
+            None if !before.has_feat(feat) => feats.push(named(feat, name)),
             None => {}
         }
     }
@@ -592,8 +592,7 @@ fn new_feats(engine: &Engine, before: &CharacterState, after: &CharacterState) -
 /// feature granted at the level is gained with no `step`, whatever steps its level has already passed.
 fn new_features(engine: &Engine, before: &CharacterState, after: &CharacterState) -> Vec<Gained> {
     after
-        .features
-        .iter()
+        .features()
         .filter_map(|(feature, times)| {
             let more = times.saturating_sub(before.feature_count(feature));
             let held_before = before.feature_count(feature) > 0;
@@ -605,7 +604,7 @@ fn new_features(engine: &Engine, before: &CharacterState, after: &CharacterState
                     feature,
                     &engine.feature_name_for(feature, after),
                     more.into(),
-                    Some(*times),
+                    Some(times),
                 )
             })
         })

@@ -110,6 +110,13 @@ impl<'a> Walker<'a> {
             // Its selections of feats, then its other selections, each numbered in row order (ticket 301).
             let (feat_selections, selections) = catalog.split_selections(&row.selections);
             for (index, selection) in feat_selections.into_iter().enumerate() {
+                // Held as the game holds a selection a progression grants (`AddFeaturesFromProgression`; ticket 305),
+                // named as the selection as the others are.
+                let source = GrantSource {
+                    selection: Some(selection.clone()),
+                    ..GrantSource::row(rank)
+                };
+                self.hold(Held::Selection(selection.clone()), Some(source));
                 slot_kinds.push((
                     SlotKind::Feat(selection.clone()),
                     SlotId::PathFeat {

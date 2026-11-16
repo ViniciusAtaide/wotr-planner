@@ -70,11 +70,12 @@ pub enum Prerequisite {
     },
     /// An option already taken from a Feature selection ("Beast Totem, Lesser").
     SelectionOption(SelectionOptionKey),
-    /// The Build holds this Feature selection: a row (a class's, an archetype's, a mythic path's or an option's)
-    /// has granted it, whatever its slot holds (Extra Rage Power: the rage power selection, from the level that
-    /// grants it). An option of it taken through another selection's slot doesn't hold it. The game adds each
-    /// selection a progression grants as a fact of its own (`LevelUpHelper.AddFeaturesFromProgression`), which its
-    /// `PrerequisiteFeature` reads.
+    /// The Build holds this Feature selection: a row (a class's, an archetype's, a mythic path's or an option's), the
+    /// race or the general feat slot has granted it, whatever its slot holds (Extra Rage Power: the rage power
+    /// selection, from the level that grants it), a selection of feats too (ticket 305). An option of it taken
+    /// through another selection's slot doesn't hold it. The game adds each selection the race or a progression
+    /// grants as a fact of its own (`LevelUpHelper.AddFeaturesFromProgression`), which its `PrerequisiteFeature`
+    /// reads.
     Selection(FeatureSelectionKey),
     /// No option held that this selection offers ("no known bloodline": none of the sorcerer's bloodlines).
     NoOptionFrom(FeatureSelectionKey),

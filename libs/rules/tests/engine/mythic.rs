@@ -1,8 +1,8 @@
 //! Mythic ascensions: the general pick at each rank, the path at MR 3, and the Path switch.
 
 use rules::{
-    Build, Edit, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPickKind, RankStatus,
-    Sheet, SlotId, SlotKind, mythic_pick_kind,
+    Build, Edit, Fact, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPickKind,
+    RankStatus, Sheet, SlotId, SlotKind, mythic_pick_kind,
 };
 
 use crate::support::*;
@@ -104,8 +104,8 @@ fn mythic_ascensions_happen_at_their_fixed_levels_with_two_ranks_at_17() {
     assert_eq!(sheet.at(5).unwrap().mythic_rank, 0);
     assert_eq!(sheet.at(17).unwrap().mythic_rank, 9);
     assert_eq!(sheet.at(20).unwrap().mythic_rank, 10);
-    assert_eq!(sheet.at(20).unwrap().mythic_abilities.len(), 5);
-    assert_eq!(sheet.at(20).unwrap().mythic_feats.len(), 5);
+    assert_eq!(sheet.at(20).unwrap().mythic_abilities().count(), 5);
+    assert_eq!(sheet.at(20).unwrap().mythic_feats().count(), 5);
 }
 
 #[test]
@@ -158,10 +158,7 @@ fn the_path_is_chosen_at_mr_3_and_adds_its_own_picks() {
         at_9.feature_count(&feature("trickster/trickster-tricks")),
         1
     );
-    assert!(
-        at_9.selection_options
-            .contains_key(&option("trickster/tricks/perception-1"))
-    );
+    assert!(at_9.option_count(&option("trickster/tricks/perception-1")) > 0);
 }
 
 #[test]
@@ -178,7 +175,7 @@ fn a_legend_switch_at_mr_8_keeps_mr_1_and_2_and_stays_at_rank_3() {
     // Before the switch everything up to MR 7 is held.
     let at_16 = sheet.at(16).unwrap();
     assert_eq!(at_16.mythic_rank, 7);
-    assert_eq!(at_16.mythic_abilities.len(), 4);
+    assert_eq!(at_16.mythic_abilities().count(), 4);
     assert_eq!(at_16.mythic_path, Some(path("trickster")));
 
     // From level 17: only the MR 1 ability and MR 2 feat remain, the rank is 3, and the Trickster's picks are gone.
@@ -186,18 +183,18 @@ fn a_legend_switch_at_mr_8_keeps_mr_1_and_2_and_stays_at_rank_3() {
     assert_eq!(at_17.mythic_rank, 3);
     assert_eq!(at_17.mythic_path, Some(path("legend")));
     assert_eq!(
-        at_17.mythic_abilities,
-        [MythicAbilityKey::new("mythic-charge")].into()
+        at_17.mythic_abilities().collect::<Vec<_>>(),
+        [&MythicAbilityKey::new("mythic-charge")]
     );
     assert_eq!(
-        at_17.mythic_feats,
-        [MythicFeatKey::new("extra-mythic-ability")].into()
+        at_17.mythic_feats().collect::<Vec<_>>(),
+        [&MythicFeatKey::new("extra-mythic-ability")]
     );
     assert_eq!(
         at_17.feature_count(&feature("trickster/trickster-tricks")),
         0
     );
-    assert!(at_17.selection_options.is_empty());
+    assert!(at_17.options().next().is_none());
 
     let statuses: Vec<_> = sheet.ranks.iter().map(|rank| rank.status).collect();
     use RankStatus::*;
@@ -246,7 +243,7 @@ fn a_switch_that_keeps_ascending_takes_over_from_mr_8() {
     assert_eq!(at_17.mythic_rank, 9);
     assert_eq!(at_17.feature_count(&feature("gold-dragon/breath")), 1);
     // Gold Dragon keeps the general picks of MR 1-7 but drops the Trickster's own grants of MR 3-7.
-    assert_eq!(at_17.mythic_abilities.len(), 5);
+    assert_eq!(at_17.mythic_abilities().count(), 5);
     assert_eq!(
         at_17.feature_count(&feature("trickster/trickster-tricks")),
         0
@@ -254,4 +251,34 @@ fn a_switch_that_keeps_ascending_takes_over_from_mr_8() {
     assert_eq!(sheet.at(20).unwrap().mythic_rank, 10);
     assert_eq!(sheet.ranks[7].path, Some(path("gold-dragon")));
     assert_eq!(sheet.level_cap, 20);
+}
+
+#[test]
+fn no_fact_stays_held_once_nothing_holds_it() {
+    // The Legend switch at MR 8 takes the Trickster's MR 3-7 grants and picks away again: the held facts keep no entry
+    // for them (ticket 305), and each view lists its own kind alone, in key order.
+    let mut build = trickster_build(40);
+    engine().apply(&mut build, &Edit::PathSwitch(Some(path("legend"))));
+    let sheet = engine().evaluate(&build);
+    let tricks = feature("trickster/trickster-tricks");
+    assert!(sheet.at(16).unwrap().feature_count(&tricks) > 0);
+    assert!(
+        !(sheet.at(17).unwrap().held).contains_key(&Fact::Feature(tricks)),
+        "the switch leaves no entry"
+    );
+    for state in sheet.levels.iter().map(|level| &level.state) {
+        assert!(
+            (state.held.values()).all(|held| held.holds > 0 || !held.values.is_empty()),
+            "{:?}",
+            state.held
+        );
+        let features: Vec<_> = state.features().map(|(key, _)| key).collect();
+        assert!(features.is_sorted());
+        let held = (state.held.keys()).filter(|fact| matches!(fact, Fact::Feature(_)));
+        assert_eq!(features.len(), held.count());
+        let mythic_abilities: Vec<_> = state.mythic_abilities().collect();
+        assert!(mythic_abilities.is_sorted());
+        let held = (state.held.keys()).filter(|fact| matches!(fact, Fact::MythicAbility(_)));
+        assert_eq!(mythic_abilities.len(), held.count());
+    }
 }

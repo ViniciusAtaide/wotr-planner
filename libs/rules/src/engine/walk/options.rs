@@ -402,8 +402,8 @@ impl<'a> Walker<'a> {
                     .iter()
                     .map(|skill| Held::ClassSkill(skill.clone())),
             )
-            // Its selections of feats aren't facts yet (ticket 305).
-            .chain((selections.iter()).map(|selection| Held::Selection((*selection).clone())))
+            // Its selections, of feats too, in row order (ticket 305).
+            .chain((row.selections.iter()).map(|selection| Held::Selection(selection.clone())))
             .collect();
         for item in &held {
             self.hold(item.clone(), source.cloned());

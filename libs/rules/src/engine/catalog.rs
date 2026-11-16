@@ -727,8 +727,8 @@ impl Catalog {
             || (start.background.as_ref())
                 .and_then(|background| self.background(background))
                 .is_some_and(|background| background.weapons.contains(key))
-            || (state.features.keys())
-                .filter_map(|feature| self.feature_weapons(feature))
+            || (state.features())
+                .filter_map(|(feature, _)| self.feature_weapons(feature))
                 .any(|weapons| weapons.contains(key))
             || state
                 .deity()
@@ -736,7 +736,7 @@ impl Catalog {
                 .is_some_and(|deity| {
                     deity.favoured_weapons.contains(key)
                         && (self.features.favoured_weapons.iter())
-                            .any(|feature| state.features.contains_key(feature))
+                            .any(|feature| state.feature_count(feature) > 0)
                 })
     }
 

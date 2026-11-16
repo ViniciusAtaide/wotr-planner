@@ -4,7 +4,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{CharacterState, Dice, FeatKey, Handedness, Parameter, Ranged, WeaponKey};
+use rules::{CharacterState, Dice, Fact, FeatKey, Handedness, Parameter, Ranged, WeaponKey};
 
 use crate::support::*;
 
@@ -541,6 +541,17 @@ fn a_few_weapons_stats() {
     assert_eq!(stats("longsword").unwrap().ranged, None);
 }
 
+/// Holds a feat once, for `value` when it names one.
+fn hold_feat(state: &mut CharacterState, key: &str, value: Option<Parameter>) {
+    let held = (state.held)
+        .entry(Fact::Feat(FeatKey::new(key)))
+        .or_default();
+    held.holds = 1;
+    if let Some(value) = value {
+        held.values.insert(value, 1);
+    }
+}
+
 #[test]
 fn a_greatsword_fighters_attack_line() {
     // BAB +8, Str 18 (+4), Power Attack and Weapon Focus (Greatsword).
@@ -553,13 +564,12 @@ fn a_greatsword_fighters_attack_line() {
     };
     state.ability_scores.strength = 18;
     state.ability_scores.dexterity = 10;
-    state.feats.insert(FeatKey::new("power-attack"), 1);
-    state.feats.insert(FeatKey::new("weapon-focus"), 1);
-    state
-        .feat_values
-        .entry(FeatKey::new("weapon-focus"))
-        .or_default()
-        .insert(Parameter::Weapon(WeaponKey::new("greatsword")), 1);
+    hold_feat(&mut state, "power-attack", None);
+    hold_feat(
+        &mut state,
+        "weapon-focus",
+        Some(Parameter::Weapon(WeaponKey::new("greatsword"))),
+    );
 
     let line = engine()
         .attack_line(&state, &WeaponKey::new("greatsword"))
@@ -620,13 +630,7 @@ fn a_trickster_falchions_critical_feats_make_it_13_20_x3() {
             Some(rules::ParameterKind::Weapon),
             "{key}"
         );
-        let key = FeatKey::new(key);
-        state.feats.insert(key.clone(), 1);
-        state
-            .feat_values
-            .entry(key)
-            .or_default()
-            .insert(falchion.clone(), 1);
+        hold_feat(&mut state, key, Some(falchion.clone()));
     }
     assert_eq!(critical(&state), "13–20/×3");
 }

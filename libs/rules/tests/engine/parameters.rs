@@ -6,8 +6,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    ArmourType, Build, Choice, Engine, GameData, Issue, MythicFeatKey, OptionLevelRow, Parameter,
-    Pick, Prerequisite, SelectionOption, SlotId, SlotKind, SlotOption, SpellSchool, Unmet,
+    ArmourType, Build, CharacterState, Choice, Engine, GameData, Issue, MythicFeatKey,
+    OptionLevelRow, Parameter, Pick, Prerequisite, SelectionOption, SelectionOptionKey, SlotId,
+    SlotKind, SlotOption, SpellSchool, Unmet,
 };
 
 use crate::support::*;
@@ -31,14 +32,31 @@ fn status_of(options: &[SlotOption], pick: &Pick) -> Result<(), Issue> {
         .clone()
 }
 
+/// The parameterised mythic feats held, with the values each is held for.
+fn mythic_feat_values(state: &CharacterState) -> BTreeMap<MythicFeatKey, BTreeSet<Parameter>> {
+    (state.mythic_feats())
+        .filter_map(|feat| {
+            let values = state.mythic_feat_values_of(feat)?;
+            Some((feat.clone(), values.keys().cloned().collect()))
+        })
+        .collect()
+}
+
+/// The values an option is held for, with how many picks hold each.
+fn option_values(state: &CharacterState, key: &SelectionOptionKey) -> BTreeMap<Parameter, u8> {
+    (state.option_values())
+        .find(|(option, _)| *option == key)
+        .map(|(_, values)| values.clone())
+        .unwrap_or_default()
+}
+
 /// The values a feat is held for at the end of a level, with how many picks and grants hold each.
 fn values_at(build: &Build, level: u8, key: &str) -> BTreeMap<Parameter, u8> {
     engine()
         .evaluate(build)
         .at(level)
         .unwrap()
-        .feat_values
-        .get(&feat(key))
+        .feat_values_of(&feat(key))
         .cloned()
         .unwrap_or_default()
 }
@@ -434,8 +452,11 @@ fn an_option_once_per_value_repeats_for_another_value_of_its_chosen_feat() {
     let state = engine.evaluate(&build).at(4).unwrap().clone();
     assert_eq!(state.option_count(&option(talent)), 2);
     assert_eq!(
-        state.feat_values[&feat("weapon-focus")],
-        BTreeMap::from([(weapon("dagger"), 1), (weapon("longsword"), 1)])
+        state.feat_values_of(&feat("weapon-focus")),
+        Some(&BTreeMap::from([
+            (weapon("dagger"), 1),
+            (weapon("longsword"), 1)
+        ]))
     );
     // At 6: the weapons it's held for are taken, another is open.
     let offered = engine.options(&build, &selection_slot(6, 0)).unwrap();
@@ -514,8 +535,15 @@ fn an_option_taken_again_grants_its_rows_slot_again() {
     );
     assert!(engine.is_possible(&build));
     assert_eq!(
-        engine.evaluate(&build).at(4).unwrap().feat_values[&feat("weapon-focus")],
-        BTreeMap::from([(weapon("dagger"), 1), (weapon("longsword"), 1)])
+        engine
+            .evaluate(&build)
+            .at(4)
+            .unwrap()
+            .feat_values_of(&feat("weapon-focus")),
+        Some(&BTreeMap::from([
+            (weapon("dagger"), 1),
+            (weapon("longsword"), 1)
+        ]))
     );
     build.picks.insert(
         trick_slot(4),
@@ -741,7 +769,7 @@ fn spell_focus_mythic_needs_spell_focus_in_the_same_school() {
     );
     let state = engine().evaluate(&build).at(11).unwrap().clone();
     assert_eq!(
-        state.mythic_feat_values,
+        mythic_feat_values(&state),
         BTreeMap::from([(
             MythicFeatKey::new("spell-focus-mythic"),
             BTreeSet::from([school(SpellSchool::Evocation)])
@@ -763,7 +791,7 @@ fn a_parameterised_mythic_feat_names_its_value_and_repeats_once_per_value() {
     );
     assert!(engine().is_possible(&build));
     assert_eq!(
-        engine().evaluate(&build).at(11).unwrap().mythic_feat_values,
+        mythic_feat_values(engine().evaluate(&build).at(11).unwrap()),
         BTreeMap::from([(
             MythicFeatKey::new("school-mastery"),
             BTreeSet::from([
@@ -990,7 +1018,7 @@ fn an_option_once_per_value_repeats_for_another_value_of_its_own() {
     let state = engine.evaluate(&build).at(4).unwrap().clone();
     assert_eq!(state.option_count(&option(talent)), 2);
     assert_eq!(
-        state.option_values[&option(talent)],
+        option_values(&state, &option(talent)),
         BTreeMap::from([(weapon("dagger"), 1), (weapon("longsword"), 1)])
     );
     assert!(state.has_option_for(&option(talent), &weapon("dagger")));
@@ -1021,7 +1049,7 @@ fn an_option_once_per_value_repeats_for_another_value_of_its_own() {
     fewer.picks.remove(&selection_slot(2, 0));
     let state = engine.evaluate(&fewer).at(6).unwrap().clone();
     assert_eq!(
-        state.option_values[&option(talent)],
+        option_values(&state, &option(talent)),
         BTreeMap::from([(weapon("longsword"), 1)])
     );
 }

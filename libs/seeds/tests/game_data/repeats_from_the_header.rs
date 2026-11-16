@@ -83,8 +83,7 @@ fn extra_mythic_ability_is_taken_twice() {
         (SlotId::MythicExtra { rank: 4 }, ability_pick("best-jokes")),
     ]);
     assert_possible(&build);
-    let held = &at(&build, 20).mythic_abilities;
-    assert!(held.contains(&MythicAbilityKey::new("best-jokes")));
+    assert!(at(&build, 20).mythic_ability_count(&MythicAbilityKey::new("best-jokes")) > 0);
 }
 
 /// A cleric takes Impossible Domain twice, for two more domains, and not for a domain held.

@@ -135,9 +135,8 @@ fn a_druid_with_the_weather_domain_holds_lightning_lord_at_8_and_others_dont() {
     let state = at(&companion, 8);
     assert!(
         state
-            .features
-            .keys()
-            .all(|f| !f.as_str().starts_with("cleric/domain/"))
+            .features()
+            .all(|(f, _)| !f.as_str().starts_with("cleric/domain/"))
     );
 }
 
@@ -329,10 +328,7 @@ fn a_kineticist_holds_the_elements_class_skills_list_and_defensive_talent() {
             "kineticist/element/earth/wild-talent-feats"
         ))
     );
-    assert!(
-        one.selection_options
-            .contains_key(&SelectionOptionKey::new("kineticist/element/earth"))
-    );
+    assert!(one.option_count(&SelectionOptionKey::new("kineticist/element/earth")) > 0);
     from_level(&build, 2, "kineticist/element/earth/flesh-of-stone");
     // The Kinetic Knight's comes at 4.
     let knight = with_option(

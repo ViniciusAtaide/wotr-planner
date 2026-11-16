@@ -193,8 +193,7 @@ pub fn values_at(build: &Build, level: u8, key: &str) -> BTreeSet<Parameter> {
         .evaluate(build)
         .at(level)
         .unwrap()
-        .feat_values
-        .get(&FeatKey::new(key))
+        .feat_values_of(&FeatKey::new(key))
         .map(|values| values.keys().cloned().collect())
         .unwrap_or_default()
 }

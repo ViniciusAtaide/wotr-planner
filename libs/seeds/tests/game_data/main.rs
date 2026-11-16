@@ -22,6 +22,7 @@ mod collapsed_features;
 mod data;
 mod deities;
 mod extra_picks;
+mod feat_selections_as_facts;
 mod feat_slots_as_selections;
 mod finesse_training;
 mod first_ascension;

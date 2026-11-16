@@ -4,7 +4,10 @@
 //! (`UnitLogic/Class/LevelUp/Actions/LevelUpHelper.cs`, `AddFeaturesFromProgression`, WrathDecompiled 6ce4a6b), so a
 //! `PrerequisiteFeature` naming a selection (Extra Rage Power's `RagePowerSelection`) holds with the slot empty.
 
-use rules::{Alignment, Build, Engine, FeatureSelectionKey, Issue, Prerequisite, SlotId};
+use rules::{
+    Alignment, BASIC_FEAT_SELECTION, Build, Engine, FeatureSelectionKey, Issue, Prerequisite,
+    SlotId,
+};
 
 use crate::support::*;
 
@@ -131,4 +134,34 @@ fn a_feat_needing_a_selection_is_open_from_the_rows_level_and_the_walk_agrees() 
         .picks
         .insert(general_slot(3), pick_feat("extra-rogue-talent"));
     assert!(!engine.is_possible(&slayer));
+}
+
+#[test]
+fn a_selection_of_feats_is_held_as_the_game_holds_it() {
+    // The game adds each selection the race or a progression grants as a fact, a selection of feats too
+    // (`SelectRace.Apply` and `LevelUpHelper.AddFeaturesFromProgression`, WrathDecompiled 6ce4a6b): the general slot's
+    // (BasicFeatsProgression 5b72dd2ca2cb73b49903806ee8986325's levels 1, 3, …: BasicFeatSelection
+    // 247a4068296e8be42890143f451b4b45), the race's (HumanRace 0a5d473ead98b0646b94495af250fdc4's features), a class
+    // row's and a mythic path rank's.
+    let elf = build("elf", &times("wizard", 1));
+    assert!(held_at(&elf, 1, BASIC_FEAT_SELECTION));
+    let half_elf = build("half-elf", &times("rogue", 1));
+    assert!(held_at(&half_elf, 1, "half-elf/adaptability"));
+    assert!(!held_at(&elf, 1, "half-elf/adaptability"));
+    // The fighter's combat feats from its first row; a wizard's row holds none.
+    let fighter = build("elf", &times("fighter", 1));
+    assert!(held_at(&fighter, 1, "combat-feats"));
+    assert!(!held_at(&elf, 1, "combat-feats"));
+    // The Trickster's MR 4 bonus feats.
+    let mut trickster = build("human", &times("fighter", 20));
+    trickster.start.alignment = Some(Alignment::LawfulGood);
+    trickster.mythic_path = Some(path("trickster"));
+    let sheet = walked(&engine(), &trickster);
+    let at = |level: u8| {
+        (sheet.at(level).unwrap())
+            .check(&holds("trickster/bonus-feats"))
+            .is_ok()
+    };
+    assert!(!at(sheet.ranks[2].character_level));
+    assert!(at(sheet.ranks[3].character_level));
 }

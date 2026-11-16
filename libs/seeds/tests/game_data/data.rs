@@ -124,8 +124,7 @@ fn a_wizards_scribe_scrolls_is_held_with_no_pick() {
         sheet
             .at(1)
             .unwrap()
-            .feats
-            .contains_key(&FeatKey::new("scribe-scrolls"))
+            .has_feat(&FeatKey::new("scribe-scrolls"))
     );
     // No slot at level 1 is a list to pick it from. (The data's slot shape, not a game fact: the game's level-1 bonus
     // feat is WizardFeatSelection 8c3102c2ff3b69444b139a98521a4899, a fixed list the data holds as a category.)

@@ -2585,16 +2585,8 @@ fn features_whose_steps_are_features_of_their_own_are_granted_once() {
     .unwrap();
     // Game: PurifierCelestialArmorFeature 7dc8d7dede2704640956f7bc4102760a's AddFeatureOnClassLevel adds
     // HeavyArmorProficiency 1b0f68188dcc435429fb87a022239681 from oracle 11.
-    assert!(
-        !at(&purifier, 10)
-            .feats
-            .contains_key(&rules::FeatKey::new("armor-proficiency-heavy-armor"))
-    );
-    assert!(
-        at(&purifier, 11)
-            .feats
-            .contains_key(&rules::FeatKey::new("armor-proficiency-heavy-armor"))
-    );
+    assert!(!at(&purifier, 10).has_feat(&rules::FeatKey::new("armor-proficiency-heavy-armor")));
+    assert!(at(&purifier, 11).has_feat(&rules::FeatKey::new("armor-proficiency-heavy-armor")));
 }
 
 /// The Purifier's Celestial Armor is granted again at 11, 15 and 19, each grant a rank of its armour bonuses.

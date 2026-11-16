@@ -736,8 +736,9 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   such a list; left out, prerequisites are checked. A list of every feat (Gold Dragon's Dragon Feats: "any three
   feats") names every feat. A selection lists feats or options, never both. A row numbers its selections of feats and
   its other selections apart, each in row order, so the slot ids of links are the feat slots' (an option row's and a
-  path rank's other selections' slots come first, then its selections of feats'). The selections of feats aren't
-  held as facts (ticket 305). The check refuses a list of fewer than two feats (unless its one feat takes a value)
+  path rank's other selections' slots come first, then its selections of feats'). A selection of feats a row, the
+  race or the general slot grants is held as a fact, as the game holds it (`LevelUpHelper.AddFeaturesFromProgression`;
+  ticket 305). The check refuses a list of fewer than two feats (unless its one feat takes a value)
   and one nothing names. A bonus feat of the player's choosing
   (the warpriest's "Weapon Focus as a bonus feat in a weapon of his choosing", the Master of All's Skill Focus at
   3, 9 and 15, the Sword Saint's Chosen Weapon) is a bonus list of that one parameterised feat: the pick names the
