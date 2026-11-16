@@ -412,7 +412,7 @@ fn report_of(dir: &Path) -> game_check::Report {
 
 fn write_items(dir: &Path) -> game_check::write::Outcome {
     let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
-    run(&dump, dir, &[WriteArea::Items], |_| Ok(())).unwrap()
+    run(&dump, dir, &[WriteArea::Items], false, |_| Ok(())).unwrap()
 }
 
 #[test]
@@ -575,7 +575,7 @@ fn an_item_with_a_bonus_the_importer_cannot_read_or_name_stays_unwritten_and_lis
     );
     let before = all_files(dir.path());
     let (_, dump) = crate::support::dump(&crate::support::binz(&records, 2));
-    let outcome = run(&dump, dir.path(), &[WriteArea::Items], |_| Ok(())).unwrap();
+    let outcome = run(&dump, dir.path(), &[WriteArea::Items], false, |_| Ok(())).unwrap();
     let left: Vec<_> = outcome
         .unexpressed
         .iter()
@@ -690,4 +690,82 @@ fn the_inverse_of_the_check_s_targets_names_each_stat_the_planner_counts() {
         gear_stat(&("Strength".to_owned(), "Insight".to_owned(), 1000)),
         None
     );
+}
+
+/// What `--write items` does on a copy: the files after, and the log.
+fn items_with_log(dir: &Path) -> (Vec<(PathBuf, String)>, String) {
+    let before = report_of(dir);
+    let outcome = write_items(dir);
+    let after = report_of(dir);
+    let log = game_check::write::log::tsv(&outcome.changes, &before, &after);
+    (all_files(dir), log)
+}
+
+#[test]
+fn two_runs_on_two_copies_give_the_same_files_and_logs() {
+    let (one, two) = (data_copy(), data_copy());
+    let (files_one, log_one) = items_with_log(one.path());
+    let (files_two, log_two) = items_with_log(two.path());
+    // The copies are in different folders: compare the paths from the data folder.
+    let relative = |files: Vec<(PathBuf, String)>, dir: &Path| -> Vec<(PathBuf, String)> {
+        files
+            .into_iter()
+            .map(|(path, text)| (path.strip_prefix(dir).unwrap().to_owned(), text))
+            .collect()
+    };
+    assert_eq!(
+        relative(files_one, one.path()),
+        relative(files_two, two.path())
+    );
+    assert_eq!(log_one, log_two);
+    assert!(log_one.starts_with("entry\tfield\told\tnew\tfindings removed\tfact\n"));
+}
+
+#[test]
+fn the_log_names_the_findings_each_change_removed() {
+    let dir = data_copy();
+    let (_, log) = items_with_log(dir.path());
+    let row = |entry: &str| {
+        log.lines()
+            .find(|line| line.starts_with(&format!("{entry}\t")))
+            .unwrap_or_else(|| panic!("no row for {entry} in:\n{log}"))
+            .split('\t')
+            .map(str::to_owned)
+            .collect::<Vec<_>>()
+    };
+    let cloak = row("gear item cloak-of-test");
+    assert_eq!(cloak[1], "components");
+    assert_eq!(cloak[4], "items / amount differs");
+    assert_eq!(cloak[5], "-");
+    assert_eq!(
+        row("gear item headband-of-test")[4],
+        "items / bonus missing in planner; items / type differs"
+    );
+    assert_eq!(
+        row("gear item ring-of-nothing")[4],
+        "items / bonus not in game"
+    );
+    // Rows are in entry order.
+    let entries: Vec<_> = log
+        .lines()
+        .skip(1)
+        .map(|l| l.split('\t').next().unwrap())
+        .collect();
+    let mut sorted = entries.clone();
+    sorted.sort_unstable();
+    assert_eq!(entries, sorted);
+}
+
+#[test]
+fn a_dry_run_writes_nothing() {
+    let dir = data_copy();
+    let before = all_files(dir.path());
+    let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
+    let outcome = run(&dump, dir.path(), &[WriteArea::Items], true, |_| {
+        panic!("a dry run checks nothing written")
+    })
+    .unwrap();
+    assert_eq!(outcome.changes.len(), 3);
+    assert_eq!(outcome.applied.files.len(), 3, "the files it would write");
+    assert_eq!(all_files(dir.path()), before);
 }

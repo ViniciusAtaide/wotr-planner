@@ -13,6 +13,7 @@
 //! back, runs the caller's check of the whole folder, and on any failure puts every written file's bytes back.
 
 pub mod items;
+pub mod log;
 pub mod span;
 
 use std::collections::BTreeMap;
@@ -258,49 +259,7 @@ pub fn apply_with(
     validate: impl Fn(&Path) -> Result<(), String>,
     write: impl Fn(&Path, &str) -> io::Result<()>,
 ) -> Result<Applied, WriteError> {
-    let mut by_file: BTreeMap<&Path, Vec<&Change>> = BTreeMap::new();
-    for change in changes {
-        by_file.entry(&change.file).or_default().push(change);
-    }
-    let mut plan: Vec<FilePlan> = Vec::new();
-    for (file, changes) in by_file {
-        if file.starts_with("planner") {
-            return Err(WriteError::Planner(file.to_owned()));
-        }
-        let path = dir.join(file);
-        if !path.is_file() {
-            return Err(WriteError::Missing(file.to_owned()));
-        }
-        if let Some(change) = changes.iter().find(|c| !owned(file).contains(&c.field)) {
-            return Err(WriteError::NotOwned {
-                file: file.to_owned(),
-                field: change.field,
-            });
-        }
-        let before = fs::read_to_string(&path).map_err(|error| WriteError::Io {
-            file: file.to_owned(),
-            error,
-        })?;
-        let mut after = before.clone();
-        let mut steps = Vec::new();
-        for change in changes {
-            let next =
-                span::write_field(&after, change.field, change.value.as_ref(), declared(file))
-                    .map_err(|error| WriteError::Span {
-                        file: file.to_owned(),
-                        field: change.field,
-                        error,
-                    })?;
-            steps.push((after, next.clone(), change));
-            after = next;
-        }
-        plan.push(FilePlan {
-            file: file.to_owned(),
-            before,
-            after,
-            steps,
-        });
-    }
+    let plan = plan_files(dir, changes)?;
 
     let mut written: Vec<usize> = Vec::new();
     let result = (|| {
@@ -531,6 +490,29 @@ pub enum WriteArea {
     Items,
 }
 
+impl WriteArea {
+    /// The area `--write` names.
+    pub fn parse(name: &str) -> Option<WriteArea> {
+        match name {
+            "items" => Some(WriteArea::Items),
+            _ => None,
+        }
+    }
+
+    pub fn name(self) -> &'static str {
+        match self {
+            WriteArea::Items => "items",
+        }
+    }
+
+    /// The `kind` of the changes this area plans (`Change::kind`).
+    pub fn kind(self) -> &'static str {
+        match self {
+            WriteArea::Items => "bonuses",
+        }
+    }
+}
+
 /// What `run` planned and wrote.
 #[derive(Debug)]
 pub struct Outcome {
@@ -539,12 +521,14 @@ pub struct Outcome {
     pub applied: Applied,
 }
 
-/// Plans the changes of `areas` from the data under `dir` and the dump, and [`apply`]s them. The data is read with
+/// Plans the changes of `areas` from the data under `dir` and the dump, and [`apply`]s them, or with `dry_run` only
+/// [`plan`]s them (the guards run, nothing is written). The data is read with
 /// `seeds::read_game_data_files`, the model as the files hold it, not compiled.
 pub fn run(
     dump: &crate::Dump,
     dir: &Path,
     areas: &[WriteArea],
+    dry_run: bool,
     validate: impl Fn(&Path) -> Result<(), String>,
 ) -> Result<Outcome, WriteError> {
     let data =
@@ -563,10 +547,74 @@ pub fn run(
         changes.extend(more);
         unexpressed.extend(left);
     }
-    let applied = apply(dir, &changes, validate)?;
+    let applied = if dry_run {
+        plan(dir, &changes)?
+    } else {
+        apply(dir, &changes, validate)?
+    };
     Ok(Outcome {
         changes,
         unexpressed,
         applied,
+    })
+}
+
+/// Every file's text built and every guard run, nothing written.
+fn plan_files<'a>(dir: &Path, changes: &'a [Change]) -> Result<Vec<FilePlan<'a>>, WriteError> {
+    let mut by_file: BTreeMap<&Path, Vec<&Change>> = BTreeMap::new();
+    for change in changes {
+        by_file.entry(&change.file).or_default().push(change);
+    }
+    let mut plan: Vec<FilePlan> = Vec::new();
+    for (file, changes) in by_file {
+        if file.starts_with("planner") {
+            return Err(WriteError::Planner(file.to_owned()));
+        }
+        let path = dir.join(file);
+        if !path.is_file() {
+            return Err(WriteError::Missing(file.to_owned()));
+        }
+        if let Some(change) = changes.iter().find(|c| !owned(file).contains(&c.field)) {
+            return Err(WriteError::NotOwned {
+                file: file.to_owned(),
+                field: change.field,
+            });
+        }
+        let before = fs::read_to_string(&path).map_err(|error| WriteError::Io {
+            file: file.to_owned(),
+            error,
+        })?;
+        let mut after = before.clone();
+        let mut steps = Vec::new();
+        for change in changes {
+            let next =
+                span::write_field(&after, change.field, change.value.as_ref(), declared(file))
+                    .map_err(|error| WriteError::Span {
+                        file: file.to_owned(),
+                        field: change.field,
+                        error,
+                    })?;
+            steps.push((after, next.clone(), change));
+            after = next;
+        }
+        plan.push(FilePlan {
+            file: file.to_owned(),
+            before,
+            after,
+            steps,
+        });
+    }
+    Ok(plan)
+}
+
+/// What [`apply`] would do: the guards and the span writer run on every change and the files whose text would change
+/// are listed, with nothing written.
+pub fn plan(dir: &Path, changes: &[Change]) -> Result<Applied, WriteError> {
+    Ok(Applied {
+        files: plan_files(dir, changes)?
+            .into_iter()
+            .filter(|file| file.before != file.after)
+            .map(|file| file.file)
+            .collect(),
     })
 }
