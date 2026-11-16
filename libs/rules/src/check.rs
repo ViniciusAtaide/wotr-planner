@@ -29,7 +29,7 @@ use crate::keys::{
     FeatureSelectionKey, GearKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
     SelectionOptionKey, SkillKey, SpellKey, SpellListKey, SubraceKey, WeaponKey,
 };
-use crate::parameter::{Parameter, ParameterKind, Repeat};
+use crate::parameter::{Parameter, ParameterKind};
 use crate::prerequisite::Prerequisite;
 use crate::spells::{
     MAX_CLASS_SPELL_LEVEL, MAX_MYTHIC_SPELL_LEVEL, SpellCaster, SpellList, SpellListOnly,
@@ -219,13 +219,11 @@ pub enum DataIssue {
     UnusedFeatList,
     /// A selection that shares one of its own options: an own option is offered already.
     SharesOwnOption(SelectionOptionKey),
-    /// A feat taken once per value that takes none.
-    PerValueWithoutParameter,
-    /// An option taken once per value that takes no value to count: neither a chosen feat's (ticket 47: the Skill
-    /// Focus talents, once per skill) nor one of its own (ticket 172: Finesse Training, once per weapon).
-    PerValueOptionWithoutValue,
-    /// `Times(n)` with `n` below 2: once is the default.
-    TimesOutOfRange(u8),
+    /// `ranks: 0`: a feature is held at least once, and 1 is the default (ticket 303).
+    NoRanks,
+    /// An option marked a selection ([`SelectionOption::is_selection`](crate::SelectionOption::is_selection)) whose pick
+    /// is neither a value nor the slot of one selection its lone level-1 row grants: it has nothing to repeat over.
+    SelectionWithoutPick,
     /// An option's chosen feat that takes no value.
     ChosenFeatNotParameterised,
     /// A prerequisite naming a value the feat isn't taken for: a feat that takes none, a value of another kind,
@@ -454,15 +452,10 @@ impl fmt::Display for DataProblem {
             DataIssue::SwitchFromASwitchPath(path) => {
                 write!(f, "the switch is open from {path}, which is itself a switch")
             }
-            DataIssue::PerValueWithoutParameter => {
-                f.write_str("taken once per value, but it takes no value")
-            }
-            DataIssue::PerValueOptionWithoutValue => {
-                f.write_str("taken once per value, but it takes no value, of a chosen feat or its own")
-            }
-            DataIssue::TimesOutOfRange(times) => {
-                write!(f, "taken up to {times} times; a repeat is 2 or more")
-            }
+            DataIssue::NoRanks => f.write_str("ranks 0; a feature has 1 or more"),
+            DataIssue::SelectionWithoutPick => f.write_str(
+                "a selection whose pick is neither a value nor the slot of one selection its lone level-1 row grants",
+            ),
             DataIssue::ChosenFeatNotParameterised => {
                 f.write_str("the chosen feat takes no value")
             }
@@ -700,7 +693,7 @@ impl GameData {
             check.key(&at);
             check.aliases(&at, feat.aliases.iter().cloned().map(DataAt::Feat));
             check.names_each(&at, &feat.selection, DataAt::FeatureSelection);
-            check.repeat(&at, feat.repeat, feat.parameter.is_some());
+            check.ranks(&at, feat.ranks);
             check.prerequisite(&at, feat.prerequisite.as_ref(), feat.parameter);
         }
         for class in &self.classes {
@@ -721,14 +714,14 @@ impl GameData {
             check.key(&at);
             check.names_each(&at, &ability.features, DataAt::Feature);
             check.names_each(&at, &ability.selection, DataAt::FeatureSelection);
-            check.repeat(&at, ability.repeat, ability.parameter.is_some());
+            check.ranks(&at, ability.ranks);
             check.prerequisite(&at, ability.prerequisite.as_ref(), ability.parameter);
         }
         for feat in &self.mythic_feats {
             let at = DataAt::MythicFeat(feat.key.clone());
             check.key(&at);
             check.names_each(&at, &feat.selection, DataAt::FeatureSelection);
-            check.repeat(&at, feat.repeat, feat.parameter.is_some());
+            check.ranks(&at, feat.ranks);
             check.prerequisite(&at, feat.prerequisite.as_ref(), feat.parameter);
         }
         let switches: HashSet<&MythicPathKey> = self
@@ -1126,16 +1119,10 @@ impl Checker {
         }
     }
 
-    /// How many times a feat or option repeats: once per value only with a value, a number of times from 2.
-    fn repeat(&mut self, at: &DataAt, repeat: Repeat, takes_value: bool) {
-        match repeat {
-            Repeat::PerValue if !takes_value => {
-                self.problem(at, DataIssue::PerValueWithoutParameter);
-            }
-            Repeat::Times(times) if times < 2 => {
-                self.problem(at, DataIssue::TimesOutOfRange(times));
-            }
-            _ => {}
+    /// An entry's `ranks`: 1 or more.
+    fn ranks(&mut self, at: &DataAt, ranks: u8) {
+        if ranks == 0 {
+            self.problem(at, DataIssue::NoRanks);
         }
     }
 
@@ -1267,6 +1254,7 @@ impl Checker {
             }
             P::Archetype(archetype) => self.names(at, DataAt::Archetype(archetype.clone())),
             P::Feature { feature, .. } => self.names(at, DataAt::Feature(feature.clone())),
+            P::Rank { fact, .. } => self.names(at, fact_at(fact)),
             P::SelectionOption(option) => self.names(at, DataAt::SelectionOption(option.clone())),
             P::Selection(selection) | P::NoOptionFrom(selection) | P::PickedThrough(selection) => {
                 self.names(at, DataAt::FeatureSelection(selection.clone()));
@@ -1414,14 +1402,11 @@ impl Checker {
             {
                 self.problem(&at, DataIssue::OptionValueOfWrongKind);
             }
-            // Once per value counts the values its chosen feat is held for (the Skill Focus talents), or those
-            // its own value is (Finesse Training).
-            if option.repeat == Repeat::PerValue {
-                if option.chosen_feat.is_none() && option.parameter.is_none() {
-                    self.problem(&at, DataIssue::PerValueOptionWithoutValue);
-                }
-            } else {
-                self.repeat(&at, option.repeat, false);
+            self.ranks(&at, option.ranks);
+            // A selection repeats over its values (the Skill Focus talents) or the options of the selection it grants
+            // (Combat Trick).
+            if option.is_selection && !option.takes_value() && option.nested_selection().is_none() {
+                self.problem(&at, DataIssue::SelectionWithoutPick);
             }
             self.prerequisite(&at, option.prerequisite.as_ref(), takes);
             if let Some(domain) = &option.domain {

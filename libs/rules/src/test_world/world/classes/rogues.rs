@@ -112,7 +112,7 @@ pub(in crate::test_world::world) fn rogue() -> Class {
                 },
                 // Invented, like Increased Damage Reduction: taken up to twice.
                 SelectionOption {
-                    repeat: Repeat::Times(2),
+                    ranks: 2,
                     ..selection_option("rogue/rogue-talents/resiliency", None, None)
                 },
             ],

@@ -10,8 +10,8 @@ use rules::{
     Ability, Background, BackgroundKey, BonusItem, Build, Component, DataIssue, Engine, Feat,
     FeatCategory, GameData, GuideRef, ItemInteractions, MythicAbility, MythicAbilityGroup,
     MythicAbilityKey, MythicFeat, MythicFeatGroup, MythicFeatKey, Parameter, ParameterKind, Pick,
-    RaceKey, RankBase, RankProgression, Repeat, Save, SkillKey, SlotId, Stat, StatRef, StatTarget,
-    Subrace, SubraceKey, Total, Value,
+    RaceKey, RankBase, RankProgression, Save, SkillKey, SlotId, Stat, StatRef, StatTarget, Subrace,
+    SubraceKey, Total, Value,
 };
 
 use crate::support::*;
@@ -59,7 +59,7 @@ fn world_with_bonus_items() -> GameData {
             summary: String::new(),
             guide: Some(GuideRef::new(key)),
             parameter: None,
-            repeat: Repeat::Once,
+            ranks: 1,
             selection: None,
             aliases: BTreeSet::new(),
             requires_proficiency: false,
@@ -68,7 +68,7 @@ fn world_with_bonus_items() -> GameData {
     }
     let stat_focus = data.feats.iter_mut().find(|f| f.key == feat("stat-focus"));
     let stat_focus = stat_focus.unwrap();
-    (stat_focus.parameter, stat_focus.repeat) = (Some(ParameterKind::Stat), Repeat::PerValue);
+    stat_focus.parameter = Some(ParameterKind::Stat);
     stat_focus.prerequisite = None;
     data.mythic_feats.push(MythicFeat {
         components: Vec::new(),
@@ -79,7 +79,7 @@ fn world_with_bonus_items() -> GameData {
         summary: String::new(),
         guide: Some(GuideRef::new("improved-initiative-mythic")),
         parameter: None,
-        repeat: Repeat::Once,
+        ranks: 1,
         removes_racial_penalty: false,
         selection: None,
         requires_proficiency: false,
@@ -96,8 +96,9 @@ fn world_with_bonus_items() -> GameData {
         prerequisite: None,
         features: Vec::new(),
         selection: None,
+        plain_feature: false,
         parameter: None,
-        repeat: rules::Repeat::Once,
+        ranks: 1,
     });
     data.backgrounds.push(Background {
         components: Vec::new(),

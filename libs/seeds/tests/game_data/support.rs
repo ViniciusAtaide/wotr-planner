@@ -948,3 +948,25 @@ pub fn feat_selections(
 pub fn feat_kind(key: &str) -> SlotKind {
     SlotKind::Feat(rules::FeatureSelectionKey::new(key))
 }
+
+/// `prerequisite` with an entry's own repeat condition beside it, `Not` of `own` (ticket 303: a selection's own
+/// `PrerequisiteNoFeature` or cap on its rank), as the data's canonical tree holds them: an `All` of both, its
+/// children sorted, flattened when `prerequisite` is an `All` itself.
+pub fn and_not(prerequisite: Prerequisite, own: Prerequisite) -> Prerequisite {
+    let mut children = match prerequisite {
+        Prerequisite::All(children) => children,
+        other => vec![other],
+    };
+    children.push(Prerequisite::Not(Box::new(own)));
+    let mut all = Prerequisite::All(children);
+    all.canonicalize();
+    all
+}
+
+/// An Extra feat's cap on its own rank (ticket 250; ticket 303's form): `Not` of it held `rank` times.
+pub fn own_rank(feat: &str, rank: u8) -> Prerequisite {
+    Prerequisite::Rank {
+        fact: rules::Fact::Feat(FeatKey::new(feat)),
+        rank,
+    }
+}

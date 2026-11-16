@@ -7,7 +7,7 @@
 use rules::{
     Ability, BonusItem, Build, ClassChoice, Component, Condition, DataIssue, Energy, Engine, Fact,
     Feat, FeatCategory, FeatKey, FeatureKey, GameData, MetamagicKind, MythicFeat, MythicFeatKey,
-    Parameter, ParameterKind, Pick, RaceKey, RankBase, RankProgression, Repeat, SlotId, SpellDc,
+    Parameter, ParameterKind, Pick, RaceKey, RankBase, RankProgression, SlotId, SpellDc,
     SpellSchool, SpellScope, SpellTraits, SubraceKey, Subschool, Value,
 };
 
@@ -388,15 +388,12 @@ fn with_expanded_arsenal() -> Engine {
         key: MythicFeatKey::new("expanded-arsenal"),
         name: "Expanded Arsenal".into(),
         parameter: Some(ParameterKind::SpellSchool),
-        repeat: Repeat::PerValue,
         prerequisite: None,
         selection: None,
         requires_proficiency: false,
         removes_racial_penalty: false,
         ..template
     });
-    let spell_focus = data.feats.iter_mut().find(|f| f.key == feat("spell-focus"));
-    spell_focus.unwrap().repeat = Repeat::PerValue;
     engine_on(data)
 }
 

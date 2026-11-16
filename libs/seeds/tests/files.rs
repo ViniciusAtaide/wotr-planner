@@ -631,8 +631,8 @@ fn checking_the_files_names_every_missing_key() {
             &path,
             text.replace("Feat(\"power-attack\")", "Feat(\"no-such-feat\")")
                 .replacen(
-                    "    repeat: Times(3),\n",
-                    "    repeat: Times(3),\n    selection: \"rogue/no-such-selection\",\n",
+                    "    ranks: 3,\n",
+                    "    ranks: 3,\n    selection: \"rogue/no-such-selection\",\n",
                     1,
                 ),
         )
@@ -790,16 +790,22 @@ fn reads_weapons_and_what_feats_are_taken_for() {
     );
     let feat = |key: &str| data.feats.iter().find(|f| f.key.as_str() == key).unwrap();
     assert_eq!(feat("weapon-focus").parameter, Some(ParameterKind::Weapon));
-    assert_eq!(feat("weapon-focus").repeat, Repeat::PerValue);
+    assert_eq!(feat("weapon-focus").repeat(), Repeat::PerValue);
     assert_eq!(
         feat("spell-focus").parameter,
         Some(ParameterKind::SpellSchool)
     );
-    assert_eq!(feat("extra-rage").repeat, Repeat::Times(3));
-    assert_eq!(feat("extra-ki").repeat, Repeat::Unlimited);
-    // Left out: nothing to take it for, taken once.
+    assert_eq!(
+        (feat("extra-rage").ranks, feat("extra-rage").repeat()),
+        (3, Repeat::Times(3))
+    );
+    assert_eq!(feat("extra-ki").repeat(), Repeat::Times(20));
+    // Left out: nothing to take it for, one rank.
     assert_eq!(feat("toughness").parameter, None);
-    assert_eq!(feat("toughness").repeat, Repeat::Once);
+    assert_eq!(
+        (feat("toughness").ranks, feat("toughness").repeat()),
+        (1, Repeat::Once)
+    );
     assert_eq!(
         feat("weapon-specialization").prerequisite,
         Some(Prerequisite::All(vec![
@@ -820,7 +826,7 @@ fn reads_weapons_and_what_feats_are_taken_for() {
 }
 
 #[test]
-fn reads_an_options_chosen_feat_and_repeat_and_defaults_them() {
+fn reads_an_options_chosen_feat_and_ranks_and_defaults_them() {
     let data = read_fixture();
     let talents = data
         .selection(&FeatureSelectionKey::new("rogue/rogue-talents"))
@@ -835,13 +841,17 @@ fn reads_an_options_chosen_feat_and_repeat_and_defaults_them() {
         Some(FeatKey::new("weapon-focus"))
     );
     assert_eq!(
-        option("rogue/rogue-talents/resiliency").repeat,
+        option("rogue/rogue-talents/resiliency").repeat(),
         Repeat::Times(2)
     );
     let trick = option("rogue/rogue-talents/combat-trick");
     assert_eq!(
-        (trick.chosen_feat.clone(), trick.repeat),
-        (None, Repeat::Once)
+        (
+            trick.chosen_feat.clone(),
+            trick.is_selection,
+            trick.repeat()
+        ),
+        (None, false, Repeat::Once)
     );
     // A bonus feat of the player's choosing: a one-feat list of a parameterised feat.
     let list = selection(&data, "rogue/skill-focus");
@@ -1133,7 +1143,7 @@ fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
             .all(|o| o.parameter.is_none() && o.values.is_empty())
     );
 
-    // Mythic feats: a value, a repeat, the racial penalty; defaults elsewhere.
+    // Mythic feats: a value, ranks, the racial penalty; defaults elsewhere.
     let mythic = |key: &str| {
         data.mythic_feats
             .iter()
@@ -1142,14 +1152,14 @@ fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
     };
     let spell_focus = mythic("spell-focus-mythic");
     assert_eq!(spell_focus.parameter, Some(ParameterKind::SpellSchool));
-    assert_eq!(spell_focus.repeat, Repeat::PerValue);
-    assert_eq!(mythic("extra-mythic-power").repeat, Repeat::Times(2));
+    assert_eq!(spell_focus.repeat(), Repeat::PerValue);
+    assert_eq!(mythic("extra-mythic-power").repeat(), Repeat::Times(2));
     assert!(mythic("destiny-beyond-birth").removes_racial_penalty);
     let power_attack = mythic("power-attack-mythic");
     assert_eq!(
         (
             power_attack.parameter,
-            power_attack.repeat,
+            power_attack.repeat(),
             power_attack.removes_racial_penalty
         ),
         (None, Repeat::Once, false)

@@ -302,16 +302,17 @@ impl Fact {
         )
     }
 
-    /// How many times it is held (a feature's grants, a feat's picks and grants), or 1 for what is held once (a mythic
-    /// ability, the race, a class taken); 0 when it isn't. The rank `Features.GetRank` gives.
+    /// How many times it is held (a feature's grants, a feat's picks and grants, a mythic ability's or a mythic feat's
+    /// picks), or 1 for what is held once (the race, a class taken); 0 when it isn't. The rank `Features.GetRank`
+    /// gives.
     pub fn rank(&self, state: &CharacterState) -> u8 {
         match self {
             Self::Feat(key) => state.feat_count(key),
             Self::Feature(key) => state.feature_count(key),
             Self::Option(key) => state.option_count(key),
             Self::Selection(key) => state.selections.get(key).copied().unwrap_or(0),
-            Self::MythicAbility(key) => u8::from(state.mythic_abilities.contains(key)),
-            Self::MythicFeat(key) => u8::from(state.mythic_feats.contains(key)),
+            Self::MythicAbility(key) => state.mythic_ability_count(key),
+            Self::MythicFeat(key) => state.mythic_feat_count(key),
             Self::Class(key) => u8::from(state.class_level(key) > 0),
             Self::Archetype(key) => u8::from(
                 state
@@ -325,7 +326,7 @@ impl Fact {
     }
 
     /// The prerequisite leaf that holds while it is held.
-    fn leaf(&self) -> Prerequisite {
+    pub(crate) fn leaf(&self) -> Prerequisite {
         match self {
             Self::Feat(key) => Prerequisite::Feat(key.clone()),
             Self::Feature(key) => Prerequisite::Feature {
@@ -366,8 +367,11 @@ pub enum Condition {
     Has(Fact),
     /// The fact isn't held: `PrerequisiteNoFeature` (`CheckInternal`: `!unit.HasFact`).
     HasNot(Fact),
-    /// The feature is held at least this many times: `ContextConditionHasFact`'s rank, `Features.GetRank`.
-    FactRank(FeatureKey, u8),
+    /// The fact is held at least this many times: `ContextConditionBuffRank`'s and `ContextConditionHasFact`'s rank,
+    /// `Features.GetRank`. `Not` of it on an entry's own fact, in the `All` group, caps how often a selection is taken
+    /// (Extra Hex: `ExtraWitchHexSelection` b6054088b4ab4be286724127cbf48b35 at 3; [`Repeat`](crate::Repeat), ticket
+    /// 303).
+    FactRank(Fact, u8),
     /// At least `n` of the facts are held: `PrerequisiteFeaturesFromList` (`CheckInternal` returns on the first fact
     /// held that brings the count to `Amount`, so an `Amount` of 0 needs one, as 1 does). Its `m_RestrictIfNot`
     /// (fewer than `Amount` held) is `Not` of this. Over deities only (`IsDeity`: one is enough, and at the first
@@ -1248,9 +1252,14 @@ impl Condition {
         match self {
             Self::Has(fact) => fact.leaf(),
             Self::HasNot(fact) => P::Not(Box::new(fact.leaf())),
-            Self::FactRank(feature, rank) => P::Feature {
+            Self::FactRank(Fact::Feature(feature), rank) => P::Feature {
                 feature: feature.clone(),
                 count: (*rank).max(1),
+            },
+            Self::FactRank(fact, rank) if *rank <= 1 => fact.leaf(),
+            Self::FactRank(fact, rank) => P::Rank {
+                fact: fact.clone(),
+                rank: *rank,
             },
             Self::AtLeast(n, facts) => {
                 P::AtLeast((*n).max(1), facts.iter().map(Fact::leaf).collect())
@@ -1358,7 +1367,7 @@ impl Condition {
     /// The facts the condition names, anywhere in it.
     pub fn facts(&self) -> Vec<&Fact> {
         match self {
-            Self::Has(fact) | Self::HasNot(fact) => vec![fact],
+            Self::Has(fact) | Self::HasNot(fact) | Self::FactRank(fact, _) => vec![fact],
             Self::AtLeast(_, facts) => facts.iter().collect(),
             Self::All(conditions) | Self::Any(conditions) => {
                 conditions.iter().flat_map(Condition::facts).collect()

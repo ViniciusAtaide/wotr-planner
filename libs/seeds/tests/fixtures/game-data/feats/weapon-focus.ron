@@ -5,7 +5,6 @@
     category: Weapon,
     guide: "feats#weapon-focus",
     parameter: Weapon,
-    repeat: PerValue,
     prerequisite: BaseAttackBonus(1),
     components: [
         WeaponFocus,

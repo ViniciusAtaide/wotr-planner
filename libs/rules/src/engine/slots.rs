@@ -114,6 +114,45 @@ impl Catalog {
         }
     }
 
+    /// Whether a selection a pick grants has an option left for a character in `state` (ticket 303): one of its feats,
+    /// mythic abilities or options held fewer times than it can be ([`Repeat::times`](crate::Repeat::times)), as the
+    /// game refuses a selection none of whose items it can select (`FeatureSelectionExtensions.CanSelectAny`,
+    /// WrathDecompiled 6ce4a6b). The game asks each item's prerequisites too; the planner counts only what is held, so
+    /// an option whose prerequisite a later pick of the level meets still counts. A selection whose lists come from an
+    /// option, or that lists nothing of its own (a first-had one, 293's), has one.
+    pub(super) fn has_option_left(
+        &self,
+        key: &FeatureSelectionKey,
+        state: &CharacterState,
+    ) -> bool {
+        let Some(selection) = self.selection(key) else {
+            return true;
+        };
+        if selection.option_lists.is_some() {
+            return true;
+        }
+        if !selection.feats.is_empty() {
+            return (selection.feats.iter()).any(|key| {
+                self.feat(key)
+                    .is_none_or(|feat| state.feat_count(key) < feat.repeat().times())
+            });
+        }
+        if !selection.mythic_abilities.is_empty() {
+            return (selection.mythic_abilities.iter()).any(|key| {
+                self.mythic_ability(key).is_none_or(|ability| {
+                    state.mythic_ability_count(key) < ability.repeat().times()
+                })
+            });
+        }
+        (selection.options.is_empty() && selection.shared_options.is_empty())
+            || (selection.options.iter())
+                .chain(&selection.shared_options)
+                .any(|key| {
+                    self.option(key)
+                        .is_none_or(|option| state.option_count(key) < option.repeat().times())
+                })
+    }
+
     /// Whether a mythic ability slot of `kind` offers `ability`: a rank's general pick, any; a selection of mythic
     /// abilities, those it lists (ticket 302). `false` for any other slot.
     pub(super) fn lists_mythic_ability(&self, kind: &SlotKind, ability: &MythicAbilityKey) -> bool {

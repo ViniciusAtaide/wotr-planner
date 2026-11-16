@@ -50,7 +50,7 @@ fn every_parameterised_feat_repeats_once_per_value() {
     assert_eq!(parameterised.len(), 16);
     // Game: WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e, a parametrized feature: one rank per value
     for feat in parameterised {
-        assert_eq!(feat.repeat, Repeat::PerValue, "{}", feat.key);
+        assert_eq!(feat.repeat(), Repeat::PerValue, "{}", feat.key);
     }
 }
 
@@ -168,7 +168,7 @@ fn the_mythic_feats_that_pick_a_value_take_one_once_per_value() {
     ] {
         let feat = mythic_feat(key);
         assert_eq!(
-            (feat.parameter, feat.repeat),
+            (feat.parameter, feat.repeat()),
             (Some(kind), Repeat::PerValue),
             "{key}"
         );

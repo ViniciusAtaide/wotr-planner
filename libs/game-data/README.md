@@ -170,8 +170,8 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   own rows at 3, 11 and 19 leave it out ("Loses finesse training"). Its one option, `rogue/finesse-training/weapon`
   ("Finesse Training"), takes a weapon of its own (`parameter: Weapon`) from the guide's list (`values`: its
   "Handaxe", "Light Shield", "Shortsword" and "Unarmed" are the Hand Axe, the Light Shield Bash, the Short Sword and
-  the Unarmed Strike), once per weapon (`repeat: PerValue`, which an option taking a value of its own may now have:
-  the state counts the values it's held for). The guide's "that she has proficiency in" isn't checked, as no weapon
+  the Unarmed Strike), once per weapon (an option taking a value of its own may repeat per value: the state counts
+  the values it's held for; since ticket 303 its `is_selection: true` says so). The guide's "that she has proficiency in" isn't checked, as no weapon
   value is (Weapon Focus's neither). `finesse_training.rs` pins the levels, the list and an older link.
 - Only prestige classes set `advances_arcane`/`advances_divine` (the spell types a level advances), and only base
   classes have archetypes. A Build names the advanced classes on entry: one per spell type the rows advance
@@ -316,8 +316,8 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
     oracle or arcanist (Living Deity) level 7.
   - **Blessings**, `warpriest/blessings`: the minor power at 1, the major at 10.
   - **Elements**, `kineticist/element`: class skills and the wild-talent bonus feat list at 1, the defensive talent
-    at 2; `kineticist/expanded-element` at 7 and 15 holds a second element (or the first again, `repeat:
-    Times(2)`) for its list only.
+    at 2; `kineticist/expanded-element` at 7 and 15 holds a second element (or the first again, the
+    element's `ranks: 2`) for its list only.
 - Options' class skills (ticket 37, the user's decision on ticket 34's first open
   question): the "Class Skill: …" features of the bloodlines, mysteries, domains and elements, and the cavalier
   orders' "Skills", became their rows' `class_skills`; the Empyreal and Sylvan Sorcerers' went (their own lists
@@ -363,17 +363,19 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   option row of the very selection a `feat_lists_only` option is held through is given in full (an expanded
   element's defensive talent), now or when the element comes later. Extra Wild Talent needs kineticist level 2.
 - Ticket 47 (the user's decisions on ticket 45's questions, 2026-11-02): the Skill Focus
-  wild talent and rogue talent are `repeat: PerValue`, once for each value of their chosen feat (an option is
-  `PerValue` only with a `chosen_feat`): Skill Focus in another skill each time. The rogue talent Weapon Focus stays
-  once. Combat Trick ("Any combat feat that the character qualifies for") is `repeat: Unlimited` with a row 1 of
+  wild talent and rogue talent are taken once for each value of their chosen feat (since ticket 303,
+  `is_selection: true` with a `chosen_feat`): Skill Focus in another skill each time. The rogue talent Weapon Focus
+  stayed once (ticket 249 made it once per weapon). Combat Trick ("Any combat feat that the character qualifies for")
+  repeats (since ticket 303, `is_selection: true`: while a Combat feat is left) with a row 1 of
   `feat_slots: [CombatFeat]`, a bonus Combat feat slot each time it's taken, its feat's prerequisites checked; the
   selections offering it are levelled by their class (`option_levels: ["rogue"]` on the rogue talents, Fey Tricks
   and Discovery; the slayer's talents by the slayer already). An `OptionList` slot may carry its own `label`: the
   bonus-feat wild talent's reads "Wild talent feat" (`OptionList(selection: "kineticist/element", label: "Wild
   talent feat")`).
 - Ticket 49 (ticket 45's decision 2, user, 2026-11-02): a feat whose guide entry says "gain
-  one additional …" names the selections its "Prerequisites" names in `extra_pick_of` (`extra-hex`: `["shaman/hex",
-  "witch/hex"]`), and each pick of it gives one more slot of the one the character had a slot of first, at the
+  one additional …" names the selection it grants in `selection`, whose `needs_slot_of` names the selections its
+  "Prerequisites" names (ticket 302; `witch/extra-hex`: `shaman/hex`, `witch/hex`), and each pick of it gives one
+  more slot of the one the character had a slot of first, at the
   level it's taken (a `FeatSelection` slot); a character who had a slot of none gets none. Eight feats: Extra
   Arcana, Extra Arcanist Exploit, Extra Discovery (the alchemist's and the Underground Chemist's), Extra Hex, Extra
   Rage Power, Extra Rogue Talent (the rogue's and the Sylvan Trickster's Fey Tricks), Extra Slayer Talent and Extra
@@ -383,7 +385,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   "Mercy" feature is the selection `paladin/mercy` on the rows that held it (each archetype's where its table has
   "Mercy": the Divine Hunter's 3, 9, 12, 15, the Stonelord's 6, 12, 18), with the guide's 15 mercies, each needing
   `ClassLevel(paladin, its level)` and the mercy its table names (Exhausted: Fatigued). Extra Mercy needs a mercy held
-  (an `Any` of the 15) and has `extra_pick_of: ["paladin/mercy"]`. The Arcane Enforcer's "Arcanist Exploits" feature
+  (an `Any` of the 15) and grants `paladin/extra-mercy`, which needs a slot of `paladin/mercy` (ticket 302). The Arcane Enforcer's "Arcanist Exploits" feature
   is a slot of the arcanist's own `arcanist/arcanist-exploits` at its rows 1, 4, 7, 10, 13, 16 and 19 (the guide gives
   it no list of its own; a row may hold another class's selection, as a bloodrager's rage powers), so an exploit is
   taken once across both classes and Extra Arcanist Exploit's pick reaches it; Extra Arcanist Exploit's `Any` no
@@ -446,12 +448,14 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   - the hunter's Precise Companion (2, all but the Forester), the Urban Hunter's Captor (6, 9, 12, 15, 18) and the
     Stormwalker's Archery (2, 6, 10, 14, 18) were slots of their lists already (ticket 18); the features beside them
     went.
-- Ticket 55 (ticket 49's decision 4, user, 2026-11-02): a mythic feat's `extra_pick`
+- Ticket 55 (ticket 49's decision 4, user, 2026-11-02): the `selection` a mythic feat grants (ticket 302's form)
   is the slot a pick of it gives at the Mythic rank it's taken, after the rank's general pick (a `MythicExtra`
-  slot): `Feat`, a feat slot offering what the general slot does (`extra-feat`: "You can select any normal feat"),
-  or `MythicAbility`, a mythic ability slot offering what a rank's general pick does (`extra-mythic-ability`). Both
-  are taken once: their entries don't say otherwise. A mythic ability in that slot grants its `selections` as the
-  general pick's would (Second Bloodline), and a feat with an `extra_pick_of` gives its slot at the rank's level.
+  slot): `feats`, a feat slot offering what the general slot does (`extra-feat`: "You can select any normal feat"),
+  or `mythic/extra-mythic-ability`, a mythic ability slot offering what a rank's general pick does
+  (`extra-mythic-ability`). Both were taken once (their entries don't say otherwise) until ticket 303, which takes
+  the game's: each is a selection, taken again while it has an option left. A mythic ability in that slot grants
+  its `selection` as the general pick's would (Second Bloodline), and a feat granting a `selection` gives its slot
+  at the rank's level.
 - Ticket 62 (ticket 55's decisions 1 and 2, user, 2026-11-02): two more mythic
   abilities grant a selection slot through `selections`, as Second Spirit and Second Mystery do. Witch Wandering Hex
   ("You can select any hex for which you meet the prerequisites") gives one slot of `witch/hex`, each hex's own
@@ -513,12 +517,13 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   any teamwork feat") is the same slot, so its six cells are slots of its own selection,
   `skald/battle-scion/rage-power-or-teamwork-feat` ("Rage Power or Teamwork Feat"): every `barbarian/rage-power`
   option in `shared_options` (a test compares the lists, so a new rage power must join it), one option of its own,
-  `.../teamwork-feat` ("Teamwork Feat", `repeat: Unlimited`, a level-1 row `feat_slots: [Category(Teamwork)]`, as
+  `.../teamwork-feat` ("Teamwork Feat", repeating: since ticket 303 `is_selection: true`, while a teamwork feat is
+  left; a level-1 row `feat_slots: [Category(Teamwork)]`, as
   Combat Trick gives a Combat feat) and `option_levels: ["skald"]`. It is a selection of its own, not an option of
   `barbarian/rage-power`, because `Archetype` looks at the whole Build: such an option would give a Battle Scion with
   barbarian levels a teamwork feat from a barbarian's, a Primalist's or an Extra Rage Power slot, which the guide
   doesn't give, and an `option_levels` on the barbarian's selection would add a state entry for every rage power held.
-  `barbarian/rage-power` is as before but for the 14 gates. Extra Rage Power's `extra_pick_of` names both selections
+  `barbarian/rage-power` is as before but for the 14 gates. Extra Rage Power's selection needs a slot of both
   (a Battle Scion's extra slot is one of its own); its prerequisite doesn't name the Teamwork Feat (a teamwork feat is
   no rage power). A rage power is taken once across a barbarian's slots and the Battle Scion's (the shared key). The
   Battle Scion keeps its Battle Prowess feature on its six rows; its rogue talents stay at index 0 at 12, its own
@@ -739,16 +744,27 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   in armour, or a prerequisite names it).
 
 - A feat the guide says to take for something names what: `parameter: Weapon` (also `ExoticWeapon`, `Skill`,
-  `SpellSchool`, `Energy`, `ArmourType`), and each pick of it names a value. How often a feat can be taken is
-  `repeat:`, left out for once: `PerValue` (once per value: every parameterised feat, by the user's decision),
-  `Times(3)` ("up to 3 times"), `Unlimited` ("may be taken multiple times"). A feat whose blueprint sets
+  `SpellSchool`, `Energy`, `ArmourType`), and each pick of it names a value. How often a feat can be taken is no
+  field (ticket 303): `rules` derives it from the header the data holds, as the game's
+  `BlueprintFeatureSelection.CanSelect` does (`Repeat::derive`). A feat that takes a value or grants a `selection`
+  is a selection in the game: once per value when it takes one; else while its selection has an option left, once
+  when its prerequisite holds a `HasNot` of itself (the game's own `PrerequisiteNoFeature`: Second Bloodline), up to
+  `n` times with a `Not(FactRank(<itself>, n))` (the game's own `PrerequisiteCondition`: Extra Hex at 3). Any other
+  feat stops at its blueprint's `Ranks`, `ranks:`, left out for 1 (Extra Rage: `ranks: 10`). A mythic ability's
+  `plain_feature: true` says its `selection` is the planner's way to give a plain feature's pick (Witch Wandering Hex),
+  so it is taken by its `ranks`. A feat whose blueprint sets
   `RequireProficiency` says `requires_proficiency: true` (ticket 251: Weapon Focus, Weapon Specialization, Improved
   Critical, their greater and the Trickster's forms): it's taken only for a weapon the character is proficient with,
   in every slot, whatever the slot's list ignores (`BlueprintParametrizedFeature.CanSelect`). A mythic feat takes
-  `parameter`, `repeat` and `requires_proficiency` the same way (Improved Critical (Mythic): a weapon the character
+  `parameter`, `ranks` and `requires_proficiency` the same way (Improved Critical (Mythic): a weapon the character
   is proficient with, once per weapon), and `removes_racial_penalty: true`
-  (Destiny Beyond Birth) gives back the race's ability penalties while it's held. A selection option may repeat too
-  (`repeat: Times(3)`; `PerValue` only when it takes a value, of its chosen feat or its own), and one that is a
+  (Destiny Beyond Birth) gives back the race's ability penalties while it's held. A selection option repeats by its
+  `ranks` too (Increased Damage Reduction: 3), unless `is_selection: true` says its blueprint is a selection or a
+  parametrised feature: then once per value when it takes one (of its chosen feat or its own: the Skill Focus
+  talents, Finesse Training), else while the one selection its lone level-1 row grants has an option left (Combat
+  Trick). The options the planner takes as rows of their own (Maneuver Mastery, Life-Bonding Friendship, the
+  Loremaster's secrets) are 293's, as is an option merging several blueprints (`ranks` the planner's: the elements'
+  2, the Primalist's rage powers' 5, known to the game check). One that is a
   parameterised feat of the player's choosing names it as `chosen_feat: "weapon-focus"` (its pick names the
   value); a parameterised feat in an option's `feats` or a row's `feats` is held for every value (All-skilled:
   Exotic Weapon Proficiency in every exotic weapon).
@@ -758,7 +774,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Reflex, Will, speed) and `Element` (Ascendant Element's: acid, cold, electricity, fire, sonic, negative energy). A
   mythic ability takes `parameter` too, and is held once whatever its value (the guide says nothing of taking it
   again): Favorite Metamagic `parameter: Metamagic`, Ascendant Element `parameter: Element`. Stat Focus is
-  `parameter: Stat, repeat: PerValue` (every parameterised feat, by the user's decision). A pick of these three kinds
+  `parameter: Stat`, once per value as every parameterised feat. A pick of these three kinds
   may leave its value open, so a link made before they took one still opens, with the value to choose.
 - Ticket 125's audit: every feat, mythic ability, mythic feat and option whose summary says "chosen", "choose",
   "choice" or "pick" has its pick (a parameter, a selection, a chosen feat, rows with slots or selections, an

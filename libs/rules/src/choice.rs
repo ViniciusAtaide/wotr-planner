@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 use crate::build::{GearSpot, Pick, SlotId};
 use crate::engine::SlotKind;
 use crate::game_data::{Ability, DeityDomains};
-use crate::keys::{ClassKey, DeityKey, MythicPathKey, SkillKey, WeaponKey};
+use crate::keys::{ClassKey, DeityKey, FeatureSelectionKey, MythicPathKey, SkillKey, WeaponKey};
 use crate::prerequisite::Prerequisite;
 
 /// Where a choice sits in a Build: what [`Engine::removable`](crate::Engine::removable) answers for, and where a
@@ -79,6 +79,10 @@ pub enum Issue {
     AlreadyHeld,
     /// Already taken as many times as it can be (Extra Hex: 3).
     MaxTimes { times: u8 },
+    /// A selection with nothing left to pick (ticket 303): every option of the selection it grants is held as often
+    /// as that option can be, so the game refuses it (`NestedFeatureSelectionUtils.AllNestedFeaturesUnavailable`,
+    /// WrathDecompiled 6ce4a6b). The planner counts what is held, not the options' prerequisites.
+    NoOptionLeft(FeatureSelectionKey),
     /// Not taken here: a feat outside its slot's list, an option outside its selection, an item of another kind
     /// than the slot takes, or a value of the wrong kind (or none where one is needed). No picker shows it, since a
     /// picker offers only what its slot takes; it's how a walk finds a pick that an earlier change left in the wrong

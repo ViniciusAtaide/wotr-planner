@@ -110,6 +110,9 @@ pub struct CharacterState {
     /// release of a valued pick leaves the ability held while one of these stays.
     pub mythic_ability_open_holds: BTreeMap<MythicAbilityKey, u8>,
     pub mythic_feats: BTreeSet<MythicFeatKey>,
+    /// How many picks hold each mythic feat held (Extra Feat taken at two ranks: 2; ticket 303), so a release leaves
+    /// it held while another pick holds it.
+    pub mythic_feat_holds: BTreeMap<MythicFeatKey, u8>,
     /// Each parameterised mythic feat held, with the values it's held for (Improved Critical (Mythic): Longsword).
     pub mythic_feat_values: BTreeMap<MythicFeatKey, BTreeSet<Parameter>>,
     /// While an entry held raises the BAB to at least this plus the Mythic rank
@@ -203,6 +206,26 @@ impl CharacterState {
         self.mythic_ability_values
             .get(ability)
             .is_some_and(|values| values.contains(value))
+    }
+
+    /// How many picks hold a mythic ability: one for each value it's held for, and each pick without one; 0 when it
+    /// isn't held.
+    pub fn mythic_ability_count(&self, ability: &MythicAbilityKey) -> u8 {
+        let values = self
+            .mythic_ability_values
+            .get(ability)
+            .map_or(0, BTreeSet::len);
+        let open = self
+            .mythic_ability_open_holds
+            .get(ability)
+            .copied()
+            .unwrap_or(0);
+        u8::try_from(values).unwrap_or(u8::MAX).saturating_add(open)
+    }
+
+    /// How many picks hold a mythic feat; 0 when none.
+    pub fn mythic_feat_count(&self, feat: &MythicFeatKey) -> u8 {
+        self.mythic_feat_holds.get(feat).copied().unwrap_or(0)
     }
 
     /// Whether a parameterised mythic feat is held for a value.
@@ -465,6 +488,7 @@ impl CharacterState {
                     .any(|c| c.archetype.as_ref() == Some(archetype)),
             ),
             P::Feature { feature, count } => numeric(self.feature_count(feature), *count),
+            P::Rank { fact, rank } => numeric(fact.rank(self), *rank),
             P::SelectionOption(option) => flag(self.selection_options.contains_key(option)),
             P::Selection(selection) => flag(self.selections.contains_key(selection)),
             P::NoOptionFrom(selection) => flag(!self.holds_option_of(selection)),

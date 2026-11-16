@@ -63,6 +63,14 @@ pub fn selection_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Fe
         .unwrap()
 }
 
+/// A mythic feat of the data, to change for a test.
+pub fn mythic_feat_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::MythicFeat {
+    data.mythic_feats
+        .iter_mut()
+        .find(|f| f.key.as_str() == key)
+        .unwrap()
+}
+
 /// A feature of the data, to change for a test.
 pub fn feature_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Feature {
     data.features

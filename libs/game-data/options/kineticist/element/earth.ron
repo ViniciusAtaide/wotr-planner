@@ -2,9 +2,9 @@
     key: "kineticist/element/earth",
     blueprint: "c6816ad80a3df9c4ea7d3b012b06bacd",
     name: "Elemental Focus - Earth",
+    ranks: 2,
     summary: "Earth: Athletics and Knowledge (World) as class skills, toughness and trip bonus feats, and the Flesh of Stone defense.",
     guide: "kineticist#elemental-focus-earth",
-    repeat: Times(2),
     levels: [
         (level: 1, feat_list: "kineticist/element/earth/wild-talent-feats", class_skills: ["athletics", "knowledge-world"]),
         (level: 2, features: ["kineticist/element/earth/flesh-of-stone"]),

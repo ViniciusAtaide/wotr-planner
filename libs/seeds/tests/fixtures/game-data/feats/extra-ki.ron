@@ -3,5 +3,5 @@
     name: "Extra Ki",
     category: Class,
     guide: "feats#extra-ki",
-    repeat: Unlimited,
+    ranks: 20,
 )

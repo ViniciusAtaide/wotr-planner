@@ -2,9 +2,9 @@
     key: "rogue/rogue-talents/combat-trick",
     blueprint: "c5158a6622d0b694a99efb1d0025d2c1",
     name: "Combat Trick",
+    is_selection: true,
     summary: "A bonus combat feat you qualify for.",
     guide: "rogue#combat-trick",
-    repeat: Unlimited,
     levels: [
         (level: 1, selections: ["combat-feats"]),
     ],

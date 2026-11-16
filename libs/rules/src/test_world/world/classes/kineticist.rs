@@ -33,7 +33,7 @@ pub(in crate::test_world::world) fn kineticist() -> Class {
         })
         .collect();
     let element_option = |key: &str| SelectionOption {
-        repeat: Repeat::Times(2),
+        ranks: 2,
         levels: vec![OptionLevelRow {
             level: 2,
             features: vec![feature(&format!("{key}/defense"))],

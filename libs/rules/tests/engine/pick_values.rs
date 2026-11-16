@@ -6,8 +6,8 @@ use std::collections::BTreeSet;
 
 use rules::{
     Build, DataIssue, Edit, Element, Engine, Feat, FeatCategory, GameData, Issue, MythicAbility,
-    MythicAbilityGroup, MythicAbilityKey, Parameter, ParameterKind, Pick, Prerequisite, Repeat,
-    SlotId, SlotOption, Stat, encode_build,
+    MythicAbilityGroup, MythicAbilityKey, Parameter, ParameterKind, Pick, Prerequisite, SlotId,
+    SlotOption, Stat, encode_build,
 };
 
 use crate::support::*;
@@ -29,7 +29,7 @@ fn world_with_pick_values() -> GameData {
         summary: String::new(),
         guide: Some(rules::GuideRef(format!("feats#{key}"))),
         parameter: None,
-        repeat: Repeat::Once,
+        ranks: 1,
         selection: None,
         aliases: BTreeSet::new(),
         requires_proficiency: false,
@@ -62,8 +62,9 @@ fn world_with_pick_values() -> GameData {
         prerequisite: None,
         features: vec![],
         selection: None,
+        plain_feature: false,
         parameter: Some(parameter),
-        repeat: Repeat::PerValue,
+        ranks: 1,
     };
     data.mythic_abilities.push(ability(
         FAVORITE_METAMAGIC,

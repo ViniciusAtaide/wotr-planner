@@ -18,8 +18,9 @@ pub(super) fn mythic_abilities() -> Vec<MythicAbility> {
         prerequisite,
         features: vec![],
         selection: None,
+        plain_feature: false,
         parameter: None,
-        repeat: Repeat::Once,
+        ranks: 1,
     };
     vec![
         ability("mythic-charge", None),
@@ -83,7 +84,7 @@ pub(super) fn mythic_feats() -> Vec<MythicFeat> {
         summary: String::new(),
         guide: guide(key),
         parameter: None,
-        repeat: Repeat::Once,
+        ranks: 1,
         removes_racial_penalty: false,
         selection: None,
         requires_proficiency: false,
@@ -108,7 +109,6 @@ pub(super) fn mythic_feats() -> Vec<MythicFeat> {
         // "Select a school in which you have taken a Spell Focus."
         MythicFeat {
             parameter: Some(ParameterKind::SpellSchool),
-            repeat: Repeat::PerValue,
             ..mythic_feat(
                 "spell-focus-mythic",
                 Some(Prerequisite::FeatForSameValue(feat("spell-focus"))),
@@ -117,7 +117,6 @@ pub(super) fn mythic_feats() -> Vec<MythicFeat> {
         // "Select one school of magic": no prerequisite.
         MythicFeat {
             parameter: Some(ParameterKind::SpellSchool),
-            repeat: Repeat::PerValue,
             ..mythic_feat("school-mastery", None)
         },
         MythicFeat {

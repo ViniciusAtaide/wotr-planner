@@ -2,9 +2,9 @@
     key: "kineticist/element/water",
     blueprint: "7ab8947ce2e19c44a9edcf5fd1466686",
     name: "Elemental Focus - Water",
+    ranks: 2,
     summary: "Water: Athletics and Lore (Nature) as class skills, blind-fight and bull rush bonus feats, and the Shroud of Water defense.",
     guide: "kineticist#elemental-focus-water",
-    repeat: Times(2),
     levels: [
         (level: 1, feat_list: "kineticist/element/water/wild-talent-feats", class_skills: ["athletics", "lore-nature"]),
         (level: 2, features: ["kineticist/element/water/shroud-of-water"]),

@@ -34,6 +34,18 @@ option lists / * / selection magic-feats -> 293
 option lists / * / selection teamwork-feats -> 293
 option lists / * / selection mounted-combat-feats -> 293
 option lists / * / selection gold-dragon/dragon-feats -> 293
+# From 303 (repeats from the header, decision Q3): entries holding several of the game's blueprints, whose `ranks`, or
+# Beneficial Curse's once, is the planner's: Magical Tail's eight (MagicalTail1 and its copies), the Primalist's rage
+# powers at five levels (PrimalistTakeRagePowers4 and its copies), an element's two foci (ElementalFocusAir, offered
+# again by SecondatyElementalFocusSelection), and Beneficial Curse's one pick, over the oracle's curses rather than the
+# game's nine NoPenalty progressions.
+mapping / ranks differ / feat magical-tail -> 293
+mapping / ranks differ / selection option bloodrager/primalist/primal-choices/rage-powers -> 293
+mapping / ranks differ / selection option kineticist/element/air -> 293
+mapping / ranks differ / selection option kineticist/element/earth -> 293
+mapping / ranks differ / selection option kineticist/element/fire -> 293
+mapping / ranks differ / selection option kineticist/element/water -> 293
+prerequisites / not in game / mythic ability beneficial-curse -> 293
 option lists / in game only / pool general feats / AdvancedWeaponTraining2 -> 293
 option lists / in game only / pool general feats / AdvancedWeaponTraining3 -> 293
 option lists / in game only / pool general feats / AdvancedWeaponTraining4 -> 293

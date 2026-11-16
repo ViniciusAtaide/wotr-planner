@@ -1,1 +1,1 @@
-(key: "rogue/rogue-talents/familiar", blueprint: "363cab72f77c47745bf3a8807074d183", name: "Familiar", summary: "Gains a familiar, as a Wizard's arcane bond.", guide: "rogue#familiar", components: [Requires(condition: Has(Feature("advanced-talents")))])
+(key: "rogue/rogue-talents/familiar", blueprint: "363cab72f77c47745bf3a8807074d183", name: "Familiar", summary: "Gains a familiar, as a Wizard's arcane bond.", guide: "rogue#familiar", components: [Requires(condition: Has(Feature("advanced-talents"))), Requires(condition: HasNot(Option("rogue/rogue-talents/familiar")))])

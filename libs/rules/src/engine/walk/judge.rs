@@ -8,7 +8,7 @@ use crate::engine::SlotKind;
 use crate::engine::catalog::Catalog;
 use crate::engine::slots::lists_feat;
 use crate::game_data::{Class, DeityDomains, FeatureSelection, SelectionOption};
-use crate::keys::{ArchetypeKey, FeatKey};
+use crate::keys::{ArchetypeKey, FeatKey, FeatureSelectionKey};
 use crate::parameter::{Parameter, Repeat};
 use crate::prerequisite::Prerequisite;
 use crate::state::CharacterState;
@@ -51,7 +51,9 @@ pub(super) fn check_pick_with(
             {
                 return Err(Issue::NotAllowed);
             }
-            check_repeat(state, key, feat.repeat, value)?;
+            let held_for = value.is_some_and(|value| state.has_feat_for(key, value));
+            check_repeat(feat.repeat(), state.feat_count(key), held_for)?;
+            check_option_left(catalog, state, feat.selection.as_ref())?;
             if feat.requires_proficiency && !skips_proficiency(lists, key) {
                 check_proficiency(catalog, start, state, value)?;
             }
@@ -83,28 +85,15 @@ pub(super) fn check_pick_with(
             if !catalog.value_fits(catalog.option_parameter(option), value) || !listed {
                 return Err(Issue::NotAllowed);
             }
-            match option.repeat {
-                Repeat::Times(times) if state.option_count(key) >= times => {
-                    return Err(Issue::MaxTimes { times });
-                }
-                Repeat::Once if state.option_count(key) > 0 => {
-                    return Err(Issue::AlreadyHeld);
-                }
-                // Once for each value of its chosen feat (the Skill Focus talents: once per skill), so not for one
-                // the feat is held for; or of its own (Finesse Training: once per weapon), so not for one it's held
-                // for.
-                Repeat::PerValue => {
-                    let held = match (&option.chosen_feat, value) {
-                        (Some(feat), Some(value)) => state.has_feat_for(feat, value),
-                        (None, Some(value)) => state.has_option_for(key, value),
-                        _ => state.option_count(key) > 0,
-                    };
-                    if held {
-                        return Err(Issue::AlreadyHeld);
-                    }
-                }
-                _ => {}
-            }
+            // Once for each value of its chosen feat (the Skill Focus talents: once per skill), so not for one the feat
+            // is held for; or of its own (Finesse Training: once per weapon), so not for one it's held for.
+            let count = state.option_count(key);
+            let held_for = value.map_or(count > 0, |value| match &option.chosen_feat {
+                Some(feat) => state.has_feat_for(feat, value),
+                None => state.has_option_for(key, value),
+            });
+            check_repeat(option.repeat(), count, held_for)?;
+            check_option_left(catalog, state, option.nested_selection())?;
             // Once through this selection, however often the option repeats (Expanded Element).
             if through.once_per_option && state.holds_through(selection, key) {
                 return Err(Issue::AlreadyHeld);
@@ -113,7 +102,8 @@ pub(super) fn check_pick_with(
             if let Some(feat) = option.chosen_feat.as_ref()
                 && let Some(chosen) = catalog.feat(feat)
             {
-                check_repeat(state, feat, chosen.repeat, value)?;
+                let held_for = value.is_some_and(|value| state.has_feat_for(feat, value));
+                check_repeat(chosen.repeat(), state.feat_count(feat), held_for)?;
                 if chosen.requires_proficiency {
                     check_proficiency(catalog, start, state, value)?;
                 }
@@ -130,13 +120,11 @@ pub(super) fn check_pick_with(
             {
                 return Err(Issue::NotAllowed);
             }
-            let held = match (ability.repeat, value) {
-                (Repeat::PerValue, Some(value)) => state.has_mythic_ability_for(key, value),
-                _ => state.mythic_abilities.contains(key),
-            };
-            if held {
-                return Err(Issue::AlreadyHeld);
-            }
+            let count = state.mythic_ability_count(key);
+            let held_for =
+                value.map_or(count > 0, |value| state.has_mythic_ability_for(key, value));
+            check_repeat(ability.repeat(), count, held_for)?;
+            check_option_left(catalog, state, ability.selection.as_ref())?;
             ability.prerequisite.as_ref()
         }
         (_, Pick::MythicFeat { feat: key, .. }) => {
@@ -144,13 +132,10 @@ pub(super) fn check_pick_with(
             if kind != &SlotKind::MythicFeat || !catalog.value_fits(feat.parameter, value) {
                 return Err(Issue::NotAllowed);
             }
-            let held = match (feat.repeat, value) {
-                (Repeat::PerValue, Some(value)) => state.has_mythic_feat_for(key, value),
-                _ => state.mythic_feats.contains(key),
-            };
-            if held {
-                return Err(Issue::AlreadyHeld);
-            }
+            let count = state.mythic_feat_count(key);
+            let held_for = value.map_or(count > 0, |value| state.has_mythic_feat_for(key, value));
+            check_repeat(feat.repeat(), count, held_for)?;
+            check_option_left(catalog, state, feat.selection.as_ref())?;
             if feat.requires_proficiency {
                 check_proficiency(catalog, start, state, value)?;
             }
@@ -231,28 +216,35 @@ fn check_proficiency(
     Ok(())
 }
 
-/// Whether a feat can be held once more, for `value`: once at all, once per value, or up to its number of times.
-fn check_repeat(
-    state: &CharacterState,
-    feat: &FeatKey,
-    repeat: Repeat,
-    value: Option<&Parameter>,
-) -> Result<(), Issue> {
+/// Whether an entry held `count` times can be held once more by its [`Repeat`]: once at all, up to its number of
+/// times, once per value (`held_for`: whether it's held for the pick's value, as the caller counts a pick naming none,
+/// an older link's open value), or while its selection has an option left ([`check_option_left`]).
+fn check_repeat(repeat: Repeat, count: u8, held_for: bool) -> Result<(), Issue> {
     let held = match repeat {
-        Repeat::Once => state.feat_count(feat) > 0,
-        Repeat::PerValue => value.is_some_and(|value| state.has_feat_for(feat, value)),
-        Repeat::Times(times) => {
-            if state.feat_count(feat) >= times {
-                return Err(Issue::MaxTimes { times });
-            }
-            false
-        }
-        Repeat::Unlimited => false,
+        Repeat::Once => count > 0,
+        Repeat::Times(times) if count >= times => return Err(Issue::MaxTimes { times }),
+        Repeat::PerValue => held_for,
+        Repeat::Times(_) | Repeat::WhileOptionLeft => false,
     };
     if held {
         Err(Issue::AlreadyHeld)
     } else {
         Ok(())
+    }
+}
+
+/// Whether the selection a pick grants (`nested`) has an option left for a character in `state`
+/// ([`Catalog::has_option_left`]): the game refuses a selection with none (ticket 303).
+fn check_option_left(
+    catalog: &Catalog,
+    state: &CharacterState,
+    nested: Option<&FeatureSelectionKey>,
+) -> Result<(), Issue> {
+    match nested {
+        Some(selection) if !catalog.has_option_left(selection, state) => {
+            Err(Issue::NoOptionLeft(selection.clone()))
+        }
+        _ => Ok(()),
     }
 }
 

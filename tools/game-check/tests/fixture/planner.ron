@@ -25,15 +25,21 @@
         // Agrees: the game's full-value Strength and BAB; its full-value Mobility isn't compared.
         (key: "full-grip", blueprint: "000000000000000000000000000000a6", name: "Full Grip", category: Weapon, guide: "feats#full-grip", prerequisite: All([AbilityScore(ability: Strength, score: 13), BaseAttackBonus(4)])),
         // One feat taken for a skill, where the game has a feature per skill.
-        (key: "skill-focus", blueprint: "000000000000000000000000000000a7", name: "Skill Focus", category: Skill, guide: "feats#skill-focus", parameter: Skill, repeat: PerValue),
+        (key: "skill-focus", blueprint: "000000000000000000000000000000a7", name: "Skill Focus", category: Skill, guide: "feats#skill-focus", parameter: Skill),
         // Agrees: the game asks for its Stealth feature.
         (key: "sneaky", blueprint: "000000000000000000000000000000ab", name: "Sneaky", category: Skill, guide: "feats#sneaky", prerequisite: FeatFor(feat: "skill-focus", value: Skill("stealth"))),
         // Agrees: the game's pet-only leaves (a pet's class levels and features no Build has) are no prerequisite for a Build.
         (key: "pet-wise", blueprint: "00000000000000000000000000000301", name: "Pet Wise", category: Weapon, guide: "feats#pet-wise", prerequisite: Feat("steady-hand")),
         // Planted: the game's NoFeature of Keen Eye is no pet-only leaf, so it stays a difference.
         (key: "plain-bar", blueprint: "00000000000000000000000000000302", name: "Plain Bar", category: Weapon, guide: "feats#plain-bar"),
+        // Selections the game takes once by their own NoFeature (ticket 303): planted, one without it; one agrees.
+        (key: "lone-pick", blueprint: "0000000000000000000000000000031a", name: "Lone Pick", category: Weapon, guide: "feats#lone-pick", selection: "warden/trick"),
+        (key: "kept-pick", blueprint: "0000000000000000000000000000031b", name: "Kept Pick", category: Weapon, guide: "feats#kept-pick", selection: "warden/trick", prerequisite: Not(Feat("kept-pick"))),
+        // A feat of 3 ranks (ticket 303); agrees. Planted: 2 ranks of a blueprint of 1.
+        (key: "thrice", blueprint: "0000000000000000000000000000031c", name: "Thrice", category: Weapon, guide: "feats#thrice", ranks: 3),
+        (key: "twice", blueprint: "0000000000000000000000000000031d", name: "Twice", category: Weapon, guide: "feats#twice", ranks: 2),
         // A feat taken for a value, and a feat that asks for the same value of it; agrees.
-        (key: "focus-kind", blueprint: "00000000000000000000000000000303", name: "Focus Kind", category: Weapon, guide: "feats#focus-kind", parameter: Skill, repeat: PerValue),
+        (key: "focus-kind", blueprint: "00000000000000000000000000000303", name: "Focus Kind", category: Weapon, guide: "feats#focus-kind", parameter: Skill),
         (key: "mastery", blueprint: "00000000000000000000000000000304", name: "Mastery", category: Weapon, guide: "feats#mastery", prerequisite: FeatForSameValue("focus-kind")),
         // A selection of two features, and a feat the game gives either of; agrees.
         (key: "element-kind", blueprint: "00000000000000000000000000000305", name: "Element Kind", category: Weapon, guide: "feats#element-kind"),

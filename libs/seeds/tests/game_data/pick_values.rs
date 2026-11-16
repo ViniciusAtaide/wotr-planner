@@ -189,7 +189,11 @@ fn ascendant_element_is_taken_again_for_another_element_but_not_the_same() {
         )
     };
     for key in ["ascendant-element", FAVORITE_METAMAGIC] {
-        assert_eq!(mythic_ability(key).repeat, rules::Repeat::PerValue, "{key}");
+        assert_eq!(
+            mythic_ability(key).repeat(),
+            rules::Repeat::PerValue,
+            "{key}"
+        );
     }
     let mr_3 = SlotId::Mythic { rank: 3 };
     let mut build = mythic("trickster", 20);

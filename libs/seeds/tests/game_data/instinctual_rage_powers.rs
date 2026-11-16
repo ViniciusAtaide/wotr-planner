@@ -120,7 +120,7 @@ fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
             "barbarian#rage-power-instinctual-warrior"
         );
         // Game: each row's blueprint in MONK_RAGE_POWERS: Ranks 1.
-        assert_eq!(option.repeat, Repeat::Once, "{name}");
+        assert_eq!(option.repeat(), Repeat::Once, "{name}");
         // Game: each row's blueprint (the rows of WAITING are
         // `the_instinctual_warriors_monk_powers_need_the_levels_and_dex_their_blueprints_name`'s).
         if WAITING.contains(&key) {

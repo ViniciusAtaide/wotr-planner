@@ -2,9 +2,9 @@
     key: "kineticist/element/fire",
     blueprint: "3d8d3d6678b901444a07984294a1bc24",
     name: "Elemental Focus - Fire",
+    ranks: 2,
     summary: "Fire: Lore (Nature) as a class skill, intimidation and will bonus feats, and the Searing Flesh defense.",
     guide: "kineticist#elemental-focus-fire",
-    repeat: Times(2),
     levels: [
         (level: 1, feat_list: "kineticist/element/fire/wild-talent-feats", class_skills: ["lore-nature"]),
         (level: 2, features: ["kineticist/element/fire/searing-flesh"]),
