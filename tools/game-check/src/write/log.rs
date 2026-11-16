@@ -1,6 +1,6 @@
 //! The change log (importer design §1.2, point 6): one tab-separated row per changed field, the review's input.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use super::Change;
 use crate::Report;
@@ -9,8 +9,14 @@ use crate::Report;
 /// field order.
 ///
 /// A finding removed is a group of the report (`area / kind`) that named the entry before the write and no longer
-/// does after it; `-` for none. `fact` is `-` until the registry of the user's facts (293e) fills it.
-pub fn tsv(changes: &[Change], before: &Report, after: &Report) -> String {
+/// does after it; `-` for none. That is read per (`area / kind`, entry): a finding whose text changed, or one of two in
+/// the same group, shows `-`. `fact` is `applied <ticket>` when the registry of the user's facts has the change applied, else `-`.
+pub fn tsv(
+    changes: &[Change],
+    facts: &BTreeMap<(String, &'static str), String>,
+    before: &Report,
+    after: &Report,
+) -> String {
     let (before, after) = (named(before), named(after));
     let mut sorted: Vec<&Change> = changes.iter().collect();
     sorted.sort_by_key(|change| (change.at.to_string(), change.field));
@@ -28,10 +34,13 @@ pub fn tsv(changes: &[Change], before: &Report, after: &Report) -> String {
             removed.join("; ")
         };
         out.push_str(&format!(
-            "{entry}\t{}\t{}\t{}\t{removed}\t-\n",
+            "{entry}\t{}\t{}\t{}\t{removed}\t{}\n",
             change.field,
             flat(&change.old),
-            flat(&change.new)
+            flat(&change.new),
+            facts
+                .get(&(entry.clone(), change.field))
+                .map_or("-", String::as_str)
         ));
     }
     out

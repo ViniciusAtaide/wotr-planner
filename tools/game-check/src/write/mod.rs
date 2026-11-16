@@ -12,6 +12,7 @@
 //! field the importer doesn't own, and a refused span before it writes anything; then it writes each file, reads it
 //! back, runs the caller's check of the whole folder, and on any failure puts every written file's bytes back.
 
+pub mod facts;
 pub mod items;
 pub mod log;
 pub mod span;
@@ -80,6 +81,8 @@ pub enum WriteError {
         file: PathBuf,
         error: io::Error,
     },
+    /// Lines of the registry of the user's facts that name an entry the data doesn't have.
+    StaleFacts(Vec<String>),
     /// The run failed (`cause`) and putting the files back failed too: these files are left as written.
     RestoreFailed {
         cause: Box<WriteError>,
@@ -113,6 +116,11 @@ impl fmt::Display for WriteError {
             ),
             WriteError::Invalid(why) => write!(f, "the written data fails its check: {why}"),
             WriteError::Io { file, error } => write!(f, "{}: {error}", file.display()),
+            WriteError::StaleFacts(lines) => write!(
+                f,
+                "user-facts.txt names entries the data doesn't have: {}",
+                lines.join("; ")
+            ),
             WriteError::RestoreFailed { cause, files } => {
                 let files: Vec<_> = files
                     .iter()
@@ -505,6 +513,13 @@ impl WriteArea {
         }
     }
 
+    /// The check's area, which the registry names it by.
+    pub fn area(self) -> crate::Area {
+        match self {
+            WriteArea::Items => crate::Area::Items,
+        }
+    }
+
     /// The `kind` of the changes this area plans (`Change::kind`).
     pub fn kind(self) -> &'static str {
         match self {
@@ -516,7 +531,12 @@ impl WriteArea {
 /// What `run` planned and wrote.
 #[derive(Debug)]
 pub struct Outcome {
+    /// The changes written, or planned with `dry_run`.
     pub changes: Vec<Change>,
+    /// The user's facts the registry holds: not written, and the findings stay.
+    pub to_the_user: Vec<Change>,
+    /// The ticket of each written change the registry has `applied`, by entry and field (the log's `fact` column).
+    pub facts: BTreeMap<(String, &'static str), String>,
     pub unexpressed: Vec<Unexpressed>,
     pub applied: Applied,
 }
@@ -529,10 +549,15 @@ pub fn run(
     dir: &Path,
     areas: &[WriteArea],
     dry_run: bool,
+    facts: &facts::Facts,
     validate: impl Fn(&Path) -> Result<(), String>,
 ) -> Result<Outcome, WriteError> {
     let data =
         seeds::read_game_data_files(dir).map_err(|error| WriteError::Invalid(error.to_string()))?;
+    let stale = facts.stale(&data);
+    if !stale.is_empty() {
+        return Err(WriteError::StaleFacts(stale));
+    }
     let planner = crate::planner::Planner::new(&data);
     let ctx = crate::areas::Ctx {
         dump,
@@ -540,11 +565,23 @@ pub fn run(
     };
     let mut changes = Vec::new();
     let mut unexpressed = Vec::new();
+    let mut to_the_user = Vec::new();
+    let mut applied_facts = BTreeMap::new();
     for area in areas {
         let (more, left) = match area {
             WriteArea::Items => items::changes(&ctx),
         };
-        changes.extend(more);
+        for change in more {
+            let entry = change.at.to_string();
+            match facts.decide(area.area(), change.kind, &entry) {
+                facts::Decision::Held => to_the_user.push(change),
+                facts::Decision::Applied(ticket) => {
+                    applied_facts.insert((entry, change.field), format!("applied {ticket}"));
+                    changes.push(change);
+                }
+                facts::Decision::Free => changes.push(change),
+            }
+        }
         unexpressed.extend(left);
     }
     let applied = if dry_run {
@@ -554,6 +591,8 @@ pub fn run(
     };
     Ok(Outcome {
         changes,
+        to_the_user,
+        facts: applied_facts,
         unexpressed,
         applied,
     })
