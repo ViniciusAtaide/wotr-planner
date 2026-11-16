@@ -156,3 +156,25 @@ pub fn assert_agrees(report: &Report, area: &str, entry: &str) {
         );
     }
 }
+
+/// A copy of the write fixture's data folder (`tests/fixture/data/`), for a test to write to.
+pub fn data_copy() -> tempfile::TempDir {
+    fn copy(from: &Path, to: &Path) {
+        std::fs::create_dir_all(to).unwrap();
+        for entry in std::fs::read_dir(from).unwrap() {
+            let entry = entry.unwrap();
+            let target = to.join(entry.file_name());
+            if entry.file_type().unwrap().is_dir() {
+                copy(&entry.path(), &target);
+            } else {
+                std::fs::copy(entry.path(), target).unwrap();
+            }
+        }
+    }
+    let dir = tempfile::tempdir().unwrap();
+    copy(
+        &Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixture/data"),
+        dir.path(),
+    );
+    dir
+}

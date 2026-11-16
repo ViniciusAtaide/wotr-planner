@@ -1,0 +1,13 @@
+// Planted: +3 in the game.
+(
+    key: "cloak-of-test",
+    blueprint: "00000000000000000000000000000102",
+    name: "Cloak of Test",
+    slot: Cloak,
+    always_on: [
+        "A +2 resistance bonus.",
+    ],
+    components: [
+        GearStat(stat: AllSaves, value: 2, descriptor: Resistance),
+    ],
+)

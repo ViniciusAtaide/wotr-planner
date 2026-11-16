@@ -1,0 +1,11 @@
+(
+    why: "No blueprint in the fixture's game.",
+    entry: (
+        key: "test-trinket",
+        name: "Test Trinket",
+        slot: Necklace,
+        components: [
+            GearStat(stat: Ability(Wisdom), value: 1, descriptor: Enhancement),
+        ],
+    ),
+)
