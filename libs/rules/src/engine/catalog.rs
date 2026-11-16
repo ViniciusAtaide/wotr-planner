@@ -6,12 +6,14 @@ use std::collections::BTreeSet;
 
 use rustc_hash::{FxHashMap, FxHashSet};
 
-use super::{EffectiveRow, canonical_archetype_row, class_row, effective_rows, merged_row};
+use super::{
+    EffectiveRow, SlotKind, canonical_archetype_row, class_row, effective_rows, merged_row,
+};
 use crate::bonus::BonusItemKind;
 use crate::build::{BuildStart, Pick};
 use crate::check::CheckedGameData;
 use crate::game_data::{
-    AbilityBonus, AbilityModifier, Archetype, BabFromRanks, Background, Class, Deity,
+    AbilityBonus, AbilityModifier, Archetype, BabFromRanks, Background, Band, Class, Deity,
     EXOTIC_WEAPON_PROFICIENCY, Feat, FeatCategory, FeatList, FeatureSelection, FeatureSteps,
     GameData, IMPROVED_UNARMED_STRIKE, MythicAbility, MythicFeat, MythicPath, OptionRow, Race,
     SelectionOption, Skill, Subrace, UNARMED_STRIKE, Weapon, WeaponProficiency,
@@ -333,6 +335,22 @@ impl Catalog {
 
     pub(super) fn selection(&self, key: &FeatureSelectionKey) -> Option<&FeatureSelection> {
         Some(self.indexes.selections.get(key)?.selection(&self.data))
+    }
+
+    /// The band a slot's pick comes in among its level-up's picks ([`Band`]): a selection's own; a mythic ability's
+    /// or feat's, [`Band::MythicAbility`]; a feat slot's, [`Band::Features`].
+    pub(super) fn band(&self, kind: &SlotKind) -> Band {
+        match kind {
+            SlotKind::Selection(key) => self.selection_band(key),
+            SlotKind::MythicAbility | SlotKind::MythicFeat => Band::MythicAbility,
+            SlotKind::Feat(_) => Band::Features,
+        }
+    }
+
+    /// A selection's band ([`FeatureSelection::band`]); [`Band::Features`] for one the data lacks.
+    pub(super) fn selection_band(&self, key: &FeatureSelectionKey) -> Band {
+        self.selection(key)
+            .map_or(Band::Features, |selection| selection.band)
     }
 
     /// The options that set the base attack bonus by skill ranks (Athletics III), with their rule.

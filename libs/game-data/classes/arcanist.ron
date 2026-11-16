@@ -171,6 +171,7 @@ Class(
                     key: "arcanist/magic-deceiver/domain",
                     blueprint: "e6d337e709b4478cb6e5389d3f85b601",
                     name: "Domain (Living Deity)",
+                    band: Path,
                     summary: "At 20th level, a Living Deity picks two domains and gains their abilities.",
                     guide: "arcanist#hollow-spark",
                     option_levels: ["arcanist"],

@@ -4,14 +4,14 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use super::judge::{Entry, class_entry};
-use super::{GrantSource, Held, Pending, Walker};
+use super::{Deferred, GrantSource, Held, Pending, Walker};
 use crate::build::{Build, FeatSource, LevelUp, SlotId};
 use crate::choice::{Choice, Issue};
 use crate::engine::catalog::Catalog;
 use crate::engine::{
     SkillPoints, Slot, SlotKind, advanced_spellcasting, class_level_cap, most_advanced,
 };
-use crate::game_data::{Ability, Class, CountsToward, FeatSlot, Save};
+use crate::game_data::{Ability, Band, Class, CountsToward, FeatSlot, Save};
 use crate::keys::{ClassKey, FeatKey, FeatureKey, FeatureSelectionKey};
 use crate::state::{CharacterState, ClassLevels};
 
@@ -411,12 +411,73 @@ impl<'a> Walker<'a> {
         true
     }
 
+    /// Fills a level's own slots and the slots its picks grant, band by band in the game's order ([`Band`]). Within a
+    /// band, a pick refused for an unmet prerequisite at its turn is tried again after the band's other picks and the
+    /// slots they grant, until no more holds: so it holds when some order of the band's picks holds it, each checked
+    /// with the ones before it, as the game applies the picks of one band in the order the player makes them
+    /// (`LevelUpController.AddAction`, WrathDecompiled 6ce4a6b). Never with itself, nor with a later band's pick, a
+    /// Mythic rank's or a later level's. A pick refused for what another pick of its band holds (a `Not`) is still
+    /// refused when that pick's slot comes first, though the game's player could take it first: trying every order
+    /// is left out. The slots come back in the level's slot order, then the granted ones in the order granted.
+    pub(super) fn fill_bands(
+        &mut self,
+        level: u8,
+        level_slots: Vec<(SlotKind, SlotId)>,
+    ) -> Vec<Slot> {
+        let engine = self.engine;
+        let mut queued: Vec<Option<(Band, SlotKind, SlotId)>> = (level_slots.into_iter())
+            .map(|(kind, id)| Some((engine.catalog.band(&kind), kind, id)))
+            .collect();
+        let mut own: Vec<(usize, Slot)> = Vec::with_capacity(queued.len());
+        let mut granted = Vec::new();
+        for band in Band::ALL {
+            self.deferred = Some(Vec::new());
+            for (index, queued) in queued.iter_mut().enumerate() {
+                if queued.as_ref().is_some_and(|(of, ..)| *of == band)
+                    && let Some((_, kind, id)) = queued.take()
+                {
+                    own.push((index, self.fill(id, kind, None)));
+                }
+            }
+            let deferred = loop {
+                granted.extend(self.fill_pending_up_to(level, band));
+                let mut deferred = self.deferred.take().unwrap_or_default();
+                let held = self.retry(&mut deferred);
+                if !held {
+                    break deferred;
+                }
+                self.deferred = Some(deferred);
+            };
+            if let Some(later) = &self.probed.later
+                && self.probed.closure.is_none()
+            {
+                self.probed.closure = Some((later.len(), self.state.clone()));
+            }
+            for Deferred { id, issue, .. } in deferred {
+                self.fail(Choice::Slot(id), issue);
+            }
+        }
+        own.sort_by_key(|(index, _)| *index);
+        own.into_iter()
+            .map(|(_, slot)| slot)
+            .chain(granted)
+            .collect()
+    }
+
     /// Fills the selection and feat slots that options' rows and feats granted at this level, in order, until none
     /// are left (a pick can grant more).
     pub(super) fn fill_pending(&mut self, level: u8) -> Vec<Slot> {
+        self.fill_pending_up_to(level, Band::Features)
+    }
+
+    /// [`fill_pending`](Self::fill_pending) for the granted slots of `band` or an earlier one, the others staying
+    /// pending.
+    fn fill_pending_up_to(&mut self, level: u8, band: Band) -> Vec<Slot> {
         let mut slots = Vec::new();
-        while !self.pending.is_empty() {
-            let (kind, granting) = match self.pending.remove(0) {
+        while let Some(at) =
+            (self.pending.iter()).position(|pending| self.pending_band(pending) <= band)
+        {
+            let (kind, granting) = match self.pending.remove(at) {
                 Pending::Row(kind, granting) => (kind, granting),
                 Pending::Feat(feat) => {
                     if let Some(selection) = self.extra_pick_selection(&feat)
@@ -426,7 +487,8 @@ impl<'a> Walker<'a> {
                         self.feat_selection_slots = self.feat_selection_slots.saturating_add(1);
                         let id = SlotId::FeatSelection { level, index };
                         self.note_rank_slot(&id);
-                        slots.push(self.fill(id, SlotKind::Selection(selection), None));
+                        let kind = SlotKind::Selection(selection);
+                        slots.push(self.fill(id, kind, None));
                     }
                     continue;
                 }
@@ -455,6 +517,19 @@ impl<'a> Walker<'a> {
         slots
     }
 
+    /// The band a pending slot's pick comes in ([`Catalog::band`]).
+    fn pending_band(&self, pending: &Pending) -> Band {
+        let catalog = &self.engine.catalog;
+        match pending {
+            Pending::Row(kind, _) => catalog.band(kind),
+            Pending::Feat(feat) => self
+                .extra_pick_of(feat)
+                .map_or(Band::Features, |selection| {
+                    catalog.selection_band(selection)
+                }),
+        }
+    }
+
     /// Notes a slot keyed by its place at the level as a Mythic rank's, while one is being taken.
     fn note_rank_slot(&mut self, id: &SlotId) {
         if let Some(rank) = self.ascending {
@@ -465,11 +540,15 @@ impl<'a> Walker<'a> {
     /// The selection a feat's extra pick is of: the one of its [`extra_pick_of`](crate::Feat::extra_pick_of) the
     /// walk reached a slot of first, if any.
     fn extra_pick_selection(&self, feat: &FeatKey) -> Option<FeatureSelectionKey> {
+        self.extra_pick_of(feat).cloned()
+    }
+
+    /// [`extra_pick_selection`](Self::extra_pick_selection), borrowed.
+    fn extra_pick_of(&self, feat: &FeatKey) -> Option<&FeatureSelectionKey> {
         let of = &self.engine.catalog.feat(feat)?.extra_pick_of;
         self.selections_had
             .iter()
             .find(|selection| of.contains(*selection))
-            .cloned()
     }
 
     // ---- Tables -------------------------------------------------------------------------------------------

@@ -400,8 +400,7 @@ impl Engine {
             .peekable();
         // Only a pick the slot refuses where the rank is now.
         later.peek()?;
-        let (state, _) = before_slot(self, build, slot)?;
-        if pick_fits(self, &state, kind, pick) {
+        if before_slot(self, build.clone(), slot)?.fits(self, pick) {
             return None;
         }
         for level in later {

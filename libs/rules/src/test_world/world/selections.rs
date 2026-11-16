@@ -85,6 +85,7 @@ pub(super) fn levelled_selection(
         once_per_option: false,
         level_also_from: None,
         deity_domains: None,
+        band: Band::Features,
     }
 }
 

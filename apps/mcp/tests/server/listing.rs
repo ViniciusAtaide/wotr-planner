@@ -131,7 +131,7 @@ async fn the_guide_says_what_to_know_before_planning() {
 
 #[tokio::test]
 async fn the_guide_gives_the_pick_order_within_a_level() {
-    // Ticket 126: a pick that needs another taken at the same level goes in the later slot.
+    // Tickets 126 and 248: a level's picks come band by band; the picks of one band may need each other.
     let paragraph = Client::start().await.guide_section("Before you plan").await;
     let order = [
         "`slot.feat.N.class.I`",
@@ -148,7 +148,12 @@ async fn the_guide_gives_the_pick_order_within_a_level() {
         })
         .collect();
     assert!(at.is_sorted(), "{order:?} at {at:?}");
-    for phrase in ["later slot", "comes after this slot", "swap the two picks"] {
+    for phrase in [
+        "band by band",
+        "either way round",
+        "comes after this slot",
+        "swap the two picks",
+    ] {
         assert!(paragraph.contains(phrase), "no {phrase} in {paragraph}");
     }
 }

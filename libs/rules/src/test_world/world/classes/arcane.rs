@@ -152,6 +152,7 @@ pub(in crate::test_world::world) fn witch() -> Class {
             once_per_option: false,
             level_also_from: None,
             deity_domains: None,
+            band: Band::Features,
             options: vec![
                 selection_option("witch/hex/slumber", None, None),
                 selection_option("witch/hex/misfortune", None, None),

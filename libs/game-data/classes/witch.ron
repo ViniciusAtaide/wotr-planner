@@ -230,6 +230,7 @@ Class(
                     key: "witch/stigmatized-witch/curse",
                     blueprint: "b0a5118b4fb793241bc7042464b23fab",
                     name: "Curse",
+                    band: Path,
                     summary: "An oracle\'s curse in place of a patron, advancing as an oracle\'s does: Stigmatized Witch levels count in full.",
                     guide: "witch#curse",
                     option_levels: ["oracle", "witch"],

@@ -1331,6 +1331,39 @@ pub struct FeatureSelection {
     /// doesn't matter (a druid's domains, Impossible Domain).
     #[serde(default)]
     pub deity_domains: Option<DeityDomains>,
+    /// Where its picks come among a level-up's ([`Band`]): the game's band for the selection's group.
+    #[serde(default)]
+    pub band: Band,
+}
+
+/// Where a selection's pick comes among a level-up's picks. The game applies a level-up's picks band by band, in this
+/// order, and the picks of one band in the order the player makes them, each checked with the earlier ones applied
+/// (`LevelUpActionPriority`, which `SelectFeature.CalculatePriority` gives a selection by its group, and
+/// `LevelUpController.AddAction`, WrathDecompiled 6ce4a6b). A feat slot's picks are the Features band, as are those
+/// of most selections (talents, rage powers, a bonus feat list).
+#[derive(
+    Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
+)]
+pub enum Band {
+    /// A prestige class's spellbook (`ReplaceSpellbook`: the Arcane Trickster's, the Loremaster's, …).
+    Spellbook,
+    /// Mythic abilities and mythic feats (`MythicAbility`: Extra Mythic Ability's).
+    MythicAbility,
+    /// A domain, bloodline, mystery, curse, spirit, blessing, bond, school or channel energy (`Path`).
+    Path,
+    /// Everything else (`Features`).
+    #[default]
+    Features,
+}
+
+impl Band {
+    /// The bands in the order the game applies them.
+    pub const ALL: [Self; 4] = [
+        Self::Spellbook,
+        Self::MythicAbility,
+        Self::Path,
+        Self::Features,
+    ];
 }
 
 /// Where an option held through a selection naming no classes gets its option level.

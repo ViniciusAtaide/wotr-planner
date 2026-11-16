@@ -106,6 +106,7 @@ Class(
                     key: "hunter/divine-hunter/domain",
                     blueprint: "72909a37a1ed5344f88ec9d1d31f5c5b",
                     name: "Domain (Divine Hunter)",
+                    band: Path,
                     summary: "You choose a domain of your deity; its domain spells join your spellbook.",
                     deity_domains: Offered,
                     guide: "hunter#domain",

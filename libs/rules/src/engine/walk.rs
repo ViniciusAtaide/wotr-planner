@@ -29,7 +29,7 @@ mod judge;
 mod level;
 mod options;
 
-pub(super) use cursor::{Cursor, before_slot, pick_fits};
+pub(super) use cursor::{Cursor, SlotTurn, before_slot, pick_fits};
 pub(super) use level::{advancing_levels, first_taken_at};
 
 impl Engine {
@@ -161,6 +161,9 @@ struct Probed {
     /// For a later probe, once the walk has reached the slot: each pick the slot's character level holds after it,
     /// in walk order.
     later: Option<Vec<Checkpoint>>,
+    /// For a later probe of a level's slot: once the slot's band there is done, how many of `later` were its band's
+    /// picks, and the state then, every pick of the band that holds held ([`Walker::fill_bands`]).
+    closure: Option<(usize, CharacterState)>,
 }
 
 /// A pick a later probe passed, with the state just before and just after its slot was filled.
@@ -239,6 +242,19 @@ struct Walker<'a> {
     /// The base attack bonus the class tables give at this level, before any option raises it
     /// ([`refresh_bab`](Self::refresh_bab)).
     class_bab: u8,
+    /// While a level's band is filled ([`fill_bands`](Self::fill_bands)), its picks refused for an unmet
+    /// prerequisite so far, to be tried again; `None` outside one (a Mythic rank's picks keep their order).
+    deferred: Option<Vec<Deferred>>,
+}
+
+/// A pick refused at its turn for an unmet prerequisite, tried again after its band's other picks.
+#[derive(Clone, Debug)]
+struct Deferred {
+    id: SlotId,
+    kind: SlotKind,
+    pick: Pick,
+    /// Why it was refused the last time it was tried.
+    issue: Issue,
 }
 
 /// A slot granted at a level, filled once the level's own slots are.
@@ -339,6 +355,7 @@ impl<'a> Walker<'a> {
             ascending: None,
             rank_slots: Vec::new(),
             class_bab: 0,
+            deferred: None,
         }
     }
 
@@ -664,8 +681,7 @@ impl<'a> Walker<'a> {
 
         let level_slots = self.level_slots(level, level_up);
         let level_slots = self.grant_selections(level_slots);
-        let mut slots = self.fill_all(level_slots, None);
-        slots.extend(self.fill_pending(level));
+        let mut slots = self.fill_bands(level, level_slots);
 
         let mut mythic_ranks = Vec::new();
         let due: Vec<u8> = self

@@ -39,6 +39,33 @@ pub fn class_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Class 
         .unwrap()
 }
 
+/// A feat of the data, to change for a test.
+pub fn feat_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Feat {
+    data.feats
+        .iter_mut()
+        .find(|f| f.key.as_str() == key)
+        .unwrap()
+}
+
+/// A selection of the sorcerer or one of its archetypes, to change for a test.
+pub fn sorcerer_selection<'a>(
+    data: &'a mut GameData,
+    key: &str,
+) -> &'a mut rules::FeatureSelection {
+    let sorcerer = class_mut(data, "sorcerer");
+    sorcerer
+        .selections
+        .iter_mut()
+        .chain(
+            sorcerer
+                .archetypes
+                .iter_mut()
+                .flat_map(|archetype| &mut archetype.selections),
+        )
+        .find(|selection| selection.key.as_str() == key)
+        .unwrap()
+}
+
 /// The keys a slot offers on `engine`, each once (an option with a chosen feat is offered once per value).
 pub fn offered_on(engine: &Engine, build: &Build, slot: &SlotId) -> Vec<String> {
     let mut keys: Vec<String> = engine

@@ -90,6 +90,7 @@ pub(in crate::test_world::world) fn kineticist() -> Class {
                 feat_lists_only: true,
                 level_also_from: None,
                 deity_domains: None,
+                band: Band::Features,
                 ..levelled_selection(
                     expanded.as_str(),
                     &["kineticist"],

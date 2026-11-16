@@ -94,6 +94,7 @@ Class(
             key: "cleric/domain",
             blueprint: "48525e5da45c9c243a343fc6545dbdb9",
             name: "Domain",
+            band: Path,
             summary: "Domains add spells and powers; which ones you can take depends on your deity and alignment.",
             deity_domains: Offered,
             guide: "character-creation#domains",
