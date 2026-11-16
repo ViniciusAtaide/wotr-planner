@@ -19,27 +19,34 @@ small hand-written example of the layout.
 
 ## Layout
 
-| File | Holds |
-| --- | --- |
-| `progression.ron` | `Progression`: the mythic rank table (the Character level each Mythic rank comes at, at the earliest: a Build may take a rank at a later level, ticket 171) |
-| `bonuses.ron` | `Vec<ItemBonus>`: the flat bonuses items give while held, each naming its item (tickets 119 and 120): spell DCs, caster level against spell resistance, concentration, initiative, saves, skills |
-| `interactions.ron` | `Vec<ItemInteractions>`: what the guide says about how an item combines with others, at most one note per item (ticket 124); optional |
-| `gear.ron` | `Vec<GearItem>`: the named items a character wears or wields, with their always-on bonuses and a few words on what else they do (ticket 165); optional |
-| `races.ron` | `Vec<Race>`, with subraces and the race's own feat lists (the half-elf's Adaptability) |
-| `skills.ron` | `Vec<Skill>` |
-| `weapons.ron` | `Vec<Weapon>`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`; the Sawtooth Saber is exotic, from Weapon Finesse's list), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack the guide names (bite, claw, gore, hoof, slam, spike, tail, talon, wing), Kinetic Blast and Bomb; each weapon's stats for the attack line (ticket 114) |
-| `feats.ron` | `Vec<Feat>` |
-| `backgrounds.ron` | `Vec<Background>`: the user's list (the guide doesn't list backgrounds, so they have no guide link; ticket 34) |
-| `deities.ron` | `Vec<Deity>`: the guide's deity table (`character-creation#deities`, 26 rows; ticket 86) |
-| `classes/<class>.ron` | one base `Class`, with its features, feature selections, level rows and archetypes |
-| `prestige/<class>.ron` | one prestige `Class` |
-| `mythic/abilities.ron` | `Vec<MythicAbility>` |
-| `mythic/feats.ron` | `Vec<MythicFeat>` |
-| `mythic/paths/<path>.ron` | one `MythicPath`: its rank table, picks and switch rule (what it keeps, drops and grants, the paths it's open from, the character level cap it sets) |
-| `spells/<page>/level-<n>.ron` | `Vec<Spell>`: the spells whose blocks sit under that guide page's "Level <n>" heading (`wizard`, `cleric` and `druid` for the three spell pages, else the class or path page), all read into one catalogue (ticket 121) |
-| `spells/lists.ron` | `Vec<SpellList>`: every spell list table, its owner, the classes that also use it and its entries by level (ticket 121) |
+One file per entry (ticket 244), in a folder by kind, named by its key: `features/sneak-attack.ron` holds the feature
+keyed `sneak-attack`, `archetypes/rogue/thug.ron` the archetype keyed `rogue/thug`. An entry holds no other entry:
+classes, archetypes, paths and options name the features, selections and feat lists their rows grant by key, and a
+feature the game has once is one entry, whichever classes grant it (`sneak-attack`; the sheet's holder of a feature
+is what grants it, not its key). A key says nothing of an owner; keys of entries made before ticket 244 still start
+with one, and keys that links name never change.
 
-Any other `.ron` file is an error; other files (like this README) are ignored. Order means nothing anywhere
+| Folder or file | Holds, one `.ron` per entry |
+| --- | --- |
+| `races/`, `subraces/` | `Race`; `Subrace`, naming its `race` |
+| `weapons/` | `Weapon`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack, Kinetic Blast and Bomb; each weapon's stats for the attack line (ticket 114) |
+| `feats/`, `feat-lists/` | `Feat`; `FeatList`, the named lists fixed-list slots pick from (a race's, class's, archetype's, option's or path's) |
+| `classes/`, `prestige/` | one base or prestige `Class`: its tables and level rows |
+| `archetypes/` | `Archetype`, naming its `class`: the rows where it differs from its class |
+| `features/`, `selections/`, `options/` | `Feature`; `FeatureSelection`, whose `options` are the keys of its own options and `shared_options` others'; `SelectionOption` |
+| `mythic/abilities/`, `mythic/feats/`, `mythic/paths/` | `MythicAbility`; `MythicFeat`; `MythicPath`: its rank table and switch rule |
+| `backgrounds/` | `Background`: the user's list (ticket 34) |
+| `deities/` | `Deity`: the guide's deity table (`character-creation#deities`, ticket 86): the alignments a follower may have, the favoured weapons and the domains (`cleric/domain` options) |
+| `gear/` | `GearItem`: the named items with their always-on bonuses (ticket 165); the plain stat belts and headbands come from the user, with no guide link |
+| `spells/`, `spell-lists/` | `Spell` (ticket 121; its guide link names the page its block is on); `SpellList`: a spell list table, its owner, the classes that also use it and its entries by level |
+| `planner/<folder>/` | the entries the planner made, with no game blueprint behind them, as `(why: "...", entry: ...)`: the reason, then the entry |
+| `progression.ron` | `Progression`: the mythic rank table (the Character level each Mythic rank comes at, at the earliest: a Build may take a rank at a later level, ticket 171) |
+| `skills.ron` | `Vec<Skill>` (the game's skills are a stat, with no blueprint) |
+| `bonuses.ron` | `Vec<ItemBonus>`: the flat bonuses items give while held, each naming its item (tickets 119 and 120) |
+| `interactions.ron` | `Vec<ItemInteractions>`: what the guide says about how an item combines with others, at most one note per item (ticket 124); optional |
+
+A missing folder reads as empty. A file whose path isn't its entry's key, and a planner file that gives no reason,
+are errors. Any other `.ron` file is an error; other files (like this README) are ignored. Order means nothing anywhere
 in the data: catalogs are sorted by key, class levels by level, mythic ranks by rank, and the children of
 `All`/`Any`/`AtLeast` are a set, so write entries in whatever order reads best.
 

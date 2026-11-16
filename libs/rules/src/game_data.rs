@@ -1211,7 +1211,7 @@ pub struct FeatureSelection {
     pub summary: String,
     #[serde(default)]
     pub guide: Option<GuideRef>,
-    /// The options this selection defines ([`GameData::options`]), each keyed under it.
+    /// The options this selection defines ([`GameData::options`]): each option is one selection's own.
     pub options: BTreeSet<SelectionOptionKey>,
     /// Other selections' options this one offers too. A shared option keeps its one key, so holding it through
     /// either selection holds it once, and its prerequisite is the same in both (where a class's own feature

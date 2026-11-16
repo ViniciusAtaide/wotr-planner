@@ -186,6 +186,11 @@ impl<'a> Walker<'a> {
                 {
                     state.option_groups.insert(key.clone(), group);
                 }
+                if let Some(selection) = self.engine.catalog.selection_of(key) {
+                    state
+                        .option_selections
+                        .insert(key.clone(), selection.key.clone());
+                }
             }
             Held::OptionValue(key, value) => {
                 let holds = state
@@ -301,6 +306,7 @@ impl<'a> Walker<'a> {
                     if *times == 0 {
                         state.selection_options.remove(key);
                         state.option_groups.remove(key);
+                        state.option_selections.remove(key);
                     }
                 }
                 if let Some(options) = state.options_through.get_mut(through) {

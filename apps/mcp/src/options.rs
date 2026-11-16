@@ -7,6 +7,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
     Address, Build, Choice, Edit, Engine, Failure, Issue, RankStatus, Sheet, SlotId, Step,
+    SubraceKey,
 };
 
 use crate::code::{envelope, open};
@@ -915,12 +916,9 @@ fn summary_of(planner: &Planner, address: &Address, value: &ChoiceValue) -> Opti
             None => planner.summary(Kind::Class, class),
         },
         (Address::Race, ChoiceValue::Key(key)) => planner.summary(Kind::Race, key).or_else(|| {
-            planner
-                .data
-                .subraces
-                .iter()
-                .find(|subrace| subrace.key.as_str() == key)
-                .and_then(|subrace| (!subrace.summary.is_empty()).then(|| subrace.summary.clone()))
+            (planner.engine.subrace(&SubraceKey::new(key))).and_then(|(_, subrace)| {
+                (!subrace.summary.is_empty()).then(|| subrace.summary.clone())
+            })
         }),
         (Address::Background, ChoiceValue::Key(key)) => planner.summary(Kind::Background, key),
         (Address::FirstAscension | Address::Path | Address::Switch, ChoiceValue::Key(key)) => {

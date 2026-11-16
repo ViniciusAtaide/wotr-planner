@@ -8,7 +8,7 @@ The plan for this project lives in `.scratch/wotr-planner/map.md`. Read its Note
 
 ## Game data
 
-The `.ron` files in `libs/game-data/` are the game data; there is no database (ticket 187). The web server and the MCP server read and check them at startup (`seeds::check_game_data_files`). `cargo leptos watch` restarts its server when one changes; restart a standalone `wotr-mcp` yourself. `cargo run -p seeds --bin check-data` checks them on their own.
+The `.ron` files in `libs/game-data/` are the game data; there is no database (ticket 187). Since ticket 244 each entry is its own file, in a folder by kind, named by its key (`features/sneak-attack.ron`); an entry holds no other, rows name what they grant by key, and `planner/` holds the entries with no game blueprint, each saying why (`libs/game-data/README.md`, Layout). The web server and the MCP server read and check them at startup (`seeds::check_game_data_files`). `cargo leptos watch` restarts its server when one changes; restart a standalone `wotr-mcp` yourself. `cargo run -p seeds --bin check-data` checks them on their own.
 
 - **A data ticket's note** goes in its own file, `libs/game-data/notes/<ticket>-<slug>.md`, so data tickets share no file.
 - **The guide as text:** `scripts/guide-text.sh` renders `guide-cache/*.html` to `guide-cache/txt/`, and its `INDEX.txt` leads from a `page#anchor` to the file and line. Read the guide there.

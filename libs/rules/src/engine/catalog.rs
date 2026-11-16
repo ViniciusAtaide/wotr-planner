@@ -344,7 +344,7 @@ impl Catalog {
 
     /// A feat list by key, wherever it's defined.
     pub(super) fn feat_list(&self, key: &FeatListKey) -> Option<&FeatList> {
-        self.indexes.feat_lists.get(key)
+        Some(&self.data.feat_lists[*self.indexes.feat_lists.get(key)?])
     }
 
     pub(super) fn selection(&self, key: &FeatureSelectionKey) -> Option<&FeatureSelection> {
@@ -679,7 +679,7 @@ struct Indexes {
     skills: FxHashMap<SkillKey, usize>,
     weapons: FxHashMap<WeaponKey, usize>,
     feats: FxHashMap<FeatKey, usize>,
-    feat_lists: FxHashMap<FeatListKey, FeatList>,
+    feat_lists: FxHashMap<FeatListKey, usize>,
     selections: FxHashMap<FeatureSelectionKey, usize>,
     /// Each option's position, with the selection that defines it ([`FeatureSelection::options`]).
     options: FxHashMap<SelectionOptionKey, (usize, Option<FeatureSelectionKey>)>,
@@ -730,11 +730,7 @@ impl Indexes {
             selections: index(&data.selections, |s| &s.key),
             options: index_options(data),
             bab_options,
-            feat_lists: data
-                .feat_lists
-                .iter()
-                .map(|list| (list.key.clone(), list.clone()))
-                .collect(),
+            feat_lists: index(&data.feat_lists, |l| &l.key),
             skills: index(&data.skills, |s| &s.key),
             weapons: index(&data.weapons, |w| &w.key),
             feats: index(&data.feats, |f| &f.key),

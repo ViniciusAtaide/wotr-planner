@@ -1,5 +1,5 @@
 //! Gear (ticket 165): the named items a character wears or wields, each with the bonuses it always gives, and a
-//! summary of them generated from the data. `gear.ron` lists them. A Build holds them in its gear
+//! summary of them generated from the data. `gear/` holds them, one file each. A Build holds them in its gear
 //! ([`Build::gear`](crate::Build::gear), ticket 166), and the engine counts what they always give.
 //!
 //! A bonus has a [`GearTarget`] (an ability score, or a number the planner already computes), an amount and a

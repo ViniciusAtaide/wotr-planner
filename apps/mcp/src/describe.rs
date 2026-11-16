@@ -106,7 +106,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
             let granted: Vec<&FeatureSelection> = ability
                 .selections
                 .iter()
-                .filter_map(|key| planner.selections().find(|selection| &selection.key == key))
+                .filter_map(|key| data.selection(key))
                 .collect();
             item.selections = Some(granted.into_iter().map(|s| selection(planner, s)).collect());
         }
@@ -119,8 +119,8 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
             item.taken_for = feat.parameter.map(|kind| kind.noun().to_owned());
         }
         Kind::SelectionOption => {
-            let option = (data.options.iter())
-                .find(|option| option.key.as_str() == key)
+            let option = data
+                .selection_option(&SelectionOptionKey::new(key))
                 .expect("an indexed option");
             item.taken_for = option.parameter.map(|kind| kind.noun().to_owned());
             if !option.levels.is_empty() {
@@ -303,6 +303,15 @@ fn class_rows(
     prestige: bool,
     archetype: Option<&Archetype>,
 ) -> Vec<LevelRow> {
+    // The selections the archetype's rows name, whose replacements for a skipped option row are on its table.
+    let replacing: Vec<&FeatureSelection> = archetype
+        .into_iter()
+        .flat_map(|archetype| &archetype.levels)
+        .flat_map(|row| &row.selections)
+        .collect::<std::collections::BTreeSet<_>>()
+        .into_iter()
+        .filter_map(|key| planner.data.selection(key))
+        .collect();
     class
         .levels
         .iter()
@@ -335,13 +344,8 @@ fn class_rows(
                 features: features(
                     planner,
                     row.features.iter().chain(
-                        archetype
-                            .into_iter()
-                            .flat_map(|archetype| &archetype.levels)
-                            .flat_map(|row| &row.selections)
-                            .collect::<std::collections::BTreeSet<_>>()
-                            .into_iter()
-                            .filter_map(|key| planner.data.selection(key))
+                        replacing
+                            .iter()
                             .filter_map(|selection| selection.replaced_by.get(&level)),
                     ),
                 ),

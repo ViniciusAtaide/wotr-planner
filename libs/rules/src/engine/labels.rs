@@ -36,13 +36,13 @@ enum Holder<'a> {
 }
 
 /// A holder's name.
-fn holder_name(holder: Holder<'_>) -> Option<&str> {
-    Some(match holder {
+fn holder_name(holder: Holder<'_>) -> &str {
+    match holder {
         Holder::Option(option) => &option.name,
         Holder::Archetype(archetype) => &archetype.name,
         Holder::Class(class) => &class.name,
         Holder::Path(path) => &path.name,
-    })
+    }
 }
 
 /// How a negated condition's held side reads: "for the X archetype", "with Power Attack", "as Domain (Separatist)",
@@ -212,12 +212,16 @@ impl Engine {
     /// is the Animal Domain's): a class before an archetype, a path and an option (ticket 244: the holder comes from
     /// the granting row, not the key).
     fn feature_owner(&self, key: &FeatureKey) -> Option<&str> {
-        holder_name(self.holders(self.catalog.feature_holders(key)).next()?)
+        self.holders(self.catalog.feature_holders(key))
+            .next()
+            .map(holder_name)
     }
 
     /// The name of what names a Feature selection in its rows, as [`feature_owner`](Self::feature_owner).
     fn selection_owner(&self, key: &FeatureSelectionKey) -> Option<&str> {
-        holder_name(self.holders(self.catalog.selection_holders(key)).next()?)
+        self.holders(self.catalog.selection_holders(key))
+            .next()
+            .map(holder_name)
     }
 
     /// The classes, archetypes, paths and options whose rows grant a feature, in that order.

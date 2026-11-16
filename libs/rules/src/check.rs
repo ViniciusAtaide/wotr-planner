@@ -16,8 +16,8 @@ use crate::bonus::{BonusAmount, BonusItem, BonusTarget, BonusType, SpellScope};
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
     AbilityBonus, Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION,
-    Feat, FeatList, FeatSlot, FeatValue, Feature, GameData, LevelFrom, MythicPath, Save,
-    SpellLevels, StepLevel, WeaponProficiency,
+    Feat, FeatList, FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom,
+    MythicPath, Save, SelectionOption, SpellLevels, StepLevel, WeaponProficiency,
 };
 use crate::gear::GearTarget;
 use crate::keys::{
@@ -212,8 +212,7 @@ pub enum DataIssue {
     SwitchFromASwitchPath(MythicPathKey),
     /// A feat list no slot names.
     UnusedFeatList,
-    /// A selection that shares an option keyed under its own key: an own option is offered already, and
-    /// anything else under its key isn't another selection's.
+    /// A selection that shares one of its own options: an own option is offered already.
     SharesOwnOption(SelectionOptionKey),
     /// A feat taken once per value that takes none.
     PerValueWithoutParameter,
@@ -612,6 +611,9 @@ impl GameData {
                 .iter()
                 .map(|archetype| (archetype.key.clone(), archetype.class.clone()))
                 .collect(),
+            selection_at: (self.selections.iter().enumerate())
+                .map(|(i, selection)| (selection.key.clone(), i))
+                .collect(),
             ..Checker::default()
         };
         check.progression(self);
@@ -834,6 +836,8 @@ struct Checker {
     domains: HashSet<SelectionOptionKey>,
     /// Every archetype, with its class.
     archetype_classes: HashMap<ArchetypeKey, ClassKey>,
+    /// Every selection's position in the data.
+    selection_at: HashMap<FeatureSelectionKey, usize>,
     /// The options' old keys, which only the link decoder reads: checked once the walk has seen every key.
     aliases: Vec<SelectionOptionKey>,
     /// Every key an entity names, with the entity: checked against [`keys`](Self::keys) once the walk has seen them
@@ -1481,7 +1485,11 @@ impl Checker {
         rows: impl Iterator<Item = &'r Vec<FeatureKey>> + Clone,
     ) {
         let named: BTreeSet<&FeatureSelectionKey> = named.collect();
-        for selection in named.into_iter().filter_map(|key| data.selection(key)) {
+        let named: Vec<&FeatureSelection> = named
+            .into_iter()
+            .filter_map(|key| self.selection_at.get(key).map(|&i| &data.selections[i]))
+            .collect();
+        for selection in named {
             for feature in selection.replaced_by.values() {
                 if rows.clone().any(|features| features.contains(feature)) {
                     let at = DataAt::FeatureSelection(selection.key.clone());
@@ -1984,6 +1992,10 @@ impl Checker {
 /// The selections a Mythic path's rank rows grant, and the selections the rows of the options they offer grant, and
 /// so on.
 fn selections_of_paths(data: &GameData) -> HashSet<FeatureSelectionKey> {
+    let selections: HashMap<&FeatureSelectionKey, &FeatureSelection> =
+        data.selections.iter().map(|s| (&s.key, s)).collect();
+    let options: HashMap<&SelectionOptionKey, &SelectionOption> =
+        data.options.iter().map(|o| (&o.key, o)).collect();
     let mut found: HashSet<FeatureSelectionKey> = HashSet::new();
     let mut next: Vec<&FeatureSelectionKey> = data
         .mythic_paths
@@ -1995,14 +2007,11 @@ fn selections_of_paths(data: &GameData) -> HashSet<FeatureSelectionKey> {
         if !found.insert(key.clone()) {
             continue;
         }
-        let Some(selection) = data.selection(key) else {
+        let Some(selection) = selections.get(key) else {
             continue;
         };
         for option in selection.offered() {
-            let rows = data
-                .selection_option(option)
-                .into_iter()
-                .flat_map(|o| &o.levels);
+            let rows = options.get(option).into_iter().flat_map(|o| &o.levels);
             next.extend(rows.flat_map(|row| &row.selections));
         }
     }

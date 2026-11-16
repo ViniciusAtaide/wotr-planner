@@ -221,10 +221,8 @@ impl Wording<'_> {
             }
             Choice::Subrace => {
                 let given = start.subrace.as_ref().map_or("", SubraceKey::as_str);
-                let subraces = data.races.iter().flat_map(|race| {
-                    data.subraces_of(&race.key)
-                        .map(|subrace| (subrace.name.as_str(), subrace.key.as_str()))
-                });
+                let subraces = (data.subraces.iter())
+                    .map(|subrace| (subrace.name.as_str(), subrace.key.as_str()));
                 (given, "a subrace", closest(given, subraces))
             }
             Choice::Deity => {

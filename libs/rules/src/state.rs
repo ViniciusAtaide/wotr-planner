@@ -81,6 +81,9 @@ pub struct CharacterState {
     pub option_values: BTreeMap<SelectionOptionKey, BTreeMap<Parameter, u8>>,
     /// The group of each option held that belongs to one (a Draconic bloodline).
     pub option_groups: BTreeMap<SelectionOptionKey, OptionGroup>,
+    /// The selection that defines each option held ([`FeatureSelection::options`](crate::FeatureSelection::options)),
+    /// wherever it was taken.
+    pub option_selections: BTreeMap<SelectionOptionKey, FeatureSelectionKey>,
     /// The option level of each option held through a selection with option levels (a sorcerer 5 / Dragon
     /// Disciple 5's bloodline: 10).
     pub option_levels: BTreeMap<SelectionOptionKey, u8>,
@@ -197,14 +200,11 @@ impl CharacterState {
         self.option_levels.get(option).copied().unwrap_or(0)
     }
 
-    /// Whether any option of this selection is held (its own options, keyed under it, wherever they were taken).
+    /// Whether any option of this selection is held (its own options, wherever they were taken).
     pub fn holds_option_of(&self, selection: &FeatureSelectionKey) -> bool {
-        self.selection_options.keys().any(|option| {
-            option
-                .as_str()
-                .strip_prefix(selection.as_str())
-                .is_some_and(|rest| rest.starts_with('/'))
-        })
+        self.option_selections
+            .values()
+            .any(|defined| defined == selection)
     }
 
     /// How many picks and grants hold a feat; 0 when none.

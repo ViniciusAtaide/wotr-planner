@@ -25,12 +25,12 @@ use rules::GameData;
 use serde::Deserialize;
 use serde::de::DeserializeOwned;
 
-/// The single files, and whether each must be there.
-const SINGLE_FILES: [(&str, bool); 4] = [
-    ("progression.ron", true),
-    ("skills.ron", true),
-    ("bonuses.ron", true),
-    ("interactions.ron", false),
+/// The single files: `interactions.ron` may be missing, the others must be there.
+const SINGLE_FILES: [&str; 4] = [
+    "progression.ron",
+    "skills.ron",
+    "bonuses.ron",
+    "interactions.ron",
 ];
 
 /// The folders of one file per entry, by kind.
@@ -161,8 +161,10 @@ pub fn read_game_data_files(dir: &Path) -> Result<GameData, FilesError> {
 
 /// A single file, or a file under a kind's folder, directly or under `planner/`.
 fn is_in_layout(file: &str) -> bool {
-    let entry = file.strip_prefix("planner/").unwrap_or(file);
-    SINGLE_FILES.iter().any(|(name, _)| *name == file)
+    let entry = (file.strip_prefix(PLANNER))
+        .and_then(|rest| rest.strip_prefix('/'))
+        .unwrap_or(file);
+    SINGLE_FILES.contains(&file)
         || FOLDERS.iter().any(|folder| {
             entry
                 .strip_prefix(folder)
@@ -197,23 +199,24 @@ fn entries<T: DeserializeOwned>(
             })
         }
     };
-    let own = dir.join(folder);
-    if own.exists() {
-        for name in ron_files(&own)? {
-            let path = own.join(&name);
-            let entry: T = read(&path)?;
-            named(&path, &name, &entry)?;
-            out.push(entry);
+    for (base, planner) in [
+        (dir.join(folder), false),
+        (dir.join(PLANNER).join(folder), true),
+    ] {
+        if !base.exists() {
+            continue;
         }
-    }
-    let planner = dir.join(PLANNER).join(folder);
-    if planner.exists() {
-        for name in ron_files(&planner)? {
-            let path = planner.join(&name);
-            let Planner { why, entry } = read::<Planner<T>>(&path)?;
-            if why.trim().is_empty() {
-                return Err(FilesError::NoReason { path });
-            }
+        for name in ron_files(&base)? {
+            let path = base.join(&name);
+            let entry = if planner {
+                let Planner { why, entry } = read::<Planner<T>>(&path)?;
+                if why.trim().is_empty() {
+                    return Err(FilesError::NoReason { path });
+                }
+                entry
+            } else {
+                read(&path)?
+            };
             named(&path, &name, &entry)?;
             out.push(entry);
         }

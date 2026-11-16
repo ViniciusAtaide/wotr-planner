@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Arc;
 
-use rules::{CheckedGameData, DataProblem, Engine, FeatureKey, FeatureSelection, GameData};
+use rules::{CheckedGameData, DataProblem, Engine, FeatureKey, GameData};
 use sha2::{Digest, Sha256};
 
 use crate::search::SearchIndex;
@@ -67,11 +67,6 @@ impl Planner {
         self.index
             .get(kind, key)
             .and_then(|hit| hit.summary.clone())
-    }
-
-    /// Every Feature selection: a class's, an archetype's, a prestige class's, an option's or a path's.
-    pub(crate) fn selections(&self) -> impl Iterator<Item = &FeatureSelection> {
-        self.data.selections.iter()
     }
 }
 
