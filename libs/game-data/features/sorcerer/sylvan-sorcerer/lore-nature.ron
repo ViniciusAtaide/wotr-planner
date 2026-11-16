@@ -1,0 +1,1 @@
+(key: "sorcerer/sylvan-sorcerer/lore-nature", blueprint: "243f474ce797acb4086c2dbc58660c4a", name: "Fey Lore (Nature)", summary: "Lore (Nature) becomes a class skill.", components: [ClassSkill("lore-nature")])

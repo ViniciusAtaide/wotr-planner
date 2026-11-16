@@ -1,0 +1,1 @@
+(key: "monk/sohei/lore-nature", blueprint: "d59fe46a1aa1ace4e987d843c8e309ff", name: "Sohei Lore (Nature)", summary: "Lore (Nature) becomes a class skill.", components: [ClassSkill("lore-nature")])

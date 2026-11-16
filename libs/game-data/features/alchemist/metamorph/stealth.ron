@@ -1,0 +1,1 @@
+(key: "alchemist/metamorph/stealth", blueprint: "1d42191a101f2fb42b6e87b7bfc99a5e", name: "Metamorph Stealth", summary: "Stealth becomes a class skill.", components: [ClassSkill("stealth")])

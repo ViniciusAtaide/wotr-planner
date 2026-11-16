@@ -1,1 +1,1 @@
-(key: "oracle/seeker/seekers-trapfinding", blueprint: "cb3abfaa682b67c48953dfa200aab325", name: "Seeker\'s Trapfinding", summary: "Trickery becomes a class skill, and you add half your class level to Trickery checks.", guide: "oracle#seekers-trapfinding")
+(key: "oracle/seeker/seekers-trapfinding", blueprint: "cb3abfaa682b67c48953dfa200aab325", name: "Seeker\'s Trapfinding", summary: "Trickery becomes a class skill, and you add half your class level to Trickery checks.", guide: "oracle#seekers-trapfinding", components: [ClassSkill("trickery")])

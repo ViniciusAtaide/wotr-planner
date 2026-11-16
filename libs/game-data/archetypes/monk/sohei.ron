@@ -5,9 +5,9 @@
     name: "Sohei",
     summary: "Mounted monk with a horse, weapon training and martial weapons, losing most unarmed bonuses.",
     guide: "monk#sohei",
-    class_skills: ["athletics", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth"],
+    class_skills: ["athletics", "knowledge-world", "lore-religion", "mobility", "perception", "persuasion", "stealth"],
     levels: [
-        (level: 1, features: ["monk/ac-bonus", "monk/sohei/devoted-guardian", "monk/sohei/flurry-of-blows-sohei", "monk/sohei/monastic-mount", "monk/sohei/sohei-proficiencies"], feats: ["armor-proficiency-light-armor", "improved-unarmed-strike", "martial-weapons-proficiency", "simple-weapon-proficiency"], selections: ["monk/sohei/bonus-feats-1"]),
+        (level: 1, features: ["monk/ac-bonus", "monk/sohei/devoted-guardian", "monk/sohei/flurry-of-blows-sohei", "monk/sohei/lore-nature", "monk/sohei/monastic-mount", "monk/sohei/sohei-proficiencies"], feats: ["armor-proficiency-light-armor", "improved-unarmed-strike", "martial-weapons-proficiency", "simple-weapon-proficiency"], selections: ["monk/sohei/bonus-feats-1"]),
         (level: 2, features: ["evasion"], selections: ["monk/sohei/bonus-feats-1"]),
         (level: 3, features: ["monk/ki-pool", "monk/ki-power-extra-attack", "monk/ki-strike-magic"]),
         (level: 4, features: ["monk/sohei/ki-weapon", "monk/still-mind"]),

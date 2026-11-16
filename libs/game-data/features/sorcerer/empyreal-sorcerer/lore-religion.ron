@@ -1,0 +1,1 @@
+(key: "sorcerer/empyreal-sorcerer/lore-religion", blueprint: "b0520c35f31ba544189d3293ed14dd67", name: "Celestial Lore (Religion)", summary: "Lore (Religion) becomes a class skill.", components: [ClassSkill("lore-religion")])

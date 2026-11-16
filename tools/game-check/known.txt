@@ -303,17 +303,13 @@ class tables / Will differs / archetype hunter/divine-hunter -> 261
 class tables / Will differs / class stalwart-defender -> 261
 
 # 262, class skills and the Defender of the Hearth's skill points (the user's facts, to the user).
-class tables / * / archetype alchemist/metamorph -> 262
 class tables / * / archetype arcanist/magic-deceiver -> 262
 class tables / * / archetype fighter/defender-of-the-hearth -> 262
 class tables / * / archetype magus/spell-dancer -> 262
-class tables / * / archetype monk/sohei -> 262
 class tables / * / archetype oracle/seeker -> 262
 class tables / * / archetype oracle/wind-whisperer -> 262
 class tables / * / archetype ranger/sable-company-marine -> 262
 class tables / * / archetype rogue/sylvan-trickster -> 262
-class tables / * / archetype sorcerer/empyreal-sorcerer -> 262
-class tables / * / archetype sorcerer/sylvan-sorcerer -> 262
 class tables / * / archetype witch/witch-of-the-veil -> 262
 class tables / class skills differ (the user's facts) / archetype hunter/divine-hunter -> 262
 class tables / class skills differ (the user's facts) / class stalwart-defender -> 262
