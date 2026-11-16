@@ -14,8 +14,8 @@ use std::fmt;
 
 use crate::bonus::{BonusItem, SpellScope};
 use crate::component::{
-    Component, Condition, Descriptor, Fact, Pool, RankBase, StatRef, StatRule, StatTarget, Value,
-    compile_requires,
+    Component, Condition, Descriptor, Fact, Pool, RankBase, RankProgression, StatRef, StatRule,
+    StatTarget, Value, compile_requires,
 };
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
@@ -336,6 +336,14 @@ pub enum DataIssue {
     MalformedKey,
     /// A blueprint GUID that isn't 32 lowercase hex digits, the game's own spelling (ticket 237).
     MalformedBlueprint,
+    /// An [`ExpandedArsenal`](crate::Component::ExpandedArsenal) naming an entry with no
+    /// [`SpellFocus`](crate::Component::SpellFocus), whose feats it can't add up (ticket 298).
+    NotASpellFocus(DataAt),
+    /// A [`Scales`](crate::Component::Scales) whose base names no class level nor the character level: its steps
+    /// follow a level (ticket 298).
+    ScalesWithoutLevel,
+    /// A `Custom` rank progression with no band, which gives 0 whatever it reads (ticket 298).
+    EmptyCustom,
     /// A filtered pool filtered by itself.
     FilteredByItself,
     /// A selection levelled by the Mythic ranks reached ([`LevelFrom::MythicRanks`]) that no path's rank row grants,
@@ -573,6 +581,13 @@ impl fmt::Display for DataProblem {
             DataIssue::MalformedBlueprint => {
                 f.write_str("the blueprint isn't a GUID of 32 lowercase hex digits")
             }
+            DataIssue::NotASpellFocus(focus) => {
+                write!(f, "its Expanded Arsenal names {focus}, which holds no Spell Focus")
+            }
+            DataIssue::ScalesWithoutLevel => {
+                f.write_str("its steps read no class level nor the character level")
+            }
+            DataIssue::EmptyCustom => f.write_str("a custom rank progression has no band"),
             DataIssue::MalformedKey => f.write_str(
                 "the key isn't lowercase slugs: a-z, 0-9, and single - or / between them",
             ),
@@ -867,6 +882,11 @@ struct Checker {
     selection_at: HashMap<FeatureSelectionKey, usize>,
     /// The options' old keys, which only the link decoder reads: checked once the walk has seen every key.
     aliases: Vec<SelectionOptionKey>,
+    /// Every entry holding a [`SpellFocus`](crate::Component::SpellFocus).
+    spell_focuses: HashSet<DataAt>,
+    /// Every fact an [`ExpandedArsenal`](crate::Component::ExpandedArsenal) names, with its entry: each checked to
+    /// hold a `SpellFocus` once the walk has seen them all.
+    arsenal_focuses: Vec<(DataAt, DataAt)>,
     /// Every key an entity names, with the entity: checked against [`keys`](Self::keys) once the walk has seen them
     /// all.
     named: BTreeSet<(DataAt, DataAt)>,
@@ -1004,6 +1024,11 @@ impl Checker {
         for (at, rank) in std::mem::take(&mut self.named_ranks) {
             if !ranks.contains(&rank) {
                 self.problem(&at, DataIssue::UnknownRank(rank));
+            }
+        }
+        for (at, focus) in std::mem::take(&mut self.arsenal_focuses) {
+            if self.keys.contains(&focus) && !self.spell_focuses.contains(&focus) {
+                self.problem(&at, DataIssue::NotASpellFocus(focus));
             }
         }
     }
@@ -2272,6 +2297,7 @@ impl Checker {
                 self.value(at, value);
             }
             Component::SpellFocus { mythic_focus, .. } => {
+                self.spell_focuses.insert(at.clone());
                 self.fact_names(at, mythic_focus);
                 if takes != Some(ParameterKind::SpellSchool) {
                     self.problem(at, DataIssue::BonusValueWithoutParameter);
@@ -2280,6 +2306,7 @@ impl Checker {
             Component::ExpandedArsenal { focuses } => {
                 for fact in focuses {
                     self.fact_names(at, fact);
+                    self.arsenal_focuses.push((at.clone(), fact_at(fact)));
                 }
                 if takes != Some(ParameterKind::SpellSchool) {
                     self.problem(at, DataIssue::BonusValueWithoutParameter);
@@ -2322,14 +2349,29 @@ impl Checker {
                 if !matches!(at, DataAt::Feature(_)) {
                     self.problem(at, wrong(component.kind()));
                 }
+                let reads_a_level = match &config.base {
+                    RankBase::ClassLevel { classes, except }
+                    | RankBase::ClassLevelWithArchetype {
+                        classes, except, ..
+                    } => *except || !classes.is_empty(),
+                    RankBase::CharacterLevel => true,
+                    _ => false,
+                };
+                if !reads_a_level {
+                    self.problem(at, DataIssue::ScalesWithoutLevel);
+                }
                 self.value(at, &Value::Rank(config.clone()));
             }
-            Component::SkillPoints(_)
-            | Component::Flag(_)
-            | Component::HighestAbilityBonus(_)
+            // The walk reads them from the features held, as it does `Scales`.
+            Component::HighestAbilityBonus(_)
             | Component::AbilityAtLeast(_)
             | Component::BaseAttackAtLeast(_)
-            | Component::GoldenDragonSkills => {}
+            | Component::GoldenDragonSkills => {
+                if !matches!(at, DataAt::Feature(_)) {
+                    self.problem(at, wrong(component.kind()));
+                }
+            }
+            Component::SkillPoints(_) | Component::Flag(_) => {}
         }
     }
 
@@ -2358,19 +2400,7 @@ impl Checker {
 
     /// The key a fact names.
     fn fact_names(&mut self, at: &DataAt, fact: &Fact) {
-        let named = match fact {
-            Fact::Feat(key) => DataAt::Feat(key.clone()),
-            Fact::Feature(key) => DataAt::Feature(key.clone()),
-            Fact::Option(key) => DataAt::SelectionOption(key.clone()),
-            Fact::Selection(key) => DataAt::FeatureSelection(key.clone()),
-            Fact::MythicAbility(key) => DataAt::MythicAbility(key.clone()),
-            Fact::MythicFeat(key) => DataAt::MythicFeat(key.clone()),
-            Fact::Class(key) => DataAt::Class(key.clone()),
-            Fact::Archetype(key) => DataAt::Archetype(key.clone()),
-            Fact::Race(key) => DataAt::Race(key.clone()),
-            Fact::Deity(key) => DataAt::Deity(key.clone()),
-        };
-        self.names(at, named);
+        self.names(at, fact_at(fact));
     }
 
     /// The key a stat names: a skill's.
@@ -2387,6 +2417,9 @@ impl Checker {
             Value::Rank(config) => {
                 if config.progression.step() == Some(0) {
                     self.problem(at, DataIssue::ZeroStep);
+                }
+                if config.progression == RankProgression::Custom(Vec::new()) {
+                    self.problem(at, DataIssue::EmptyCustom);
                 }
                 match &config.base {
                     RankBase::ClassLevel { classes, .. } => {
@@ -2542,4 +2575,20 @@ fn reads_full_skill(condition: &Condition) -> bool {
             ..
         }
     )
+}
+
+/// Where a fact's entry is.
+fn fact_at(fact: &Fact) -> DataAt {
+    match fact {
+        Fact::Feat(key) => DataAt::Feat(key.clone()),
+        Fact::Feature(key) => DataAt::Feature(key.clone()),
+        Fact::Option(key) => DataAt::SelectionOption(key.clone()),
+        Fact::Selection(key) => DataAt::FeatureSelection(key.clone()),
+        Fact::MythicAbility(key) => DataAt::MythicAbility(key.clone()),
+        Fact::MythicFeat(key) => DataAt::MythicFeat(key.clone()),
+        Fact::Class(key) => DataAt::Class(key.clone()),
+        Fact::Archetype(key) => DataAt::Archetype(key.clone()),
+        Fact::Race(key) => DataAt::Race(key.clone()),
+        Fact::Deity(key) => DataAt::Deity(key.clone()),
+    }
 }

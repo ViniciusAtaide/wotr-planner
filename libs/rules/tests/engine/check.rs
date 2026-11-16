@@ -2002,3 +2002,66 @@ fn an_entry_without_a_guide_link_passes_the_check() {
     }
     assert_eq!(data.check(), []);
 }
+
+/// Ticket 298 (from 297's review): an `ExpandedArsenal` adds up the Spell Focus feats it names, so each must hold a
+/// `SpellFocus` (`ExpandedArsenalMagicSchools.m_SpellFocus` and its kin are `SpellFocusParametrized` features,
+/// WrathDecompiled 6ce4a6b). The test world's Spell Focus holds one; Dodge doesn't.
+#[test]
+fn an_expanded_arsenals_focuses_each_hold_a_spell_focus() {
+    use rules::{Component, Fact, MythicFeatKey, ParameterKind};
+    let arsenal = |focus: &str| Component::ExpandedArsenal {
+        focuses: [Fact::Feat(FeatKey::new(focus))].into(),
+    };
+    let mut data = world();
+    let template = data.mythic_feats[0].clone();
+    data.mythic_feats.push(rules::MythicFeat {
+        key: MythicFeatKey::new("expanded-arsenal"),
+        name: "Expanded Arsenal".into(),
+        parameter: Some(ParameterKind::SpellSchool),
+        repeat: Repeat::PerValue,
+        prerequisite: None,
+        extra_pick: None,
+        components: vec![arsenal("spell-focus")],
+        ..template
+    });
+    assert_eq!(issues(&data), []);
+    data.mythic_feats.last_mut().unwrap().components = vec![arsenal("dodge")];
+    assert_eq!(
+        issues(&data),
+        [(
+            DataAt::MythicFeat(MythicFeatKey::new("expanded-arsenal")),
+            DataIssue::NotASpellFocus(DataAt::Feat(FeatKey::new("dodge")))
+        )]
+    );
+}
+
+/// Ticket 298 (from 297's review): the Gold Dragon's kinds sit on a feature, as `Scales` does: the walk reads them
+/// from the features held (`DragonLevel1MaxAbilityStrengthFeature` 6a7f8ee85c7f42228c83bb9d2f1711f2,
+/// `GoldenDragonSharedSkillUMD` 4e0b919e4fbd85142bce959fae129d1a are features).
+#[test]
+fn the_gold_dragons_kinds_sit_on_a_feature() {
+    use rules::Component;
+    let kinds = [
+        Component::HighestAbilityBonus(2),
+        Component::AbilityAtLeast(18),
+        Component::BaseAttackAtLeast(1),
+        Component::GoldenDragonSkills,
+    ];
+    let mut data = world();
+    let dodge = data
+        .feats
+        .iter_mut()
+        .find(|feat| feat.key.as_str() == "dodge")
+        .unwrap();
+    dodge.components.extend(kinds.iter().cloned());
+    let at = DataAt::Feat(FeatKey::new("dodge"));
+    assert_eq!(
+        sorted(issues(&data)),
+        sorted(
+            kinds
+                .iter()
+                .map(|kind| (at.clone(), DataIssue::ComponentOnWrongEntry(kind.kind())))
+                .collect()
+        )
+    );
+}
