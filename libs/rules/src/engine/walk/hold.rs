@@ -150,12 +150,12 @@ impl<'a> Walker<'a> {
                     Held::Feat(key.clone(), parameter.iter().cloned().collect()),
                     source.cloned(),
                 );
-                // Its extra pick's slot comes once the level's own slots are filled.
+                // Its selection's slot comes once the level's own slots are filled (ticket 302).
                 if self
                     .engine
                     .catalog
                     .feat(key)
-                    .is_some_and(|feat| !feat.extra_pick_of.is_empty())
+                    .is_some_and(|feat| feat.selection.is_some())
                 {
                     self.pending.push(Pending::Feat(key.clone()));
                 }

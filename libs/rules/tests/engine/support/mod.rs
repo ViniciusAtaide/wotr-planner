@@ -211,3 +211,10 @@ pub fn rank(base: rules::RankBase, progression: rules::RankProgression) -> rules
         max: None,
     })
 }
+
+/// The test world changed by `change`, which must keep it passing the data check.
+pub fn engine_with(change: impl FnOnce(&mut GameData)) -> Engine {
+    let mut data = world();
+    change(&mut data);
+    engine_on(data)
+}

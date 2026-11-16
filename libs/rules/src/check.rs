@@ -699,7 +699,7 @@ impl GameData {
             let at = DataAt::Feat(feat.key.clone());
             check.key(&at);
             check.aliases(&at, feat.aliases.iter().cloned().map(DataAt::Feat));
-            check.names_each(&at, &feat.extra_pick_of, DataAt::FeatureSelection);
+            check.names_each(&at, &feat.selection, DataAt::FeatureSelection);
             check.repeat(&at, feat.repeat, feat.parameter.is_some());
             check.prerequisite(&at, feat.prerequisite.as_ref(), feat.parameter);
         }
@@ -719,18 +719,15 @@ impl GameData {
         for ability in &self.mythic_abilities {
             let at = DataAt::MythicAbility(ability.key.clone());
             check.key(&at);
-            check.grants(
-                &at,
-                &ability.features,
-                &BTreeSet::new(),
-                &ability.selections,
-            );
+            check.names_each(&at, &ability.features, DataAt::Feature);
+            check.names_each(&at, &ability.selection, DataAt::FeatureSelection);
             check.repeat(&at, ability.repeat, ability.parameter.is_some());
             check.prerequisite(&at, ability.prerequisite.as_ref(), ability.parameter);
         }
         for feat in &self.mythic_feats {
             let at = DataAt::MythicFeat(feat.key.clone());
             check.key(&at);
+            check.names_each(&at, &feat.selection, DataAt::FeatureSelection);
             check.repeat(&at, feat.repeat, feat.parameter.is_some());
             check.prerequisite(&at, feat.prerequisite.as_ref(), feat.parameter);
         }
@@ -1327,6 +1324,16 @@ impl Checker {
                 DataAt::SelectionOption,
             );
             self.names_each(&selection_at, &selection.option_levels, DataAt::Class);
+            self.names_each(
+                &selection_at,
+                &selection.mythic_abilities,
+                DataAt::MythicAbility,
+            );
+            self.names_each(
+                &selection_at,
+                &selection.needs_slot_of,
+                DataAt::FeatureSelection,
+            );
             self.names_each(
                 &selection_at,
                 selection.option_level_archetypes.keys(),

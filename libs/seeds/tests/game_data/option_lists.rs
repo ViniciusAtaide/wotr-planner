@@ -6,7 +6,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{FeatureSelection, Prerequisite};
 
-use crate::support::{DATA, feat, mythic_feat};
+use crate::support::{DATA, feat, mythic_feat, picks_of};
 
 /// What an extra feat's prerequisite leaves out of what its extra pick may be of, each with its reason: the feat, an
 /// option key prefix (a full key names one option; a prefix ending in `/` names every option under it), and why
@@ -89,7 +89,7 @@ fn selection(key: &str) -> &'static FeatureSelection {
 
 /// Every option the extra feat's pick may be of: the own and shared options of each selection it names.
 fn offered(feat: &rules::Feat) -> BTreeSet<String> {
-    feat.extra_pick_of
+    picks_of(feat)
         .iter()
         .flat_map(|key| selection(key.as_str()).offered())
         .map(ToString::to_string)
@@ -109,7 +109,7 @@ fn excepted(feat: &str, option: &str) -> bool {
 fn extra_feats_name_every_option_of_their_selections() {
     let mut problems = Vec::new();
     let mut unnamed = BTreeSet::new();
-    for feat in DATA.feats.iter().filter(|f| !f.extra_pick_of.is_empty()) {
+    for feat in DATA.feats.iter().filter(|f| f.selection.is_some()) {
         let key = feat.key.as_str();
         let named = feat
             .prerequisite

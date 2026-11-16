@@ -141,6 +141,10 @@ fn the_selections_outside_the_features_band_are_the_games() {
         // ShamanSPiritSelection 00c8c566d1825dd4a871250f35285982 (ShamanSpirit)
         ("shaman/spirit", Band::Path),
         ("shaman/wildland-shaman/spirit", Band::Path),
+        // SecondSpirit 2faa80662a56ab644aec2f875a68597f (ShamanSpirit; ticket 302)
+        ("shaman/second-spirit", Band::Path),
+        // ExtraMythicAbilityMythicFeat 8a6a511c55e67d04db328cc49aaad2b8 (MythicAbility; ticket 302)
+        ("mythic/extra-mythic-ability", Band::MythicAbility),
         // SorcererBloodlineSelection 24bef8d1bee12274686f6da6ccbc8914 (BloodLine)
         ("sorcerer/bloodline", Band::Path),
         ("sorcerer/empyreal-sorcerer/bloodline", Band::Path),

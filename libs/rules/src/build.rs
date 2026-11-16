@@ -441,12 +441,12 @@ pub enum SlotId {
     /// A Feat slot from the rows of options held, reached at a character level (the War domain's bonus Combat
     /// feat at option level 8), in the order the level reaches them.
     OptionFeat { level: u8, index: u8 },
-    /// A Feature selection slot that a feat picked at a character level gives (Extra Rage Power: one more rage
-    /// power), in the order the level holds those feats, after the slots of the options' rows. A feat picked at a
+    /// The slot of the selection a feat picked at a character level grants (Extra Rage Power: one more rage power;
+    /// [`Feat::selection`](crate::Feat::selection)), in the order the level holds those feats, after the slots of the options' rows. A feat picked at a
     /// Mythic rank gives it at the rank's character level.
     FeatSelection { level: u8, index: u8 },
-    /// The slot that the mythic feat of a Mythic rank's general pick gives
-    /// ([`MythicFeat::extra_pick`](crate::MythicFeat::extra_pick)): a feat slot (Extra Feat) or a mythic ability slot
+    /// The slot of the selection the mythic feat of a Mythic rank's general pick grants
+    /// ([`MythicFeat::selection`](crate::MythicFeat::selection)): a feat slot (Extra Feat) or a mythic ability slot
     /// (Extra Mythic Ability), after the general pick. A rank has one general pick, so one such slot at most.
     MythicExtra { rank: u8 },
 }

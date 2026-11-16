@@ -1,0 +1,12 @@
+(
+    key: "rogue/extra-rogue-talent",
+    blueprint: "14d9089df87a43b696fa9451ca2f0a12",
+    name: "Extra Rogue Talent",
+    summary: "One more rogue talent whose prerequisites you meet; up to 3 times.",
+    guide: "feats#extra-rogue-talent",
+    needs_slot_of: [
+        "rogue/rogue-talents",
+        "rogue/sylvan-trickster/fey-tricks",
+        "shifter/feyform-shifter/rogue-talent",
+    ],
+)

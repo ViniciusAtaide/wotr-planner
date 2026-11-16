@@ -273,7 +273,7 @@ impl Engine {
     }
 
     /// The picks an edit would shift: each pick the Build keeps in a slot that a Mythic rank's pick gives at the
-    /// rank's level (a feat's extra pick, an option row's slot), when after the edit another rank's pick would give
+    /// rank's level (a feat's selection's slot, an option row's), when after the edit another rank's pick would give
     /// the slot at that place, or none would. Only an edit that changes the level a rank is taken at shifts any
     /// (a rank moved, or the last level removed from under one). The engine refuses such an edit
     /// ([`Engine::allows`], the level picker's and the withdrawals' verdicts), though the walk of the edited Build

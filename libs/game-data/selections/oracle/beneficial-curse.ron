@@ -1,0 +1,22 @@
+(
+    key: "oracle/beneficial-curse",
+    blueprint: "2dda67424ee8e0b4d83ef01a73ca6bff",
+    name: "Oracle\'s Curse",
+    option_levels: ["oracle", "witch"],
+    option_level_archetypes: {"witch/stigmatized-witch": 0},
+    half_other_classes: true,
+    summary: "Gain an extra Oracle curse with no penalties.",
+    guide: "mythic-paths#beneficial-curse",
+    options: [],
+    shared_options: [
+        "oracle/oracles-curse/blackened",
+        "oracle/oracles-curse/demonic",
+        "oracle/oracles-curse/hellbound",
+        "oracle/oracles-curse/lame",
+        "oracle/oracles-curse/plagued",
+        "oracle/oracles-curse/powerless-prophecy",
+        "oracle/oracles-curse/pranked",
+        "oracle/oracles-curse/wasting",
+        "oracle/oracles-curse/wolf-scarred-face",
+    ],
+)

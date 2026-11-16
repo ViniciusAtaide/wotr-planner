@@ -1,0 +1,21 @@
+(
+    key: "shaman/second-spirit",
+    blueprint: "2faa80662a56ab644aec2f875a68597f",
+    name: "Spirit",
+    band: Path,
+    option_levels: ["shaman"],
+    summary: "Adds another Shaman spirit to the one you have.",
+    guide: "mythic-paths#second-spirit",
+    options: [],
+    shared_options: [
+        "shaman/spirit/battle",
+        "shaman/spirit/bones",
+        "shaman/spirit/flame",
+        "shaman/spirit/frost",
+        "shaman/spirit/life",
+        "shaman/spirit/nature",
+        "shaman/spirit/stone",
+        "shaman/spirit/waves",
+        "shaman/spirit/wind",
+    ],
+)

@@ -597,10 +597,11 @@ fn a_sanctified_slayer_picks_slayer_talents_at_8_16_17_and_20() {
     at_9.picks
         .insert(general_slot(9), feat_pick_plain("extra-slayer-talent"));
     assert!(possible(&at_9));
-    // Not a game fact: the slot's kind (the game's Extra Slayer Talent is its own list of 41).
+    // The slot is Extra Slayer Talent's own selection (ticket 302), standing for the slayer talents.
+    // Game: ExtraSlayerTalentSelection 53f7237f5b1447bb851ba68045a00e41 (its own list of 41)
     assert_eq!(
         kind_at(&at_9, &extra_slot(9, 0)),
-        Some(selection_kind(SLAYER_TALENTS))
+        Some(selection_kind("slayer/extra-slayer-talent"))
     );
 }
 

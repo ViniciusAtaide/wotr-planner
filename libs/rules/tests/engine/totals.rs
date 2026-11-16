@@ -60,7 +60,7 @@ fn world_with_bonus_items() -> GameData {
             guide: Some(GuideRef::new(key)),
             parameter: None,
             repeat: Repeat::Once,
-            extra_pick_of: BTreeSet::new(),
+            selection: None,
             aliases: BTreeSet::new(),
             requires_proficiency: false,
             prerequisite: None,
@@ -81,7 +81,7 @@ fn world_with_bonus_items() -> GameData {
         parameter: None,
         repeat: Repeat::Once,
         removes_racial_penalty: false,
-        extra_pick: None,
+        selection: None,
         requires_proficiency: false,
         prerequisite: None,
     });
@@ -95,7 +95,7 @@ fn world_with_bonus_items() -> GameData {
         guide: Some(GuideRef::new("grace")),
         prerequisite: None,
         features: Vec::new(),
-        selections: Vec::new(),
+        selection: None,
         parameter: None,
         repeat: rules::Repeat::Once,
     });

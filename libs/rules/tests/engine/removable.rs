@@ -460,13 +460,6 @@ fn the_start_and_level_pickers_lock_what_allows_refuses() {
 
 // ---- what a picker's option can break later -----------------------------------------------------------------
 
-/// The world changed by `change`, which must keep it passing the data check.
-fn engine_with(change: impl FnOnce(&mut rules::GameData)) -> Engine {
-    let mut data = world();
-    change(&mut data);
-    engine_on(data)
-}
-
 /// An option's status in a slot's picker.
 fn status_in(
     engine: &Engine,

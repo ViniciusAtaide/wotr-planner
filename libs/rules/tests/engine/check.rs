@@ -1486,9 +1486,7 @@ fn every_feature_selection_and_option_named_is_one_the_data_has() {
         .insert(option());
     rogue_talent_mut(&mut data, "rogue/rogue-talents/resiliency").replaces_row_of =
         Some(selection());
-    feat_mut(&mut data, "toughness")
-        .extra_pick_of
-        .insert(selection());
+    feat_mut(&mut data, "toughness").selection = Some(selection());
     data.mythic_abilities[0].features.push(feature());
     feat_mut(&mut data, "dodge").prerequisite = Some(Prerequisite::SelectionOption(option()));
     feat_mut(&mut data, "extra-rogue-talent").prerequisite =
@@ -1997,7 +1995,7 @@ fn an_expanded_arsenals_focuses_each_hold_a_spell_focus() {
         parameter: Some(ParameterKind::SpellSchool),
         repeat: Repeat::PerValue,
         prerequisite: None,
-        extra_pick: None,
+        selection: None,
         components: vec![arsenal("spell-focus")],
         ..template
     });

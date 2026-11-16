@@ -30,7 +30,7 @@ fn world_with_pick_values() -> GameData {
         guide: Some(rules::GuideRef(format!("feats#{key}"))),
         parameter: None,
         repeat: Repeat::Once,
-        extra_pick_of: BTreeSet::new(),
+        selection: None,
         aliases: BTreeSet::new(),
         requires_proficiency: false,
         prerequisite: None,
@@ -61,7 +61,7 @@ fn world_with_pick_values() -> GameData {
         guide: Some(rules::GuideRef(format!("mythic-paths#{key}"))),
         prerequisite: None,
         features: vec![],
-        selections: vec![],
+        selection: None,
         parameter: Some(parameter),
         repeat: Repeat::PerValue,
     };

@@ -41,6 +41,15 @@ impl Engine {
         let cursor = Cursor::new(self, build);
         let at = cursor.until_slot(slot)?;
         let (state, kind, lists) = (at.state(), at.kind(), at.lists());
+        // A selection of mythic abilities offers those it lists (ticket 302); a rank's general pick, every one.
+        let listed = match kind {
+            SlotKind::MythicAbilities(key) => Some(
+                &(self.catalog.selection(key))
+                    .expect("a slot names a selection of the data (CheckedGameData)")
+                    .mythic_abilities,
+            ),
+            _ => None,
+        };
         let candidates: Vec<Pick> = match kind {
             // A parameterised feat once per value.
             SlotKind::Feat(_) => self
@@ -80,12 +89,13 @@ impl Engine {
                     })
                     .collect()
             }
-            // A parameterised one once per value.
-            SlotKind::MythicAbility => self
+            // A parameterised one once per value; a selection's, those it lists.
+            SlotKind::MythicAbility | SlotKind::MythicAbilities(_) => self
                 .catalog
                 .data()
                 .mythic_abilities
                 .iter()
+                .filter(|ability| listed.is_none_or(|listed| listed.contains(&ability.key)))
                 .flat_map(|ability| match ability.parameter {
                     None => vec![Pick::mythic_ability(ability.key.clone())],
                     Some(kind) => self

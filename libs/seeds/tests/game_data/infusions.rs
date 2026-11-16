@@ -302,7 +302,7 @@ fn infusions_are_a_selection_of_32_with_their_level_and_elements() {
     // Game: InfusionSelection 58d6f8e9eea63f6418b107ce64f315ea is held by the kineticist's progression and archetypes
     // alone (InfusionProgression 908286aeefa6be54e8c39e144cb87fdd is named by nothing).
     assert!(DATA.feats.iter().all(|feat| {
-        feat.extra_pick_of
+        picks_of(feat)
             .iter()
             .all(|s| s.as_str() != INFUSIONS_SELECTION)
     }));

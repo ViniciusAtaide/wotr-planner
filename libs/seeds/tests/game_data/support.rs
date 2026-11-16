@@ -742,6 +742,8 @@ pub fn keys(selection: &rules::FeatureSelection) -> BTreeSet<String> {
 pub const WITCH_WANDERING_HEX: &str = "witch-wandering-hex";
 pub const BENEFICIAL_CURSE: &str = "beneficial-curse";
 pub const CURSES: &str = "oracle/oracles-curse";
+/// The selection Beneficial Curse grants (ticket 302), standing for [`CURSES`].
+pub const BENEFICIAL_CURSE_SELECTION: &str = "oracle/beneficial-curse";
 
 /// `build` with `ability` as MR 1's general pick (MR 1 is at level 6).
 pub fn with_mr_1_ability(mut build: Build, ability: &str) -> Build {
@@ -907,6 +909,16 @@ pub const FEAT_POOLS: [&str; 5] = [
 ];
 
 /// A Feature selection by key.
+/// The selections a feat's pick may be a slot of, as the planner holds them (ticket 302): those its selection needs a
+/// slot of first ([`needs_slot_of`](rules::FeatureSelection::needs_slot_of)), which every Extra feat's names. Empty
+/// for a feat that grants none.
+pub fn picks_of(feat: &rules::Feat) -> BTreeSet<rules::FeatureSelectionKey> {
+    feat.selection
+        .as_ref()
+        .map(|key| any_selection(key.as_str()).needs_slot_of.clone())
+        .unwrap_or_default()
+}
+
 pub fn any_selection(key: &str) -> &'static rules::FeatureSelection {
     DATA.selection(&rules::FeatureSelectionKey::new(key))
         .unwrap_or_else(|| panic!("no selection {key}"))

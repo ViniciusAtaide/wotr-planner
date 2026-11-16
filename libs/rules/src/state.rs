@@ -79,7 +79,7 @@ pub struct CharacterState {
     /// elements picked at 7 and 15). An option granted outside a selection's slot isn't here.
     pub options_through: BTreeMap<FeatureSelectionKey, BTreeMap<SelectionOptionKey, u8>>,
     /// Each Feature selection a row has granted, with how many rows hold it, whatever their slots hold (ticket 247):
-    /// what [`Prerequisite::Selection`] reads. A feat's extra pick (Extra Rage Power's slot) isn't a row's grant.
+    /// what [`Prerequisite::Selection`] reads. A feat's selection (Extra Rage Power's slot) isn't a row's grant.
     pub selections: BTreeMap<FeatureSelectionKey, u8>,
     /// Each option held whose pick names a value of the option's own (not a chosen feat's, which `feat_values`
     /// holds), with the values and how many picks hold each (Finesse Training: Dagger 1, Light Shield Bash 1;

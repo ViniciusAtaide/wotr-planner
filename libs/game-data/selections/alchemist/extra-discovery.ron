@@ -1,0 +1,12 @@
+(
+    key: "alchemist/extra-discovery",
+    blueprint: "537965879fc24ad3948aaffa7a1a3a66",
+    name: "Extra Discovery",
+    summary: "One more alchemist discovery whose prerequisites you meet; up to 3 times.",
+    guide: "feats#extra-discovery",
+    needs_slot_of: [
+        "alchemist/discovery",
+        "alchemist/vivisectionist/medical-discovery",
+        "rogue/underground-chemist/discovery",
+    ],
+)

@@ -1,0 +1,11 @@
+(
+    key: "magus/extra-arcana",
+    blueprint: "00727883edf145e2a6bce9ad176ecfd8",
+    name: "Extra Arcana",
+    summary: "One more magus arcana whose prerequisites you meet; up to 3 times.",
+    guide: "feats#extra-arcana",
+    needs_slot_of: [
+        "magus/hexcrafter/hex-arcana",
+        "magus/magus-arcana",
+    ],
+)

@@ -111,7 +111,7 @@ fn ki_powers_are_a_selection_of_14_with_their_level() {
     assert!(
         DATA.feats
             .iter()
-            .all(|feat| feat.extra_pick_of.iter().all(|s| s.as_str() != KI_POWER))
+            .all(|feat| picks_of(feat).iter().all(|s| s.as_str() != KI_POWER))
     );
 }
 
