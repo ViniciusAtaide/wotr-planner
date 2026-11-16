@@ -2,9 +2,19 @@
 
 Type: design, then build
 Status: open
-Blocked by: 244 (it writes the per-blueprint files); 295–298 and 301–305 (the component vocabulary, the data forms it writes and the link migration; user 2026-11-15 and 2026-11-16); the engine-rule tickets 247–254 and 256 (the importer writes data in the shapes they settle)
+Blocked by: 244 (it writes the per-blueprint files); 295–298 and 301–305 (S1 starts once 305 merges) (the component vocabulary, the data forms it writes and the link migration; user 2026-11-15 and 2026-11-16); the engine-rule tickets 247–254 and 256 (the importer writes data in the shapes they settle)
 Model: Opus to build: one bug touches thousands of entries, so it is built and reviewed with care.
 Map: [WotR Build Planner](../map.md)
+
+## Staged (2026-11-16)
+
+The design is [research/importer-design-2026-11-16.md](../research/importer-design-2026-11-16.md) (main session's design research; the user's three answers at its end: names in our own words, the game's rows for step grants, carriers now and the full import later). It splits the importer into five stages, each its own ticket, review and merge:
+- **This ticket is S1:** the `--write` mode of `game-check` (§1), the user-fact guard and its registry `tools/game-check/user-facts.txt` (§3), the change log, fixture tests; and it writes the class tables (with a new archetype `bab` field), the items (including the +8 headband the user approved, missing from `gear/`) and the features' `ClassSkill` 262 needs. About 67 findings.
+- **S2–S5** are [306](306-importer-selections.md) (selections and the per-class splits), [307](307-importer-carriers.md) (the carrier entries), [308](308-importer-prerequisites.md) (prerequisites) and [309](309-importer-rows.md) (rows). Each proves itself as the design's §4.2 says.
+- **The gap tickets** G1–G9 (§2.8) are numbered from 310 and filed at the queue's close.
+- **Follow-ups the form steps left here:** 302's Extra feats keep a first-had list and a `needs_slot_of` gate (the game opens the slot whenever the feat is taken: 306); `once_per_option` must reach across selections for the third elemental focus split (306); 305 keys held facts by kind and key, and 90 game blueprints are two planner entries (308 or a gap ticket); feature ranks uncapped since 243 (309, if 303 hasn't).
+
+The sections below are the ticket as first written; where they differ from the staging, the staging wins.
 
 ## Problem
 
