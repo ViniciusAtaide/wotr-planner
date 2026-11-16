@@ -32,6 +32,11 @@ pub(crate) fn changes(ctx: &Ctx) -> (Vec<Change>, Vec<Unexpressed>) {
         };
         let mut game = stacked(game_bonuses(ctx, &mut skipped, json));
         game.sort();
+        let unread: Vec<&str> = skipped
+            .skip_reasons(Area::Items)
+            .into_iter()
+            .filter(|reason| !benign(reason))
+            .collect();
         let mut planner: Vec<Bonus> = item
             .stats()
             .map(|(stat, value, descriptor)| {
@@ -43,21 +48,27 @@ pub(crate) fn changes(ctx: &Ctx) -> (Vec<Change>, Vec<Unexpressed>) {
             continue;
         }
         let at = DataAt::Gear(item.key.clone());
+        // A bonus the check skipped is one the game gives and this target can't read: writing the rest would
+        // delete the planner's bonus for it.
+        if !unread.is_empty() {
+            unexpressed.push(Unexpressed {
+                at,
+                what: format!("skipped: {}", unread.join("; ")),
+            });
+            continue;
+        }
         let mut stats = Vec::new();
-        let mut missing = None;
+        let mut missing = Vec::new();
         for bonus in &game {
             match gear_stat(bonus) {
                 Some(stat) => stats.push(stat),
-                None => {
-                    missing = Some(bonus);
-                    break;
-                }
+                None => missing.push(format!("{} {:+} {}", bonus.0, bonus.2, bonus.1)),
             }
         }
-        if let Some(bonus) = missing {
+        if !missing.is_empty() {
             unexpressed.push(Unexpressed {
                 at,
-                what: format!("{} {:+} {}", bonus.0, bonus.2, bonus.1),
+                what: missing.join("; "),
             });
             continue;
         }
@@ -84,7 +95,7 @@ pub(crate) fn changes(ctx: &Ctx) -> (Vec<Change>, Vec<Unexpressed>) {
 
 /// The `GearStat` component for one of the game's bonuses: the inverse of the check's `target` and `bonus_type`.
 /// `None` for a target or a type the planner has no word for.
-pub(crate) fn gear_stat(bonus: &Bonus) -> Option<Component> {
+pub fn gear_stat(bonus: &(String, String, i64)) -> Option<Component> {
     let (stat, kind, amount) = bonus;
     let descriptor: Descriptor = match kind.as_str() {
         "Untyped" => Descriptor::Untyped,
@@ -121,4 +132,10 @@ pub(crate) fn gear_stat(bonus: &Bonus) -> Option<Component> {
 /// A unit variant of a rules enum by its name.
 fn from_name<T: serde::de::DeserializeOwned>(name: &str) -> Option<T> {
     ron::from_str(name).ok()
+}
+
+/// Whether a reason the check left something out is no bonus the game gives: a bonus to a number the planner doesn't
+/// count, or a component of another kind. Any other reason is a bonus that couldn't be read.
+fn benign(reason: &str) -> bool {
+    reason.ends_with(", which the planner doesn't count") || reason.ends_with(", not compared")
 }
