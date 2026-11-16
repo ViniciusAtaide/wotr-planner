@@ -947,16 +947,23 @@ fn two_lines_of_one_specificity_are_a_parse_error() {
     }
 }
 
+/// The registry's two kind-level lines: every class's and archetype's skill points and class skills are held.
+const USER_HELD: &str = "class tables / skill points differ (the user's facts) -> held\nclass tables / class skills differ (the user's facts) -> held\n";
+
 fn write_class_tables(dir: &Path) -> game_check::write::Outcome {
-    let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
-    run(
-        &dump,
-        dir,
-        &[WriteArea::ClassTables],
-        false,
-        &Facts::default(),
-        |_| Ok(()),
-    )
+    write_tables(dir, crate::support::records(), USER_HELD)
+}
+
+fn write_tables(
+    dir: &Path,
+    records: Vec<crate::support::Record>,
+    facts: &str,
+) -> game_check::write::Outcome {
+    let (_, dump) = crate::support::dump(&crate::support::binz(&records, 2));
+    let facts = Facts::parse(facts).unwrap();
+    run(&dump, dir, &[WriteArea::ClassTables], false, &facts, |_| {
+        Ok(())
+    })
     .unwrap()
 }
 
@@ -965,8 +972,18 @@ fn writing_class_tables_brings_bab_and_saves_to_the_game() {
     let dir = data_copy();
     let sentinel = read(dir.path(), "prestige/sentinel.ron");
     let outcome = write_class_tables(dir.path());
-    assert!(outcome.unexpressed.is_empty(), "{:?}", outcome.unexpressed);
-    assert!(outcome.to_the_user.is_empty());
+    // The Warden's class skills name a check, which is no skill.
+    assert_eq!(outcome.unexpressed.len(), 1, "{:?}", outcome.unexpressed);
+    assert!(outcome.unexpressed[0].what.contains("CheckIntimidate"));
+    let held: Vec<_> = outcome
+        .to_the_user
+        .iter()
+        .map(|c| format!("{} {}", c.at, c.field))
+        .collect();
+    assert_eq!(
+        held,
+        ["class warden skill_points", "class warden class_skills"]
+    );
     let fields: Vec<_> = outcome
         .changes
         .iter()
@@ -1058,4 +1075,203 @@ fn a_class_table_run_is_idempotent() {
     assert!(again.changes.is_empty(), "{:?}", again.changes);
     assert!(again.applied.files.is_empty());
     assert_eq!(all_files(dir.path()), after_one);
+}
+
+fn applied_facts() -> String {
+    format!(
+        "{USER_HELD}\
+         class tables / skill points differ (the user's facts) / class warden -> applied 262\n\
+         class tables / class skills differ (the user's facts) / class warden -> applied 262\n\
+         class tables / skill points differ (the user's facts) / archetype warden/stoic -> applied 262\n"
+    )
+}
+
+#[test]
+fn the_users_class_tables_are_held_without_an_applied_line() {
+    let dir = data_copy();
+    let warden = read(dir.path(), "classes/warden.ron");
+    let outcome = write_class_tables(dir.path());
+    // The Stoic's 5 is the held class's 4 and its 1, so only the class is the user's to decide.
+    assert_eq!(outcome.to_the_user.len(), 2);
+    assert!(
+        outcome
+            .changes
+            .iter()
+            .all(|c| c.field != "skill_points" && c.field != "class_skills"),
+        "{:?}",
+        outcome.changes
+    );
+    let after = read(dir.path(), "classes/warden.ron");
+    assert!(after.contains("    skill_points: 4,\n"), "{after}");
+    assert!(after.contains("class_skills: [\"athletics\", \"perception\"]"));
+    // Only the saves moved in the file.
+    assert_eq!(after.replace("reflex: Good", "reflex: Poor"), warden);
+}
+
+#[test]
+fn applied_class_tables_are_written() {
+    let dir = data_copy();
+    let outcome = write_tables(dir.path(), crate::support::records(), &applied_facts());
+    assert!(outcome.to_the_user.is_empty(), "{:?}", outcome.to_the_user);
+    let warden = read(dir.path(), "classes/warden.ron");
+    assert!(warden.contains("    skill_points: 3,\n"), "{warden}");
+    // Intimidate is left (a check, not a skill); the rest is written, in the data's key order.
+    assert!(
+        warden.contains("class_skills: [\"athletics\", \"stealth\"]"),
+        "{warden}"
+    );
+    // 3 + 1 in the game: the Stoic's own count differs from the class's.
+    let stoic = read(dir.path(), "archetypes/warden/stoic.ron");
+    assert!(stoic.contains("    skill_points: 4,\n"), "{stoic}");
+    let key = |entry: &str, field: &'static str| (entry.to_owned(), field);
+    assert_eq!(
+        outcome
+            .facts
+            .get(&key("class warden", "skill_points"))
+            .map(String::as_str),
+        Some("applied 262")
+    );
+    // The finding for Intimidate stays, and a second run has nothing to write.
+    let report = report_of(dir.path());
+    assert!(report.text().contains("class tables / class skills differ"));
+    let again = write_tables(dir.path(), crate::support::records(), &applied_facts());
+    assert!(again.changes.is_empty(), "{:?}", again.changes);
+}
+
+/// The fixture's dump with the Warden's Fortitude table one no formula gives (`2, 3, 9`), and its data with a
+/// Fortitude and a Reflex exception.
+fn odd_fortitude() -> (tempfile::TempDir, game_check::write::Outcome) {
+    let mut records = crate::support::records();
+    records.push(record(
+        0x57,
+        "TestSavesOdd",
+        "Kingmaker.Blueprints.Classes.BlueprintStatProgression",
+        r#"{"Bonuses":[0,2,3,9,4]}"#,
+    ));
+    let warden = records
+        .iter_mut()
+        .find(|r| r.name == "WardenClass")
+        .unwrap();
+    warden.raw = warden.raw.replace(
+        "\"m_FortitudeSave\":\"!bp_00000000000000000000000000000052\"",
+        "\"m_FortitudeSave\":\"!bp_00000000000000000000000000000057\"",
+    );
+    let dir = data_copy();
+    let path = dir.path().join("classes/warden.ron");
+    let text = std::fs::read_to_string(&path).unwrap().replace(
+        "    will: Poor,\n",
+        "    will: Poor,\n    save_exceptions: [(level: 1, save: Fortitude, value: 2), (level: 1, save: Reflex, value: 9)],\n",
+    );
+    std::fs::write(&path, text).unwrap();
+    let outcome = write_tables(dir.path(), records, USER_HELD);
+    (dir, outcome)
+}
+
+#[test]
+fn save_exceptions_stay_for_a_save_no_formula_gives() {
+    let (dir, outcome) = odd_fortitude();
+    let warden = read(dir.path(), "classes/warden.ron");
+    // Reflex has a formula, so its exception goes; Fortitude has none, so its exception stays.
+    assert!(
+        warden.contains("save_exceptions: [(level: 1, save: Fortitude, value: 2)]"),
+        "{warden}"
+    );
+    assert!(!warden.contains("value: 9"), "{warden}");
+    assert!(warden.contains("    reflex: Good,\n"));
+    assert!(outcome.changes.iter().any(|c| c.field == "save_exceptions"));
+}
+
+#[test]
+fn an_unexpressed_class_table_is_left_and_listed() {
+    let (dir, outcome) = odd_fortitude();
+    let warden = read(dir.path(), "classes/warden.ron");
+    assert!(warden.contains("    fort: Good,\n"), "{warden}");
+    assert!(outcome.changes.iter().all(|c| c.field != "fort"));
+    assert!(
+        outcome
+            .unexpressed
+            .iter()
+            .any(|each| each.at.to_string() == "class warden" && each.what.contains("Fortitude")),
+        "{:?}",
+        outcome.unexpressed
+    );
+}
+
+/// The Stray overrides Reflex with the value the game gives the Warden.
+fn stray_reflex(facts: &str) -> (tempfile::TempDir, game_check::write::Outcome) {
+    let dir = data_copy();
+    let path = dir.path().join("archetypes/warden/stray.ron");
+    let text = std::fs::read_to_string(&path).unwrap().replace(
+        "guide: \"warden#stray\")",
+        "guide: \"warden#stray\", reflex: Good)",
+    );
+    std::fs::write(&path, text).unwrap();
+    let outcome = write_tables(dir.path(), crate::support::records(), facts);
+    (dir, outcome)
+}
+
+#[test]
+fn an_archetype_override_the_class_now_equals_is_removed() {
+    let (dir, _) = stray_reflex(USER_HELD);
+    assert!(read(dir.path(), "classes/warden.ron").contains("    reflex: Good,\n"));
+    let stray = read(dir.path(), "archetypes/warden/stray.ron");
+    assert!(!stray.contains("reflex:"), "{stray}");
+}
+
+#[test]
+fn a_held_class_save_is_not_assumed_by_its_archetypes() {
+    let facts = format!("{USER_HELD}class tables / Reflex differs / class warden -> held\n");
+    let (dir, outcome) = stray_reflex(&facts);
+    // The class keeps Poor, so the Stray's Good still differs from it and stays.
+    assert!(read(dir.path(), "classes/warden.ron").contains("    reflex: Poor,\n"));
+    let stray = read(dir.path(), "archetypes/warden/stray.ron");
+    assert!(stray.contains("reflex: Good"), "{stray}");
+    assert!(
+        outcome
+            .to_the_user
+            .iter()
+            .any(|c| c.at.to_string() == "class warden" && c.field == "reflex")
+    );
+}
+
+#[test]
+fn every_change_is_of_a_kind_its_area_names() {
+    let dir = data_copy();
+    let tables = write_class_tables(dir.path());
+    assert!(!tables.changes.is_empty() && !tables.to_the_user.is_empty());
+    for change in tables.changes.iter().chain(&tables.to_the_user) {
+        assert!(
+            WriteArea::ClassTables.kinds().contains(&change.kind),
+            "{}",
+            change.kind
+        );
+    }
+    let items = write_items(data_copy().path());
+    for change in &items.changes {
+        assert!(WriteArea::Items.kinds().contains(&change.kind));
+    }
+}
+
+#[test]
+fn every_kind_in_the_registry_is_one_the_check_emits() {
+    use game_check::Area;
+    let sources = [
+        (
+            Area::ClassTables,
+            include_str!("../../src/areas/class_tables.rs"),
+        ),
+        (Area::Items, include_str!("../../src/areas/items.rs")),
+    ];
+    let kinds = Facts::embedded().unwrap().kinds();
+    assert!(!kinds.is_empty());
+    for (area, kind) in kinds {
+        let (_, source) = sources
+            .iter()
+            .find(|(each, _)| *each == area)
+            .unwrap_or_else(|| panic!("no source for {area:?}"));
+        assert!(
+            source.contains(&format!("\"{kind}\"")),
+            "`{kind}` is no kind the check emits for {area:?}"
+        );
+    }
 }

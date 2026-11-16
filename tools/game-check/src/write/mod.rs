@@ -535,6 +535,8 @@ impl WriteArea {
                 "Fortitude differs",
                 "Reflex differs",
                 "Will differs",
+                "skill points differ (the user's facts)",
+                "class skills differ (the user's facts)",
             ],
         }
     }
@@ -582,7 +584,7 @@ pub fn run(
     for area in areas {
         let (more, left) = match area {
             WriteArea::Items => items::changes(&ctx),
-            WriteArea::ClassTables => tables::changes(&ctx),
+            WriteArea::ClassTables => tables::changes(&ctx, facts),
         };
         for change in more {
             let entry = change.at.to_string();

@@ -407,7 +407,8 @@
    "m_Progression": "!bp_000000000000000000000000000000p1",
    "ClassSkills": [
     "SkillAthletics",
-    "SkillStealth"
+    "SkillStealth",
+    "CheckIntimidate"
    ],
    "m_Archetypes": [
     "!bp_000000000000000000000000000000c3"

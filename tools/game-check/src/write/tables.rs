@@ -1,21 +1,27 @@
 //! The class-tables target (ticket 293g): each class's `bab`, `fort`, `reflex` and `will` as the formula that gives the
 //! game's table, its `save_exceptions` kept only for a save no formula gives, and each archetype's overrides against
-//! its class's target. Skill points and class skills are 293h's.
+//! its class's target. Skill points and class skills are the user's facts (293h): they are planned like the rest, and `run` writes them only under an `applied` line of the registry.
 //!
 //! A field is written only where the check would see a difference: the effective value of the planner's class
 //! ([`Class::base_attack_bonus`], [`Class::save_bonus`]) against the game's table at each of its levels. A person's
 //! order and an equal-but-redundant field stay. A table no formula gives is left, listed as unexpressed, and its
 //! finding stays.
 
+use std::collections::BTreeSet;
 use std::fmt::Debug;
 
-use rules::{Archetype, BabProgression, Class, DataAt, Save, SaveException, SaveProgression};
+use rules::{
+    Archetype, BabProgression, Class, DataAt, Save, SaveException, SaveProgression, SkillKey,
+};
 use serde::Serialize;
 
+use super::facts::{Decision, Facts};
 use super::span::{Value, ron_text};
 use super::{Change, Unexpressed, entry_file};
 use crate::areas::Ctx;
-use crate::areas::class_tables::{SAVES, bonuses};
+use crate::areas::class_tables::{SAVES, bonuses, game_skills};
+use crate::areas::game_skill;
+use crate::dump::{flag, int};
 use crate::report::{Area, Out};
 
 /// The BAB progression whose formula gives `table[1..=levels]` exactly.
@@ -84,9 +90,12 @@ fn exceptions_text(list: &[SaveException]) -> String {
     each.join("; ")
 }
 
-/// The changes that bring every class's and archetype's BAB and saves to the game's tables, classes first in key
-/// order and then archetypes in key order, and what no formula gives.
-pub(crate) fn changes(ctx: &Ctx) -> (Vec<Change>, Vec<Unexpressed>) {
+/// The changes that bring every class's and archetype's tables to the game's, classes first in key order and then
+/// archetypes in key order, and what the writer can't express.
+///
+/// The archetypes are planned against the class as `facts` leave it: a class change the registry holds is not written,
+/// so it is not assumed.
+pub(crate) fn changes(ctx: &Ctx, facts: &Facts) -> (Vec<Change>, Vec<Unexpressed>) {
     let data = ctx.planner.data;
     let mut changes = Vec::new();
     let mut archetype_changes: Vec<(String, Vec<Change>)> = Vec::new();
@@ -112,6 +121,8 @@ pub(crate) fn changes(ctx: &Ctx) -> (Vec<Change>, Vec<Unexpressed>) {
         let at = DataAt::Class(class.key.clone());
         let file = entry_file(data, &at);
         let mut target = class.clone();
+        let held =
+            |kind: &str| facts.decide(Area::ClassTables, kind, &at.to_string()) == Decision::Held;
         let mut push = |field: &'static str,
                         kind: &'static str,
                         value: Option<Value>,
@@ -127,6 +138,35 @@ pub(crate) fn changes(ctx: &Ctx) -> (Vec<Change>, Vec<Unexpressed>) {
                 new,
             });
         };
+
+        let points = int(&json["SkillPoints"]);
+        if let Ok(points) = u8::try_from(points)
+            && points != class.skill_points
+        {
+            push(
+                "skill_points",
+                POINTS,
+                Some(Value::One(points.to_string())),
+                class.skill_points.to_string(),
+                points.to_string(),
+            );
+            if !held(POINTS) {
+                target.skill_points = points;
+            }
+        }
+        let skills = expressed_skills(json, &at, &mut unexpressed);
+        if skills != class.class_skills {
+            push(
+                "class_skills",
+                SKILLS,
+                Some(skills_value(&skills)),
+                skills_text(&class.class_skills),
+                skills_text(&skills),
+            );
+            if !held(SKILLS) {
+                target.class_skills = skills;
+            }
+        }
 
         let table = bonuses(ctx.dump, json, "m_BaseAttackBonus");
         match need(
@@ -146,7 +186,9 @@ pub(crate) fn changes(ctx: &Ctx) -> (Vec<Change>, Vec<Unexpressed>) {
                         format!("{:?}", class.bab),
                         format!("{found:?}"),
                     );
-                    target.bab = found;
+                    if !held("BAB differs") {
+                        target.bab = found;
+                    }
                 }
             }
             Need::Unexpressed(what) => unexpressed.push(Unexpressed {
@@ -176,7 +218,9 @@ pub(crate) fn changes(ctx: &Ctx) -> (Vec<Change>, Vec<Unexpressed>) {
                             format!("{current:?}"),
                             format!("{found:?}"),
                         );
-                        set_save(&mut target, save, found);
+                        if !held(kind) {
+                            set_save(&mut target, save, found);
+                        }
                     }
                     let kept: Vec<SaveException> = target
                         .save_exceptions
@@ -194,7 +238,9 @@ pub(crate) fn changes(ctx: &Ctx) -> (Vec<Change>, Vec<Unexpressed>) {
                             exceptions_text(&target.save_exceptions),
                             exceptions_text(&kept),
                         );
-                        target.save_exceptions = kept;
+                        if !held(kind) {
+                            target.save_exceptions = kept;
+                        }
                     }
                 }
                 Need::Unexpressed(what) => unexpressed.push(Unexpressed {
@@ -230,6 +276,40 @@ pub(crate) fn changes(ctx: &Ctx) -> (Vec<Change>, Vec<Unexpressed>) {
     archetype_changes.sort_by(|a, b| a.0.cmp(&b.0));
     changes.extend(archetype_changes.into_iter().flat_map(|(_, own)| own));
     (changes, unexpressed)
+}
+
+const POINTS: &str = "skill points differ (the user's facts)";
+const SKILLS: &str = "class skills differ (the user's facts)";
+
+/// The planner's skills among the game's `ClassSkills`; one the planner has no key for (a check, not a skill) is
+/// listed as unexpressed.
+fn expressed_skills(
+    json: &serde_json::Value,
+    at: &DataAt,
+    unexpressed: &mut Vec<Unexpressed>,
+) -> BTreeSet<SkillKey> {
+    let mut keys = BTreeSet::new();
+    for stat in game_skills(json) {
+        match game_skill(&stat) {
+            Some(key) => {
+                keys.insert(key);
+            }
+            None => unexpressed.push(Unexpressed {
+                at: at.clone(),
+                what: format!("class skill {stat}: the planner has no such skill"),
+            }),
+        }
+    }
+    keys
+}
+
+fn skills_value(skills: &BTreeSet<SkillKey>) -> Value {
+    Value::List(skills.iter().map(ron_text).collect())
+}
+
+fn skills_text(skills: &BTreeSet<SkillKey>) -> String {
+    let each: Vec<&str> = skills.iter().map(SkillKey::as_str).collect();
+    each.join(", ")
 }
 
 fn save_field(save: Save) -> &'static str {
@@ -319,6 +399,40 @@ fn archetype_changes_of(
             wanted.as_ref().map(one),
             show(archetype.bab),
             show(wanted),
+        );
+    }
+
+    let total = i64::from(class.skill_points) + int(&json["AddSkillPoints"]);
+    if i64::from(archetype.skill_points.unwrap_or(class.skill_points)) != total
+        && let Ok(total) = u8::try_from(total)
+    {
+        let wanted = (total != class.skill_points).then_some(total);
+        push(
+            "skill_points",
+            POINTS,
+            wanted.as_ref().map(|points| Value::One(points.to_string())),
+            show(archetype.skill_points),
+            show(wanted),
+        );
+    }
+
+    let replaces = flag(&json["ReplaceClassSkills"]);
+    let own = if replaces {
+        expressed_skills(json, &at, &mut unexpressed)
+    } else {
+        class.class_skills.clone()
+    };
+    let current = archetype.class_skills.as_ref();
+    if *current.unwrap_or(&class.class_skills) != own {
+        let wanted = (replaces && own != class.class_skills).then_some(own);
+        push(
+            "class_skills",
+            SKILLS,
+            wanted.as_ref().map(skills_value),
+            current.map_or_else(|| show::<u8>(None), skills_text),
+            wanted
+                .as_ref()
+                .map_or_else(|| show::<u8>(None), skills_text),
         );
     }
 
