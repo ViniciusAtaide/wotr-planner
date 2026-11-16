@@ -1,0 +1,7 @@
+// Planted: the game's list holds Path Two as well.
+(
+    key: "path-abilities",
+    blueprint: "000000000000000000000000000000b33",
+    name: "Path ability",
+    mythic_abilities: ["path-one"],
+)

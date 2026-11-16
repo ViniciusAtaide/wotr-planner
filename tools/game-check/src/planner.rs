@@ -38,6 +38,15 @@ impl<'a> Planner<'a> {
         self.mapped.contains(guid)
     }
 
+    /// Every entry that names this blueprint, in entry order.
+    pub fn entries_of(&self, guid: &BlueprintGuid) -> Vec<&DataAt> {
+        self.entries
+            .iter()
+            .filter(|(_, named)| *named == Some(guid))
+            .map(|(at, _)| at)
+            .collect()
+    }
+
     /// How many entries name a blueprint.
     pub fn with_blueprint(&self) -> usize {
         self.entries

@@ -63,6 +63,38 @@ pub const GEAR_FIELDS: &[&str] = &[
     "other_effects",
 ];
 
+/// The fields of a feature selection in the order `rules::FeatureSelection` declares them
+/// (`libs/rules/src/game_data.rs`).
+pub const SELECTION_FIELDS: &[&str] = &[
+    "key",
+    "blueprint",
+    "name",
+    "summary",
+    "guide",
+    "options",
+    "feats",
+    "mythic_abilities",
+    "needs_slot_of",
+    "ignores_prerequisites",
+    "skips_proficiency",
+    "shared_options",
+    "option_levels",
+    "option_level_archetypes",
+    "option_headers_first",
+    "skipped_levels",
+    "replaced_by",
+    "feat_lists_only",
+    "only_without_option",
+    "filtered_by",
+    "later_rows_behind",
+    "level_from",
+    "level_also_from",
+    "once_per_option",
+    "deity_domains",
+    "band",
+    "components",
+];
+
 /// A field's new value as RON text: one value, or a list of elements.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Value {

@@ -1435,5 +1435,87 @@
    "$type": "0, BlueprintFeature",
    "Components": []
   }
+ },
+ {
+  "guid": "000000000000000000000000000000b11",
+  "name": "TestBonusOneFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b12",
+  "name": "TestBonusTwoFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b13",
+  "name": "TestBonusLostFeat",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b21",
+  "name": "TestPathOneFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b22",
+  "name": "TestPathTwoFeature",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b31",
+  "name": "TestBonusFeatSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "Feat",
+   "IgnorePrerequisites": true,
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000b11",
+    "!bp_000000000000000000000000000000b12"
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b32",
+  "name": "TestShortFeatSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "Feat",
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000b11",
+    "!bp_000000000000000000000000000000b13"
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b33",
+  "name": "TestPathAbilitySelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "MythicAbility",
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000b21",
+    "!bp_000000000000000000000000000000b22"
+   ]
+  }
  }
 ]

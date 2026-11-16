@@ -15,10 +15,11 @@
 pub mod facts;
 pub mod items;
 pub mod log;
+pub mod selections;
 pub mod span;
 pub mod tables;
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 use std::fs;
 use std::io;
@@ -26,7 +27,7 @@ use std::path::{Path, PathBuf};
 
 use rules::{DataAt, GameData};
 
-use span::{ARCHETYPE_FIELDS, CLASS_FIELDS, GEAR_FIELDS, SpanError, Value};
+use span::{ARCHETYPE_FIELDS, CLASS_FIELDS, GEAR_FIELDS, SELECTION_FIELDS, SpanError, Value};
 
 /// One field of one entry's file to write, or to remove when `value` is `None`.
 #[derive(Clone, Debug)]
@@ -180,6 +181,7 @@ fn declared(file: &Path) -> &'static [&'static str] {
         Some("classes" | "prestige") => CLASS_FIELDS,
         Some("archetypes") => ARCHETYPE_FIELDS,
         Some("gear") => GEAR_FIELDS,
+        Some("selections") => SELECTION_FIELDS,
         _ => &[],
     }
 }
@@ -210,6 +212,13 @@ fn owned(file: &Path) -> &'static [&'static str] {
             "components",
         ],
         Some("gear") => &["components"],
+        Some("selections") => &[
+            "options",
+            "shared_options",
+            "feats",
+            "mythic_abilities",
+            "ignores_prerequisites",
+        ],
         _ => &[],
     }
 }
@@ -499,6 +508,8 @@ pub enum WriteArea {
     Items,
     /// A class's and an archetype's BAB and saves, and the save exceptions.
     ClassTables,
+    /// A selection's feats or mythic abilities, and whether its picks ignore prerequisites.
+    OptionLists,
 }
 
 impl WriteArea {
@@ -507,6 +518,7 @@ impl WriteArea {
         match name {
             "items" => Some(WriteArea::Items),
             "class-tables" => Some(WriteArea::ClassTables),
+            "option-lists" => Some(WriteArea::OptionLists),
             _ => None,
         }
     }
@@ -515,6 +527,7 @@ impl WriteArea {
         match self {
             WriteArea::Items => "items",
             WriteArea::ClassTables => "class-tables",
+            WriteArea::OptionLists => "option-lists",
         }
     }
 
@@ -523,6 +536,7 @@ impl WriteArea {
         match self {
             WriteArea::Items => crate::Area::Items,
             WriteArea::ClassTables => crate::Area::ClassTables,
+            WriteArea::OptionLists => crate::Area::OptionLists,
         }
     }
 
@@ -538,6 +552,7 @@ impl WriteArea {
                 "skill points differ (the user's facts)",
                 "class skills differ (the user's facts)",
             ],
+            WriteArea::OptionLists => &["list"],
         }
     }
 }
@@ -556,12 +571,13 @@ pub struct Outcome {
 }
 
 /// Plans the changes of `areas` from the data under `dir` and the dump, and [`apply`]s them, or with `dry_run` only
-/// [`plan`]s them (the guards run, nothing is written). The data is read with
+/// [`plan`]s them (the guards run, nothing is written). `only` limits the option-lists area to the selections it names. The data is read with
 /// `seeds::read_game_data_files`, the model as the files hold it, not compiled.
 pub fn run(
     dump: &crate::Dump,
     dir: &Path,
     areas: &[WriteArea],
+    only: Option<&BTreeSet<String>>,
     dry_run: bool,
     facts: &facts::Facts,
     validate: impl Fn(&Path) -> Result<(), String>,
@@ -571,6 +587,18 @@ pub fn run(
     let stale = facts.stale(&data);
     if !stale.is_empty() {
         return Err(WriteError::StaleFacts(stale));
+    }
+    if let Some(unknown) = only.and_then(|only| {
+        only.iter().find(|key| {
+            !data
+                .selections
+                .iter()
+                .any(|s| s.key.as_str() == key.as_str())
+        })
+    }) {
+        return Err(WriteError::Invalid(format!(
+            "--only names no selection: {unknown}"
+        )));
     }
     let planner = crate::planner::Planner::new(&data);
     let ctx = crate::areas::Ctx {
@@ -585,6 +613,7 @@ pub fn run(
         let (more, left) = match area {
             WriteArea::Items => items::changes(&ctx),
             WriteArea::ClassTables => tables::changes(&ctx, facts),
+            WriteArea::OptionLists => selections::changes(&ctx, only),
         };
         for change in more {
             let entry = change.at.to_string();

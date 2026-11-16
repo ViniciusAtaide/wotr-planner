@@ -128,7 +128,7 @@ fn list(
     };
     let name = ctx.name(guid);
     let mark = out.mark();
-    let Some(all) = json.get("m_AllFeatures") else {
+    let Some(game) = game_list(json) else {
         // The planner offers a choice where the game grants one blueprint (Greater Wyrmshifter's breaths).
         out.finding(
             AREA,
@@ -142,7 +142,6 @@ fn list(
         out.compared(AREA, mark);
         return;
     };
-    let game: BTreeSet<BlueprintGuid> = references(Some(all)).into_iter().collect();
     let planner_guids: BTreeSet<&BlueprintGuid> = planner.iter().map(|(guid, _)| guid).collect();
     for option in &game {
         if !planner_guids.contains(option) {
@@ -185,4 +184,10 @@ fn list(
         }
     }
     out.compared(AREA, mark);
+}
+
+/// The blueprints a choice's `m_AllFeatures` lists; `None` when it has none, a choice the game doesn't offer.
+pub(crate) fn game_list(json: &serde_json::Value) -> Option<BTreeSet<BlueprintGuid>> {
+    let all = json.get("m_AllFeatures")?;
+    Some(references(Some(all)).into_iter().collect())
 }
