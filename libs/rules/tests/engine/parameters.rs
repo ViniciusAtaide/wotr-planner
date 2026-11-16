@@ -6,9 +6,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
-    ArmourType, Build, Choice, Engine, FeatSlot, GameData, Issue, MythicFeatKey, OptionLevelRow,
-    Parameter, Pick, Prerequisite, Repeat, SelectionOption, SlotId, SlotKind, SlotOption,
-    SpellSchool, Unmet,
+    ArmourType, Build, Choice, Engine, GameData, Issue, MythicFeatKey, OptionLevelRow, Parameter,
+    Pick, Prerequisite, Repeat, SelectionOption, SlotId, SlotKind, SlotOption, SpellSchool, Unmet,
 };
 
 use crate::support::*;
@@ -486,7 +485,7 @@ fn an_option_taken_again_grants_its_rows_slot_again() {
         option.repeat = Repeat::Unlimited;
         option.levels = vec![OptionLevelRow {
             level: 1,
-            feat_slots: vec![FeatSlot::CombatFeat],
+            selections: vec![feat_list("combat-feats")],
             ..OptionLevelRow::default()
         }];
         selection_mut(data, "rogue/rogue-talents").option_levels = [class("rogue")].into();
@@ -499,7 +498,7 @@ fn an_option_taken_again_grants_its_rows_slot_again() {
     let sheet = engine.evaluate(&build);
     for level in [2, 4] {
         let slot = sheet.slot(&trick_slot(level)).expect("a slot");
-        assert_eq!(slot.kind, SlotKind::Feat(FeatSlot::CombatFeat));
+        assert_eq!(slot.kind, SlotKind::Feat(feat_list("combat-feats")));
         assert_eq!(engine.slot_label(slot), "Combat feat");
     }
     assert_eq!(sheet.at(4).unwrap().option_count(&option(trick)), 2);
@@ -871,7 +870,7 @@ fn a_mantis_zealot_holds_its_weapon_feats_in_its_one_weapon() {
     assert!(
         !slots
             .iter()
-            .any(|slot| matches!(slot.kind, SlotKind::Feat(FeatSlot::OneOf { .. })))
+            .any(|slot| slot.kind == SlotKind::Feat(feat_list("warpriest/weapon-focus")))
     );
 }
 

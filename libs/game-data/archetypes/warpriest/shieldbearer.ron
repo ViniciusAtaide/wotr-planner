@@ -13,7 +13,7 @@
         (level: 8, features: ["warpriest/fervor", "warpriest/shieldbearer/channel-energy-shieldbearer", "warpriest/shieldbearer/sacred-shield"]),
         (level: 10, features: ["warpriest/shieldbearer/sacred-weapon-shieldbearer"]),
         (level: 11, features: ["warpriest/fervor", "warpriest/shieldbearer/channel-energy-shieldbearer"]),
-        (level: 12, features: ["warpriest/shieldbearer/sacred-shield"], feat_slots: [CombatFeat]),
+        (level: 12, features: ["warpriest/shieldbearer/sacred-shield"], selections: ["combat-feats"]),
         (level: 13, features: ["warpriest/shieldbearer/sacred-weapon-shieldbearer"]),
         (level: 14, features: ["warpriest/fervor", "warpriest/shieldbearer/channel-energy-shieldbearer"]),
         (level: 16, features: ["warpriest/shieldbearer/sacred-shield", "warpriest/shieldbearer/sacred-weapon-shieldbearer"]),

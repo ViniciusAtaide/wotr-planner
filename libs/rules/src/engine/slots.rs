@@ -1,13 +1,13 @@
 //! What a slot accepts: the options a selection offers (its own and shared; of a filtered pool, the picker lists those
-//! its held options admit) and the lists a feat slot picks from. Whether a pick fits its slot is the walk's one check,
+//! its held options admit) and the feats a selection of feats offers, from its own list or a held option's. Whether a pick fits its slot is the walk's one check,
 //! `walk::judge::check_pick`, which reads these.
 //!
 //! All of it reads only the game data and the character's state, so it's an `impl Catalog` block. The engine's
 //! public answer here delegates to it.
 
 use super::{Catalog, Engine};
-use crate::game_data::{Feat, FeatList, FeatSlot, FeatureSelection};
-use crate::keys::{FeatListKey, FeatureSelectionKey, SelectionOptionKey};
+use crate::game_data::{Feat, FeatureSelection, OptionLists};
+use crate::keys::{FeatureSelectionKey, SelectionOptionKey};
 use crate::prerequisite::Prerequisite;
 use crate::state::CharacterState;
 
@@ -67,80 +67,58 @@ impl Catalog {
         }
     }
 
-    /// The lists a feat slot picks from for a character in `state`: a `OneOf`'s list, or the lists in force of
-    /// the options held that an `OptionList`'s selection offers. Empty for the other slots. A picker works them out
-    /// once and asks them about every feat (the walk's pick check).
-    pub(super) fn slot_lists(&self, slot: &FeatSlot, state: &CharacterState) -> Vec<&FeatList> {
-        match slot {
-            FeatSlot::OneOf { list } => vec![self.slot_list(list)],
-            FeatSlot::OptionList {
-                selection,
-                at_level: None,
-                ..
-            } => {
-                let selection = self.slot_selection(selection);
-                state
-                    .option_feat_lists
-                    .iter()
-                    .filter(|(option, _)| self.offers(selection, option))
-                    .map(|(_, list)| self.slot_list(list))
-                    .collect()
-            }
-            // The list in force at that option level of each option held that the selection offers.
-            FeatSlot::OptionList {
-                selection,
-                at_level: Some(level),
-                ..
-            } => {
-                let selection = self.slot_selection(selection);
-                state
-                    .selection_options
-                    .keys()
-                    .filter(|option| self.offers(selection, option))
-                    .filter_map(|option| self.option(option))
-                    .filter_map(|option| {
-                        option
-                            .levels
-                            .iter()
-                            .filter(|row| row.level <= *level)
-                            .filter_map(|row| row.feat_list.as_ref())
-                            .next_back()
-                    })
-                    .map(|list| self.slot_list(list))
-                    .collect()
-            }
-            _ => Vec::new(),
-        }
-    }
-
-    /// A feat list a slot or an option row names: one of the data's, which
-    /// [`CheckedGameData`](crate::CheckedGameData) guarantees.
-    fn slot_list(&self, key: &FeatListKey) -> &FeatList {
-        self.feat_list(key)
-            .expect("a slot or an option row names a feat list of the data (CheckedGameData)")
-    }
-
-    /// The selection an `OptionList` slot names: one of the data's, which
-    /// [`CheckedGameData`](crate::CheckedGameData) guarantees.
-    fn slot_selection(&self, key: &FeatureSelectionKey) -> &FeatureSelection {
-        self.selection(key)
-            .expect("a slot names a selection of the data (CheckedGameData)")
-    }
-
-    /// [`slot_accepts`](Self::slot_accepts) for a character whose lists for the slot are `lists`
-    /// ([`slot_lists`](Self::slot_lists)), which an `OptionList` slot needs.
-    pub(super) fn slot_accepts_with(
+    /// The selections of feats a feat slot of `key` picks from for a character in `state`: the selection itself, or
+    /// for one whose lists come from an option ([`FeatureSelection::option_lists`]), the lists in force of the options
+    /// held that the option's selection offers. Empty for a selection the data lacks. A picker works them out once and
+    /// asks them about every feat (the walk's pick check).
+    pub(super) fn slot_lists(
         &self,
-        slot: &FeatSlot,
-        feat: &Feat,
-        lists: &[&FeatList],
-    ) -> bool {
-        match slot {
-            FeatSlot::OneOf { .. } | FeatSlot::OptionList { .. } => {
-                lists.iter().any(|list| list.contains(&feat.key))
-            }
-            _ => self.slot_accepts(slot, feat),
+        key: &FeatureSelectionKey,
+        state: &CharacterState,
+    ) -> Vec<&FeatureSelection> {
+        let Some(selection) = self.selection(key) else {
+            return Vec::new();
+        };
+        let Some(OptionLists {
+            selection: of,
+            at_level,
+        }) = &selection.option_lists
+        else {
+            return vec![selection];
+        };
+        let of = self.named_selection(of);
+        match at_level {
+            None => state
+                .option_feat_lists
+                .iter()
+                .filter(|(option, _)| self.offers(of, option))
+                .map(|(_, list)| self.named_selection(list))
+                .collect(),
+            // The list in force at that option level of each option held that the selection offers.
+            Some(level) => state
+                .selection_options
+                .keys()
+                .filter(|option| self.offers(of, option))
+                .filter_map(|option| self.option(option))
+                .filter_map(|option| {
+                    option
+                        .levels
+                        .iter()
+                        .filter(|row| row.level <= *level)
+                        .filter_map(|row| row.feat_list.as_ref())
+                        .next_back()
+                })
+                .map(|list| self.named_selection(list))
+                .collect(),
         }
+    }
+
+    /// A selection that an option row's feat list or a selection's option lists name: one of the data's, which
+    /// [`CheckedGameData`](crate::CheckedGameData) guarantees.
+    fn named_selection(&self, key: &FeatureSelectionKey) -> &FeatureSelection {
+        self.selection(key).expect(
+            "an option row's feat list or a selection's option lists name a selection of the data",
+        )
     }
 
     /// The one option a selection offers, when it offers exactly one: then it's granted with no pick. Worked out
@@ -168,34 +146,20 @@ impl Catalog {
             Err(_) => None,
         }
     }
-
-    /// Whether a feat slot accepts a feat, ignoring prerequisites. An `OptionList` slot accepts none here: its lists
-    /// depend on the options held, which [`Engine::options`] sees.
-    ///
-    /// # Panics
-    ///
-    /// For a `OneOf` naming a list the data lacks: a slot is the data's, and
-    /// [`CheckedGameData`](crate::CheckedGameData) guarantees its list.
-    pub(super) fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
-        match slot {
-            FeatSlot::General => true,
-            FeatSlot::CombatFeat => feat.category.is_combat(),
-            FeatSlot::Category(category) => feat.category == *category,
-            FeatSlot::OneOf { list } => self.slot_list(list).contains(&feat.key),
-            FeatSlot::OptionList { .. } => false,
-        }
-    }
 }
 
 impl Engine {
-    /// Whether a feat slot accepts a feat, ignoring prerequisites. An `OptionList` slot accepts none here: its lists
-    /// depend on the options held, which [`options`](Self::options) sees.
-    ///
-    /// # Panics
-    ///
-    /// For a `OneOf` naming a list the data lacks: a slot is the data's, and
-    /// [`CheckedGameData`](crate::CheckedGameData) guarantees its list.
-    pub fn slot_accepts(&self, slot: &FeatSlot, feat: &Feat) -> bool {
-        self.catalog.slot_accepts(slot, feat)
+    /// Whether a feat slot of the selection `key` accepts a feat, ignoring prerequisites: the selection lists it. A
+    /// selection whose lists come from a held option ([`FeatureSelection::option_lists`]) accepts none here: its
+    /// lists depend on the options held, which [`options`](Self::options) sees. `false` for a selection the data
+    /// lacks.
+    pub fn slot_accepts(&self, key: &FeatureSelectionKey, feat: &Feat) -> bool {
+        (self.catalog.selection(key)).is_some_and(|selection| lists_feat(&[selection], feat))
     }
+}
+
+/// Whether a feat slot whose lists for the character are `lists` ([`Catalog::slot_lists`]) accepts a feat, ignoring
+/// prerequisites: one of them lists it.
+pub(super) fn lists_feat(lists: &[&FeatureSelection], feat: &Feat) -> bool {
+    lists.iter().any(|list| list.feats.contains(&feat.key))
 }

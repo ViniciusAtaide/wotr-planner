@@ -108,7 +108,7 @@ fn entries_name_their_game_blueprint() {
         ),
         // RangerStyleArcherySelection2, which NomadArchetype and StormwalkerArchetype add at 2
         (
-            DataAt::FeatList(FeatListKey::new("ranger/bonus-feats-2b")),
+            DataAt::FeatureSelection(FeatureSelectionKey::new("ranger/bonus-feats-2b")),
             "3cf94df3f1cf9a443a880bc1ae9be3c6",
         ),
         // OracleRevelationSelection: the per-mystery pools merged into the game's one revelation selection, filtered
@@ -184,7 +184,9 @@ fn entries_name_their_game_blueprint() {
 /// The 175 entries left empty, by kind, as the ticket's Answer lists them: planner placeholders (the bloodline-spell
 /// features), a feature the game keeps as one blueprint per colour or element, an ability rather than a feature, a
 /// planner-made pool or list. A change here is a change to that list. Ticket 243 removed the 27 curse-stage
-/// placeholders and added the Possessed Oracle's curse selection, which the game doesn't have (149 left).
+/// placeholders and added the Possessed Oracle's curse selection, which the game doesn't have (149 left). Ticket 301
+/// added six planner selections of a held option's feat lists, where the game has one selection per option: the
+/// bloodrager's bloodline feat, the ranger's style feat, the slayer's at 2, 6 and 10, the kineticist's wild talent feat.
 #[test]
 fn the_entries_left_without_a_blueprint_are_the_answers() {
     let mut empty: BTreeMap<&str, usize> = BTreeMap::new();
@@ -198,7 +200,7 @@ fn the_entries_left_without_a_blueprint_are_the_answers() {
         BTreeMap::from([
             ("feature", 102),
             ("gear item", 1),
-            ("selection", 3),
+            ("selection", 9),
             ("selection option", 39),
             ("spell", 1),
             ("spell list", 2),

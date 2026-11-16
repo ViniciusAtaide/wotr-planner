@@ -7,7 +7,8 @@
 use mcp::Planner;
 use rmcp::serde_json::{Value, json};
 use rules::test_world::{
-    build, engine_on, feat, gear_item, general_slot, pick_feat, point_buy, world,
+    build, engine_on, feat, gear_item, general_slot, list_feats_in_pools, pick_feat, point_buy,
+    world,
 };
 use rules::{Ability, Build, Engine, GameData, GearPlace, Prerequisite};
 
@@ -30,6 +31,8 @@ fn data() -> GameData {
         score: 19,
     });
     data.feats.push(gtwf);
+    // Offered where the world's feats are (ticket 301: the general selection lists them).
+    list_feats_in_pools(&mut data);
     data
 }
 

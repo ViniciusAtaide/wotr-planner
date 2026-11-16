@@ -13,7 +13,7 @@
         (level: 8),
         (level: 12),
         (level: 13),
-        (level: 18, feat_slots: [OptionList(selection: "ranger/combat-style-feat")]),
+        (level: 18, selections: ["ranger/combat-style-feats"]),
         (level: 20, features: ["ranger/espionage-expert/espionage-master", "ranger/favored-enemy"]),
     ],
 )

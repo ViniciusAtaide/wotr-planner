@@ -1,0 +1,10 @@
+(
+    key: "warpriest/weapon-focus",
+    blueprint: "ac384183dbfbbd7499410a21d749bef1",
+    name: "Weapon Focus",
+    guide: "warpriest#sacred-weapon",
+    ignores_prerequisites: true,
+    feats: [
+        "weapon-focus",
+    ],
+)

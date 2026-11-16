@@ -1,0 +1,15 @@
+(
+    key: "bloodrager/bloodline/elemental/feats",
+    blueprint: "107b4ff0240382e4f9a4659484e1c0fa",
+    name: "Elemental Bloodline Feats",
+    guide: "bloodrager#bonus-feats-elemental",
+    feats: [
+        "cleave",
+        "dodge",
+        "great-fortitude",
+        "improved-initiative",
+        "lightning-reflexes",
+        "power-attack",
+        "weapon-focus",
+    ],
+)

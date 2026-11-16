@@ -2,7 +2,7 @@
 //! `effective_row` is the one place they meet the base class's rows.
 
 use rules::{
-    ArchetypeKey, ArchetypeLevelRow, Build, ClassChoice, ClassKey, FeatSlot, GameData, SpellLevels,
+    ArchetypeKey, ArchetypeLevelRow, Build, ClassChoice, ClassKey, GameData, SpellLevels,
     effective_row,
 };
 
@@ -35,8 +35,8 @@ fn a_level_the_archetype_leaves_out_is_the_base_class_row() {
     let mut data = world();
     // The armiger has no row at 3, so a Combat feat slot the fighter gains at 3 is the armiger's too.
     class_mut(&mut data, "fighter").levels[2]
-        .feat_slots
-        .push(FeatSlot::CombatFeat);
+        .selections
+        .push(feat_list("combat-feats"));
     let build = as_archetype(
         build("elf", &times("fighter", 3)),
         "fighter",
@@ -83,7 +83,6 @@ fn an_archetype_row_keeps_the_base_spell_levels_unless_it_sets_its_own() {
             spell_levels: None,
             features: vec![feature("fighter/bravery")],
             feats: Default::default(),
-            feat_slots: vec![],
             selections: vec![],
         },
         // Loses spellcasting from 5.
@@ -93,7 +92,6 @@ fn an_archetype_row_keeps_the_base_spell_levels_unless_it_sets_its_own() {
             spell_levels: Some(SpellLevels::default()),
             features: vec![],
             feats: Default::default(),
-            feat_slots: vec![],
             selections: vec![],
         },
     ];
@@ -114,7 +112,6 @@ fn effective_row_is_the_archetypes_row_where_it_has_one_and_the_base_row_elsewhe
     let armiger = data.archetypes_of(&fighter.key).next().unwrap();
 
     let at_1 = effective_row(fighter, Some(armiger), 1).unwrap();
-    assert_eq!(at_1.feat_slots, []);
     assert_eq!(
         at_1.selections,
         [rules::FeatureSelectionKey::new("fighter/armiger/order")]
@@ -124,7 +121,7 @@ fn effective_row_is_the_archetypes_row_where_it_has_one_and_the_base_row_elsewhe
     assert_eq!(at_3, effective_row(fighter, None, 3).unwrap());
 
     let base_1 = effective_row(fighter, None, 1).unwrap();
-    assert_eq!(base_1.feat_slots, [FeatSlot::CombatFeat]);
+    assert_eq!(base_1.selections, [feat_list("combat-feats")]);
 
     assert_eq!(effective_row(fighter, Some(armiger), 21), None);
 }

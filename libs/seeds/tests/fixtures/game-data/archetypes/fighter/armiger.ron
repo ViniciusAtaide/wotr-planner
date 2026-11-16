@@ -7,7 +7,7 @@
     class_skills: ["athletics", "persuasion"],
     levels: [
         (level: 1, feats: ["armiger-drill"], selections: ["fighter/armiger/order"]),
-        (level: 2, features: ["fighter/armiger/armigers-mastery"], feat_slots: [OneOf(list: "fighter/armiger/bonus-feats")]),
-        (level: 3, feat_slots: [Category(Teamwork)]),
+        (level: 2, features: ["fighter/armiger/armigers-mastery"], selections: ["fighter/armiger/bonus-feats"]),
+        (level: 3, selections: ["teamwork-feats"]),
     ],
 )

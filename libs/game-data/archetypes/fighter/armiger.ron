@@ -8,10 +8,10 @@
     skill_points: 3,
     levels: [
         (level: 1, features: ["fighter/armiger/studious-squire"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency", "tower-shield-proficiency"], selections: ["fighter/armiger/order"]),
-        (level: 2, features: ["fighter/armiger/ardent"], feat_slots: [CombatFeat]),
-        (level: 6, features: ["fighter/armiger/ardent"], feat_slots: [CombatFeat]),
+        (level: 2, features: ["fighter/armiger/ardent"], selections: ["combat-feats"]),
+        (level: 6, features: ["fighter/armiger/ardent"], selections: ["combat-feats"]),
         (level: 10, features: ["fighter/armiger/ardent"]),
-        (level: 14, features: ["fighter/armiger/ardent"], feat_slots: [CombatFeat]),
-        (level: 18, features: ["fighter/armiger/ardent"], feat_slots: [CombatFeat]),
+        (level: 14, features: ["fighter/armiger/ardent"], selections: ["combat-feats"]),
+        (level: 18, features: ["fighter/armiger/ardent"], selections: ["combat-feats"]),
     ],
 )

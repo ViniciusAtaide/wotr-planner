@@ -1,8 +1,8 @@
 //! Mythic ascensions: the general pick at each rank, the path at MR 3, and the Path switch.
 
 use rules::{
-    Build, Edit, FeatSlot, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPickKind,
-    RankStatus, Sheet, SlotId, SlotKind, mythic_pick_kind,
+    Build, Edit, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPickKind, RankStatus,
+    Sheet, SlotId, SlotKind, mythic_pick_kind,
 };
 
 use crate::support::*;
@@ -148,9 +148,7 @@ fn the_path_is_chosen_at_mr_3_and_adds_its_own_picks() {
     );
     assert_eq!(
         mythic_slot_kinds(&sheet, 4)[1].1,
-        SlotKind::Feat(FeatSlot::OneOf {
-            list: feat_list("trickster/bonus-feats"),
-        })
+        SlotKind::Feat(feat_list("trickster/bonus-feats"))
     );
     let at_9 = sheet.at(9).unwrap();
     assert_eq!(

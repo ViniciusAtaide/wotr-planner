@@ -289,6 +289,6 @@ fn a_traditional_monk_gains_its_fixed_ki_powers_and_picks_none() {
         .unwrap();
     for level in [6, 10, 14] {
         let row = rules::effective_row(class("monk"), Some(traditional), level).unwrap();
-        assert_eq!(row.feat_slots.len(), 1, "{level}");
+        assert_eq!(feat_selections(row.selections).count(), 1, "{level}");
     }
 }

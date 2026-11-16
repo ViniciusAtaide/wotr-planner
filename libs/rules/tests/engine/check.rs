@@ -3,10 +3,9 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    ArchetypeKey, ArchetypeLevelRow, ClassKey, DataAt, DataIssue, DataProblem, FeatKey,
-    FeatListKey, FeatSlot, FeatureKey, FeatureSelectionKey, GameData, MythicPathKey, OptionGroup,
-    Prerequisite, RaceKey, Repeat, Save, SaveException, SaveProgression, SelectionOptionKey,
-    SpellLevels,
+    ArchetypeKey, ArchetypeLevelRow, ClassKey, DataAt, DataIssue, DataProblem, FeatKey, FeatureKey,
+    FeatureSelectionKey, GameData, MythicPathKey, OptionGroup, Prerequisite, RaceKey, Repeat, Save,
+    SaveException, SaveProgression, SelectionOptionKey, SpellLevels,
 };
 
 use crate::support::*;
@@ -104,7 +103,6 @@ fn an_archetype_row_differs_from_the_base_row() {
         spell_levels: None,
         features: base_3.features.iter().rev().cloned().collect(),
         feats: base_3.feats.clone(),
-        feat_slots: base_3.feat_slots.clone(),
         selections: base_3.selections.clone(),
     });
     // Level 5: the fighter's grants and the fighter's spell levels set again.
@@ -114,7 +112,6 @@ fn an_archetype_row_differs_from_the_base_row() {
         spell_levels: Some(base_5.spell_levels()),
         features: base_5.features.clone(),
         feats: base_5.feats.clone(),
-        feat_slots: base_5.feat_slots.clone(),
         selections: base_5.selections.clone(),
     });
     // Level 7: its own grants, but a spell override equal to the fighter's.
@@ -124,8 +121,7 @@ fn an_archetype_row_differs_from_the_base_row() {
         spell_levels: Some(SpellLevels::default()),
         features: vec![],
         feats: BTreeSet::new(),
-        feat_slots: vec![FeatSlot::CombatFeat],
-        selections: vec![],
+        selections: vec![feat_list("combat-feats")],
     });
     // Level 9: the fighter's grants plus a granted feat, which is a difference.
     let base_9 = fighter_level(&data, 9);
@@ -137,7 +133,6 @@ fn an_archetype_row_differs_from_the_base_row() {
             spell_levels: None,
             features: base_9.features.clone(),
             feats: BTreeSet::from([FeatKey::new("toughness")]),
-            feat_slots: base_9.feat_slots.clone(),
             selections: base_9.selections.clone(),
         });
     assert_eq!(
@@ -366,10 +361,10 @@ fn a_feat_list_holds_two_feats_or_more_and_some_slot_names_it() {
     let bonus_feats = feat_list_mut(&mut data, "monk/bonus-feats");
     bonus_feats.feats = BTreeSet::from([FeatKey::new("dodge")]);
     let mut unused = bonus_feats.clone();
-    unused.key = FeatListKey::new("monk/unused");
+    unused.key = FeatureSelectionKey::new("monk/unused");
     unused.feats = BTreeSet::from([FeatKey::new("dodge"), FeatKey::new("toughness")]);
-    data.feat_lists.push(unused);
-    let at = |key: &str| DataAt::FeatList(FeatListKey::new(key));
+    data.selections.push(unused);
+    let at = |key: &str| DataAt::FeatureSelection(FeatureSelectionKey::new(key));
     assert_eq!(
         issues(&data),
         [
@@ -383,7 +378,7 @@ fn a_feat_list_holds_two_feats_or_more_and_some_slot_names_it() {
             issue: DataIssue::FeatListTooShort,
         }
         .to_string(),
-        "feat list monk/bonus-feats: a list of fewer than two feats; grant a lone feat instead"
+        "selection monk/bonus-feats: a list of fewer than two feats; grant a lone feat instead"
     );
 }
 
@@ -391,10 +386,10 @@ fn a_feat_list_holds_two_feats_or_more_and_some_slot_names_it() {
 fn feat_list_keys_are_unique() {
     let mut data = world();
     let copy = feat_list_mut(&mut data, "monk/bonus-feats").clone();
-    data.feat_lists.push(copy.clone());
+    data.selections.push(copy.clone());
     assert_eq!(
         issues(&data),
-        [(DataAt::FeatList(copy.key), DataIssue::DuplicateKey)]
+        [(DataAt::FeatureSelection(copy.key), DataIssue::DuplicateKey)]
     );
 }
 
@@ -536,13 +531,11 @@ fn problems_read_as_sentences_that_name_the_kind() {
 #[test]
 fn only_class_levels_and_a_paths_own_ranks_grant_bonus_list_slots() {
     // The monk's list ignores prerequisites.
-    let bonus_list = rules::FeatSlot::OneOf {
-        list: FeatListKey::new("monk/bonus-feats"),
-    };
+    let bonus_list = FeatureSelectionKey::new("monk/bonus-feats");
     let mut data = world();
     // A class's and an archetype's level rows may grant one.
     first_archetype_mut(&mut data, "fighter").levels[4]
-        .feat_slots
+        .selections
         .push(bonus_list.clone());
     assert_eq!(issues(&data), []);
 
@@ -552,7 +545,7 @@ fn only_class_levels_and_a_paths_own_ranks_grant_bonus_list_slots() {
         .iter_mut()
         .find(|r| r.key.as_str() == "human")
         .unwrap();
-    human.feat_slots.push(bonus_list.clone());
+    human.selections.push(bonus_list.clone());
     let trickster = data
         .mythic_paths
         .iter_mut()
@@ -563,7 +556,7 @@ fn only_class_levels_and_a_paths_own_ranks_grant_bonus_list_slots() {
         .iter_mut()
         .find(|row| row.rank == 4)
         .unwrap()
-        .feat_slots
+        .selections
         .push(bonus_list);
     let human = DataAt::Race(RaceKey::new("human"));
     assert_eq!(
@@ -579,8 +572,8 @@ fn only_class_levels_and_a_paths_own_ranks_grant_bonus_list_slots() {
             issue: DataIssue::MisplacedBonusList,
         }
         .to_string(),
-        "race human: a feat slot that ignores prerequisites is granted outside a class's level rows from a list \
-         that isn't the grantor's own"
+        "race human: a selection of feats that ignores prerequisites is granted outside a class's level rows from a \
+         list that isn't the grantor's own"
     );
 }
 
@@ -594,9 +587,9 @@ fn a_path_rank_may_name_its_own_bonus_list_only() {
         .iter_mut()
         .find(|p| p.key.as_str() == "trickster")
         .unwrap();
-    trickster.ranks[2].feat_slots.push(rules::FeatSlot::OneOf {
-        list: FeatListKey::new("gold-dragon/dragon-feats"),
-    });
+    trickster.ranks[2]
+        .selections
+        .push(FeatureSelectionKey::new("gold-dragon/dragon-feats"));
     assert_eq!(
         issues(&data),
         [(at_path("trickster"), DataIssue::MisplacedBonusList)]
@@ -604,23 +597,21 @@ fn a_path_rank_may_name_its_own_bonus_list_only() {
 }
 
 #[test]
-fn a_list_of_every_feat_names_none_of_its_own() {
+fn a_selection_of_feats_lists_them_or_takes_an_options_lists_not_both() {
     let mut data = world();
-    feat_list_mut(&mut data, "gold-dragon/dragon-feats")
-        .feats
-        .insert(rules::FeatKey::new("dodge"));
-    let at = DataAt::FeatList(FeatListKey::new("gold-dragon/dragon-feats"));
-    assert_eq!(
-        issues(&data),
-        [(at.clone(), DataIssue::EveryFeatListWithFeats)]
-    );
+    feat_list_mut(&mut data, "gold-dragon/dragon-feats").option_lists = Some(rules::OptionLists {
+        selection: FeatureSelectionKey::new("sorcerer/bloodline"),
+        at_level: None,
+    });
+    let at = DataAt::FeatureSelection(FeatureSelectionKey::new("gold-dragon/dragon-feats"));
+    assert_eq!(issues(&data), [(at.clone(), DataIssue::FeatsAndOptions)]);
     assert_eq!(
         DataProblem {
             at,
-            issue: DataIssue::EveryFeatListWithFeats
+            issue: DataIssue::FeatsAndOptions
         }
         .to_string(),
-        "feat list gold-dragon/dragon-feats: a list of every feat that names feats of its own"
+        "selection gold-dragon/dragon-feats: offers feats and options both; a slot takes one kind"
     );
 }
 
@@ -635,7 +626,9 @@ fn a_paths_mr_1_and_2_rows_grant_features_only() {
     trickster.ranks[0]
         .selections
         .push(rules::FeatureSelectionKey::new("trickster/tricks"));
-    trickster.ranks[1].feat_slots.push(rules::FeatSlot::General);
+    trickster.ranks[1]
+        .selections
+        .push(FeatureSelectionKey::new("feats"));
     assert_eq!(
         issues(&data),
         [
@@ -809,7 +802,7 @@ fn a_one_feat_list_is_a_bonus_feat_of_the_players_choosing() {
     assert_eq!(
         issues(&data),
         [(
-            DataAt::FeatList(FeatListKey::new("rogue/skill-focus")),
+            DataAt::FeatureSelection(FeatureSelectionKey::new("rogue/skill-focus")),
             DataIssue::FeatListTooShort
         )]
     );
@@ -1007,7 +1000,7 @@ fn an_option_rows_feat_list_counts_as_named() {
     // The bloodline lists are named only by option rows, and no problem says they're unused.
     let data = world();
     assert!(
-        data.feat_lists
+        data.selections
             .iter()
             .any(|list| list.key.as_str() == "sorcerer/bloodline/abyssal-feats")
     );
@@ -1049,27 +1042,21 @@ fn an_option_rows_chosen_feat_takes_the_options_chosen_value() {
 fn an_option_rows_bonus_slot_names_its_list() {
     let mut data = world();
     // An unused list is a problem; naming it from an option row's slot uses it.
-    data.feat_lists.push(rules::FeatList {
-        key: FeatListKey::new("cleric/war-feats"),
-        blueprint: None,
-        name: "War feats".into(),
-        guide: Some(rules::GuideRef::new("cleric")),
-        ignores_prerequisites: false,
-        every_feat: false,
-        skips_proficiency: false,
-        feats: BTreeSet::from([FeatKey::new("toughness"), FeatKey::new("dodge")]),
-    });
+    let mut war_feats = feat_list_mut(&mut data, "monk/bonus-feats").clone();
+    war_feats.key = FeatureSelectionKey::new("cleric/war-feats");
+    war_feats.name = "War feats".into();
+    war_feats.ignores_prerequisites = false;
+    war_feats.feats = BTreeSet::from([FeatKey::new("toughness"), FeatKey::new("dodge")]);
+    data.selections.push(war_feats);
     assert_eq!(
         issues(&data),
         [(
-            DataAt::FeatList(FeatListKey::new("cleric/war-feats")),
+            DataAt::FeatureSelection(FeatureSelectionKey::new("cleric/war-feats")),
             DataIssue::UnusedFeatList
         )]
     );
     let war = option_mut(&mut data, "cleric/domain/war");
-    war.levels[1].feat_slots = vec![FeatSlot::OneOf {
-        list: FeatListKey::new("cleric/war-feats"),
-    }];
+    war.levels[1].selections = vec![FeatureSelectionKey::new("cleric/war-feats")];
     assert_eq!(issues(&data), []);
 }
 
@@ -1212,9 +1199,9 @@ fn a_race_may_name_its_own_bonus_list_only() {
         .iter_mut()
         .find(|r| r.key.as_str() == "human")
         .unwrap();
-    human.feat_slots.push(FeatSlot::OneOf {
-        list: FeatListKey::new("half-elf/adaptability"),
-    });
+    human
+        .selections
+        .push(FeatureSelectionKey::new("half-elf/adaptability"));
     assert_eq!(
         issues(&data),
         [(
@@ -1233,9 +1220,9 @@ fn a_subrace_may_name_its_races_bonus_list_only() {
         .iter_mut()
         .find(|s| s.key.as_str() == "elf/blightborn")
         .unwrap();
-    blightborn.feat_slots.push(FeatSlot::OneOf {
-        list: FeatListKey::new("half-elf/adaptability"),
-    });
+    blightborn
+        .selections
+        .push(FeatureSelectionKey::new("half-elf/adaptability"));
     assert_eq!(
         issues(&data),
         [(
@@ -1464,7 +1451,7 @@ fn every_feat_named_is_one_the_data_has() {
             unknown(at_class("fighter"), at_feat("dodgee")),
             unknown(at_feat("toughness"), at_feat("dodgee")),
             unknown(
-                DataAt::FeatList(FeatListKey::new("monk/bonus-feats")),
+                DataAt::FeatureSelection(FeatureSelectionKey::new("monk/bonus-feats")),
                 at_feat("dodgee")
             ),
             unknown(
@@ -1613,15 +1600,12 @@ fn every_class_race_deity_skill_weapon_and_mythic_pick_named_is_one_the_data_has
 #[test]
 fn every_feat_list_and_slot_selection_named_is_one_the_data_has() {
     let mut data = world();
-    let list = || FeatListKey::new("sorcerer/bloodline-feets");
+    let list = || FeatureSelectionKey::new("sorcerer/bloodline-feets");
     let fighter = class_mut(&mut data, "fighter");
-    fighter.levels[0]
-        .feat_slots
-        .push(FeatSlot::OneOf { list: list() });
-    fighter.levels[0].feat_slots.push(FeatSlot::OptionList {
+    fighter.levels[0].selections.push(list());
+    feat_list_mut(&mut data, "sorcerer/bloodline-feats").option_lists = Some(rules::OptionLists {
         selection: FeatureSelectionKey::new("sorcerer/bloodlin"),
         at_level: None,
-        label: None,
     });
     let bloodline = own_options_mut(&mut data, "sorcerer/bloodline")
         .into_iter()
@@ -1641,12 +1625,12 @@ fn every_feat_list_and_slot_selection_named_is_one_the_data_has() {
             .filter(|(_, issue)| !matches!(issue, DataIssue::UnusedFeatList))
             .collect::<Vec<_>>(),
         sorted(vec![
-            unknown(at_class("fighter"), DataAt::FeatList(list())),
+            unknown(at_class("fighter"), DataAt::FeatureSelection(list())),
             unknown(
-                at_class("fighter"),
+                DataAt::FeatureSelection(FeatureSelectionKey::new("sorcerer/bloodline-feats")),
                 DataAt::FeatureSelection(FeatureSelectionKey::new("sorcerer/bloodlin"))
             ),
-            unknown(bloodline, DataAt::FeatList(list())),
+            unknown(bloodline, DataAt::FeatureSelection(list())),
         ])
     );
 }
@@ -1901,17 +1885,11 @@ fn only_gear_holds_a_gear_stat_and_it_holds_nothing_else() {
     }
 }
 
-/// Ticket 187: the database's `<> ''` constraints on a slot's label, an interactions note, and a gear item's name
-/// and guide reference.
+/// Ticket 187: the database's `<> ''` constraints on an interactions note, and a gear item's name and guide
+/// reference. (A slot's label went with the option-list slots, ticket 301: a selection of feats is named.)
 #[test]
 fn a_text_that_is_there_is_not_empty() {
     let mut data = world();
-    let fighter = class_mut(&mut data, "fighter");
-    fighter.levels[0].feat_slots.push(FeatSlot::OptionList {
-        selection: FeatureSelectionKey::new("fighter/bonus-feats"),
-        at_level: None,
-        label: Some(" ".to_owned()),
-    });
     let feat = data.feats[0].key.clone();
     data.interactions.push(rules::ItemInteractions {
         item: rules::BonusItem::Feat(feat.clone()),
@@ -1932,7 +1910,6 @@ fn a_text_that_is_there_is_not_empty() {
 
     let found = issues_but_unknown_keys(&data);
     for problem in [
-        (at_class("fighter"), DataIssue::EmptyText("slot label")),
         (
             DataAt::Feat(feat),
             DataIssue::EmptyText("interactions note"),

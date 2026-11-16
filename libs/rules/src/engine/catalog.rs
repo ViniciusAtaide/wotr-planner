@@ -18,16 +18,16 @@ use crate::build::{BuildStart, Pick};
 use crate::check::CheckedGameData;
 use crate::game_data::{
     AbilityModifier, Archetype, BabFromRanks, Background, Band, Class, Deity,
-    EXOTIC_WEAPON_PROFICIENCY, Feat, FeatCategory, FeatList, FeatureSelection, GameData,
+    EXOTIC_WEAPON_PROFICIENCY, Feat, FeatCategory, FeatureSelection, GameData,
     IMPROVED_UNARMED_STRIKE, MARTIAL_WEAPONS_PROFICIENCY, MythicAbility, MythicFeat, MythicPath,
     OptionRow, Race, SIMPLE_WEAPON_PROFICIENCY, SelectionOption, Skill, Subrace, UNARMED_STRIKE,
     Weapon, WeaponProficiency,
 };
 use crate::gear::GearItem;
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
-    FeatureSelectionKey, GearKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
-    SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
+    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey,
+    GearKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
+    SubraceKey, WeaponKey,
 };
 use crate::parameter::{ArmourType, Element, Energy, Parameter, ParameterKind, SpellSchool, Stat};
 use crate::prerequisite::Prerequisite;
@@ -337,13 +337,25 @@ impl Catalog {
             .unwrap_or_default()
     }
 
-    /// A feat list by key, wherever it's defined.
-    pub(super) fn feat_list(&self, key: &FeatListKey) -> Option<&FeatList> {
-        Some(&self.data.feat_lists[*self.indexes.feat_lists.get(key)?])
-    }
-
     pub(super) fn selection(&self, key: &FeatureSelectionKey) -> Option<&FeatureSelection> {
         Some(&self.data.selections[*self.indexes.selections.get(key)?])
+    }
+
+    /// Whether a row's selection is one of feats, whose slot is a Feat slot ([`FeatureSelection::offers_feats`]);
+    /// `false` for one the data lacks.
+    pub(super) fn offers_feats(&self, key: &FeatureSelectionKey) -> bool {
+        self.selection(key)
+            .is_some_and(FeatureSelection::offers_feats)
+    }
+
+    /// A row's selections split by the slot each makes, each part in row order: the selections of feats (Feat slots),
+    /// then the others (Feature selection slots). A row numbers each part's slots apart (ticket 301), so a link's slot
+    /// ids are the ones the feat slots had; every grantor's row splits here.
+    pub(super) fn split_selections<'k>(
+        &self,
+        keys: impl IntoIterator<Item = &'k FeatureSelectionKey>,
+    ) -> (Vec<&'k FeatureSelectionKey>, Vec<&'k FeatureSelectionKey>) {
+        keys.into_iter().partition(|key| self.offers_feats(key))
     }
 
     /// The band a slot's pick comes in among its level-up's picks ([`Band`]): a selection's own; a mythic ability's
@@ -724,7 +736,6 @@ struct Indexes {
     skills: FxHashMap<SkillKey, usize>,
     weapons: FxHashMap<WeaponKey, usize>,
     feats: FxHashMap<FeatKey, usize>,
-    feat_lists: FxHashMap<FeatListKey, usize>,
     selections: FxHashMap<FeatureSelectionKey, usize>,
     /// Each option's position, with the selection that defines it ([`FeatureSelection::options`]).
     options: FxHashMap<SelectionOptionKey, (usize, Option<FeatureSelectionKey>)>,
@@ -775,7 +786,6 @@ impl Indexes {
             selections: index(&data.selections, |s| &s.key),
             options: index_options(data),
             bab_options,
-            feat_lists: index(&data.feat_lists, |l| &l.key),
             skills: index(&data.skills, |s| &s.key),
             weapons: index(&data.weapons, |w| &w.key),
             feats: index(&data.feats, |f| &f.key),

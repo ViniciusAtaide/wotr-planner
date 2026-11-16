@@ -1,0 +1,14 @@
+(
+    key: "kineticist/element/air/wild-talent-feats",
+    blueprint: "4ff45d291d0ee9c4b8c83a298b0b4969",
+    name: "Wild Talent Bonus Feats (Air)",
+    guide: "kineticist#elemental-focus-air",
+    ignores_prerequisites: true,
+    feats: [
+        "combat-mobility",
+        "deflect-arrows",
+        "dodge",
+        "improved-lightning-reflexes",
+        "lightning-reflexes",
+    ],
+)

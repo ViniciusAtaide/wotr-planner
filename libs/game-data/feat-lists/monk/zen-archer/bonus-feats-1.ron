@@ -1,1 +1,0 @@
-(key: "monk/zen-archer/bonus-feats-1", blueprint: "69255e0ec330ee94b9593dfabf8f7c09", name: "Bonus Feat (Zen Archer)", guide: "monk#bonus-feat-zen-archer", ignores_prerequisites: true, feats: ["combat-reflexes", "crane-style", "deflect-arrows", "dodge", "point-blank-shot", "precise-shot", "rapid-shot"])

@@ -3,9 +3,10 @@
 //! Layout (relative to the data folder, ticket 244): one file per entry, in a folder by kind, named by its key
 //! (`features/rogue/sneak-attack.ron` holds the feature keyed `rogue/sneak-attack`):
 //!
-//! - `races/`, `subraces/`, `weapons/`, `feats/`, `feat-lists/`, `classes/` (base classes), `prestige/` (prestige
-//!   classes), `archetypes/`, `features/`, `selections/`, `options/` (selection options), `mythic/abilities/`,
-//!   `mythic/feats/`, `mythic/paths/`, `backgrounds/`, `deities/`, `gear/`, `spells/`, `spell-lists/`;
+//! - `races/`, `subraces/`, `weapons/`, `feats/`, `classes/` (base classes), `prestige/` (prestige classes),
+//!   `archetypes/`, `features/`, `selections/` (of options or of feats: `feat-lists/` is gone, ticket 301), `options/`
+//!   (selection options), `mythic/abilities/`, `mythic/feats/`, `mythic/paths/`, `backgrounds/`, `deities/`, `gear/`,
+//!   `spells/`, `spell-lists/`;
 //! - `planner/<kind folder>/`: the entries the planner made, with no game blueprint behind them, each written as
 //!   `(why: "…", entry: …)`, the reason no blueprint stands behind it and the entry;
 //! - the single files `progression.ron`, `skills.ron` (the game's skills are a stat, with no blueprint) and
@@ -32,12 +33,11 @@ use serde::de::DeserializeOwned;
 const SINGLE_FILES: [&str; 3] = ["progression.ron", "skills.ron", "interactions.ron"];
 
 /// The folders of one file per entry, by kind.
-const FOLDERS: [&str; 19] = [
+const FOLDERS: [&str; 18] = [
     "races",
     "subraces",
     "weapons",
     "feats",
-    "feat-lists",
     "classes",
     "prestige",
     "archetypes",
@@ -151,7 +151,6 @@ pub fn read_game_data_files(dir: &Path) -> Result<GameData, FilesError> {
         subraces: entries(dir, "subraces", |s: &rules::Subrace| s.key.as_str())?,
         weapons: entries(dir, "weapons", |w: &rules::Weapon| w.key.as_str())?,
         feats: entries(dir, "feats", |f: &rules::Feat| f.key.as_str())?,
-        feat_lists: entries(dir, "feat-lists", |l: &rules::FeatList| l.key.as_str())?,
         classes: entries(dir, "classes", |c: &rules::Class| c.key.as_str())?,
         prestige_classes: entries(dir, "prestige", |c: &rules::Class| c.key.as_str())?,
         archetypes: entries(dir, "archetypes", |a: &rules::Archetype| a.key.as_str())?,

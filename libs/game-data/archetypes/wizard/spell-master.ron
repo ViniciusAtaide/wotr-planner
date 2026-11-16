@@ -6,12 +6,12 @@
     summary: "Universalist who must take a bonded object, gains more uses of it and loses two bonus feats.",
     guide: "wizard#spell-master",
     levels: [
-        (level: 1, features: ["wizard-cantrips", "wizard/spell-master/focused-spells", "wizard/spell-master/object-bond", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/spell-master/school"]),
+        (level: 1, features: ["wizard-cantrips", "wizard/spell-master/focused-spells", "wizard/spell-master/object-bond", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], selections: ["wizard/spell-master/school", "magic-feats"]),
         (level: 5, features: ["wizard/spell-master/item-bond-specialization"]),
         (level: 8, features: ["wizard/spell-master/focused-spells"]),
-        (level: 10, features: ["wizard/spell-master/item-bond-specialization"], feat_slots: [Category(Magic)]),
+        (level: 10, features: ["wizard/spell-master/item-bond-specialization"], selections: ["magic-feats"]),
         (level: 15, features: ["wizard/spell-master/item-bond-specialization"]),
         (level: 16, features: ["wizard/spell-master/focused-spells"]),
-        (level: 20, features: ["wizard/spell-master/item-bond-specialization"], feat_slots: [Category(Magic)]),
+        (level: 20, features: ["wizard/spell-master/item-bond-specialization"], selections: ["magic-feats"]),
     ],
 )

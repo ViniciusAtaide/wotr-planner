@@ -2,16 +2,17 @@
 //! it out flat: the invented game reads best that way. [`flatten`] turns them into the flat catalogs of
 //! [`GameData`], each subrace naming its race and each archetype its class.
 //!
-//! Each type has the fields of the flat one of its name, plus the lists it holds.
+//! Each type has the fields of the flat one of its name, plus the lists it holds: its `feat_lists` are the selections
+//! of feats it defines (ticket 301), flat already.
 
 use std::collections::{BTreeMap, BTreeSet};
 
 use crate::{
     Ability, AbilityModifier, Advancement, ArchetypeKey, ArchetypeLevelRow, BabProgression, Band,
-    BlueprintGuid, ClassKey, ClassLevelRow, CountsAs, DeityDomains, FeatList, FeatSlot, Feature,
-    FeatureKey, FeatureSelectionKey, GameData, GuideRef, LevelFrom, MythicPathKey, MythicRankRow,
-    PathSwitch, Prerequisite, RaceKey, SaveException, SaveProgression, SelectionOption,
-    SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
+    BlueprintGuid, ClassKey, ClassLevelRow, CountsAs, DeityDomains, Feature, FeatureKey,
+    FeatureSelectionKey, GameData, GuideRef, LevelFrom, MythicPathKey, MythicRankRow, PathSwitch,
+    Prerequisite, RaceKey, SaveException, SaveProgression, SelectionOption, SelectionOptionKey,
+    SkillKey, SubraceKey, WeaponKey,
 };
 
 pub struct Race {
@@ -21,8 +22,8 @@ pub struct Race {
     pub summary: String,
     pub guide: Option<GuideRef>,
     pub ability_modifiers: Vec<AbilityModifier>,
-    pub feat_slots: Vec<FeatSlot>,
-    pub feat_lists: Vec<FeatList>,
+    pub selections: Vec<FeatureSelectionKey>,
+    pub feat_lists: Vec<crate::FeatureSelection>,
     pub skill_points: u8,
     pub weapons: BTreeSet<WeaponKey>,
     pub weapons_as_martial: BTreeSet<WeaponKey>,
@@ -36,7 +37,7 @@ pub struct Subrace {
     pub summary: String,
     pub guide: Option<GuideRef>,
     pub ability_modifiers: Vec<AbilityModifier>,
-    pub feat_slots: Vec<FeatSlot>,
+    pub selections: Vec<FeatureSelectionKey>,
     pub skill_points: u8,
     pub weapons: BTreeSet<WeaponKey>,
     pub weapons_as_martial: BTreeSet<WeaponKey>,
@@ -62,7 +63,7 @@ pub struct Class {
     pub counts_as: BTreeSet<CountsAs>,
     pub features: Vec<Feature>,
     pub selections: Vec<FeatureSelection>,
-    pub feat_lists: Vec<FeatList>,
+    pub feat_lists: Vec<crate::FeatureSelection>,
     pub levels: Vec<ClassLevelRow>,
     pub archetypes: Vec<Archetype>,
 }
@@ -83,7 +84,7 @@ pub struct Archetype {
     pub will: Option<SaveProgression>,
     pub features: Vec<Feature>,
     pub selections: Vec<FeatureSelection>,
-    pub feat_lists: Vec<FeatList>,
+    pub feat_lists: Vec<crate::FeatureSelection>,
     pub levels: Vec<ArchetypeLevelRow>,
 }
 
@@ -119,7 +120,7 @@ pub struct MythicPath {
     pub guide: Option<GuideRef>,
     pub features: Vec<Feature>,
     pub selections: Vec<FeatureSelection>,
-    pub feat_lists: Vec<FeatList>,
+    pub feat_lists: Vec<crate::FeatureSelection>,
     pub ranks: Vec<MythicRankRow>,
     pub switch: Option<PathSwitch>,
 }
@@ -135,7 +136,7 @@ pub struct Nested {
 /// Moves every nested entry into `data`'s flat catalogs.
 pub fn flatten(nested: Nested, data: &mut GameData) {
     for race in nested.races {
-        data.feat_lists.extend(race.feat_lists);
+        data.selections.extend(race.feat_lists);
         for subrace in race.subraces {
             data.subraces.push(crate::Subrace {
                 components: Vec::new(),
@@ -146,7 +147,7 @@ pub fn flatten(nested: Nested, data: &mut GameData) {
                 summary: subrace.summary,
                 guide: subrace.guide,
                 ability_modifiers: subrace.ability_modifiers,
-                feat_slots: subrace.feat_slots,
+                selections: subrace.selections,
                 skill_points: subrace.skill_points,
                 weapons: subrace.weapons,
                 weapons_as_martial: subrace.weapons_as_martial,
@@ -160,7 +161,7 @@ pub fn flatten(nested: Nested, data: &mut GameData) {
             summary: race.summary,
             guide: race.guide,
             ability_modifiers: race.ability_modifiers,
-            feat_slots: race.feat_slots,
+            selections: race.selections,
             skill_points: race.skill_points,
             weapons: race.weapons,
             weapons_as_martial: race.weapons_as_martial,
@@ -244,11 +245,11 @@ fn class_into(class: Class, data: &mut GameData) -> crate::Class {
 fn owned_into(
     features: Vec<Feature>,
     selections: Vec<FeatureSelection>,
-    feat_lists: Vec<FeatList>,
+    feat_lists: Vec<crate::FeatureSelection>,
     data: &mut GameData,
 ) {
     data.features.extend(features);
-    data.feat_lists.extend(feat_lists);
+    data.selections.extend(feat_lists);
     selections_into(selections, data);
 }
 
@@ -262,6 +263,10 @@ fn selections_into(selections: Vec<FeatureSelection>, data: &mut GameData) {
             summary: selection.summary,
             guide: selection.guide,
             options: selection.options.iter().map(|o| o.key.clone()).collect(),
+            feats: BTreeSet::new(),
+            ignores_prerequisites: false,
+            skips_proficiency: false,
+            option_lists: None,
             shared_options: selection.shared_options,
             option_levels: selection.option_levels,
             option_level_archetypes: selection.option_level_archetypes,

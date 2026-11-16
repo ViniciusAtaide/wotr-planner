@@ -1,0 +1,15 @@
+(
+    key: "bloodrager/bloodline/hag/feats",
+    blueprint: "019780ef68324fcdaf58354921a0931e",
+    name: "Hag Bloodline Feats",
+    guide: "bloodrager#bonus-feats-hag",
+    feats: [
+        "blind-fight",
+        "deceitful",
+        "great-fortitude",
+        "greater-blind-fight",
+        "improved-blind-fight",
+        "improved-great-fortitude",
+        "intimidating-prowess",
+    ],
+)

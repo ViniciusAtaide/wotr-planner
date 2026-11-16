@@ -5,8 +5,7 @@
 //! with an invented Friendship trick.
 
 use rules::{
-    Alignment, Build, Choice, Edit, FeatCategory, FeatSlot, FeatureSelectionKey, Pick, RankStatus,
-    SlotId, SlotKind,
+    Alignment, Build, Choice, Edit, FeatureSelectionKey, Pick, RankStatus, SlotId, SlotKind,
 };
 
 use crate::support::*;
@@ -19,7 +18,10 @@ fn tricks(rank: u8) -> SlotId {
     SlotId::PathSelection { rank, index: 0 }
 }
 
-const TEAMWORK: SlotKind = SlotKind::Feat(FeatSlot::Category(FeatCategory::Teamwork));
+/// The teamwork feat slot of Friendship's rows.
+fn teamwork() -> SlotKind {
+    SlotKind::Feat(feat_list("teamwork-feats"))
+}
 
 /// A lawful good human fighter of `levels` levels on the Trickster path (tricks at MR 3, 5, 7 and 9; the bonus
 /// feat at MR 4), with Friendship as the trick at `rank`.
@@ -55,7 +57,7 @@ fn an_option_levelled_by_mythic_rank_gives_its_rows_slots_at_the_rank_its_picked
         [
             (SlotId::Mythic { rank: 3 }, SlotKind::MythicAbility),
             (tricks(3), tricks_kind()),
-            (path_feat(3, 0), TEAMWORK),
+            (path_feat(3, 0), teamwork()),
         ]
     );
     // After the path row's own feat slot.
@@ -65,11 +67,9 @@ fn an_option_levelled_by_mythic_rank_gives_its_rows_slots_at_the_rank_its_picked
             (SlotId::Mythic { rank: 4 }, SlotKind::MythicFeat),
             (
                 path_feat(4, 0),
-                SlotKind::Feat(FeatSlot::OneOf {
-                    list: feat_list("trickster/bonus-feats")
-                })
+                SlotKind::Feat(feat_list("trickster/bonus-feats"))
             ),
-            (path_feat(4, 1), TEAMWORK),
+            (path_feat(4, 1), teamwork()),
         ]
     );
     let sheet = engine().evaluate(&build);
@@ -104,7 +104,7 @@ fn the_slot_offers_only_teamwork_feats_held_from_the_ranks_level() {
         .into_iter()
         .map(|option| option.pick)
         .collect();
-    assert_eq!(offered, [pick_feat("outflank")]);
+    assert_eq!(offered, [pick_feat("outflank"), pick_feat("shield-wall")]);
 
     // MR 3 is at level 9, MR 4 at 11.
     let mut with_pick = build.clone();
@@ -139,7 +139,7 @@ fn picked_at_mr_9_its_second_slot_comes_at_mr_10_and_not_before() {
     assert!(engine().is_possible(&at_17));
     assert_eq!(
         rank_slots(&at_17, 9).last(),
-        Some(&(path_feat(9, 0), TEAMWORK))
+        Some(&(path_feat(9, 0), teamwork()))
     );
     assert!(rank_slots(&at_17, 10).is_empty());
 
@@ -148,7 +148,7 @@ fn picked_at_mr_9_its_second_slot_comes_at_mr_10_and_not_before() {
         rank_slots(&at_19, 10),
         [
             (SlotId::Mythic { rank: 10 }, SlotKind::MythicFeat),
-            (path_feat(10, 0), TEAMWORK),
+            (path_feat(10, 0), teamwork()),
         ]
     );
     // A pick in a slot the Build doesn't reach is refused.

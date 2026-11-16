@@ -1483,8 +1483,8 @@ fn bloodline_feat_levels(build: &Build) -> Vec<u8> {
         .filter(|slot| {
             matches!(
                 &slot.kind,
-                rules::SlotKind::Feat(rules::FeatSlot::OptionList { selection, .. })
-                    if selection.as_str() == "bloodrager/bloodline"
+                rules::SlotKind::Feat(selection)
+                    if selection.as_str() == "bloodrager/bloodline-feats"
             )
         })
         .map(|slot| match slot.id {

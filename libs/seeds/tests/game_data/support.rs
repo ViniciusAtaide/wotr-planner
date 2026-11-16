@@ -828,9 +828,11 @@ pub fn grants(rows: impl IntoIterator<Item = RowGrants>) -> Grants {
             .into_iter()
             .filter_map(|k| data.feature(k))
             .collect(),
+        // The selections of options (ticket 301: a row's selections of feats were feat slots).
         selections: selections
             .into_iter()
             .filter_map(|k| data.selection(k))
+            .filter(|s| !s.offers_feats())
             .collect(),
     }
 }
@@ -868,7 +870,7 @@ pub fn all_class_grants() -> Grants {
         selections: data
             .selections
             .iter()
-            .filter(|s| !path_selections.contains(&s.key))
+            .filter(|s| !s.offers_feats() && !path_selections.contains(&s.key))
             .collect(),
     }
 }
@@ -891,4 +893,46 @@ pub fn all_path_grants() -> Grants {
     grants.features.sort_by(|a, b| a.key.cmp(&b.key));
     grants.features.dedup_by(|a, b| a.key == b.key);
     grants
+}
+
+// ---- feat slots and feat lists as selections (ticket 301) ------------------------------------------------------
+
+/// The general and category selections of feats: what the `General`, `CombatFeat` and `Category` feat slots were.
+pub const FEAT_POOLS: [&str; 5] = [
+    rules::BASIC_FEAT_SELECTION,
+    "combat-feats",
+    "magic-feats",
+    "teamwork-feats",
+    "mounted-combat-feats",
+];
+
+/// A Feature selection by key.
+pub fn any_selection(key: &str) -> &'static rules::FeatureSelection {
+    DATA.selection(&rules::FeatureSelectionKey::new(key))
+        .unwrap_or_else(|| panic!("no selection {key}"))
+}
+
+/// Whether a selection is what a feat list was: one listing its own feats, not a pool ([`FEAT_POOLS`]).
+pub fn is_feat_list(selection: &rules::FeatureSelection) -> bool {
+    !selection.feats.is_empty() && !FEAT_POOLS.contains(&selection.key.as_str())
+}
+
+/// Every selection that was a feat list ([`is_feat_list`]), in key order.
+pub fn feat_lists() -> impl Iterator<Item = &'static rules::FeatureSelection> {
+    DATA.selections
+        .iter()
+        .filter(|selection| is_feat_list(selection))
+}
+
+/// The selections of feats among a row's selections: what its feat slots were.
+pub fn feat_selections(
+    keys: &[rules::FeatureSelectionKey],
+) -> impl Iterator<Item = &rules::FeatureSelectionKey> {
+    keys.iter()
+        .filter(|key| DATA.selection(key).is_some_and(|s| s.offers_feats()))
+}
+
+/// The slot kind of a selection of feats.
+pub fn feat_kind(key: &str) -> SlotKind {
+    SlotKind::Feat(rules::FeatureSelectionKey::new(key))
 }

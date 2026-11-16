@@ -1,0 +1,8 @@
+(
+    why: "The game's slayer talent grants RangerStyleSelection2, 6 or 10, a selection per style; the planner's slot offers the held style's list at that stage until nested selections (ticket 302).",
+    entry: (
+        key: "slayer/combat-style-feats-2",
+        name: "Combat Style (Slayer) feat",
+        option_lists: (selection: "slayer/combat-style", at_level: 2),
+    ),
+)

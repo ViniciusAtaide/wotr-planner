@@ -10,7 +10,7 @@ use crate::test_world::world::classes::{archetype, archetype_row, row};
 use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option, with_class_skills,
 };
-use crate::test_world::world::{bonus_feature, fixed, guide, list, plain_feature};
+use crate::test_world::world::{bonus_feature, fixed, guide, list, option_list, plain_feature};
 
 const BLOODLINES: [&str; 4] = [
     "sorcerer/bloodline/abyssal",
@@ -36,11 +36,7 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
                 r.selections.push(bloodline.clone());
             }
             if [7, 13, 19].contains(&l) {
-                r.feat_slots.push(FeatSlot::OptionList {
-                    selection: bloodline.clone(),
-                    at_level: None,
-                    label: None,
-                });
+                r.selections.push(feat_list("sorcerer/bloodline-feats"));
             }
             r
         })
@@ -281,6 +277,7 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
         features,
         selections: vec![bloodlines, school_power],
         feat_lists: vec![
+            option_list("sorcerer/bloodline-feats", "sorcerer/bloodline", None),
             list(
                 "sorcerer/bloodline/abyssal-feats",
                 false,

@@ -542,7 +542,7 @@ fn a_dual_heritage_or_kindred_raised_half_elf_has_no_adaptability_pick() {
     assert!(
         DATA.subraces
             .iter()
-            .all(|subrace| subrace.feat_slots.is_empty())
+            .all(|subrace| subrace.selections.is_empty())
     );
 }
 

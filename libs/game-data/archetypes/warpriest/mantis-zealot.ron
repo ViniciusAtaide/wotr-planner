@@ -23,7 +23,7 @@
         (level: 14, features: ["warpriest/fervor"]),
         (level: 16, features: ["warpriest/mantis-zealot/fading", "warpriest/sacred-weapon"]),
         (level: 17, features: ["warpriest/fervor"]),
-        (level: 18, features: ["warpriest/mantis-zealot/mantis-swarm"], feat_slots: [CombatFeat]),
+        (level: 18, features: ["warpriest/mantis-zealot/mantis-swarm"], selections: ["combat-feats"]),
         (level: 19, features: ["warpriest/mantis-zealot/fading"]),
         (level: 20, features: ["warpriest/fervor", "warpriest/mantis-zealot/aspect-of-the-mantis", "warpriest/sacred-weapon"]),
     ],

@@ -291,10 +291,7 @@ fn every_item_whose_summary_chooses_has_its_pick_or_was_checked() {
     {
         let picks = option.parameter.is_some()
             || option.chosen_feat.is_some()
-            || option
-                .levels
-                .iter()
-                .any(|row| !row.selections.is_empty() || !row.feat_slots.is_empty());
+            || option.levels.iter().any(|row| !row.selections.is_empty());
         if !picks {
             without_pick.insert(format!("option {}", option.key.as_str()));
         }

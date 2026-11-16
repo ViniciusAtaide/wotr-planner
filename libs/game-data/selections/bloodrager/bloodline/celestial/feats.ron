@@ -1,0 +1,14 @@
+(
+    key: "bloodrager/bloodline/celestial/feats",
+    blueprint: "7eff1ba637c68b74ea562b4659636764",
+    name: "Celestial Bloodline Feats",
+    guide: "bloodrager#bonus-feats-celestial",
+    feats: [
+        "combat-mobility",
+        "dodge",
+        "improved-initiative",
+        "iron-will",
+        "toughness",
+        "weapon-focus",
+    ],
+)

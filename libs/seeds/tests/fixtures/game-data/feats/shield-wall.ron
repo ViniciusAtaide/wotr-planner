@@ -1,0 +1,7 @@
+(
+    key: "shield-wall",
+    name: "Shield Wall",
+    category: Teamwork,
+    guide: "feats#shield-wall",
+    prerequisite: BaseAttackBonus(1),
+)

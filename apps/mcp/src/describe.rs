@@ -2,8 +2,8 @@
 //! rank, the Feature selections it defines.
 
 use rules::{
-    Archetype, ArchetypeKey, BackgroundKey, BonusItem, Class, ClassKey, Engine, FeatKey, FeatSlot,
-    FeatValue, FeatureKey, FeatureSelection, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey,
+    Archetype, ArchetypeKey, BackgroundKey, BonusItem, Class, ClassKey, Engine, FeatKey, FeatValue,
+    FeatureKey, FeatureSelection, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey,
     MythicPathKey, RaceKey, Save, SelectionOptionKey, SpellCaster, effective_row,
 };
 
@@ -79,7 +79,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                             planner,
                             engine.path_rank_features(&path.key, row.rank).into_iter(),
                         ),
-                        feat_slots: feat_slots(engine, &row.feat_slots),
+                        feat_slots: feat_slots(engine, &row.selections),
                         selections: selection_names(engine, &row.selections),
                     })
                     .collect(),
@@ -138,7 +138,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                             advances: Vec::new(),
                             features: features(planner, row.features.iter()),
                             feats: feats(engine, row.feats.iter(), [].iter()),
-                            feat_slots: feat_slots(engine, &row.feat_slots),
+                            feat_slots: feat_slots(engine, &row.selections),
                             selections: selection_names(engine, &row.selections),
                         })
                         .collect(),
@@ -350,7 +350,7 @@ fn class_rows(
                     ),
                 ),
                 feats: feats(engine, row.feats.iter(), row.feats_for.iter()),
-                feat_slots: feat_slots(engine, row.feat_slots),
+                feat_slots: feat_slots(engine, row.selections),
                 selections: selection_names(engine, row.selections),
             }
         })
@@ -395,26 +395,30 @@ fn feats<'a>(
         .collect()
 }
 
-fn feat_slots(engine: &Engine, slots: &[FeatSlot]) -> Vec<String> {
-    slots
-        .iter()
-        .map(|slot| engine.feat_slot_label(slot))
+/// A row's selections of feats, by what their slots take ("Bonus feat", "Combat feat", a list's name).
+fn feat_slots(engine: &Engine, keys: &[FeatureSelectionKey]) -> Vec<String> {
+    keys.iter()
+        .filter(|key| engine.offers_feats(key))
+        .map(|key| engine.feat_slot_label(key))
         .collect()
 }
 
+/// A row's other selections, by name.
 fn selection_names(engine: &Engine, keys: &[FeatureSelectionKey]) -> Vec<Named> {
     keys.iter()
+        .filter(|key| !engine.offers_feats(key))
         .map(|key| named(key, engine.selection_name(key)))
         .collect()
 }
 
-/// The selections `keys` name, each once, in key order.
+/// The selections of options `keys` name, each once, in key order.
 fn selections<'a>(
     planner: &Planner,
     keys: impl Iterator<Item = &'a FeatureSelectionKey>,
 ) -> Vec<Selection> {
     let keys: std::collections::BTreeSet<&FeatureSelectionKey> = keys.collect();
     keys.into_iter()
+        .filter(|key| !planner.engine.offers_feats(key))
         .filter_map(|key| planner.data.selection(key))
         .map(|selection| self::selection(planner, selection))
         .collect()

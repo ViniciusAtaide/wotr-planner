@@ -1,0 +1,15 @@
+(
+    key: "ranger/bonus-feats-6b",
+    blueprint: "6c799d09d5b93f344b9ade0e0c765c2d",
+    name: "Archery Feats (from level 6)",
+    guide: "ranger#archery-feats",
+    ignores_prerequisites: true,
+    feats: [
+        "improved-precise-shot",
+        "manyshot",
+        "point-blank-master",
+        "point-blank-shot",
+        "precise-shot",
+        "rapid-shot",
+    ],
+)

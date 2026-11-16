@@ -8,8 +8,8 @@ use crate::build::{Pick, SlotId};
 use crate::engine::{
     MythicPickKind, PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankStatus, SlotKind, mythic_pick_kind,
 };
-use crate::game_data::{FeatSlot, MythicExtraPick, MythicPath, PathSwitch};
-use crate::keys::{FeatureKey, MythicAbilityKey};
+use crate::game_data::{BASIC_FEAT_SELECTION, MythicExtraPick, MythicPath, PathSwitch};
+use crate::keys::{FeatureKey, FeatureSelectionKey, MythicAbilityKey};
 
 impl GrantSource {
     /// Whether a Path switch takes away what this source granted ([`PathSwitch::drops`]); `feature` when the grant
@@ -74,7 +74,9 @@ impl<'a> Walker<'a> {
             let id = SlotId::MythicExtra { rank };
             ability = self.newly_held_ability(self.build.picks.get(&id));
             let kind = match extra {
-                MythicExtraPick::Feat => SlotKind::Feat(FeatSlot::General),
+                MythicExtraPick::Feat => {
+                    SlotKind::Feat(FeatureSelectionKey::new(BASIC_FEAT_SELECTION))
+                }
                 MythicExtraPick::MythicAbility => SlotKind::MythicAbility,
             };
             slots.push(self.fill(id, kind, Some(rank)));
@@ -118,16 +120,18 @@ impl<'a> Walker<'a> {
             for feature in &row.features {
                 self.hold(Held::Feature(feature.clone()), Some(GrantSource::row(rank)));
             }
-            for (index, slot) in row.feat_slots.iter().enumerate() {
+            // Its selections of feats, then its other selections, each numbered in row order (ticket 301).
+            let (feat_selections, selections) = catalog.split_selections(&row.selections);
+            for (index, selection) in feat_selections.into_iter().enumerate() {
                 slot_kinds.push((
-                    SlotKind::Feat(slot.clone()),
+                    SlotKind::Feat(selection.clone()),
                     SlotId::PathFeat {
                         rank,
                         index: u8::try_from(index).unwrap_or(u8::MAX),
                     },
                 ));
             }
-            for (index, selection) in row.selections.iter().enumerate() {
+            for (index, selection) in selections.into_iter().enumerate() {
                 // Named as the selection, so a switch that drops the selection's picks drops it too.
                 let source = GrantSource {
                     selection: Some(selection.clone()),

@@ -1,0 +1,15 @@
+(
+    key: "bloodrager/bloodline/undead/feats",
+    blueprint: "6980b5eb325e5fb47b12e54b31caff9e",
+    name: "Undead Bloodline Feats",
+    guide: "bloodrager#bonus-feats-undead",
+    feats: [
+        "combat-mobility",
+        "diehard",
+        "dodge",
+        "endurance",
+        "intimidating-prowess",
+        "iron-will",
+        "toughness",
+    ],
+)

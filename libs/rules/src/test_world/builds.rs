@@ -2,7 +2,7 @@
 
 use crate::*;
 
-use crate::test_world::world::world;
+use crate::test_world::world::{list_feats_in_pools, world};
 
 // ---- keys -----------------------------------------------------------------------------------------------------
 
@@ -24,8 +24,9 @@ pub fn feature(key: &str) -> FeatureKey {
 pub fn option(key: &str) -> SelectionOptionKey {
     SelectionOptionKey::new(key)
 }
-pub fn feat_list(key: &str) -> FeatListKey {
-    FeatListKey::new(key)
+/// A selection of feats' key (ticket 301: a feat list is a selection).
+pub fn feat_list(key: &str) -> FeatureSelectionKey {
+    FeatureSelectionKey::new(key)
 }
 pub fn gear_item(key: &str) -> GearKey {
     GearKey::new(key)
@@ -158,8 +159,10 @@ pub fn engine() -> Engine {
 }
 
 /// The engine on `data`, a test world that must pass [`GameData::check`]: every engine a test builds is one an app
-/// could build. Panics with the problems otherwise.
-pub fn engine_on(data: GameData) -> Engine {
+/// could build. Panics with the problems otherwise. The general and category selections list its feats as they are,
+/// a test's own among them ([`list_feats_in_pools`]).
+pub fn engine_on(mut data: GameData) -> Engine {
+    list_feats_in_pools(&mut data);
     Engine::new(
         data.checked()
             .unwrap_or_else(|problems| panic!("the test world has problems: {problems:#?}")),

@@ -9,9 +9,8 @@ use crate::choice::Unmet;
 use crate::component::{MechanicsFlag, Pool, StatRef, StatRule};
 use crate::game_data::{Alignment, OptionGroup, SpellType};
 use crate::keys::{
-    ArchetypeKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
-    MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
-    WeaponKey,
+    ArchetypeKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey, MythicAbilityKey,
+    MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey, WeaponKey,
 };
 use crate::parameter::Parameter;
 use crate::prerequisite::Prerequisite;
@@ -88,7 +87,7 @@ pub struct CharacterState {
     pub option_values: BTreeMap<SelectionOptionKey, BTreeMap<Parameter, u8>>,
     /// The weapons a pick makes the character proficient with, with how many picks hold each: the weapon of a pick
     /// from a list that skips the proficiency check (the Sword Saint's chosen weapon,
-    /// [`FeatList::skips_proficiency`](crate::FeatList::skips_proficiency); ticket 251).
+    /// [`FeatureSelection::skips_proficiency`](crate::FeatureSelection::skips_proficiency); ticket 251).
     pub weapon_proficiencies: BTreeMap<WeaponKey, u8>,
     /// The group of each option held that belongs to one (a Draconic bloodline).
     pub option_groups: BTreeMap<SelectionOptionKey, OptionGroup>,
@@ -98,10 +97,11 @@ pub struct CharacterState {
     /// The option level of each option held through a selection with option levels (a sorcerer 5 / Dragon
     /// Disciple 5's bloodline: 10).
     pub option_levels: BTreeMap<SelectionOptionKey, u8>,
-    /// The feat list in force of each option held that has one: what its [`FeatSlot::OptionList`] slots offer.
+    /// The feat list in force of each option held that has one ([`OptionLevelRow::feat_list`]): what a selection of
+    /// feats whose [`option_lists`](crate::FeatureSelection::option_lists) names its selection offers.
     ///
-    /// [`FeatSlot::OptionList`]: crate::FeatSlot::OptionList
-    pub option_feat_lists: BTreeMap<SelectionOptionKey, FeatListKey>,
+    /// [`OptionLevelRow::feat_list`]: crate::OptionLevelRow::feat_list
+    pub option_feat_lists: BTreeMap<SelectionOptionKey, FeatureSelectionKey>,
     pub mythic_abilities: BTreeSet<MythicAbilityKey>,
     /// Each mythic ability that takes a value, with the values it's held for (Favorite Metamagic: Persistent Spell
     /// and Quicken Spell; ticket 249).

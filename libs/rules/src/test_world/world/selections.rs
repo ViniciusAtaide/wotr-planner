@@ -44,7 +44,6 @@ pub(super) fn option_row(level: u8, features: &[&str]) -> OptionLevelRow {
         features: features.iter().map(|key| feature(key)).collect(),
         feats: BTreeSet::new(),
         chosen_feats: BTreeSet::new(),
-        feat_slots: vec![],
         selections: vec![],
         feat_list: None,
         class_skills: BTreeSet::new(),

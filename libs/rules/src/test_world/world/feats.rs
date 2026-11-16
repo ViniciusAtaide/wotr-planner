@@ -249,6 +249,8 @@ pub(super) fn feats() -> Vec<Feat> {
                 Alignment(crate::Alignment::LawfulGood),
             ])),
         ),
+        // A second teamwork feat, so the teamwork feats are a list to pick from (ticket 301).
+        feat_row("shield-wall", Teamwork, Some(BaseAttackBonus(20))),
         // "Combat Expertise, or Sneak Attack and Intelligence 13."
         feat_row(
             "dirty-trick",

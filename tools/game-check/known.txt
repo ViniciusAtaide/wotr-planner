@@ -21,10 +21,19 @@ progression rows / a selection the game keeps separate -> 293
 mythic ranks / a selection the game keeps separate -> 293
 option lists / * / selection warpriest/blessings -> 293
 option lists / * / selection aeon/enforcing-gaze -> 293
-option lists / * / feat list kineticist/element/air/wild-talent-feats -> 293
-option lists / * / feat list kineticist/element/earth/wild-talent-feats -> 293
-option lists / * / feat list kineticist/element/fire/wild-talent-feats -> 293
-option lists / * / feat list kineticist/element/water/wild-talent-feats -> 293
+option lists / * / selection kineticist/element/air/wild-talent-feats -> 293
+option lists / * / selection kineticist/element/earth/wild-talent-feats -> 293
+option lists / * / selection kineticist/element/fire/wild-talent-feats -> 293
+option lists / * / selection kineticist/element/water/wild-talent-feats -> 293
+# From 301 (feat slots and lists as selections, decision 2): the general and category selections and Gold Dragon's Dragon
+# Feats list the planner's feats (every feat; every feat of a category), not the game's selection's; 293 writes the
+# game's.
+option lists / * / selection feats -> 293
+option lists / * / selection combat-feats -> 293
+option lists / * / selection magic-feats -> 293
+option lists / * / selection teamwork-feats -> 293
+option lists / * / selection mounted-combat-feats -> 293
+option lists / * / selection gold-dragon/dragon-feats -> 293
 option lists / in game only / pool general feats / AdvancedWeaponTraining2 -> 293
 option lists / in game only / pool general feats / AdvancedWeaponTraining3 -> 293
 option lists / in game only / pool general feats / AdvancedWeaponTraining4 -> 293
@@ -160,28 +169,28 @@ progression rows / in planner only / archetype cleric/ecclesitheurge -> 294
 progression rows / in planner only / class cleric -> 294
 
 # 255, a parametrised feat at one value in a list or a grant.
-option lists / * / feat list ranger/combat-style-feat/archery-feats-10 -> 255
-option lists / * / feat list ranger/combat-style-feat/menacing-feats-10 -> 255
-option lists / * / feat list ranger/combat-style-feat/two-handed-weapon-feats-10 -> 255
-option lists / * / feat list ranger/combat-style-feat/two-weapon-combat-feats-10 -> 255
-option lists / * / feat list ranger/combat-style-feat/weapon-and-shield-feats-10 -> 255
-option lists / * / feat list sorcerer/bloodline/abyssal/feats -> 255
-option lists / * / feat list sorcerer/bloodline/arcane/feats -> 255
-option lists / * / feat list sorcerer/bloodline/celestial/feats -> 255
-option lists / * / feat list sorcerer/bloodline/draconic/feats -> 255
-option lists / * / feat list sorcerer/bloodline/elemental/feats -> 255
-option lists / * / feat list sorcerer/bloodline/fey/feats -> 255
-option lists / * / feat list sorcerer/bloodline/infernal/feats -> 255
-option lists / * / feat list sorcerer/bloodline/serpentine/feats -> 255
-option lists / * / feat list sorcerer/bloodline/undead/feats -> 255
-option lists / in game only / feat list half-elf/adaptability -> 255
-option lists / in game only / feat list warpriest/disenchanter/bonus-feats-12 -> 255
-option lists / in game only / feat list warpriest/disenchanter/bonus-feats-3 -> 255
-option lists / in game only / feat list warpriest/disenchanter/bonus-feats-9 -> 255
-option lists / in planner only / feat list half-elf/adaptability -> 255
-option lists / in planner only / feat list warpriest/disenchanter/bonus-feats-12 -> 255
-option lists / in planner only / feat list warpriest/disenchanter/bonus-feats-3 -> 255
-option lists / in planner only / feat list warpriest/disenchanter/bonus-feats-9 -> 255
+option lists / * / selection ranger/combat-style-feat/archery-feats-10 -> 255
+option lists / * / selection ranger/combat-style-feat/menacing-feats-10 -> 255
+option lists / * / selection ranger/combat-style-feat/two-handed-weapon-feats-10 -> 255
+option lists / * / selection ranger/combat-style-feat/two-weapon-combat-feats-10 -> 255
+option lists / * / selection ranger/combat-style-feat/weapon-and-shield-feats-10 -> 255
+option lists / * / selection sorcerer/bloodline/abyssal/feats -> 255
+option lists / * / selection sorcerer/bloodline/arcane/feats -> 255
+option lists / * / selection sorcerer/bloodline/celestial/feats -> 255
+option lists / * / selection sorcerer/bloodline/draconic/feats -> 255
+option lists / * / selection sorcerer/bloodline/elemental/feats -> 255
+option lists / * / selection sorcerer/bloodline/fey/feats -> 255
+option lists / * / selection sorcerer/bloodline/infernal/feats -> 255
+option lists / * / selection sorcerer/bloodline/serpentine/feats -> 255
+option lists / * / selection sorcerer/bloodline/undead/feats -> 255
+option lists / in game only / selection half-elf/adaptability -> 255
+option lists / in game only / selection warpriest/disenchanter/bonus-feats-12 -> 255
+option lists / in game only / selection warpriest/disenchanter/bonus-feats-3 -> 255
+option lists / in game only / selection warpriest/disenchanter/bonus-feats-9 -> 255
+option lists / in planner only / selection half-elf/adaptability -> 255
+option lists / in planner only / selection warpriest/disenchanter/bonus-feats-12 -> 255
+option lists / in planner only / selection warpriest/disenchanter/bonus-feats-3 -> 255
+option lists / in planner only / selection warpriest/disenchanter/bonus-feats-9 -> 255
 progression rows / * / archetype oracle/enlightened-philosopher -> 255
 progression rows / in game only / archetype alchemist/chirurgeon / SkillFocusLoreReligion at level 5 -> 255
 progression rows / in planner only / archetype alchemist/chirurgeon -> 255
@@ -431,7 +440,7 @@ prerequisites / * / selection option lich/skeleton-upgrade/skeletal-barbarian-i 
 prerequisites / * / selection option lich/skeleton-upgrade/skeletal-fighter-i -> 266
 
 # 267, deities, domains and blessings.
-option lists / * / feat list cleric/demonbane-priest/bonus-feats -> 267
+option lists / * / selection cleric/demonbane-priest/bonus-feats -> 267
 option lists / * / selection cleric/impossible-domain -> 267
 option lists / * / selection warpriest/champion-of-the-faith/chosen-alignment -> 267
 option lists / * / selection warpriest/feral-champion/blessing -> 267
@@ -529,9 +538,9 @@ progression rows / in game only / class cleric -> 267
 progression rows / in planner only / archetype cleric/angelfire-apostle -> 267
 
 # 268, warpriest rows.
-option lists / ignores prerequisites or not / feat list warpriest/disenchanter/bonus-feats-12 -> 268
-option lists / ignores prerequisites or not / feat list warpriest/disenchanter/bonus-feats-3 -> 268
-option lists / ignores prerequisites or not / feat list warpriest/disenchanter/bonus-feats-9 -> 268
+option lists / ignores prerequisites or not / selection warpriest/disenchanter/bonus-feats-12 -> 268
+option lists / ignores prerequisites or not / selection warpriest/disenchanter/bonus-feats-3 -> 268
+option lists / ignores prerequisites or not / selection warpriest/disenchanter/bonus-feats-9 -> 268
 progression rows / * / archetype warpriest/champion-of-the-faith -> 268
 progression rows / * / archetype warpriest/feral-champion -> 268
 progression rows / * / archetype warpriest/mantis-zealot -> 268
@@ -550,7 +559,7 @@ progression rows / in planner only / archetype warpriest/shieldbearer -> 268
 progression rows / in planner only / class warpriest -> 268
 
 # 269, barbarian rows and rage powers.
-option lists / * / feat list barbarian/pack-rager/bonus-feats -> 269
+option lists / * / selection barbarian/pack-rager/bonus-feats -> 269
 option lists / * / selection barbarian/rage-power -> 269
 prerequisites / * / selection option barbarian/rage-power/beast-totem -> 269
 prerequisites / * / selection option barbarian/rage-power/beast-totem-greater -> 269
@@ -725,10 +734,10 @@ progression rows / * / archetype paladin/warrior-of-the-holy-light -> 274
 progression rows / * / class paladin -> 274
 
 # 275, ranger and hunter rows and lists.
-option lists / * / feat list hunter/bonus-feats-3 -> 275
-option lists / * / feat list ranger/bonus-feats-10b -> 275
-option lists / * / feat list ranger/bonus-feats-2b -> 275
-option lists / * / feat list ranger/bonus-feats-6b -> 275
+option lists / * / selection hunter/bonus-feats-3 -> 275
+option lists / * / selection ranger/bonus-feats-10b -> 275
+option lists / * / selection ranger/bonus-feats-2b -> 275
+option lists / * / selection ranger/bonus-feats-6b -> 275
 prerequisites / * / selection option hunter/divine-hunter/otherworldly-companion/otherworldly-companion-celestial -> 275
 prerequisites / * / selection option hunter/divine-hunter/otherworldly-companion/otherworldly-companion-fiendish -> 275
 progression rows / * / archetype hunter/colluding-scoundrel -> 275
@@ -748,7 +757,7 @@ progression rows / * / archetype ranger/stormwalker -> 275
 progression rows / * / class ranger -> 275
 
 # 276, rogue and slayer talents and rows.
-option lists / * / feat list rogue/master-of-all/skill-focus -> 276
+option lists / * / selection rogue/master-of-all/skill-focus -> 276
 option lists / * / selection rogue/sylvan-trickster/fey-tricks -> 276
 option lists / * / selection rogue/underground-chemist/discovery -> 276
 option lists / * / selection slayer/imitator/imitation -> 276
@@ -889,13 +898,13 @@ progression rows / * / class shaman -> 278
 progression rows / in planner only / archetype witch/elemental-witch -> 278
 
 # 279, monk rows and lists.
-option lists / * / feat list monk/scaled-fist/bonus-feats-1 -> 279
-option lists / * / feat list monk/scaled-fist/bonus-feats-10 -> 279
-option lists / * / feat list monk/scaled-fist/bonus-feats-6 -> 279
-option lists / * / feat list monk/student-of-stone/bonus-feats-6 -> 279
-option lists / * / feat list monk/zen-archer/bonus-feats-1 -> 279
-option lists / * / feat list monk/zen-archer/bonus-feats-10 -> 279
-option lists / * / feat list monk/zen-archer/bonus-feats-6 -> 279
+option lists / * / selection monk/scaled-fist/bonus-feats-1 -> 279
+option lists / * / selection monk/scaled-fist/bonus-feats-10 -> 279
+option lists / * / selection monk/scaled-fist/bonus-feats-6 -> 279
+option lists / * / selection monk/student-of-stone/bonus-feats-6 -> 279
+option lists / * / selection monk/zen-archer/bonus-feats-1 -> 279
+option lists / * / selection monk/zen-archer/bonus-feats-10 -> 279
+option lists / * / selection monk/zen-archer/bonus-feats-6 -> 279
 option lists / * / selection monk/zen-archer/way-of-the-bow -> 279
 prerequisites / * / selection option monk/ki-power/sudden-speed -> 279
 progression rows / * / archetype monk/drunken-master -> 279
@@ -940,8 +949,8 @@ progression rows / a further rank in game only / archetype alchemist/chirurgeon 
 progression rows / in game only / archetype alchemist/chirurgeon -> 280
 
 # 281, sorcerer and bloodrager bloodlines and rows.
-option lists / * / feat list bloodrager/bloodline/arcane/feats -> 281
-option lists / * / feat list bloodrager/bloodline/elemental/feats -> 281
+option lists / * / selection bloodrager/bloodline/arcane/feats -> 281
+option lists / * / selection bloodrager/bloodline/elemental/feats -> 281
 option lists / * / selection bloodrager/hag-riven/bloodline -> 281
 option lists / * / selection sorcerer/crossblooded/second-bloodline -> 281
 option lists / * / selection sorcerer/empyreal-sorcerer/bloodline -> 281
@@ -1014,7 +1023,7 @@ progression rows / * / class wizard -> 282
 progression rows / in game only / archetype wizard/exploiter-wizard -> 282
 
 # 283, magus rows and arcana.
-option lists / * / feat list magus/sword-saint/chosen-weapon -> 283
+option lists / * / selection magus/sword-saint/chosen-weapon -> 283
 option lists / * / selection magus/hexcrafter/hex-arcana -> 283
 prerequisites / * / class magus -> 283
 prerequisites / * / selection option magus/magus-arcana/bane-blade-level-15 -> 283
@@ -1052,9 +1061,9 @@ progression rows / a further rank in planner only / archetype inquisitor/sanctif
 progression rows / in game only / archetype inquisitor/sanctified-slayer -> 284
 
 # 285, fighter rows and lists.
-option lists / * / feat list fighter/titan-fighter/bonus-feats-10 -> 285
-option lists / * / feat list fighter/titan-fighter/bonus-feats-2 -> 285
-option lists / * / feat list fighter/titan-fighter/bonus-feats-6 -> 285
+option lists / * / selection fighter/titan-fighter/bonus-feats-10 -> 285
+option lists / * / selection fighter/titan-fighter/bonus-feats-2 -> 285
+option lists / * / selection fighter/titan-fighter/bonus-feats-6 -> 285
 option lists / * / selection fighter/dragonheir-scion/bloodline -> 285
 progression rows / * / archetype fighter/aldori-defender -> 285
 progression rows / * / archetype fighter/armiger -> 285
@@ -1142,4 +1151,4 @@ items / * / gear item trusted-friend -> 288
 option lists / * / selection rogue/finesse-training -> 289
 
 # 291, races.
-option lists / ignores prerequisites or not / feat list half-elf/adaptability -> 291
+option lists / ignores prerequisites or not / selection half-elf/adaptability -> 291

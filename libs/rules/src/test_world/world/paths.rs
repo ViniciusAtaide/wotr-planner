@@ -11,11 +11,13 @@ use crate::test_world::world::{bonus_feature, every, fixed, guide, list, plain_f
 
 pub(super) fn trickster() -> MythicPath {
     let tricks = FeatureSelectionKey::new("trickster/tricks");
-    let rank = |rank, features: Vec<FeatureKey>, feat_slots, selections| MythicRankRow {
+    let rank = |rank,
+                features: Vec<FeatureKey>,
+                feat_selections: Vec<FeatureSelectionKey>,
+                selections: Vec<FeatureSelectionKey>| MythicRankRow {
         rank,
         features,
-        feat_slots,
-        selections,
+        selections: feat_selections.into_iter().chain(selections).collect(),
     };
     MythicPath {
         key: path("trickster"),
@@ -99,7 +101,7 @@ pub(super) fn trickster() -> MythicPath {
                     levels: [1, 2]
                         .map(|level| OptionLevelRow {
                             level,
-                            feat_slots: vec![FeatSlot::Category(FeatCategory::Teamwork)],
+                            selections: vec![feat_list("teamwork-feats")],
                             ..OptionLevelRow::default()
                         })
                         .into(),
@@ -130,14 +132,7 @@ pub(super) fn trickster() -> MythicPath {
                 vec![],
                 vec![tricks.clone()],
             ),
-            rank(
-                4,
-                vec![],
-                vec![FeatSlot::OneOf {
-                    list: feat_list("trickster/bonus-feats"),
-                }],
-                vec![],
-            ),
+            rank(4, vec![], vec![feat_list("trickster/bonus-feats")], vec![]),
             rank(5, vec![], vec![], vec![tricks.clone()]),
             rank(7, vec![], vec![], vec![tricks.clone()]),
             rank(9, vec![], vec![], vec![tricks.clone()]),
@@ -146,20 +141,19 @@ pub(super) fn trickster() -> MythicPath {
     }
 }
 
-/// A path's rank row.
+/// A path's rank row: its selections of feats, then its other selections.
 fn rank_row(
     rank: u8,
     features: &[&str],
-    feat_slots: Vec<FeatSlot>,
+    feat_selections: Vec<FeatureSelectionKey>,
     selections: &[&str],
 ) -> MythicRankRow {
     MythicRankRow {
         rank,
         features: features.iter().map(|key| feature(key)).collect(),
-        feat_slots,
-        selections: selections
-            .iter()
-            .map(|key| FeatureSelectionKey::new(*key))
+        selections: feat_selections
+            .into_iter()
+            .chain(selections.iter().map(|key| FeatureSelectionKey::new(*key)))
             .collect(),
     }
 }
@@ -194,9 +188,7 @@ pub(super) fn legend() -> MythicPath {
 /// ascending. Perfect Body, Mind and Soul raise the scores; Dragon Feats are three picks of any feat ignoring
 /// prerequisites; two breaths need MR 9.
 pub(super) fn gold_dragon() -> MythicPath {
-    let dragon_feats = || FeatSlot::OneOf {
-        list: feat_list("gold-dragon/dragon-feats"),
-    };
+    let dragon_feats = || feat_list("gold-dragon/dragon-feats");
     MythicPath {
         key: path("gold-dragon"),
         blueprint: None,
@@ -262,10 +254,8 @@ pub(super) fn gold_dragon() -> MythicPath {
                 ),
             ],
         }],
-        feat_lists: vec![FeatList {
-            every_feat: true,
-            ..list("gold-dragon/dragon-feats", true, &[])
-        }],
+        // Every feat, by name (ticket 301): `list_feats_in_pools` lists them.
+        feat_lists: vec![list("gold-dragon/dragon-feats", true, &[])],
         ranks: vec![
             rank_row(
                 8,

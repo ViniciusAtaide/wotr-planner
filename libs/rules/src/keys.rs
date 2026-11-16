@@ -69,16 +69,12 @@ text_key!(
     FeatureKey
 );
 text_key!(
-    /// `rogue/rogue-talents`: the list a Feature selection picks from.
+    /// `rogue/rogue-talents`, `monk/bonus-feats-6`: the list a Feature selection picks from, of options or of feats.
     FeatureSelectionKey
 );
 text_key!(
     /// `rogue/rogue-talents/fast-stealth`: one option of a Feature selection. It extends its selection's key.
     SelectionOptionKey
-);
-text_key!(
-    /// `monk/bonus-feats-6`: a named list of feats that a fixed-list Feat slot picks from.
-    FeatListKey
 );
 text_key!(
     /// `mythic-charge`

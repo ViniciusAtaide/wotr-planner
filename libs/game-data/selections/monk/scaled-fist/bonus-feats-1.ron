@@ -1,0 +1,17 @@
+(
+    key: "monk/scaled-fist/bonus-feats-1",
+    blueprint: "8705b13f703cbdc43ad1d9150f8cacca",
+    name: "Scaled Fist Bonus Feats",
+    guide: "monk#scaled-fist-bonus-feats",
+    ignores_prerequisites: true,
+    feats: [
+        "blind-fight",
+        "combat-reflexes",
+        "crane-style",
+        "deflect-arrows",
+        "dodge",
+        "dragon-style",
+        "improved-initiative",
+        "intimidating-prowess",
+    ],
+)

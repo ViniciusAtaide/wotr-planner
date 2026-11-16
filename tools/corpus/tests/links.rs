@@ -93,13 +93,20 @@ fn every_corpus_and_bench_link_opens_with_the_same_picks() {
 }
 
 /// The engine on the game data with `feat` renamed, the old key an alias when `alias`, with that data and its link
-/// keys, if the data still passes the data check (nothing else names the feat).
+/// keys, if the data still passes the data check (nothing but the selections that list it names the feat).
 fn renamed(data: &GameData, feat: &FeatKey, alias: bool) -> Option<(Engine, GameData, LinkKeys)> {
     let mut data = data.clone();
+    let new = FeatKey::new(format!("{feat}-renamed"));
     let entry = data.feats.iter_mut().find(|entry| entry.key == *feat)?;
-    entry.key = FeatKey::new(format!("{feat}-renamed"));
+    entry.key = new.clone();
     if alias {
         entry.aliases.insert(feat.clone());
+    }
+    // The selections of feats that list it list it by its new key (ticket 301: the general one lists every feat).
+    for selection in &mut data.selections {
+        if selection.feats.remove(feat) {
+            selection.feats.insert(new.clone());
+        }
     }
     let checked = data.checked().ok()?;
     let data = GameData::clone(&checked);

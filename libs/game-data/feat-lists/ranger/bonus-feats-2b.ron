@@ -1,1 +1,0 @@
-(key: "ranger/bonus-feats-2b", blueprint: "3cf94df3f1cf9a443a880bc1ae9be3c6", name: "Archery Feats", guide: "ranger#archery-feats", ignores_prerequisites: true, feats: ["point-blank-shot", "precise-shot", "rapid-shot"])

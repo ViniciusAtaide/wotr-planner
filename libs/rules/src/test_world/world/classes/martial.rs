@@ -10,7 +10,7 @@ use crate::test_world::world::classes::{archetype, archetype_row, row};
 use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option,
 };
-use crate::test_world::world::{guide, list, plain_feature};
+use crate::test_world::world::{guide, list, option_list, plain_feature};
 
 /// Fighter: full BAB, good Fortitude, Shield and Tower Shield Proficiency granted at 1, a Combat feat bonus slot
 /// at 1 and every even level.
@@ -23,7 +23,7 @@ pub(in crate::test_world::world) fn fighter() -> Class {
                     BTreeSet::from([feat("shield-proficiency"), feat("tower-shield-proficiency")]);
             }
             if l == 1 || l % 2 == 0 {
-                r.feat_slots.push(FeatSlot::CombatFeat);
+                r.selections.push(feat_list("combat-feats"));
             }
             if l % 4 == 2 {
                 r.features.push(feature("fighter/bravery"));
@@ -43,9 +43,7 @@ pub(in crate::test_world::world) fn fighter() -> Class {
                     .push(FeatureSelectionKey::new("fighter/armiger/order"));
             }
             if l == 2 {
-                r.feat_slots.push(FeatSlot::OneOf {
-                    list: feat_list("fighter/armiger/bonus-feats"),
-                });
+                r.selections.push(feat_list("fighter/armiger/bonus-feats"));
             }
             r
         })
@@ -133,9 +131,7 @@ pub(in crate::test_world::world) fn monk() -> Class {
                 r.feats.insert(feat("improved-unarmed-strike"));
             }
             if l == 1 || l % 4 == 2 {
-                r.feat_slots.push(FeatSlot::OneOf {
-                    list: feat_list("monk/bonus-feats"),
-                });
+                r.selections.push(feat_list("monk/bonus-feats"));
             }
             r
         })
@@ -171,9 +167,7 @@ pub(in crate::test_world::world) fn monk() -> Class {
 fn zen_archer() -> Archetype {
     let way = "monk/zen-archer/way-of-the-bow";
     let mut row_2 = archetype_row(2);
-    row_2.feat_slots.push(FeatSlot::OneOf {
-        list: feat_list("monk/bonus-feats"),
-    });
+    row_2.selections.push(feat_list("monk/bonus-feats"));
     row_2.selections.push(FeatureSelectionKey::new(way));
     Archetype {
         selections: vec![levelled_selection(
@@ -204,9 +198,7 @@ pub(in crate::test_world::world) fn warpriest() -> Class {
         .map(|l| {
             let mut r = row(l);
             if l == 1 {
-                r.feat_slots.push(FeatSlot::OneOf {
-                    list: feat_list("warpriest/weapon-focus"),
-                });
+                r.selections.push(feat_list("warpriest/weapon-focus"));
             }
             if l == 2 {
                 r.selections
@@ -224,9 +216,9 @@ pub(in crate::test_world::world) fn warpriest() -> Class {
         Prerequisite::Alignment(Alignment::ChaoticGood),
     ]);
     let mut champion_1 = archetype_row(1);
-    champion_1.feat_slots.push(FeatSlot::OneOf {
-        list: feat_list("warpriest/weapon-focus"),
-    });
+    champion_1
+        .selections
+        .push(feat_list("warpriest/weapon-focus"));
     champion_1.selections.push(champion.clone());
     let dueling_sword = |key: &str| FeatValue {
         feat: feat(key),
@@ -298,11 +290,7 @@ pub(in crate::test_world::world) fn ranger() -> Class {
                 r.selections.push(style.clone());
             }
             if [2, 6, 10].contains(&l) {
-                r.feat_slots.push(FeatSlot::OptionList {
-                    selection: style.clone(),
-                    at_level: None,
-                    label: None,
-                });
+                r.selections.push(feat_list("ranger/combat-style-feats"));
             }
             r
         })
@@ -349,6 +337,7 @@ pub(in crate::test_world::world) fn ranger() -> Class {
             &[],
         )],
         feat_lists: vec![
+            option_list("ranger/combat-style-feats", "ranger/combat-style", None),
             list(
                 "ranger/combat-style/archery-2",
                 true,

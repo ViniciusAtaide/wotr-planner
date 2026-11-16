@@ -13,7 +13,7 @@ Class(
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "use-magic-device"],
     spontaneous: true,
     levels: [
-        (level: 1, arcane_spell_level: 1, features: ["skald-bardic-knowledge", "skald/inspired-rage", "skald/raging-song", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], feat_slots: [Category(Magic)]),
+        (level: 1, arcane_spell_level: 1, features: ["skald-bardic-knowledge", "skald/inspired-rage", "skald/raging-song", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], selections: ["magic-feats"]),
         (level: 2, arcane_spell_level: 1, features: ["well-versed"], selections: ["rogue/rogue-talents"]),
         (level: 3, arcane_spell_level: 1, selections: ["barbarian/rage-power"]),
         (level: 4, arcane_spell_level: 2, features: ["uncanny-dodge"]),

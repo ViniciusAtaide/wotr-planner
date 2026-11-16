@@ -15,8 +15,8 @@ use crate::bonus::ItemInteractions;
 use crate::component::Component;
 use crate::gear::GearItem;
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, BlueprintGuid, ClassKey, DeityKey, FeatKey, FeatListKey,
-    FeatureKey, FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
+    ArchetypeKey, BackgroundKey, BlueprintGuid, ClassKey, DeityKey, FeatKey, FeatureKey,
+    FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
     SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{Parameter, ParameterKind, Repeat};
@@ -44,8 +44,8 @@ impl GuideRef {
 }
 
 /// Everything the planner knows about the game: one flat catalog per kind, each entry keyed by its key (ticket
-/// 244). Classes, archetypes, paths, options and rows name the features, selections and feat lists they grant by key;
-/// no entry holds another.
+/// 244). Classes, archetypes, paths, options and rows name the features and selections they grant by key; no entry
+/// holds another.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct GameData {
     pub progression: Progression,
@@ -56,8 +56,6 @@ pub struct GameData {
     /// The weapons a parameterised feat can be taken for.
     pub weapons: Vec<Weapon>,
     pub feats: Vec<Feat>,
-    /// The named feat lists fixed-list feat slots pick from: races', classes', archetypes', options' and paths'.
-    pub feat_lists: Vec<FeatList>,
     /// Base classes.
     pub classes: Vec<Class>,
     /// Prestige classes. They share [`Class`]'s shape but have no archetypes.
@@ -66,7 +64,8 @@ pub struct GameData {
     pub archetypes: Vec<Archetype>,
     /// The features that classes, archetypes, options and paths grant.
     pub features: Vec<Feature>,
-    /// The Feature selections: classes', archetypes', options' and paths' picks.
+    /// The Feature selections: races', classes', archetypes', options' and paths' picks, of options or of feats
+    /// ([`FeatureSelection::offers_feats`], ticket 301).
     pub selections: Vec<FeatureSelection>,
     /// The Selection options the selections offer ([`FeatureSelection::options`] and
     /// [`shared_options`](FeatureSelection::shared_options)).
@@ -177,19 +176,19 @@ impl GameData {
     }
 
     /// Sorts every list into its one canonical order: catalogs by key, class level rows by level, mythic rank rows
-    /// and ascensions by rank, and multisets (granted features and selections, feat slots, ability modifiers,
-    /// prerequisite children) by value.
+    /// and ascensions by rank, and multisets (granted features and selections, ability modifiers, prerequisite
+    /// children) by value.
     pub fn canonicalize(&mut self) {
         self.progression.mythic_ascensions.sort_by_key(|a| a.rank);
         sort_by_key(&mut self.races, |r| r.key.clone());
         for race in &mut self.races {
             race.ability_modifiers.sort();
-            race.feat_slots.sort();
+            race.selections.sort();
         }
         sort_by_key(&mut self.subraces, |s| s.key.clone());
         for subrace in &mut self.subraces {
             subrace.ability_modifiers.sort();
-            subrace.feat_slots.sort();
+            subrace.selections.sort();
         }
         sort_by_key(&mut self.skills, |s| s.key.clone());
         sort_by_key(&mut self.weapons, |w| w.key.clone());
@@ -197,7 +196,6 @@ impl GameData {
         for feat in &mut self.feats {
             canonicalize_prerequisite(&mut feat.prerequisite);
         }
-        sort_by_key(&mut self.feat_lists, |l| l.key.clone());
         for class in self.all_classes_mut() {
             canonicalize_prerequisite(&mut class.prerequisite);
             class.save_exceptions.sort();
@@ -218,7 +216,6 @@ impl GameData {
             option.levels.sort_by_key(|row| row.level);
             for row in &mut option.levels {
                 row.features.sort();
-                row.feat_slots.sort();
                 row.selections.sort();
             }
         }
@@ -242,7 +239,7 @@ impl GameData {
         for path in &mut self.mythic_paths {
             path.ranks.sort_by_key(|r| r.rank);
             for row in &mut path.ranks {
-                sort_grants(&mut row.features, &mut row.feat_slots, &mut row.selections);
+                sort_grants(&mut row.features, &mut row.selections);
             }
         }
         sort_by_key(&mut self.backgrounds, |b| b.key.clone());
@@ -271,25 +268,20 @@ fn canonicalize_prerequisite(prerequisite: &mut Option<Prerequisite>) {
 fn canonicalize_rows(rows: &mut [ClassLevelRow]) {
     rows.sort_by_key(|r| r.level);
     for row in rows {
-        sort_grants(&mut row.features, &mut row.feat_slots, &mut row.selections);
+        sort_grants(&mut row.features, &mut row.selections);
     }
 }
 
 fn canonicalize_archetype_rows(rows: &mut [ArchetypeLevelRow]) {
     rows.sort_by_key(|r| r.level);
     for row in rows {
-        sort_grants(&mut row.features, &mut row.feat_slots, &mut row.selections);
+        sort_grants(&mut row.features, &mut row.selections);
     }
 }
 
 /// The grants of a class level row or a mythic rank row are multisets: sorted by value.
-fn sort_grants(
-    features: &mut [FeatureKey],
-    feat_slots: &mut [FeatSlot],
-    selections: &mut [FeatureSelectionKey],
-) {
+fn sort_grants(features: &mut [FeatureKey], selections: &mut [FeatureSelectionKey]) {
     features.sort();
-    feat_slots.sort();
     selections.sort();
 }
 
@@ -381,9 +373,10 @@ pub struct Race {
     pub guide: Option<GuideRef>,
     #[serde(default)]
     pub ability_modifiers: Vec<AbilityModifier>,
-    /// Extra Feat slots at character level 1 (a human's bonus feat is a `General` slot).
+    /// The selections of feats it gives a pick of at character level 1 (a human's bonus feat is
+    /// [`BASIC_FEAT_SELECTION`]'s), each one Feat slot ([`FeatureSelection::offers_feats`]).
     #[serde(default)]
-    pub feat_slots: Vec<FeatSlot>,
+    pub selections: Vec<FeatureSelectionKey>,
     /// Skill points it adds at every level, on top of the class's and Intelligence's (a human's Skilled: 1).
     #[serde(default)]
     pub skill_points: u8,
@@ -418,10 +411,10 @@ pub struct Subrace {
     pub guide: Option<GuideRef>,
     #[serde(default)]
     pub ability_modifiers: Vec<AbilityModifier>,
-    /// Its feat slots at character level 1, in place of the race's (a half-elf's Dual Heritage and Kindred Raised
-    /// list no Adaptability, so they have none). They may name the race's lists.
+    /// Its selections of feats at character level 1, in place of the race's (a half-elf's Dual Heritage and Kindred
+    /// Raised list no Adaptability, so they have none). They may name the race's own.
     #[serde(default)]
-    pub feat_slots: Vec<FeatSlot>,
+    pub selections: Vec<FeatureSelectionKey>,
     /// Skill points it adds at every level, in place of the race's (a Human-Raised half-orc's: 1).
     #[serde(default)]
     pub skill_points: u8,
@@ -536,6 +529,10 @@ impl BackgroundGroup {
 
 /// The Feature selection whose options are the domains: what a deity's domains and a blessing's domain name.
 pub const DOMAIN_SELECTION: &str = "cleric/domain";
+/// The selection of feats the general feat slot at odd character levels picks from, and Extra Feat's
+/// ([`MythicExtraPick::Feat`]): the game's `BasicFeatSelection` 247a4068296e8be42890143f451b4b45, which
+/// `BasicFeatsProgression` 5b72dd2ca2cb73b49903806ee8986325 grants at levels 1, 3, 5, … (ticket 301).
+pub const BASIC_FEAT_SELECTION: &str = "feats";
 /// The feat a follower holds for an exotic favoured weapon, taken for that weapon (Achaekek: Sawtooth Saber).
 pub const EXOTIC_WEAPON_PROFICIENCY: &str = "exotic-weapon-proficiency";
 /// The feat that makes a character proficient with every simple weapon.
@@ -723,79 +720,6 @@ impl Feat {
     }
 }
 
-/// A Feat slot granted by a race, a class level or a mythic rank. Every slot checks the picked feat's
-/// prerequisites, except a bonus-list slot (a `OneOf` whose list ignores them).
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum FeatSlot {
-    /// A general slot: any feat whose prerequisites are met.
-    General,
-    /// A bonus slot for any Combat feat.
-    CombatFeat,
-    /// A bonus slot for any feat of one category ("Bonus Teamwork Feat").
-    Category(FeatCategory),
-    /// A bonus slot for one feat from a named list.
-    OneOf { list: FeatListKey },
-    /// A bonus slot whose list comes from a held option: the list in force of each option held that `selection`
-    /// offers (a sorcerer's bloodline feat; a Crossblooded sorcerer's slot offers both bloodlines' lists).
-    /// Checked after the level's Feature selections, since it depends on them.
-    OptionList {
-        selection: FeatureSelectionKey,
-        /// The option level whose list it offers, whatever level the option has reached (a slayer's combat style
-        /// feat at 2 or 4: the style's 2nd-level list, even when a ranger's levels have taken the style further).
-        /// `None`: the list in force at the option's level, and left out when written (the data files write a
-        /// slot on one line, `OptionList(selection: …)`).
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        at_level: Option<u8>,
-        /// What the sheet calls the slot, when not its selection's name and "feat" (the kineticist's bonus-feat
-        /// wild talent's: "Wild talent feat", though it offers the Elemental Focus's lists). `None`: the
-        /// selection's name and "feat" (a sorcerer's "Bloodline feat"), and left out when written.
-        #[serde(default, skip_serializing_if = "Option::is_none")]
-        label: Option<String>,
-    },
-}
-
-/// A named fixed list of feats that a [`FeatSlot::OneOf`] picks from, such as a monk's bonus feats. It belongs to
-/// the class, archetype or path whose file defines it (its key starts with the owner's), and any row may name
-/// it. A list that grows with level (the monk's at 1, 6 and 10) is one list per stage. A lone feat is never a
-/// list: the row grants it (`feats`).
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct FeatList {
-    pub key: FeatListKey,
-    /// The game blueprint behind it, if any ([`BlueprintGuid`]).
-    #[serde(default, skip_serializing)]
-    pub blueprint: Option<BlueprintGuid>,
-    pub name: String,
-    #[serde(default)]
-    pub guide: Option<GuideRef>,
-    /// Set on a bonus list, the class's own bonus-feat list (a monk's bonus feats, a ranger's combat style): a
-    /// pick from it ignores the feat's prerequisites. It still has to be on the list and not already held, and it
-    /// counts as held afterwards. Unset, the prerequisites are checked.
-    #[serde(default)]
-    pub ignores_prerequisites: bool,
-    /// Set where the game's pick through the list is a feature of its own that grants the feat and proficiency with
-    /// its weapon, so a feat that requires proficiency ([`Feat::requires_proficiency`]) skips that check and is taken
-    /// for any weapon, and the pick makes the character proficient with that weapon
-    /// ([`CharacterState::weapon_proficiencies`](crate::CharacterState::weapon_proficiencies)). The Sword Saint's
-    /// chosen weapon: `SwordSaintChosenWeaponFeature` c0b4ec0175e3ff940a45fc21f318a39a has no `RequireProficiency`,
-    /// and its `KensaiChosenWeapon.OnActivate` adds the weapon to the unit's proficiencies and gives Weapon Focus.
-    #[serde(default)]
-    pub skips_proficiency: bool,
-    /// Set on a list of every feat in the data (Gold Dragon's Dragon Feats: "any three feats"), which then names
-    /// no feats of its own: the members would only copy the feat catalog.
-    #[serde(default)]
-    pub every_feat: bool,
-    #[serde(default)]
-    pub feats: BTreeSet<FeatKey>,
-}
-
-impl FeatList {
-    /// Whether the list holds a feat: every feat on an `every_feat` list, else its own.
-    pub fn contains(&self, feat: &FeatKey) -> bool {
-        self.every_feat || self.feats.contains(feat)
-    }
-}
-
 /// A base class or a prestige class.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -951,9 +875,8 @@ pub struct ArchetypeLevelRow {
     /// Feats granted for one value: see [`ClassLevelRow::feats_for`].
     #[serde(default)]
     pub feats_for: BTreeSet<FeatValue>,
-    #[serde(default)]
-    pub feat_slots: Vec<FeatSlot>,
-    /// One Feature selection slot per entry.
+    /// One slot per entry: a Feat slot for a selection of feats ([`FeatureSelection::offers_feats`]), a Feature
+    /// selection slot for any other.
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
 }
@@ -1116,9 +1039,8 @@ pub struct ClassLevelRow {
     /// (Sawtooth Saber)).
     #[serde(default)]
     pub feats_for: BTreeSet<FeatValue>,
-    #[serde(default)]
-    pub feat_slots: Vec<FeatSlot>,
-    /// One Feature selection slot per entry.
+    /// One slot per entry: a Feat slot for a selection of feats ([`FeatureSelection::offers_feats`]), a Feature
+    /// selection slot for any other.
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
 }
@@ -1184,8 +1106,11 @@ pub struct OptionRow {
     pub level: u8,
 }
 
-/// The fixed list a Feature selection picks from, such as rogue talents or a path's picks: its own options plus
-/// the ones it shares from other selections (a slayer's talents include the rogue's).
+/// The fixed list a Feature selection picks from, as the game's `BlueprintFeatureSelection` lists its
+/// `m_AllFeatures`: options, such as rogue talents or a path's picks (its own plus the ones it shares from other
+/// selections: a slayer's talents include the rogue's), or feats (ticket 301), such as the general feats
+/// ([`BASIC_FEAT_SELECTION`]) or a monk's bonus feats. A selection of feats ([`offers_feats`](Self::offers_feats))
+/// makes a Feat slot where a row, a race or a path rank names it; any other, a Feature selection slot.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct FeatureSelection {
@@ -1198,8 +1123,33 @@ pub struct FeatureSelection {
     pub summary: String,
     #[serde(default)]
     pub guide: Option<GuideRef>,
-    /// The options this selection defines ([`GameData::options`]): each option is one selection's own.
+    /// The options this selection defines ([`GameData::options`]): each option is one selection's own. Empty for a
+    /// selection of feats.
+    #[serde(default)]
     pub options: BTreeSet<SelectionOptionKey>,
+    /// The feats it offers (ticket 301): a monk's bonus feats; every feat for the general slot. A list that grows
+    /// with level (the monk's at 1, 6 and 10) is one selection per stage. A lone feat is never a list unless it takes
+    /// a value: the row grants it (`feats`). Empty for a selection of options, and left out when written.
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    pub feats: BTreeSet<FeatKey>,
+    /// Set on a bonus list, a class's own bonus-feat list (a monk's bonus feats, a ranger's combat style): a pick of
+    /// one of its `feats` ignores the feat's prerequisites (the game's `IgnorePrerequisites`). It still has to be on the
+    /// list and not already held, and it counts as held afterwards.
+    #[serde(default)]
+    pub ignores_prerequisites: bool,
+    /// Set where the game's pick through the list is a feature of its own that grants the feat and proficiency with
+    /// its weapon, so a feat that requires proficiency ([`Feat::requires_proficiency`]) skips that check and is taken
+    /// for any weapon, and the pick makes the character proficient with that weapon
+    /// ([`CharacterState::weapon_proficiencies`](crate::CharacterState::weapon_proficiencies)). The Sword Saint's
+    /// chosen weapon: `SwordSaintChosenWeaponFeature` c0b4ec0175e3ff940a45fc21f318a39a has no `RequireProficiency`,
+    /// and its `KensaiChosenWeapon.OnActivate` adds the weapon to the unit's proficiencies and gives Weapon Focus.
+    #[serde(default)]
+    pub skips_proficiency: bool,
+    /// A selection of feats whose list comes from a held option, in place of `feats` (a sorcerer's bloodline feat; a
+    /// Crossblooded sorcerer's slot offers both bloodlines' lists): the planner's form until nested selections
+    /// (ticket 302). `None` for any other selection.
+    #[serde(default)]
+    pub option_lists: Option<OptionLists>,
     /// Other selections' options this one offers too. A shared option keeps its one key, so holding it through
     /// either selection holds it once, and its prerequisite is the same in both (where a class's own feature
     /// gates it, the data accepts each sharing class's with an `Any`).
@@ -1358,7 +1308,27 @@ impl OptionGroup {
     }
 }
 
+/// Where a selection of feats finds its lists ([`FeatureSelection::option_lists`]): the list in force of each option
+/// held that `selection` offers ([`OptionLevelRow::feat_list`]). Checked after the level's Feature selections, since
+/// it depends on them.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct OptionLists {
+    pub selection: FeatureSelectionKey,
+    /// The option level whose list it offers, whatever level the option has reached (a slayer's combat style feat at
+    /// 2 or 4: the style's 2nd-level list, even when a ranger's levels have taken the style further). `None`: the list
+    /// in force at the option's level, and left out when written.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub at_level: Option<u8>,
+}
+
 impl FeatureSelection {
+    /// Whether it's a selection of feats, whose slot is a Feat slot: it lists feats, or takes them from an option's
+    /// lists (ticket 301).
+    pub fn offers_feats(&self) -> bool {
+        !self.feats.is_empty() || self.option_lists.is_some()
+    }
+
     /// Whether a pick of `option` may fill this selection's slot: one of its own options, or one it shares. (A
     /// filtered pool's offer depends on what's held as well: see `Engine`.)
     pub fn offers(&self, option: &SelectionOptionKey) -> bool {
@@ -1485,16 +1455,15 @@ pub struct OptionLevelRow {
     /// Weapon Focus was taken for).
     #[serde(default)]
     pub chosen_feats: BTreeSet<FeatKey>,
-    /// Feat slots, as on a class level row (the War domain's bonus Combat feat at 8).
-    #[serde(default)]
-    pub feat_slots: Vec<FeatSlot>,
-    /// One Feature selection slot per entry (the Arcane bloodline's school at 15).
+    /// One slot per entry, as on a class level row (the Arcane bloodline's school at 15; the War domain's bonus
+    /// Combat feat at 8).
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
-    /// The option's feat list from this level on, for [`FeatSlot::OptionList`] slots (a bloodline's feats; a
+    /// The option's feat list from this level on: a selection of feats, which a selection whose
+    /// [`option_lists`](FeatureSelection::option_lists) names the option's selection offers (a bloodline's feats; a
     /// ranger style's list per stage).
     #[serde(default)]
-    pub feat_list: Option<FeatListKey>,
+    pub feat_list: Option<FeatureSelectionKey>,
     /// Skills that are class skills while the row is held (an oracle's Flame mystery: Athletics and Mobility).
     #[serde(default)]
     pub class_skills: BTreeSet<SkillKey>,
@@ -1686,8 +1655,7 @@ pub struct MythicRankRow {
     pub rank: u8,
     #[serde(default)]
     pub features: Vec<FeatureKey>,
-    #[serde(default)]
-    pub feat_slots: Vec<FeatSlot>,
+    /// One slot per entry, as on a class level row.
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
 }

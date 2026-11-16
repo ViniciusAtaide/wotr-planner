@@ -9,6 +9,6 @@
         Requires(condition: ClassLevel("slayer", 2)),
     ],
     levels: [
-        (level: 1, feat_slots: [OptionList(selection: "slayer/combat-style", at_level: 2)], selections: ["slayer/combat-style"]),
+        (level: 1, selections: ["slayer/combat-style", "slayer/combat-style-feats-2"]),
     ],
 )

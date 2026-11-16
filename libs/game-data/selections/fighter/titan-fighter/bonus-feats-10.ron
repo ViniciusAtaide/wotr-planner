@@ -1,0 +1,14 @@
+(
+    key: "fighter/titan-fighter/bonus-feats-10",
+    blueprint: "0e41c3c5e88c42c3af31162743982c22",
+    name: "Massive Attacks (from level 10)",
+    guide: "fighter#massive-attacks",
+    ignores_prerequisites: true,
+    feats: [
+        "double-slice",
+        "greater-two-weapon-fighting",
+        "improved-two-weapon-fighting",
+        "shield-bash",
+        "two-weapon-fighting",
+    ],
+)

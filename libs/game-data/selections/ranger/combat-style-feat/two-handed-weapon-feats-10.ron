@@ -1,0 +1,22 @@
+(
+    key: "ranger/combat-style-feat/two-handed-weapon-feats-10",
+    blueprint: "f96ad7f1fe7e62c4d8f7540d0f4c7313",
+    name: "Two-Handed Weapon Feats (from level 10)",
+    guide: "ranger#two-handed-weapon-feats",
+    ignores_prerequisites: true,
+    feats: [
+        "cleave",
+        "cleaving-finish",
+        "critical-focus",
+        "dodge",
+        "dreadful-carnage",
+        "great-cleave",
+        "great-fortitude",
+        "intimidating-prowess",
+        "iron-will",
+        "lightning-reflexes",
+        "power-attack",
+        "skill-focus",
+        "toughness",
+    ],
+)

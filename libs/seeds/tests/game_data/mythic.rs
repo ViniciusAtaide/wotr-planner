@@ -4,9 +4,8 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Ability, Build, FeatKey, FeatSlot, FeatureKey, Issue, MythicPathKey, Parameter, Pick,
-    Prerequisite, RankStatus, Repeat, SelectionOptionKey, SlotId, SlotKind, SlotOption, Unmet,
-    WeaponProficiency,
+    Ability, Build, FeatKey, FeatureKey, Issue, MythicPathKey, Parameter, Pick, Prerequisite,
+    RankStatus, Repeat, SelectionOptionKey, SlotId, SlotKind, SlotOption, Unmet, WeaponProficiency,
 };
 
 use crate::support::*;
@@ -348,7 +347,7 @@ fn extra_feat_at_mr_2_gives_a_feat_slot_at_level_7_offering_what_the_general_slo
         rank_2,
         [
             (SlotId::Mythic { rank: 2 }, SlotKind::MythicFeat),
-            (mythic_extra(2), SlotKind::Feat(FeatSlot::General)),
+            (mythic_extra(2), feat_kind(rules::BASIC_FEAT_SELECTION)),
         ]
     );
     assert_eq!(sheet.ranks[1].character_level, 7);

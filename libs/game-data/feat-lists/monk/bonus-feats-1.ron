@@ -1,1 +1,0 @@
-(key: "monk/bonus-feats-1", blueprint: "ac3b7f5c11bce4e44aeb332f66b75bab", name: "Monk Bonus Feats", guide: "monk#monk-bonus-feats", ignores_prerequisites: true, feats: ["blind-fight", "combat-reflexes", "crane-style", "deflect-arrows", "dodge", "improved-initiative"])

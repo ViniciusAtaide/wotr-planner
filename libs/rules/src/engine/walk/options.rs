@@ -165,8 +165,10 @@ impl<'a> Walker<'a> {
     /// rank's path slots after `row`'s own, filled until none are left (a pick can give more). The other options'
     /// row slots stay pending for the level.
     pub(super) fn fill_rank_rows(&mut self, rank: u8, row: Option<&MythicRankRow>) -> Vec<Slot> {
-        let mut feat_index = row.map_or(0, |row| row.feat_slots.len());
-        let mut selection_index = row.map_or(0, |row| row.selections.len());
+        let (mut feat_index, mut selection_index) = row.map_or((0, 0), |row| {
+            let (feats, others) = self.engine.catalog.split_selections(&row.selections);
+            (feats.len(), others.len())
+        });
         let mut slots = Vec::new();
         loop {
             for index in 0..self.holdings.len() {
@@ -353,6 +355,7 @@ impl<'a> Walker<'a> {
         source: Option<&GrantSource>,
     ) -> Vec<Held> {
         let catalog = &self.engine.catalog;
+        let (feat_selections, selections) = catalog.split_selections(&row.selections);
         let held: Vec<Held> = row
             .features
             .iter()
@@ -372,27 +375,22 @@ impl<'a> Walker<'a> {
                     .iter()
                     .map(|skill| Held::ClassSkill(skill.clone())),
             )
-            .chain(
-                row.selections
-                    .iter()
-                    .map(|selection| Held::Selection(selection.clone())),
-            )
+            // Its selections of feats aren't facts yet (ticket 305).
+            .chain((selections.iter()).map(|selection| Held::Selection((*selection).clone())))
             .collect();
         for item in &held {
             self.hold(item.clone(), source.cloned());
         }
-        self.pending.extend(
-            row.selections
-                .iter()
-                .cloned()
-                .map(|selection| Pending::Row(SlotKind::Selection(selection), option.clone())),
-        );
-        self.pending.extend(
-            row.feat_slots
-                .iter()
-                .cloned()
-                .map(|slot| Pending::Row(SlotKind::Feat(slot), option.clone())),
-        );
+        // Its other selections' slots, then its selections of feats' (ticket 301: the order the feat slots came in).
+        let slots = (selections.into_iter())
+            .map(|selection| SlotKind::Selection(selection.clone()))
+            .chain(
+                feat_selections
+                    .into_iter()
+                    .map(|selection| SlotKind::Feat(selection.clone())),
+            );
+        self.pending
+            .extend(slots.map(|kind| Pending::Row(kind, option.clone())));
         held
     }
 

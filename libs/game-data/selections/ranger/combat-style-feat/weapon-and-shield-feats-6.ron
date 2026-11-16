@@ -1,0 +1,19 @@
+(
+    key: "ranger/combat-style-feat/weapon-and-shield-feats-6",
+    blueprint: "10d8245011456224cb6358f640364e26",
+    name: "Weapon and Shield Feats (from level 6)",
+    guide: "ranger#weapon-and-shield-feats",
+    ignores_prerequisites: true,
+    feats: [
+        "dodge",
+        "great-fortitude",
+        "improved-two-weapon-fighting",
+        "iron-will",
+        "lightning-reflexes",
+        "shield-bash",
+        "shield-focus",
+        "shield-master",
+        "toughness",
+        "two-weapon-fighting",
+    ],
+)

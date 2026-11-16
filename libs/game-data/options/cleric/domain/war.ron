@@ -6,6 +6,6 @@
     guide: "character-creation#war-domain",
     levels: [
         (level: 1, features: ["cleric/domain/war/battle-rage"]),
-        (level: 8, feat_slots: [CombatFeat]),
+        (level: 8, selections: ["combat-feats"]),
     ],
 )

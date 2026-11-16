@@ -52,6 +52,18 @@ impl<'a> Ctx<'a> {
 pub mod fixed {
     /// `BasicFeatSelection`: the feat a character picks at every odd level.
     pub const BASIC_FEAT_SELECTION: &str = "247a4068296e8be42890143f451b4b45";
+    /// The game's selections of a feat group that the planner's general and category selections name, and the
+    /// sorcerer's bloodline feat's (ticket 301): `BasicFeatSelection`, `FighterFeatSelection`, `WizardFeatSelection`,
+    /// the inquisitor's `TeamworkFeat`, `CavalierBonusFeatSelection` and `SorcererFeatSelection`. The rows compare a
+    /// grant of one, on either side, as a pick of its group, as they compared the planner's feat slots before.
+    pub const FEAT_POOLS: [&str; 6] = [
+        BASIC_FEAT_SELECTION,
+        "41c8486641f7d6d4283ca9dae4147a9f",
+        "8c3102c2ff3b69444b139a98521a4899",
+        "d87e2f6a9278ac04caeb0f93eff95fcb",
+        "dd17090d14958ef48ba601688b611970",
+        "3a60f0c0442acfb419b0c03b584e1394",
+    ];
     /// `MythicAbilitySelection`: a Mythic rank's general ability pick.
     pub const MYTHIC_ABILITY_SELECTION: &str = "ba0e5a900b775be4a99702f1ed08914d";
     /// `MythicFeatSelection`: a Mythic rank's general feat pick.

@@ -6,7 +6,7 @@
     summary: "Slayer commander who shares teamwork feats and studied target bonuses with allies.",
     guide: "slayer#vanguard",
     levels: [
-        (level: 2, features: ["slayer/vanguard/vanguard-tactician"], feat_slots: [Category(Teamwork)]),
+        (level: 2, features: ["slayer/vanguard/vanguard-tactician"], selections: ["teamwork-feats"]),
         (level: 4, features: ["slayer/vanguard/vanguards-bond"]),
         (level: 7, features: ["studied-target-swift", "uncanny-dodge-talent"]),
     ],

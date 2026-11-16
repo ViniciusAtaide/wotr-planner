@@ -9,11 +9,10 @@ use common::{copy_fixture, fixture_dir};
 use rules::{
     Ability, Advancement, ArchetypeKey, ArchetypeLevelRow, ArmourType, BabProgression,
     BackgroundGroup, ClassKey, Component, CountsAs, CountsToward, DataAt, Descriptor, FeatKey,
-    FeatListKey, FeatSlot, FeatValue, FeatureKey, FeatureSelectionKey, GameData, LevelFrom,
-    MythicAbilityGroup, MythicFeatGroup, MythicPathKey, OptionGroup, OptionLevelRow, OptionRow,
-    Parameter, ParameterKind, Prerequisite, Repeat, Save, SaveException, SaveProgression,
-    SelectionOptionKey, SkillKey, SpellLevels, StatTarget, Story, Value, WeaponKey,
-    WeaponProficiency,
+    FeatValue, FeatureKey, FeatureSelectionKey, GameData, LevelFrom, MythicAbilityGroup,
+    MythicFeatGroup, MythicPathKey, OptionGroup, OptionLevelRow, OptionRow, Parameter,
+    ParameterKind, Prerequisite, Repeat, Save, SaveException, SaveProgression, SelectionOptionKey,
+    SkillKey, SpellLevels, StatTarget, Story, Value, WeaponKey, WeaponProficiency,
 };
 
 fn read_fixture() -> GameData {
@@ -32,7 +31,8 @@ fn reads_every_fixture_file() {
     );
     assert_eq!(data.skills.len(), 4);
     assert_eq!(data.weapons.len(), 4);
-    assert_eq!(data.feats.len(), 29);
+    // Shield Wall since ticket 301, so the teamwork feats are a list of two.
+    assert_eq!(data.feats.len(), 30);
     assert_eq!(
         data.classes
             .iter()
@@ -185,7 +185,6 @@ fn reads_class_progressions_and_only_the_archetype_rows_that_differ() {
                 feat: FeatKey::new("skill-focus"),
                 value: Parameter::Skill(SkillKey::new("mobility")),
             }]),
-            feat_slots: vec![],
             selections: vec![],
         }
     );
@@ -219,12 +218,26 @@ fn reads_save_exceptions() {
     assert_eq!(data.check(), []);
 }
 
+/// The fixture's selections of feats that were feat lists (ticket 301): not the general or a category selection, nor
+/// one of a held option's lists.
+fn feat_lists(data: &GameData) -> impl Iterator<Item = &rules::FeatureSelection> {
+    data.selections.iter().filter(|selection| {
+        !selection.feats.is_empty()
+            && !["feats", "combat-feats", "teamwork-feats"].contains(&selection.key.as_str())
+    })
+}
+
+/// A selection of the fixture.
+fn selection<'a>(data: &'a GameData, key: &str) -> &'a rules::FeatureSelection {
+    data.selection(&FeatureSelectionKey::new(key))
+        .unwrap_or_else(|| panic!("no selection {key}"))
+}
+
 #[test]
 fn reads_feat_lists_and_the_slots_that_name_them() {
     let data = read_fixture();
-    let lists: BTreeSet<(&str, &str, bool, Vec<&str>)> = data
-        .feat_lists
-        .iter()
+    let every: Vec<&str> = data.feats.iter().map(|feat| feat.key.as_str()).collect();
+    let lists: BTreeSet<(&str, &str, bool, Vec<&str>)> = feat_lists(&data)
         .map(|list| {
             (
                 list.key.as_str(),
@@ -234,8 +247,9 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
             )
         })
         .collect();
-    // Each in its own file under `feat-lists/`: the half-elf's, the monk's, the Armiger's, the Gold Dragon's and the
-    // trickster's among them. Left out, `ignores_prerequisites` and `every_feat` are unset, and `feats` is empty.
+    // Each a selection of feats in its own file under `selections/` (ticket 301; under `feat-lists/` before): the
+    // half-elf's, the monk's, the Armiger's, the Gold Dragon's (every feat, by name) and the trickster's among them.
+    // Left out, `ignores_prerequisites` is unset.
     assert_eq!(
         lists,
         BTreeSet::from([
@@ -269,7 +283,7 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
                 false,
                 vec!["power-attack", "toughness"]
             ),
-            ("gold-dragon/dragon-feats", "Dragon Feats", true, vec![]),
+            ("gold-dragon/dragon-feats", "Dragon Feats", true, every),
             (
                 "trickster/bonus-feats",
                 "Trickster Bonus Feats",
@@ -280,10 +294,8 @@ fn reads_feat_lists_and_the_slots_that_name_them() {
     );
     let monk = data.classes.iter().find(|c| c.key.as_str() == "monk");
     assert_eq!(
-        monk.unwrap().levels[0].feat_slots,
-        [FeatSlot::OneOf {
-            list: FeatListKey::new("monk/bonus-feats")
-        }]
+        monk.unwrap().levels[0].selections,
+        [FeatureSelectionKey::new("monk/bonus-feats")]
     );
 }
 
@@ -720,12 +732,12 @@ fn reads_the_mythic_path_rules() {
         switch.dropped_selections,
         [FeatureSelectionKey::new("trickster/tricks")].into()
     );
-    let dragon_feats = FeatListKey::new("gold-dragon/dragon-feats");
-    assert!(dragon.ranks[1].feat_slots.contains(&FeatSlot::OneOf {
-        list: dragon_feats.clone()
-    }));
-    let list = data.feat_lists.iter().find(|l| l.key == dragon_feats);
-    assert!(list.unwrap().every_feat);
+    let dragon_feats = FeatureSelectionKey::new("gold-dragon/dragon-feats");
+    assert!(dragon.ranks[1].selections.contains(&dragon_feats));
+    assert_eq!(
+        selection(&data, "gold-dragon/dragon-feats").feats.len(),
+        data.feats.len()
+    );
     let body = feature(dragon.ranks[0].features[1].as_str());
     assert_eq!(body.key.as_str(), "gold-dragon/perfect-body");
     assert_eq!(
@@ -832,11 +844,7 @@ fn reads_an_options_chosen_feat_and_repeat_and_defaults_them() {
         (None, Repeat::Once)
     );
     // A bonus feat of the player's choosing: a one-feat list of a parameterised feat.
-    let list = data
-        .feat_lists
-        .iter()
-        .find(|l| l.key.as_str() == "rogue/skill-focus")
-        .unwrap();
+    let list = selection(&data, "rogue/skill-focus");
     assert_eq!(list.feats, BTreeSet::from([FeatKey::new("skill-focus")]));
 }
 
@@ -908,7 +916,7 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         OptionLevelRow {
             level: 1,
             features: vec![FeatureKey::new("sorcerer/bloodline/abyssal/claws")],
-            feat_list: Some(FeatListKey::new("sorcerer/bloodline/abyssal-feats")),
+            feat_list: Some(FeatureSelectionKey::new("sorcerer/bloodline/abyssal-feats")),
             class_skills: BTreeSet::from([SkillKey::new("athletics")]),
             ..OptionLevelRow::default()
         }
@@ -922,14 +930,13 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
             ..OptionLevelRow::default()
         }
     );
-    // Ticket 31: an option row's feat slots, and its feats for the value the option's pick named.
+    // Ticket 31: an option row's feat slots (selections of feats since ticket 301), and its feats for the value the
+    // option's pick named.
     assert_eq!(
-        bloodlines[1].levels[1].feat_slots,
+        bloodlines[1].levels[1].selections,
         [
-            FeatSlot::CombatFeat,
-            FeatSlot::OneOf {
-                list: FeatListKey::new("sorcerer/bloodline/abyssal-feats")
-            }
+            FeatureSelectionKey::new("combat-feats"),
+            FeatureSelectionKey::new("sorcerer/bloodline/abyssal-feats")
         ]
     );
     let mastery = options("sorcerer/abyssal-powers")
@@ -954,12 +961,17 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         [FeatureSelectionKey::new("sorcerer/school")]
     );
     assert_eq!(
-        sorcerer.levels[2].feat_slots[0],
-        FeatSlot::OptionList {
+        sorcerer.levels[2].selections[0],
+        FeatureSelectionKey::new("sorcerer/bloodline-feats")
+    );
+    assert_eq!(
+        data.selection(&FeatureSelectionKey::new("sorcerer/bloodline-feats"))
+            .unwrap()
+            .option_lists,
+        Some(rules::OptionLists {
             selection: FeatureSelectionKey::new("sorcerer/bloodline"),
             at_level: None,
-            label: None,
-        }
+        })
     );
     let feature = |key: &str| data.feature(&FeatureKey::new(key)).unwrap();
     let ascendance = feature("sorcerer/bloodline-ascendance");
@@ -1065,16 +1077,10 @@ fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
         .find(|r| r.key.as_str() == "half-elf")
         .unwrap();
     assert_eq!(
-        half_elf.feat_slots,
-        [FeatSlot::OneOf {
-            list: FeatListKey::new("half-elf/adaptability")
-        }]
+        half_elf.selections,
+        [FeatureSelectionKey::new("half-elf/adaptability")]
     );
-    let adaptability = data
-        .feat_lists
-        .iter()
-        .find(|l| l.key.as_str() == "half-elf/adaptability")
-        .unwrap();
+    let adaptability = selection(&data, "half-elf/adaptability");
     assert_eq!(
         adaptability.feats,
         BTreeSet::from([FeatKey::new("skill-focus")])
@@ -1083,10 +1089,7 @@ fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
         data.races
             .iter()
             .filter(|r| r.key.as_str() != "half-elf")
-            .all(|r| !r
-                .feat_slots
-                .iter()
-                .any(|slot| matches!(slot, FeatSlot::OneOf { .. })))
+            .all(|r| !r.selections.iter().any(|key| key.as_str() != "feats"))
     );
 
     // A feat granted for one value on a class row; none elsewhere.
@@ -1288,17 +1291,15 @@ fn reads_subrace_slots_option_list_stages_and_options_levelled_alongside_and_def
             .unwrap()
     };
     assert_eq!(
-        subrace("half-elf/adaptable").feat_slots,
-        [FeatSlot::OneOf {
-            list: FeatListKey::new("half-elf/adaptability")
-        }]
+        subrace("half-elf/adaptable").selections,
+        [FeatureSelectionKey::new("half-elf/adaptability")]
     );
-    assert_eq!(subrace("half-elf/dual-heritage").feat_slots, []);
+    assert_eq!(subrace("half-elf/dual-heritage").selections, []);
     assert!(
         data.subraces
             .iter()
             .filter(|s| s.key.as_str() != "half-elf/adaptable")
-            .all(|s| s.feat_slots.is_empty())
+            .all(|s| s.selections.is_empty())
     );
     // An option list slot fixed at an option level, beside one that follows the option's level.
     let sorcerer = data
@@ -1306,21 +1307,30 @@ fn reads_subrace_slots_option_list_stages_and_options_levelled_alongside_and_def
         .iter()
         .find(|c| c.key.as_str() == "sorcerer")
         .unwrap();
+    assert_eq!(
+        sorcerer.levels[2].selections,
+        [
+            FeatureSelectionKey::new("sorcerer/bloodline-feats"),
+            FeatureSelectionKey::new("sorcerer/bloodline-feats-1"),
+        ]
+    );
+    let lists = |key: &str| selection(&data, key).option_lists.clone().unwrap();
     let bloodline = FeatureSelectionKey::new("sorcerer/bloodline");
     assert_eq!(
-        sorcerer.levels[2].feat_slots,
-        [
-            FeatSlot::OptionList {
+        (
+            lists("sorcerer/bloodline-feats"),
+            lists("sorcerer/bloodline-feats-1")
+        ),
+        (
+            rules::OptionLists {
                 selection: bloodline.clone(),
                 at_level: None,
-                label: None,
             },
-            FeatSlot::OptionList {
+            rules::OptionLists {
                 selection: bloodline,
                 at_level: Some(1),
-                label: None,
-            },
-        ]
+            }
+        )
     );
     // An option counting beside the other options held.
     let selection = |key: &str| data.selection(&FeatureSelectionKey::new(key)).unwrap();

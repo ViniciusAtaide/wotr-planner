@@ -13,8 +13,8 @@ Class(
     levels: [
         // A granted feat, held with no pick whatever its prerequisites; and a bonus-list slot: Crane Style is on
         // the monk's list, so a monk can take it without Dodge.
-        (level: 1, feats: ["improved-unarmed-strike"], feat_slots: [OneOf(list: "monk/bonus-feats")]),
-        (level: 2, feat_slots: [OneOf(list: "monk/bonus-feats")]),
+        (level: 1, feats: ["improved-unarmed-strike"], selections: ["monk/bonus-feats"]),
+        (level: 2, selections: ["monk/bonus-feats"]),
         (level: 3),
     ],
 )

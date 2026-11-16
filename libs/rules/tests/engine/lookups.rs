@@ -112,9 +112,11 @@ fn a_class_is_found_by_key_whether_base_or_prestige() {
 #[test]
 fn the_selections_are_one_catalog_the_class_selections_then_each_paths() {
     let data = world();
+    // The selections of options (ticket 301: the selections of feats are in the catalog too).
     let keys: Vec<&str> = data
         .selections
         .iter()
+        .filter(|selection| !selection.offers_feats())
         .map(|selection| selection.key.as_str())
         .collect();
     let paths = [

@@ -4,5 +4,5 @@
     name: "Half-Elf",
     guide: "character-creation#half-elf",
     ability_modifiers: [Chosen(amount: 2)],
-    feat_slots: [OneOf(list: "half-elf/adaptability")],
+    selections: ["half-elf/adaptability"],
 )

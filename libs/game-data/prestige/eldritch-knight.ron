@@ -17,15 +17,15 @@ Class(
     ],
     counts_as: [(class: "fighter", toward: FeatPrerequisites)],
     levels: [
-        (level: 1, features: ["eldritch-knight/diverse-training"], feat_slots: [CombatFeat]),
+        (level: 1, features: ["eldritch-knight/diverse-training"], selections: ["combat-feats"]),
         (level: 2, advances_arcane: true, features: ["eldritch-knight/arcane-spellcasting"]),
         (level: 3, advances_arcane: true),
         (level: 4, advances_arcane: true),
-        (level: 5, advances_arcane: true, feat_slots: [CombatFeat]),
+        (level: 5, advances_arcane: true, selections: ["combat-feats"]),
         (level: 6, advances_arcane: true),
         (level: 7, advances_arcane: true),
         (level: 8, advances_arcane: true),
-        (level: 9, advances_arcane: true, feat_slots: [CombatFeat]),
+        (level: 9, advances_arcane: true, selections: ["combat-feats"]),
         (level: 10, advances_arcane: true, features: ["eldritch-knight/spell-critical"]),
     ],
 )

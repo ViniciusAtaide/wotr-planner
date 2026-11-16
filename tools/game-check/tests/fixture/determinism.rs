@@ -19,7 +19,6 @@ fn a_shuffled_dump_and_data_give_a_byte_identical_report() {
     data.mythic_abilities.reverse();
     data.mythic_feats.reverse();
     data.features.reverse();
-    data.feat_lists.reverse();
     // A selection's shared options are a set: reversing the selections moves an option's own selection to the other
     // side of the one that shares it.
     data.selections.reverse();
@@ -27,7 +26,6 @@ fn a_shuffled_dump_and_data_give_a_byte_identical_report() {
     for class in data.classes.iter_mut().chain(&mut data.prestige_classes) {
         for row in &mut class.levels {
             row.features.reverse();
-            row.feat_slots.reverse();
             row.selections.reverse();
         }
     }
@@ -41,7 +39,6 @@ fn a_shuffled_dump_and_data_give_a_byte_identical_report() {
         path.ranks.reverse();
         for row in &mut path.ranks {
             row.features.reverse();
-            row.feat_slots.reverse();
             row.selections.reverse();
         }
     }

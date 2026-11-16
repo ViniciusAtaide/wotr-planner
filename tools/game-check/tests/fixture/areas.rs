@@ -305,21 +305,21 @@ fn option_lists_find_options_on_one_side_a_list_s_flag_a_choice_the_game_lacks_a
     assert_finding(
         &report,
         game_only,
-        "feat list warden/drills",
+        "selection warden/drills",
         "WideStanceFeat",
         "-",
     );
     assert_finding(
         &report,
         planner_only,
-        "feat list warden/drills",
+        "selection warden/drills",
         "-",
         "keen-eye (KeenEyeFeat)",
     );
     assert_finding(
         &report,
         "option lists / ignores prerequisites or not",
-        "feat list warden/drills",
+        "selection warden/drills",
         "false",
         "true",
     );

@@ -10,7 +10,7 @@
         (level: 2, features: ["bloodrager/steelblood/armored-swiftness"]),
         (level: 5, features: ["bloodrager/steelblood/armor-training"]),
         (level: 7, features: ["bloodrager/steelblood/blood-deflection", "bloodrager/steelblood/bloodline-spell-1st"]),
-        (level: 9, features: ["bloodrager/steelblood/armor-training"], feat_slots: [OptionList(selection: "bloodrager/bloodline")]),
+        (level: 9, features: ["bloodrager/steelblood/armor-training"], selections: ["bloodrager/bloodline-feats"]),
         (level: 10, features: ["bloodrager/steelblood/bloodline-spell-2nd"]),
         (level: 13, features: ["bloodrager/steelblood/armor-training", "bloodrager/steelblood/bloodline-spell-3rd"]),
         (level: 16, features: ["bloodrager/steelblood/bloodline-spell-4th"]),

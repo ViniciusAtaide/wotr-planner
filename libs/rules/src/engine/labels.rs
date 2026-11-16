@@ -15,13 +15,13 @@ use crate::build::{Faith, FeatSource, Pick, SlotId};
 use crate::choice::{Issue, LaterPick, Unmet};
 use crate::engine::Slot;
 use crate::game_data::{
-    Ability, Alignment, Archetype, Class, DeityDomains, FeatCategory, FeatSlot, MythicPath,
-    SelectionOption, SpellType,
+    Ability, Alignment, Archetype, BASIC_FEAT_SELECTION, Class, DeityDomains, FeatCategory,
+    MythicPath, SelectionOption, SpellType,
 };
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey,
-    FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
-    SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
+    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey,
+    MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
+    SubraceKey, WeaponKey,
 };
 use crate::parameter::{Parameter, ParameterKind};
 use crate::prerequisite::Prerequisite;
@@ -131,12 +131,6 @@ impl Engine {
         self.catalog
             .feat(key)
             .map_or(key.as_str(), |feat| &feat.name)
-    }
-
-    pub fn feat_list_name<'a>(&'a self, key: &'a FeatListKey) -> &'a str {
-        self.catalog
-            .feat_list(key)
-            .map_or(key.as_str(), |list| &list.name)
     }
 
     pub fn class_name<'a>(&'a self, key: &'a ClassKey) -> &'a str {
@@ -591,45 +585,33 @@ impl Engine {
     }
 
     /// What a slot takes, as its chip says: "Feat" for the general slot and Extra Feat's, "Bonus feat" for a race's
-    /// or class's general bonus slot, "Combat feat", "Teamwork feat", a feat list's or Feature selection's name, an
-    /// option list slot's own label ("Wild talent feat"), "Mythic ability" (Extra Mythic Ability's too) or "Mythic
-    /// feat".
+    /// or class's general bonus slot, a selection's name ("Combat feat", "Teamwork feat", a bonus list's, an option
+    /// list slot's "Wild talent feat"), "Mythic ability" (Extra Mythic Ability's too) or "Mythic feat".
     pub fn slot_label(&self, slot: &Slot) -> String {
         match &slot.kind {
             SlotKind::Selection(key) => self.selection_name(key).to_owned(),
             SlotKind::MythicAbility => "Mythic ability".to_owned(),
             SlotKind::MythicFeat => "Mythic feat".to_owned(),
-            SlotKind::Feat(feat_slot) => match feat_slot {
-                FeatSlot::General
-                    if matches!(
-                        slot.id,
-                        SlotId::Feat {
-                            source: FeatSource::General,
-                            ..
-                        } | SlotId::MythicExtra { .. }
-                    ) =>
-                {
-                    "Feat".to_owned()
+            // The general slot and Extra Feat's read the general selection's own name, "Feat".
+            SlotKind::Feat(key) => match slot.id {
+                SlotId::Feat {
+                    source: FeatSource::General,
+                    ..
                 }
-                feat_slot => self.feat_slot_label(feat_slot),
+                | SlotId::MythicExtra { .. } => self.selection_name(key).to_owned(),
+                _ => self.feat_slot_label(key),
             },
         }
     }
 
-    /// What a race's, class row's, archetype row's or path row's feat slot takes, as [`slot_label`](Self::slot_label)
-    /// says for the slot it makes: a general slot there is "Bonus feat".
-    pub fn feat_slot_label(&self, slot: &FeatSlot) -> String {
-        match slot {
-            FeatSlot::General => "Bonus feat".to_owned(),
-            FeatSlot::CombatFeat => "Combat feat".to_owned(),
-            FeatSlot::Category(category) => format!("{} feat", category.name()),
-            FeatSlot::OneOf { list } => self.feat_list_name(list).to_owned(),
-            FeatSlot::OptionList {
-                label: Some(label), ..
-            } => label.clone(),
-            FeatSlot::OptionList { selection, .. } => {
-                format!("{} feat", self.selection_name(selection))
-            }
+    /// What a race's, class row's, archetype row's or path row's selection of feats takes, as
+    /// [`slot_label`](Self::slot_label) says for the slot it makes: the selection's name, but "Bonus feat" for the
+    /// general one ([`BASIC_FEAT_SELECTION`]) there.
+    pub fn feat_slot_label(&self, key: &FeatureSelectionKey) -> String {
+        if key.as_str() == BASIC_FEAT_SELECTION {
+            "Bonus feat".to_owned()
+        } else {
+            self.selection_name(key).to_owned()
         }
     }
 

@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::test_world::world::nested::{Archetype, Class, FeatureSelection};
 use crate::*;
 
-use crate::test_world::builds::{class, feat, feature, skill};
+use crate::test_world::builds::{class, feat, feat_list, feature, skill};
 use crate::test_world::world::classes::{archetype, archetype_row, row};
 use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option,
@@ -24,7 +24,7 @@ pub(in crate::test_world::world) fn wizard() -> Class {
                 r.selections.push(FeatureSelectionKey::new("wizard/school"));
             }
             if l % 5 == 0 {
-                r.feat_slots.push(FeatSlot::Category(FeatCategory::Magic));
+                r.selections.push(feat_list("magic-feats"));
             }
             r
         })

@@ -9,8 +9,8 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Ability, Build, Choice, Edit, FeatSlot, Issue, MythicAbilityKey, MythicFeatKey, Prerequisite,
-    RankStatus, SkillKey, SlotId, SlotKind, Unmet,
+    Ability, Build, Choice, Edit, Issue, MythicAbilityKey, MythicFeatKey, Prerequisite, RankStatus,
+    SkillKey, SlotId, SlotKind, Unmet,
 };
 
 use crate::support::*;
@@ -797,9 +797,7 @@ fn gold_dragons_dragon_feats_are_three_picks_of_any_feat_ignoring_prerequisites(
     }
     assert_eq!(
         sheet.ranks[8].slots[1].kind,
-        SlotKind::Feat(FeatSlot::OneOf {
-            list: feat_list("gold-dragon/dragon-feats"),
-        })
+        SlotKind::Feat(feat_list("gold-dragon/dragon-feats"))
     );
 }
 

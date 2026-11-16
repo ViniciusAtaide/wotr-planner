@@ -9,8 +9,8 @@
         Requires(condition: Has(Race("dhampir"))),
     ],
     levels: [
-        (level: 1, features: ["wizard-cantrips", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], feat_slots: [Category(Magic)], selections: ["wizard/cruromancer/blood-infusion", "wizard/cruromancer/school"]),
+        (level: 1, features: ["wizard-cantrips", "wizard/wizard-proficiencies"], feats: ["scribe-scrolls"], selections: ["wizard/cruromancer/blood-infusion", "wizard/cruromancer/school", "magic-feats"]),
         (level: 5, features: ["wizard/cruromancer/commanding-infusion"]),
-        (level: 20, features: ["wizard/cruromancer/perfect-infusion"], feat_slots: [Category(Magic)]),
+        (level: 20, features: ["wizard/cruromancer/perfect-infusion"], selections: ["magic-feats"]),
     ],
 )

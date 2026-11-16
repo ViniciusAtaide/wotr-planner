@@ -11,8 +11,8 @@
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
     levels: [
         (level: 1, features: ["bardic-knowledge", "sneak-attack", "rogue/rogue-proficiencies", "rogue/trapfinding"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency", "weapon-finesse"]),
-        (level: 3, features: ["rogue/danger-sense"], feat_slots: [OneOf(list: "rogue/master-of-all/skill-focus")], selections: ["rogue/finesse-training"]),
-        (level: 9, features: ["rogue/danger-sense"], feat_slots: [OneOf(list: "rogue/master-of-all/skill-focus")]),
-        (level: 15, features: ["rogue/danger-sense"], feat_slots: [OneOf(list: "rogue/master-of-all/skill-focus")]),
+        (level: 3, features: ["rogue/danger-sense"], selections: ["rogue/finesse-training", "rogue/master-of-all/skill-focus"]),
+        (level: 9, features: ["rogue/danger-sense"], selections: ["rogue/master-of-all/skill-focus"]),
+        (level: 15, features: ["rogue/danger-sense"], selections: ["rogue/master-of-all/skill-focus"]),
     ],
 )

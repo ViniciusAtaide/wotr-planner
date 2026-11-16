@@ -6,7 +6,7 @@ MythicPath(
     switch: (kept_through_rank: 7, path_kept_through_rank: 2, further_ascensions: true),
     ranks: [
         (rank: 8, features: ["gold-dragon/gold-dragon-breath", "gold-dragon/perfect-body", "gold-dragon/wings"], selections: ["gold-dragon/improved-gold-dragon-breath"]),
-        (rank: 9, features: ["gold-dragon/gold-dragon-form", "gold-dragon/perfect-mind"], feat_slots: [OneOf(list: "gold-dragon/dragon-feats"), OneOf(list: "gold-dragon/dragon-feats"), OneOf(list: "gold-dragon/dragon-feats")], selections: ["gold-dragon/improved-gold-dragon-breath"]),
+        (rank: 9, features: ["gold-dragon/gold-dragon-form", "gold-dragon/perfect-mind"], selections: ["gold-dragon/improved-gold-dragon-breath", "gold-dragon/dragon-feats", "gold-dragon/dragon-feats", "gold-dragon/dragon-feats"]),
         (rank: 10, features: ["gold-dragon/perfect-soul"], selections: ["gold-dragon/improved-gold-dragon-breath", "gold-dragon/improved-gold-dragon-breath", "gold-dragon/improved-gold-dragon-breath"]),
     ],
 )

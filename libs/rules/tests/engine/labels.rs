@@ -3,7 +3,7 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Ability, Alignment, ArchetypeKey, Engine, FeatCategory, FeatSlot, FeatureSelectionKey, Issue,
+    Ability, Alignment, ArchetypeKey, Engine, FeatCategory, FeatureSelectionKey, Issue,
     MythicPathKey, OptionGroup, Parameter, Prerequisite, RaceKey, Slot, SlotId, SlotKind,
     SpellType, Story, Unmet,
 };
@@ -741,24 +741,16 @@ fn slots_are_labelled_by_what_they_take() {
 }
 
 #[test]
-fn an_option_list_slot_is_named_after_its_selection_unless_it_has_a_label() {
-    // A sorcerer's "Bloodline feat"; the kineticist's bonus-feat talent's "Wild talent feat" (ticket 47), though it
-    // offers the Elemental Focus's lists.
+fn an_option_list_slot_reads_its_selections_name() {
+    // A sorcerer's "Bloodline feat" (ticket 301: the selection of feats is named as the slot read before; the
+    // kineticist's "Wild talent feat", ticket 47, is its selection's name too).
     let engine = engine();
-    let slot = |label: Option<&str>| Slot {
+    let slot = Slot {
         id: SlotId::OptionFeat { level: 2, index: 0 },
-        kind: SlotKind::Feat(FeatSlot::OptionList {
-            selection: FeatureSelectionKey::new("kineticist/element"),
-            at_level: None,
-            label: label.map(str::to_owned),
-        }),
+        kind: SlotKind::Feat(feat_list("sorcerer/bloodline-feats")),
         pick: None,
     };
-    assert_eq!(engine.slot_label(&slot(None)), "kineticist/element feat");
-    assert_eq!(
-        engine.slot_label(&slot(Some("Wild talent feat"))),
-        "Wild talent feat"
-    );
+    assert_eq!(engine.slot_label(&slot), "sorcerer/bloodline feat");
 }
 
 #[test]
@@ -766,26 +758,14 @@ fn a_table_rows_feat_slot_is_labelled_as_its_slot_would_be() {
     // A class, archetype or path row's slot before any Build holds it (the MCP server's `describe`): a general one
     // there is a bonus feat, as on the sheet.
     let engine = engine();
-    let label = |slot: FeatSlot| engine.feat_slot_label(&slot);
-    assert_eq!(label(FeatSlot::General), "Bonus feat");
-    assert_eq!(label(FeatSlot::CombatFeat), "Combat feat");
+    let label = |key| engine.feat_slot_label(&key);
+    assert_eq!(label(feat_list("feats")), "Bonus feat");
+    assert_eq!(label(feat_list("combat-feats")), "Combat feat");
+    assert_eq!(label(feat_list("teamwork-feats")), "Teamwork feat");
+    assert_eq!(label(feat_list("rogue/skill-focus")), "rogue/skill-focus");
     assert_eq!(
-        label(FeatSlot::Category(FeatCategory::Teamwork)),
-        "Teamwork feat"
-    );
-    assert_eq!(
-        label(FeatSlot::OneOf {
-            list: feat_list("rogue/skill-focus")
-        }),
-        "rogue/skill-focus"
-    );
-    assert_eq!(
-        label(FeatSlot::OptionList {
-            selection: FeatureSelectionKey::new("kineticist/element"),
-            at_level: None,
-            label: Some("Wild talent feat".to_owned()),
-        }),
-        "Wild talent feat"
+        label(feat_list("sorcerer/bloodline-feats")),
+        "sorcerer/bloodline feat"
     );
 }
 
@@ -838,23 +818,6 @@ fn an_and_of_two_texts_that_read_alike_reads_once_and_an_or_keeps_every_alternat
         ),
         format!("Needs no Rogue Talents yet or {fire_name}")
     );
-}
-
-#[test]
-fn a_selection_named_x_labels_its_option_list_feat_slot_x_feat() {
-    // Ticket 192: the ranger's selection was named "Combat Style Feat" and its feat slot read "Combat Style Feat
-    // feat"; the data names it "Combat Style" so the slot reads "Combat Style feat".
-    let engine = engine();
-    let slot = Slot {
-        id: SlotId::OptionFeat { level: 2, index: 0 },
-        kind: SlotKind::Feat(FeatSlot::OptionList {
-            selection: FeatureSelectionKey::new("rogue/rogue-talents"),
-            at_level: None,
-            label: None,
-        }),
-        pick: None,
-    };
-    assert_eq!(engine.slot_label(&slot), "Rogue Talents feat");
 }
 
 #[test]

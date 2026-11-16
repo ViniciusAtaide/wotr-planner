@@ -13,7 +13,7 @@
         (level: 8, selections: ["slayer/slayer-talents"]),
         (level: 10, features: ["sneak-attack", "inquisitor/sanctified-slayer/studied-target"]),
         (level: 13, features: ["sneak-attack"]),
-        (level: 15, features: ["inquisitor/sanctified-slayer/studied-target"], feat_slots: [Category(Teamwork)]),
+        (level: 15, features: ["inquisitor/sanctified-slayer/studied-target"], selections: ["teamwork-feats"]),
         (level: 16, features: ["sneak-attack"], selections: ["slayer/slayer-talents"]),
         (level: 17, selections: ["slayer/slayer-talents"]),
         (level: 19, features: ["sneak-attack"]),

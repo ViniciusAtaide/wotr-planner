@@ -1,1 +1,0 @@
-(key: "warpriest/disenchanter/bonus-feats-3", blueprint: "234772e17012d554f8661e3f365b68ae", name: "Bonus Feat (Disenchanter)", guide: "warpriest#bonus-feat-disenchanter", ignores_prerequisites: true, feats: ["great-fortitude", "iron-will", "lightning-reflexes", "skill-focus", "spell-focus"])

@@ -4,8 +4,8 @@
 use std::collections::{BTreeSet, HashMap};
 
 use rules::{
-    Ability, ClassChoice, ClassKey, FeatKey, FeatSlot, FeatSource, Issue, LevelUp, MythicPathKey,
-    Pick, SkillKey, SlotId, SlotKind,
+    Ability, ClassChoice, ClassKey, FeatKey, FeatSource, Issue, LevelUp, MythicPathKey, Pick,
+    SkillKey, SlotId, SlotKind,
 };
 
 use crate::support::*;
@@ -133,7 +133,7 @@ fn a_wizards_scribe_scrolls_is_held_with_no_pick() {
         sheet.levels[0]
             .slots
             .iter()
-            .all(|slot| !matches!(slot.kind, SlotKind::Feat(FeatSlot::OneOf { .. }))),
+            .all(|slot| !matches!(&slot.kind, SlotKind::Feat(key) if is_feat_list(any_selection(key.as_str())))),
         "{:?}",
         sheet.levels[0].slots
     );
@@ -147,11 +147,10 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
     // slayer stage lists went in ticket 33, the slayer picking a ranger style), Gold Dragon's Dragon Feats (a list of
     // every feat), and the warpriest's Weapon Focus, the Master of All's Skill Focus, the Sword Saint's Weapon Focus
     // and the half-elf's Skill Focus. Ticket 61 adds the Titan Fighter's three Massive Attacks lists.
-    assert_eq!(DATA.feat_lists.len(), 78);
-    let every: Vec<_> = DATA
-        .feat_lists
-        .iter()
-        .filter(|list| list.every_feat)
+    // Ticket 301: each a selection of feats, every feat named.
+    assert_eq!(feat_lists().count(), 78);
+    let every: Vec<_> = feat_lists()
+        .filter(|list| list.feats.len() == DATA.feats.len())
         .map(|list| {
             (
                 list.key.as_str(),
@@ -162,11 +161,9 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
         .collect();
     // Game: DragonLevel2FeatSelection a21acdafc0169f5488a9bd3256e2e65b (IgnorePrerequisites; its list, which the data
     // holds as every feat, is the game check's)
-    assert_eq!(every, [("gold-dragon/dragon-feats", true, 0)]);
-    let one_choice: Vec<_> = DATA
-        .feat_lists
-        .iter()
-        .filter(|list| !list.every_feat && list.feats.len() < 2)
+    assert_eq!(every, [("gold-dragon/dragon-feats", true, 261)]);
+    let one_choice: Vec<_> = feat_lists()
+        .filter(|list| list.feats.len() < 2)
         .map(|list| {
             (
                 list.key.as_str(),

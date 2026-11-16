@@ -1,0 +1,19 @@
+(
+    key: "monk/zen-archer/bonus-feats-6",
+    blueprint: "2a1eec5b782182f4cafbd20fcd069692",
+    name: "Bonus Feat (Zen Archer, from level 6)",
+    guide: "monk#bonus-feat-zen-archer",
+    ignores_prerequisites: true,
+    feats: [
+        "combat-mobility",
+        "combat-reflexes",
+        "crane-style",
+        "deflect-arrows",
+        "dodge",
+        "improved-precise-shot",
+        "manyshot",
+        "point-blank-shot",
+        "precise-shot",
+        "rapid-shot",
+    ],
+)

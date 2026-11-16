@@ -2,9 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{
-    Build, ClassKey, FeatKey, FeatSlot, Issue, LevelUp, SelectionOptionKey, SkillKey, SlotKind,
-};
+use rules::{Build, ClassKey, FeatKey, Issue, LevelUp, SelectionOptionKey, SkillKey, SlotKind};
 
 use crate::support::*;
 
@@ -53,14 +51,7 @@ fn a_sorcerer_picks_the_bloodlines_feats_at_7_13_and_19() {
         let slot = sheet
             .slot(&class_slot(level))
             .expect("a bloodline feat slot");
-        assert_eq!(
-            slot.kind,
-            SlotKind::Feat(FeatSlot::OptionList {
-                selection: rules::FeatureSelectionKey::new("sorcerer/bloodline"),
-                at_level: None,
-                label: None,
-            })
-        );
+        assert_eq!(slot.kind, feat_kind("sorcerer/bloodline-feats"));
     }
     // "Augment Summoning, Bull Rush, Cleave, Empower Spell, Great Fortitude, Power Attack, Skill Focus (Lore:
     // Religion), Sunder Armor."

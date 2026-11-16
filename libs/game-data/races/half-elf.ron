@@ -5,7 +5,7 @@
     summary: "Free Skill Focus feat at 1st level; immune to magic sleep and +2 saves vs enchantment; +2 Perception.",
     guide: "character-creation#half-elf",
     ability_modifiers: [Chosen(amount: 2)],
-    feat_slots: [OneOf(list: "half-elf/adaptability")],
+    selections: ["half-elf/adaptability"],
     components: [
         StatBonus(stat: Skill("perception"), value: Flat(2)),
     ],

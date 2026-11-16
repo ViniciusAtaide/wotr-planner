@@ -9,6 +9,7 @@ use std::cell::OnceCell;
 use std::collections::BTreeSet;
 
 use super::gear::GearLean;
+use super::slots::lists_feat;
 use super::walk::{Cursor, first_taken_at};
 use super::{
     AdvancesOption, ClassOption, Engine, EntryOption, PathOption, Sheet, Slot, SlotEntry, SlotKind,
@@ -42,12 +43,12 @@ impl Engine {
         let (state, kind, lists) = (at.state(), at.kind(), at.lists());
         let candidates: Vec<Pick> = match kind {
             // A parameterised feat once per value.
-            SlotKind::Feat(feat_slot) => self
+            SlotKind::Feat(_) => self
                 .catalog
                 .data()
                 .feats
                 .iter()
-                .filter(|feat| self.catalog.slot_accepts_with(feat_slot, feat, lists))
+                .filter(|feat| lists_feat(lists, feat))
                 .flat_map(|feat| match feat.parameter {
                     None => vec![Pick::feat(feat.key.clone())],
                     Some(kind) => self
