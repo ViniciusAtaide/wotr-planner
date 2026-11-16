@@ -1,1 +1,1 @@
-(key: "gold-dragon/perfect-body", name: "Perfect Body", guide: "gold-dragon#perfect-body", ability_bonuses: [Highest(amount: 4), AtLeast(score: 14)])
+(key: "gold-dragon/perfect-body", name: "Perfect Body", guide: "gold-dragon#perfect-body", components: [HighestAbilityBonus(4), AbilityAtLeast(14)])

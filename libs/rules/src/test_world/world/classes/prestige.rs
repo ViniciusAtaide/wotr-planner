@@ -8,7 +8,7 @@ use crate::*;
 use crate::test_world::builds::{class, feature, option, skill};
 use crate::test_world::world::classes::row;
 use crate::test_world::world::selections::levelled_selection;
-use crate::test_world::world::{bonus_feature, guide};
+use crate::test_world::world::{bonus_feature, fixed, guide};
 
 /// Mystic Theurge: every level advances both the chosen arcane class and the chosen divine class.
 pub(in crate::test_world::world) fn mystic_theurge() -> Class {
@@ -252,10 +252,7 @@ pub(in crate::test_world::world) fn dragon_disciple() -> Class {
         ])),
         features: vec![bonus_feature(
             "dragon-disciple/strength",
-            vec![AbilityBonus::Fixed {
-                ability: Ability::Strength,
-                amount: 2,
-            }],
+            vec![fixed(Ability::Strength, 2)],
         )],
         selections: vec![FeatureSelection {
             only_without_option: true,

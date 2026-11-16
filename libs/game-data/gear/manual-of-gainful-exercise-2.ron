@@ -4,7 +4,7 @@
     name: "Manual of Gainful Exercise +2",
     slot: Usable,
     guide: "items#equipable-and-consumable",
-    bonuses: [
-        (target: Ability(Strength), amount: 2, kind: Inherent),
+    components: [
+        GearStat(stat: Ability(Strength), value: 2, descriptor: Inherent),
     ],
 )

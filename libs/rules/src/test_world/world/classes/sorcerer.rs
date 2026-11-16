@@ -10,7 +10,7 @@ use crate::test_world::world::classes::{archetype, archetype_row, row};
 use crate::test_world::world::selections::{
     levelled_option, levelled_selection, option_row, selection_option, with_class_skills,
 };
-use crate::test_world::world::{bonus_feature, guide, list, plain_feature};
+use crate::test_world::world::{bonus_feature, fixed, guide, list, plain_feature};
 
 const BLOODLINES: [&str; 4] = [
     "sorcerer/bloodline/abyssal",
@@ -154,13 +154,7 @@ pub(in crate::test_world::world) fn sorcerer() -> Class {
     .into_iter()
     .map(|key| plain_feature(key, key))
     .chain([
-        bonus_feature(
-            strength,
-            vec![AbilityBonus::Fixed {
-                ability: Ability::Strength,
-                amount: 2,
-            }],
-        ),
+        bonus_feature(strength, vec![fixed(Ability::Strength, 2)]),
         Feature {
             option_row: Some(OptionRow {
                 selection: bloodline.clone(),

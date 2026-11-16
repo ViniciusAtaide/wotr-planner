@@ -6,6 +6,10 @@
 //!   decodes to;
 //! - `slots.txt`: every slot its walk gives it (level or rank, id, kind, pick);
 //! - `sheets.txt`: its `build_sheet`, the link line left out;
+//! - `numbers.txt` (ticket 297): at each level, the scores the sheet, prerequisites and full prerequisites read, the
+//!   base attack bonus and base saves, the totals with their parts, the caster line for a spell of each school and of
+//!   the subschools and energies a bonus names, with and without metamagic, the attack line of the Build's default
+//!   weapon and of the longsword, and each held feature's steps;
 //! - `summary.txt`: the counts and a hash of each file.
 //!
 //! Two modes, both ignored (they take minutes in release, and only a ticket that claims no behaviour moves runs them):
@@ -31,9 +35,12 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::path::{Path, PathBuf};
 
 use corpus::{Named, in_parallel};
-use rules::{Build, Engine, LinkKeys, decode_build, encode_build};
+use rules::{
+    Build, CasterPart, Energy, Engine, LinkKeys, SpellSchool, SpellTraits, Subschool, Total,
+    WeaponKey, decode_build, encode_build,
+};
 
-/// How many differences of each kind `compare` prints.
+/// How many differences of each kind `compare` prints (`FORM_PROOF_SHOWN` sets another number).
 const SHOWN: usize = 5;
 
 /// What the proof records of one Build.
@@ -47,6 +54,7 @@ struct Entry {
     decoded: String,
     slots: String,
     sheet: String,
+    numbers: String,
 }
 
 fn env_dir(var: &str) -> PathBuf {
@@ -92,6 +100,149 @@ fn sheet(engine: &Engine, build: &Build) -> String {
     kept.join("\n")
 }
 
+/// The spells a caster line is recorded for: each school, then the subschools and energies a bonus names, and an
+/// Enchantment with metamagic.
+fn spells() -> Vec<SpellTraits> {
+    let spell = |school, subschool, energy, metamagic| SpellTraits {
+        school,
+        subschool,
+        energy,
+        metamagic,
+    };
+    let mut spells: Vec<SpellTraits> = (SpellSchool::ALL.into_iter())
+        .map(|school| spell(school, None, None, false))
+        .collect();
+    for subschool in [Subschool::Charm, Subschool::Compulsion] {
+        spells.push(spell(
+            SpellSchool::Enchantment,
+            Some(subschool),
+            None,
+            false,
+        ));
+    }
+    for energy in Energy::ALL {
+        spells.push(spell(SpellSchool::Evocation, None, Some(energy), false));
+    }
+    spells.push(spell(
+        SpellSchool::Conjuration,
+        None,
+        Some(Energy::Acid),
+        false,
+    ));
+    spells.push(spell(SpellSchool::Enchantment, None, None, true));
+    spells
+}
+
+fn caster_parts(parts: &[CasterPart]) -> String {
+    let each: Vec<String> = (parts.iter())
+        .map(|part| format!("{}={}", part.name, part.value))
+        .collect();
+    each.join(",")
+}
+
+fn total(total: &Total) -> String {
+    let each: Vec<String> = (total.parts.iter())
+        .map(|part| format!("{}={}", part.name, part.value))
+        .collect();
+    format!("{} [{}]", total.total, each.join(","))
+}
+
+/// The numbers of a Build at each level (`numbers.txt`).
+fn numbers(engine: &Engine, build: &Build) -> String {
+    let sheet = engine.evaluate(build);
+    let spells = spells();
+    let mut weapons: Vec<WeaponKey> = engine.default_attack_weapon(&sheet).into_iter().collect();
+    weapons.push(WeaponKey::new("longsword"));
+    let mut text = String::new();
+    for level in &sheet.levels {
+        let state = &level.state;
+        writeln!(
+            text,
+            "L{} scores {:?} permanent {:?} full {:?} bab {} saves {}/{}/{} caster level {} mythic {}",
+            level.character_level,
+            state.ability_scores,
+            state.permanent_ability_scores,
+            state.full_ability_scores,
+            state.bab,
+            state.fort,
+            state.reflex,
+            state.will,
+            state.caster_level,
+            state.mythic_rank,
+        )
+        .unwrap();
+        let totals = engine.totals(level);
+        writeln!(
+            text,
+            "  initiative {} fortitude {} reflex {} will {}",
+            total(&totals.initiative),
+            total(&totals.fortitude),
+            total(&totals.reflex),
+            total(&totals.will)
+        )
+        .unwrap();
+        for skill in &totals.skills {
+            writeln!(
+                text,
+                "  {} {} {}",
+                skill.skill,
+                skill.ranks,
+                total(&skill.total)
+            )
+            .unwrap();
+        }
+        for spell in &spells {
+            let Some(line) = engine.caster_line(level, *spell) else {
+                continue;
+            };
+            let dc = line.dcs.last().map(|dc| (dc.spell_level, dc.dc));
+            writeln!(
+                text,
+                "  {:?} {} {:?} cl {} dc {:?} heightened {:?} [{}] sp {} [{}] concentration {} [{}]",
+                spell,
+                line.class,
+                line.ability,
+                line.caster_level,
+                dc,
+                line.heightened.map(|dc| dc.dc),
+                caster_parts(&line.dc_parts),
+                line.spell_penetration,
+                caster_parts(&line.spell_penetration_parts),
+                line.concentration,
+                caster_parts(&line.concentration_parts),
+            )
+            .unwrap();
+        }
+        for weapon in &weapons {
+            if let Some(line) = engine.attack_line(state, weapon) {
+                let parts: Vec<String> = (line.parts.iter())
+                    .map(|part| format!("{}={}/{}", part.name, part.attack, part.damage))
+                    .collect();
+                writeln!(
+                    text,
+                    "  {weapon} {} {} {} {:?} [{}]",
+                    line.attacks_text(),
+                    line.damage_text(),
+                    line.critical_text(),
+                    line.power_attack,
+                    parts.join(",")
+                )
+                .unwrap();
+            }
+        }
+        let steps: Vec<String> = (state.features.keys())
+            .filter_map(|feature| {
+                let step = engine.steps_reached(state, feature);
+                (step > 0).then(|| format!("{feature}={step}"))
+            })
+            .collect();
+        if !steps.is_empty() {
+            writeln!(text, "  steps {}", steps.join(",")).unwrap();
+        }
+    }
+    text.trim_end().to_owned()
+}
+
 fn record_entry(engine: &Engine, keys: &LinkKeys, (name, build): &Named) -> Entry {
     let link = encode_build(build);
     let decoded = match decode_build(&link, keys) {
@@ -105,6 +256,7 @@ fn record_entry(engine: &Engine, keys: &LinkKeys, (name, build): &Named) -> Entr
         decoded,
         slots: slots(engine, build),
         sheet: sheet(engine, build),
+        numbers: numbers(engine, build),
         link,
     }
 }
@@ -119,9 +271,10 @@ fn record_all() -> Vec<Entry> {
     })
 }
 
-/// The three files' texts, `summary.txt` last.
-fn texts(entries: &[Entry]) -> [(&'static str, String); 4] {
+/// The four files' texts, `summary.txt` last.
+fn texts(entries: &[Entry]) -> [(&'static str, String); 5] {
     let (mut builds, mut slots, mut sheets) = (String::new(), String::new(), String::new());
+    let mut numbers = String::new();
     for e in entries {
         let Entry {
             name,
@@ -134,6 +287,7 @@ fn texts(entries: &[Entry]) -> [(&'static str, String); 4] {
         writeln!(builds, "{name}\t{link}\t{opens}\t{picks}\t{decoded}").unwrap();
         writeln!(slots, "===== {name}\n{}", e.slots).unwrap();
         writeln!(sheets, "===== {name}\n{}", e.sheet).unwrap();
+        writeln!(numbers, "===== {name}\n{}", e.numbers).unwrap();
     }
     let hash = |text: &str| {
         let mut hasher = DefaultHasher::new();
@@ -141,17 +295,19 @@ fn texts(entries: &[Entry]) -> [(&'static str, String); 4] {
         hasher.finish()
     };
     let summary = format!(
-        "builds {}\nopen {}\nbuilds.tsv {:016x}\nslots.txt {:016x}\nsheets.txt {:016x}\n",
+        "builds {}\nopen {}\nbuilds.tsv {:016x}\nslots.txt {:016x}\nsheets.txt {:016x}\nnumbers.txt {:016x}\n",
         entries.len(),
         entries.iter().filter(|e| e.opens).count(),
         hash(&builds),
         hash(&slots),
         hash(&sheets),
+        hash(&numbers),
     );
     [
         ("builds.tsv", builds),
         ("slots.txt", slots),
         ("sheets.txt", sheets),
+        ("numbers.txt", numbers),
         ("summary.txt", summary),
     ]
 }
@@ -196,19 +352,25 @@ fn read_entries(dir: &Path) -> Vec<Entry> {
     };
     let (slot_text, sheet_text) = (read("slots.txt"), read("sheets.txt"));
     let (slot_sections, sheet_sections) = (sections(&slot_text), sections(&sheet_text));
+    let number_text = read("numbers.txt");
+    let number_sections = sections(&number_text);
     let builds = read("builds.tsv");
     let rows: Vec<&str> = builds.lines().collect();
     assert!(
-        rows.len() == slot_sections.len() && rows.len() == sheet_sections.len(),
-        "the recorded files hold {}, {} and {} Builds",
+        rows.len() == slot_sections.len()
+            && rows.len() == sheet_sections.len()
+            && rows.len() == number_sections.len(),
+        "the recorded files hold {}, {}, {} and {} Builds",
         rows.len(),
         slot_sections.len(),
-        sheet_sections.len()
+        sheet_sections.len(),
+        number_sections.len()
     );
     rows.iter()
         .zip(slot_sections)
         .zip(sheet_sections)
-        .map(|((row, (name, slots)), (_, sheet))| {
+        .zip(number_sections)
+        .map(|(((row, (name, slots)), (_, sheet)), (_, numbers))| {
             let mut parts = row.splitn(5, '\t');
             let mut next = || parts.next().expect("five columns").to_owned();
             let (_, link, opens, picks, decoded) = (next(), next(), next(), next(), next());
@@ -220,6 +382,7 @@ fn read_entries(dir: &Path) -> Vec<Entry> {
                 decoded,
                 slots,
                 sheet,
+                numbers,
             }
         })
         .collect()
@@ -236,7 +399,11 @@ impl Differences {
         }
         let (count, shown) = self.0.entry(kind).or_default();
         *count += 1;
-        if shown.len() < SHOWN {
+        let most = std::env::var("FORM_PROOF_SHOWN")
+            .ok()
+            .and_then(|n| n.parse().ok())
+            .unwrap_or(SHOWN);
+        if shown.len() < most {
             shown.push(format!("{build}: {}", first_difference(before, now)));
         }
     }
@@ -313,6 +480,7 @@ fn compare() {
         differences.add("decoded picks", build, &b.decoded, &n.decoded);
         differences.add("slots", build, &b.slots, &n.slots);
         differences.add("sheet", build, &b.sheet, &n.sheet);
+        differences.add("numbers", build, &b.numbers, &n.numbers);
     }
 
     // The old links against this tree's keys: what they decode to must be what they decoded to before, and walk

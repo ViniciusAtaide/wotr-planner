@@ -4,10 +4,10 @@
     name: "Belt of the Venerated Champion",
     slot: Belt,
     guide: "items#belts",
-    bonuses: [
-        (target: Ability(Constitution), amount: 6, kind: Enhancement),
-    ],
     other_effects: [
         "Against evil creatures: +2 on Fortitude saves and +1 insight to AC.",
+    ],
+    components: [
+        GearStat(stat: Ability(Constitution), value: 6, descriptor: Enhancement),
     ],
 )

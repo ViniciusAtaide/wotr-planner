@@ -6,8 +6,8 @@ use std::sync::Arc;
 
 use leptos::prelude::*;
 use rules::{
-    Ability, Build, Choice, Edit, Engine, GearDependent, GearKey, GearPlace, GearTarget, Sheet,
-    SlotId, StaleLink, WeaponKey,
+    Ability, Build, Choice, Edit, Engine, GearDependent, GearKey, GearPlace, Sheet, SlotId,
+    StaleLink, WeaponKey,
 };
 
 use crate::browser::{self, Fragment};
@@ -199,11 +199,8 @@ impl Planner {
     /// (any of its lists) gives a bonus to `ability`. Tracked.
     pub fn gear_dependents_raising(&self, ability: Ability) -> Vec<(String, String)> {
         let engine = self.engine();
-        let raises = |item: &GearKey| {
-            (engine.gear_item(item)).is_some_and(|item| {
-                (item.bonuses.iter()).any(|bonus| bonus.target == GearTarget::Ability(ability))
-            })
-        };
+        let raises =
+            |item: &GearKey| (engine.gear_item(item)).is_some_and(|item| item.changes(ability));
         self.gear_dependents.with(|dependents| {
             let mut groups: Vec<(String, Vec<Choice>)> = Vec::new();
             for dependent in dependents.iter() {

@@ -2,16 +2,18 @@
 //! summary of them generated from the data. `gear/` holds them, one file each. A Build holds them in its gear
 //! ([`Build::gear`](crate::Build::gear), ticket 166), and the engine counts what they always give.
 //!
-//! A bonus has a [`GearTarget`] (an ability score, or a number the planner already computes), an amount and a
-//! [`BonusType`]. What an item does besides (a bonus in some circumstance, a use per day, who may wear it) is a short
-//! line of the planner's own words in [`GearItem::other_effects`], and what it does while worn without being a
-//! counted bonus is a line in [`GearItem::always_on`], which the summary appends to the bonuses.
+//! An item's bonuses are its components (ticket 297), each a [`GearStat`](Component::GearStat): a [`GearTarget`] (an
+//! ability score, or a number the planner already computes), an amount and a [`Descriptor`]. What an item does besides
+//! (a bonus in some circumstance, a use per day, who may wear it) is a short line of the planner's own words in
+//! [`GearItem::other_effects`], and what it does while worn without being a counted bonus is a line in
+//! [`GearItem::always_on`], which the summary appends to the bonuses.
 
 use std::fmt::Write as _;
 
 use serde::{Deserialize, Serialize};
 
-use crate::bonus::{BonusTarget, BonusType, SpellScope};
+use crate::bonus::SpellScope;
+use crate::component::{Component, Descriptor};
 use crate::game_data::{Ability, GuideRef, Save, Skill};
 use crate::keys::{BlueprintGuid, GearKey, SkillKey};
 
@@ -30,8 +32,9 @@ pub struct GearItem {
     /// stat belts and headbands, from the user).
     #[serde(default)]
     pub guide: Option<GuideRef>,
-    /// Its always-on bonuses, one per number changed.
-    pub bonuses: Vec<GearBonus>,
+    /// Its always-on bonuses, one [`GearStat`](Component::GearStat) per number changed (ticket 297; the check refuses
+    /// any other kind).
+    pub components: Vec<Component>,
     /// What it also does while worn that no number counts (ticket 176): damage reduction, an immunity, an AC or
     /// speed bonus, the weapon's or armour's own enhancement. One short line each, in the planner's own words, in
     /// the order [`GearItem::summary`] appends them.
@@ -99,23 +102,7 @@ impl GearSlot {
     }
 }
 
-/// One always-on bonus of an item.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct GearBonus {
-    pub target: GearTarget,
-    /// Never 0. Negative for a penalty, which is always [`BonusType::Untyped`].
-    pub amount: i8,
-    /// Left out in the file: untyped.
-    #[serde(default = "untyped")]
-    pub kind: BonusType,
-}
-
-fn untyped() -> BonusType {
-    BonusType::Untyped
-}
-
-/// What a [`GearBonus`] adds to. Declared in the order the summary lists them.
+/// What a [`GearStat`](Component::GearStat) adds to. Declared in the order the summary lists them.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum GearTarget {
     Ability(Ability),
@@ -132,21 +119,6 @@ pub enum GearTarget {
 }
 
 impl GearTarget {
-    /// The [`BonusTarget`] it adds to; `None` for an ability score, which goes through the scores, and for the
-    /// caster level, which the caster line reads on its own.
-    pub fn bonus_target(&self) -> Option<BonusTarget> {
-        match self {
-            Self::Ability(_) | Self::CasterLevel => None,
-            Self::AllSaves => Some(BonusTarget::AllSaves),
-            Self::Save(save) => Some(BonusTarget::Save(*save)),
-            Self::Initiative => Some(BonusTarget::Initiative),
-            Self::Skill(skill) => Some(BonusTarget::Skill(skill.clone())),
-            Self::SpellDc(scope) => Some(BonusTarget::SpellDc(*scope)),
-            Self::SpellPenetration => Some(BonusTarget::SpellPenetration),
-            Self::Concentration => Some(BonusTarget::Concentration),
-        }
-    }
-
     /// The name the summary prints; `skills` gives a skill its name.
     fn name(&self, skills: &[Skill]) -> String {
         match self {
@@ -179,32 +151,52 @@ impl GearTarget {
 }
 
 impl GearItem {
+    /// Its always-on bonuses ([`GearStat`](Component::GearStat)), each with its target, amount and type.
+    pub fn stats(&self) -> impl Iterator<Item = (&GearTarget, i8, Descriptor)> {
+        self.components
+            .iter()
+            .filter_map(|component| match component {
+                Component::GearStat {
+                    stat,
+                    value,
+                    descriptor,
+                } => Some((stat, *value, *descriptor)),
+                _ => None,
+            })
+    }
+
+    /// Whether it gives a bonus or a penalty to an ability score.
+    pub fn changes(&self, ability: Ability) -> bool {
+        self.stats()
+            .any(|(target, ..)| *target == GearTarget::Ability(ability))
+    }
+
     /// The summary of its bonuses, generated so the web app and the MCP show one text: the bonuses in
     /// [`GearTarget`]'s order, those sharing an amount and a type grouped ("Str, Dex, Con +6 enhancement"), then
     /// the [`always_on`](Self::always_on) lines as written, all joined by "; ", an untyped bonus with no type, no
     /// full stop ("Str, Dex, Con +4 enhancement; DR 3/-"). `skills` gives a skill target its name.
     pub fn summary(&self, skills: &[Skill]) -> String {
-        let mut bonuses: Vec<&GearBonus> = self.bonuses.iter().collect();
-        bonuses.sort_by(|a, b| a.target.cmp(&b.target));
-        let mut groups: Vec<(i8, BonusType, Vec<String>)> = Vec::new();
-        for bonus in bonuses {
-            let name = bonus.target.name(skills);
+        let mut bonuses: Vec<(&GearTarget, i8, Descriptor)> = self.stats().collect();
+        bonuses.sort_by(|a, b| a.0.cmp(b.0));
+        let mut groups: Vec<(i8, Descriptor, Vec<String>)> = Vec::new();
+        for (target, amount, descriptor) in bonuses {
+            let name = target.name(skills);
             match groups
                 .iter_mut()
-                .find(|(amount, kind, _)| *amount == bonus.amount && *kind == bonus.kind)
+                .find(|(of, kind, _)| *of == amount && *kind == descriptor)
             {
                 Some((_, _, names)) => names.push(name),
-                None => groups.push((bonus.amount, bonus.kind, vec![name])),
+                None => groups.push((amount, descriptor, vec![name])),
             }
         }
         let mut text = String::new();
-        for (index, (amount, kind, names)) in groups.iter().enumerate() {
+        for (index, (amount, descriptor, names)) in groups.iter().enumerate() {
             if index > 0 {
                 text.push_str("; ");
             }
             let _ = write!(text, "{} {amount:+}", names.join(", "));
-            if *kind != BonusType::Untyped {
-                let _ = write!(text, " {}", kind.name());
+            if !descriptor.name().is_empty() {
+                let _ = write!(text, " {}", descriptor.name());
             }
         }
         for line in &self.always_on {
@@ -236,22 +228,22 @@ mod tests {
         ]
     }
 
-    fn bonus(target: GearTarget, amount: i8, kind: BonusType) -> GearBonus {
-        GearBonus {
-            target,
-            amount,
-            kind,
+    fn bonus(stat: GearTarget, value: i8, descriptor: Descriptor) -> Component {
+        Component::GearStat {
+            stat,
+            value,
+            descriptor,
         }
     }
 
-    fn item(bonuses: Vec<GearBonus>) -> GearItem {
+    fn item(components: Vec<Component>) -> GearItem {
         GearItem {
             key: GearKey::new("test"),
             blueprint: None,
             name: "Test".to_owned(),
             slot: GearSlot::Belt,
             guide: None,
-            bonuses,
+            components,
             always_on: Vec::new(),
             other_effects: Vec::new(),
         }
@@ -266,7 +258,7 @@ mod tests {
         let item = item(vec![bonus(
             ability(Ability::Dexterity),
             6,
-            BonusType::Enhancement,
+            Descriptor::Enhancement,
         )]);
         assert_eq!(item.summary(&skills()), "Dex +6 enhancement");
     }
@@ -275,7 +267,7 @@ mod tests {
     fn three_scores_are_grouped() {
         let item = item(
             [Ability::Constitution, Ability::Strength, Ability::Dexterity]
-                .map(|a| bonus(ability(a), 6, BonusType::Enhancement))
+                .map(|a| bonus(ability(a), 6, Descriptor::Enhancement))
                 .to_vec(),
         );
         assert_eq!(item.summary(&skills()), "Str, Dex, Con +6 enhancement");
@@ -284,8 +276,8 @@ mod tests {
     #[test]
     fn a_cloak() {
         let item = item(vec![
-            bonus(GearTarget::AllSaves, 7, BonusType::Resistance),
-            bonus(ability(Ability::Charisma), 2, BonusType::Circumstance),
+            bonus(GearTarget::AllSaves, 7, Descriptor::Resistance),
+            bonus(ability(Ability::Charisma), 2, Descriptor::Circumstance),
         ]);
         assert_eq!(
             item.summary(&skills()),
@@ -299,14 +291,14 @@ mod tests {
             bonus(
                 GearTarget::Skill(SkillKey::new("persuasion")),
                 5,
-                BonusType::Competence,
+                Descriptor::Competence,
             ),
             bonus(
                 GearTarget::Skill(SkillKey::new("knowledge-world")),
                 5,
-                BonusType::Competence,
+                Descriptor::Competence,
             ),
-            bonus(ability(Ability::Charisma), 2, BonusType::Enhancement),
+            bonus(ability(Ability::Charisma), 2, Descriptor::Enhancement),
         ]);
         assert_eq!(
             item.summary(&skills()),
@@ -320,10 +312,10 @@ mod tests {
             bonus(
                 GearTarget::Skill(SkillKey::new("persuasion")),
                 -3,
-                BonusType::Untyped,
+                Descriptor::Untyped,
             ),
-            bonus(ability(Ability::Charisma), -2, BonusType::Untyped),
-            bonus(ability(Ability::Intelligence), 2, BonusType::Enhancement),
+            bonus(ability(Ability::Charisma), -2, Descriptor::Untyped),
+            bonus(ability(Ability::Intelligence), 2, Descriptor::Enhancement),
         ]);
         assert_eq!(
             item.summary(&skills()),
@@ -334,11 +326,11 @@ mod tests {
     #[test]
     fn a_scoped_dc_and_the_caster_level() {
         let item = item(vec![
-            bonus(GearTarget::CasterLevel, 3, BonusType::Untyped),
+            bonus(GearTarget::CasterLevel, 3, Descriptor::Untyped),
             bonus(
                 GearTarget::SpellDc(SpellScope::School(crate::SpellSchool::Evocation)),
                 1,
-                BonusType::Untyped,
+                Descriptor::Untyped,
             ),
         ]);
         assert_eq!(
@@ -351,7 +343,7 @@ mod tests {
     fn always_on_lines_follow_the_bonuses() {
         let mut belt = item(
             [Ability::Strength, Ability::Dexterity, Ability::Constitution]
-                .map(|a| bonus(ability(a), 4, BonusType::Enhancement))
+                .map(|a| bonus(ability(a), 4, Descriptor::Enhancement))
                 .to_vec(),
         );
         belt.always_on = vec!["DR 3/-".to_owned(), "Immune to acid".to_owned()];

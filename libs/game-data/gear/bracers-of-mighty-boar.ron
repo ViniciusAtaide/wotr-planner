@@ -5,10 +5,10 @@
     name: "Bracers of Mighty Boar",
     slot: Bracers,
     guide: "items#bracers",
-    bonuses: [
-        (target: Ability(Strength), amount: 6, kind: Enhancement),
-    ],
     other_effects: [
         "Charging with natural attacks: the first attack's base damage is tripled.",
     ],
+components: [
+    GearStat(stat: Ability(Strength), value: 6, descriptor: Enhancement),
+],
 )

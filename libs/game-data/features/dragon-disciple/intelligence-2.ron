@@ -1,1 +1,1 @@
-(key: "dragon-disciple/intelligence-2", blueprint: "6ad7e3699a6a9ad47a25b3464a305627", name: "Intelligence +2", summary: "+2 Intelligence.", guide: "prestige-classes#dragon-disciple", ability_bonuses: [Fixed(ability: Intelligence, amount: 2)])
+(key: "dragon-disciple/intelligence-2", blueprint: "6ad7e3699a6a9ad47a25b3464a305627", name: "Intelligence +2", summary: "+2 Intelligence.", guide: "prestige-classes#dragon-disciple", components: [StatBonus(stat: Ability(Intelligence), value: PerRank(2), descriptor: Racial)])

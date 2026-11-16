@@ -4,12 +4,12 @@
     name: "Potion of Humanity",
     slot: Usable,
     guide: "items#equipable-and-consumable",
-    bonuses: [
-        (target: Ability(Strength), amount: 1, kind: Inherent),
-        (target: Ability(Dexterity), amount: 1, kind: Inherent),
-        (target: Ability(Constitution), amount: 1, kind: Inherent),
-        (target: Ability(Intelligence), amount: 1, kind: Inherent),
-        (target: Ability(Wisdom), amount: 1, kind: Inherent),
-        (target: Ability(Charisma), amount: 1, kind: Inherent),
+    components: [
+        GearStat(stat: Ability(Strength), value: 1, descriptor: Inherent),
+        GearStat(stat: Ability(Dexterity), value: 1, descriptor: Inherent),
+        GearStat(stat: Ability(Constitution), value: 1, descriptor: Inherent),
+        GearStat(stat: Ability(Intelligence), value: 1, descriptor: Inherent),
+        GearStat(stat: Ability(Wisdom), value: 1, descriptor: Inherent),
+        GearStat(stat: Ability(Charisma), value: 1, descriptor: Inherent),
     ],
 )

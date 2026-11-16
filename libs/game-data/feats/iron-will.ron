@@ -1,1 +1,1 @@
-(key: "iron-will", blueprint: "175d1577bb6c9a04baf88eec99c66334", name: "Iron Will", summary: "+2 to Will saves.", category: Miscellaneous, guide: "feats#iron-will")
+(key: "iron-will", blueprint: "175d1577bb6c9a04baf88eec99c66334", name: "Iron Will", summary: "+2 to Will saves.", category: Miscellaneous, guide: "feats#iron-will", components: [StatBonus(stat: Save(Will), value: Flat(2))])

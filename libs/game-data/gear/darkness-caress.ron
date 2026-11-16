@@ -4,12 +4,12 @@
     name: "Darkness Caress",
     slot: Headwear,
     guide: "items#headwear",
-    bonuses: [
-        (target: Ability(Intelligence), amount: 8, kind: Enhancement),
-        (target: Ability(Wisdom), amount: 8, kind: Enhancement),
-        (target: Ability(Charisma), amount: 8, kind: Enhancement),
-    ],
     always_on: [
         "Adds Cha bonus to ranged weapon damage",
+    ],
+    components: [
+        GearStat(stat: Ability(Intelligence), value: 8, descriptor: Enhancement),
+        GearStat(stat: Ability(Wisdom), value: 8, descriptor: Enhancement),
+        GearStat(stat: Ability(Charisma), value: 8, descriptor: Enhancement),
     ],
 )

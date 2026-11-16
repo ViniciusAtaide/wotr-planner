@@ -4,12 +4,12 @@
     name: "Sin Mage's Staff",
     slot: Weapon,
     guide: "items#weapon-properties",
-    bonuses: [
-        (target: Ability(Intelligence), amount: 6),
-        (target: SpellDc(All), amount: 1),
-        (target: CasterLevel, amount: 3),
-    ],
     always_on: [
         "A +5 quarterstaff",
+    ],
+    components: [
+        GearStat(stat: Ability(Intelligence), value: 6),
+        GearStat(stat: SpellDc(All), value: 1),
+        GearStat(stat: CasterLevel, value: 3),
     ],
 )

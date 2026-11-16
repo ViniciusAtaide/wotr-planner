@@ -4,10 +4,10 @@
     name: "Life Veil",
     slot: Necklace,
     guide: "items#necklaces",
-    bonuses: [
-        (target: Ability(Constitution), amount: 6, kind: Enhancement),
-    ],
     other_effects: [
         "Twice a day: Cure Serious Wounds at caster level 5 (cleric).",
+    ],
+    components: [
+        GearStat(stat: Ability(Constitution), value: 6, descriptor: Enhancement),
     ],
 )

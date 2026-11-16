@@ -4,9 +4,9 @@
     name: "Belt of Physical Perfection +6",
     slot: Belt,
     guide: "items#belts",
-    bonuses: [
-        (target: Ability(Strength), amount: 6, kind: Enhancement),
-        (target: Ability(Dexterity), amount: 6, kind: Enhancement),
-        (target: Ability(Constitution), amount: 6, kind: Enhancement),
+    components: [
+        GearStat(stat: Ability(Strength), value: 6, descriptor: Enhancement),
+        GearStat(stat: Ability(Dexterity), value: 6, descriptor: Enhancement),
+        GearStat(stat: Ability(Constitution), value: 6, descriptor: Enhancement),
     ],
 )

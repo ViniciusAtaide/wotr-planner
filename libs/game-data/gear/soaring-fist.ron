@@ -4,8 +4,8 @@
     name: "Soaring Fist",
     slot: Gloves,
     guide: "items#gloves",
-    bonuses: [
-        (target: Ability(Constitution), amount: 2, kind: Enhancement),
-        (target: Skill("mobility"), amount: 4, kind: Competence),
+    components: [
+        GearStat(stat: Ability(Constitution), value: 2, descriptor: Enhancement),
+        GearStat(stat: Skill("mobility"), value: 4, descriptor: Competence),
     ],
 )

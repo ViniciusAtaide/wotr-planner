@@ -489,7 +489,7 @@ fn gears_bonuses_in_force_follow_the_item_bonuses_at_every_level_with_their_type
             last.source,
             BonusSource::Gear(gear_item("cloak-of-resistance-3"))
         );
-        assert_eq!(last.kind, rules::BonusType::Resistance);
+        assert_eq!(last.descriptor, rules::Descriptor::Resistance);
         assert_eq!(
             (last.name.as_str(), last.amount),
             ("Cloak of Resistance +3", 3)

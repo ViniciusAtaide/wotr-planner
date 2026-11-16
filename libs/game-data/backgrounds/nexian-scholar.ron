@@ -1,1 +1,1 @@
-(key: "nexian-scholar", blueprint: "1206bb79daa23564a9d20021ca8674e5", name: "Nexian Scholar", group: Regional, note: "+2 Knowledge (Arcana).", class_skills: ["knowledge-arcana"])
+(key: "nexian-scholar", blueprint: "1206bb79daa23564a9d20021ca8674e5", name: "Nexian Scholar", group: Regional, note: "+2 Knowledge (Arcana).", class_skills: ["knowledge-arcana"], components: [StatBonus(stat: Skill("knowledge-arcana"), value: Flat(2))])

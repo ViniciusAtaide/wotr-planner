@@ -19,9 +19,9 @@ use crate::check::CheckedGameData;
 use crate::choice::{Choice, Issue};
 use crate::codec::LinkKeys;
 use crate::game_data::{
-    Ability, AbilityBonus, AbilityModifier, Advancement, Archetype, ArchetypeLevelRow, Background,
-    Class, ClassLevelRow, Deity, FeatCategory, FeatList, FeatSlot, FeatValue, Race, Skill,
-    SpellLevels, StepLevel, Subrace,
+    Ability, AbilityModifier, Advancement, Archetype, ArchetypeLevelRow, Background, Class,
+    ClassLevelRow, Deity, FeatCategory, FeatList, FeatSlot, FeatValue, Race, Skill, SpellLevels,
+    Subrace,
 };
 use crate::keys::{
     ArchetypeKey, ClassKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey, MythicPathKey,
@@ -195,33 +195,36 @@ impl Engine {
     }
 
     /// How far a feature has risen in `state`: one step for each grant (its feature rank, `feature_count`) and one
-    /// for each of its step levels reached ([`FeatureSteps`](crate::FeatureSteps)); 0 when not held. Sneak Attack
-    /// granted three times is at step 3; Infernal Resistance, granted once at bloodrager 4, at step 2 from bloodrager 8.
+    /// for each step its [`Scales`](crate::Component::Scales) has reached; 0 when not held. Sneak Attack granted three
+    /// times is at step 3; Infernal Resistance, granted once at bloodrager 4, at step 2 from bloodrager 8.
     pub fn feature_step(&self, state: &CharacterState, feature: &FeatureKey) -> u8 {
         state
             .feature_count(feature)
             .saturating_add(self.steps_reached(state, feature))
     }
 
-    /// How many of a held feature's step levels the level it reads has reached in `state`: the sum of its classes'
-    /// levels, or the character level. The game reads that level whenever the feature is held
-    /// (`ContextRankConfig.GetBaseValue`, WrathDecompiled 6ce4a6b), so a row traded away after the grant takes no step
-    /// with it, and a grant traded away gives none. 0 for a feature not held or without steps.
+    /// The steps a held feature's [`Scales`](crate::Component::Scales) has reached in `state`: its rank's value there
+    /// (`ContextRankConfig.GetValue`, read whenever the feature is held, WrathDecompiled 6ce4a6b), so a row traded away
+    /// after the grant takes no step with it, and a grant traded away gives none. 0 for a feature not held or that
+    /// doesn't scale.
     pub fn steps_reached(&self, state: &CharacterState, feature: &FeatureKey) -> u8 {
-        let Some(steps) = self.catalog.steps(feature) else {
-            return 0;
-        };
-        if state.feature_count(feature) == 0 {
+        let count = state.feature_count(feature);
+        if count == 0 {
             return 0;
         }
-        let level = match &steps.on {
-            StepLevel::Classes(classes) => classes
-                .iter()
-                .map(|class| state.class_level(class))
-                .fold(0, u8::saturating_add),
-            StepLevel::CharacterLevel => state.character_level,
+        let Some(config) = self.catalog.scales(feature) else {
+            return 0;
         };
-        u8::try_from(steps.at.range(..=level).count()).unwrap_or(u8::MAX)
+        let class_of = |archetype: &_| self.catalog.archetype_class(archetype);
+        let context = crate::component::ValueContext {
+            state,
+            own_rank: count,
+            value: None,
+            // A step follows a level, never a score: a score's base value here would count the race's modifiers.
+            base_scores: state.base_ability_scores,
+            archetype_class: &class_of,
+        };
+        u8::try_from(config.at(&context).max(0)).unwrap_or(u8::MAX)
     }
 
     /// The modifier a Build start's race (or its subrace, whose modifiers replace the race's) gives an ability:
@@ -650,36 +653,14 @@ impl Sheet {
     }
 }
 
-/// The scores with features' ability bonuses applied, in the guide's terms: fixed and every-score bonuses add
-/// first; the highest score is the highest of those (a tie goes to the first in Str, Dex, Con, Int, Wis, Cha
-/// order, which the guide doesn't settle); then every score is raised to the highest floor ("at least 14"), and
-/// the highest score gets the sum of the highest-score bonuses (Perfect Body, Mind and Soul: +8 in all).
-pub fn with_bonuses<'b>(
-    base: AbilityScores,
-    bonuses: impl IntoIterator<Item = &'b AbilityBonus>,
-) -> AbilityScores {
-    let mut scores = base;
-    let (mut floor, mut highest_bonus) = (0u8, 0u8);
-    for bonus in bonuses {
-        match *bonus {
-            AbilityBonus::Fixed { ability, amount } => {
-                let score = scores.get_mut(ability);
-                *score = score.saturating_add(amount);
-            }
-            AbilityBonus::Every { amount } => {
-                for ability in AbilityScores::ABILITIES {
-                    let score = scores.get_mut(ability);
-                    *score = score.saturating_add(amount);
-                }
-            }
-            AbilityBonus::Highest { amount } => {
-                highest_bonus = highest_bonus.saturating_add(amount)
-            }
-            AbilityBonus::AtLeast { score } => floor = floor.max(score),
-        }
-    }
+/// The scores after every stat bonus, with the Gold Dragon's floors and its highest-score bonus applied
+/// ([`AbilityAtLeast`](crate::Component::AbilityAtLeast), [`HighestAbilityBonus`](crate::Component::HighestAbilityBonus)):
+/// the highest score is the highest of `scores` (a tie goes to the first in Str, Dex, Con, Int, Wis, Cha order, which
+/// the guide doesn't settle); then every score is raised to `floor` ("at least 14"), and the highest gets `highest`
+/// (Perfect Body, Mind and Soul: +8 in all).
+pub(crate) fn with_floors(mut scores: AbilityScores, floor: u8, highest: i16) -> AbilityScores {
     // `max_by_key` keeps the last of equal maxima, so walk the abilities backwards to keep the first.
-    let highest = AbilityScores::ABILITIES
+    let top = AbilityScores::ABILITIES
         .into_iter()
         .rev()
         .max_by_key(|ability| scores.get(*ability));
@@ -687,11 +668,12 @@ pub fn with_bonuses<'b>(
         let score = scores.get_mut(ability);
         *score = (*score).max(floor);
     }
-    if let Some(highest) = highest
-        && highest_bonus > 0
+    if let Some(top) = top
+        && highest > 0
     {
-        let score = scores.get_mut(highest);
-        *score = score.saturating_add(highest_bonus);
+        let score = scores.get_mut(top);
+        *score = u8::try_from((i16::from(*score) + highest).clamp(0, i16::from(u8::MAX)))
+            .unwrap_or(u8::MAX);
     }
     scores
 }

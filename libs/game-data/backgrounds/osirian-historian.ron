@@ -1,1 +1,1 @@
-(key: "osirian-historian", blueprint: "759e9118b89068245afc0e25817aaf58", name: "Osirian Historian", group: Regional, note: "+2 Knowledge (World).", class_skills: ["knowledge-world"])
+(key: "osirian-historian", blueprint: "759e9118b89068245afc0e25817aaf58", name: "Osirian Historian", group: Regional, note: "+2 Knowledge (World).", class_skills: ["knowledge-world"], components: [StatBonus(stat: Skill("knowledge-world"), value: Flat(2))])

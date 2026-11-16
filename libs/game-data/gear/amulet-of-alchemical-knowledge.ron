@@ -5,13 +5,13 @@
     name: "Amulet of Alchemical Knowledge",
     slot: Necklace,
     guide: "items-lord-of-nothing#necklaces",
-    bonuses: [
-        (target: Ability(Intelligence), amount: 2, kind: Alchemical),
-    ],
     always_on: [
         "Saves +4 alchemical vs poison",
     ],
     other_effects: [
         "+3 bombs a day.",
     ],
+components: [
+    GearStat(stat: Ability(Intelligence), value: 2, descriptor: Alchemical),
+],
 )

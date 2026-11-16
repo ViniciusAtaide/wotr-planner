@@ -4,10 +4,10 @@
     name: "Flamboyant Hat",
     slot: Headwear,
     guide: "items-lord-of-nothing#headwear",
-    bonuses: [
-        (target: Ability(Charisma), amount: 2, kind: Enhancement),
-    ],
     other_effects: [
         "Two more rounds of bardic performance daily.",
+    ],
+    components: [
+        GearStat(stat: Ability(Charisma), value: 2, descriptor: Enhancement),
     ],
 )

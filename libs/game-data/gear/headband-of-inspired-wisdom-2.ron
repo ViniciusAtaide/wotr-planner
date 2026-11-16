@@ -3,7 +3,7 @@
     blueprint: "3d33605336c62274483f382f58908f5b",
     name: "Headband of Inspired Wisdom +2",
     slot: Headwear,
-    bonuses: [
-        (target: Ability(Wisdom), amount: 2, kind: Enhancement),
+    components: [
+        GearStat(stat: Ability(Wisdom), value: 2, descriptor: Enhancement),
     ],
 )

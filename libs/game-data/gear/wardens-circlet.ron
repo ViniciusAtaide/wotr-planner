@@ -4,12 +4,12 @@
     name: "Warden's Circlet",
     slot: Headwear,
     guide: "items#headwear",
-    bonuses: [
-        (target: Ability(Intelligence), amount: 4, kind: Enhancement),
-        (target: Ability(Wisdom), amount: 4, kind: Enhancement),
-        (target: Ability(Charisma), amount: 4, kind: Enhancement),
-    ],
     other_effects: [
         "Two uses a day: calls up a pair of Labyrinth Demodand Destroyers lasting 2 minutes.",
+    ],
+    components: [
+        GearStat(stat: Ability(Intelligence), value: 4, descriptor: Enhancement),
+        GearStat(stat: Ability(Wisdom), value: 4, descriptor: Enhancement),
+        GearStat(stat: Ability(Charisma), value: 4, descriptor: Enhancement),
     ],
 )

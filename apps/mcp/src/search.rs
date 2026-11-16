@@ -375,7 +375,7 @@ impl SearchIndex {
             let item = (data.gear.iter())
                 .find(|item| item.key.as_str() == entry.hit.key)
                 .expect("an indexed gear item");
-            let abilities = item.bonuses.iter().filter_map(|bonus| match bonus.target {
+            let abilities = item.stats().filter_map(|(target, ..)| match target {
                 rules::GearTarget::Ability(ability) => Some(ability.name()),
                 _ => None,
             });

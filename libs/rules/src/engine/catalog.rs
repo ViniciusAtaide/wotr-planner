@@ -14,15 +14,14 @@ pub(super) use components::HolderKind;
 use super::{
     EffectiveRow, SlotKind, canonical_archetype_row, class_row, effective_rows, merged_row,
 };
-use crate::bonus::BonusItemKind;
 use crate::build::{BuildStart, Pick};
 use crate::check::CheckedGameData;
 use crate::game_data::{
-    AbilityBonus, AbilityModifier, Archetype, BabFromRanks, Background, Band, Class, Deity,
-    EXOTIC_WEAPON_PROFICIENCY, Feat, FeatCategory, FeatList, FeatureSelection, FeatureSteps,
-    GameData, IMPROVED_UNARMED_STRIKE, MARTIAL_WEAPONS_PROFICIENCY, MythicAbility, MythicFeat,
-    MythicPath, OptionRow, Race, SIMPLE_WEAPON_PROFICIENCY, SelectionOption, Skill, Subrace,
-    UNARMED_STRIKE, Weapon, WeaponProficiency,
+    AbilityModifier, Archetype, BabFromRanks, Background, Band, Class, Deity,
+    EXOTIC_WEAPON_PROFICIENCY, Feat, FeatCategory, FeatList, FeatureSelection, GameData,
+    IMPROVED_UNARMED_STRIKE, MARTIAL_WEAPONS_PROFICIENCY, MythicAbility, MythicFeat, MythicPath,
+    OptionRow, Race, SIMPLE_WEAPON_PROFICIENCY, SelectionOption, Skill, Subrace, UNARMED_STRIKE,
+    Weapon, WeaponProficiency,
 };
 use crate::gear::GearItem;
 use crate::keys::{
@@ -51,34 +50,8 @@ pub(super) struct Catalog {
     /// The prerequisite of each class with an alignment requirement and archetypes, without that requirement:
     /// what an archetype stating its own leaves of the class's (`None`: nothing).
     without_alignment: FxHashMap<ClassKey, Option<Prerequisite>>,
-    /// Where each item's bonuses are in `data.bonuses` ([`bonus_rows`](Self::bonus_rows)).
-    bonus_rows: BonusRows,
     /// The entries' components the walk evaluates (ticket 295).
     components: Components,
-}
-
-/// The positions in `data.bonuses` of each item's bonuses, by the item's kind (`kind as usize`) then its key's text
-/// ([`BonusItem::kind_and_key`]), so the walk finds an item's bonuses as it holds it without building a
-/// [`BonusItem`].
-///
-/// [`BonusItem`]: crate::BonusItem
-/// [`BonusItem::kind_and_key`]: crate::BonusItem::kind_and_key
-#[derive(Clone, Debug, Default)]
-struct BonusRows(Vec<FxHashMap<String, Vec<usize>>>);
-
-impl BonusRows {
-    fn new(data: &GameData) -> Self {
-        let mut rows = Self::default();
-        for (at, bonus) in data.bonuses.iter().enumerate() {
-            let (kind, key) = bonus.item.kind_and_key();
-            let kind = kind as usize;
-            if rows.0.len() <= kind {
-                rows.0.resize_with(kind + 1, FxHashMap::default);
-            }
-            rows.0[kind].entry(key.to_owned()).or_default().push(at);
-        }
-        rows
-    }
 }
 
 /// What a pick takes, read once ([`Catalog::pick_item`]): its name, picker chip, summary, prerequisite, the kind
@@ -121,7 +94,6 @@ impl Catalog {
             single_options: FxHashMap::default(),
             casting: Casting::new(&data),
             without_alignment,
-            bonus_rows: BonusRows::new(&data),
             components,
             data,
         };
@@ -602,11 +574,6 @@ impl Catalog {
             .unwrap_or(class.spontaneous)
     }
 
-    /// A feature's ability bonuses, when it has some.
-    pub(super) fn ability_bonuses(&self, feature: &FeatureKey) -> Option<&[AbilityBonus]> {
-        self.features.bonuses.get(feature).map(Vec::as_slice)
-    }
-
     /// The option row a feature grants (Bloodline Ascendance).
     pub(super) fn option_row(&self, feature: &FeatureKey) -> Option<&OptionRow> {
         self.features.rows.get(feature)
@@ -625,12 +592,6 @@ impl Catalog {
             .map(|(feature, _)| feature)
     }
 
-    /// The floors a feature sets (Perfect Mind): what the BAB is at least, over the Mythic rank, and whether every
-    /// skill's total counts at least the Mythic rank for its ranks. `None` for a feature that sets none.
-    pub(super) fn floor(&self, feature: &FeatureKey) -> Option<(Option<u8>, bool)> {
-        self.features.floors.get(feature).copied()
-    }
-
     /// Whether a feature is a daily choice.
     pub(super) fn is_daily_choice(&self, feature: &FeatureKey) -> bool {
         self.features.daily_choices.contains(feature)
@@ -639,11 +600,6 @@ impl Catalog {
     /// Whether a feature grants the deity's favoured weapons (Cleric Proficiencies).
     pub(super) fn grants_favoured_weapons(&self, feature: &FeatureKey) -> bool {
         self.features.favoured_weapons.contains(feature)
-    }
-
-    /// The steps of a feature that rises with a level after its one grant (Infernal Resistance at bloodrager 8).
-    pub(super) fn steps(&self, feature: &FeatureKey) -> Option<&FeatureSteps> {
-        self.features.steps.get(feature)
     }
 
     /// The weapons a feature makes the character proficient with while it's held; none for most.
@@ -928,8 +884,6 @@ impl Casting {
 /// What the engine reads off the features every class, archetype and path defines, by key.
 #[derive(Clone, Debug)]
 struct FeatureFacts {
-    /// The ability bonuses of every feature that has some.
-    bonuses: FxHashMap<FeatureKey, Vec<AbilityBonus>>,
     /// The option row of every feature that grants one (Bloodline Ascendance).
     rows: FxHashMap<FeatureKey, OptionRow>,
     /// Every feature that is a daily choice.
@@ -938,11 +892,6 @@ struct FeatureFacts {
     favoured_weapons: FxHashSet<FeatureKey>,
     /// The weapons of every feature that makes the character proficient with some (Wizard Proficiencies).
     weapons: FxHashMap<FeatureKey, BTreeSet<WeaponKey>>,
-    /// The features that set a floor for prerequisites (Perfect Mind): a BAB floor, and whether every skill's ranks
-    /// are at least the Mythic rank.
-    floors: FxHashMap<FeatureKey, (Option<u8>, bool)>,
-    /// The steps of every feature that rises with a level after its one grant.
-    steps: FxHashMap<FeatureKey, FeatureSteps>,
     /// The name of every feature a class, archetype or path defines, for the sheet's labels.
     names: FxHashMap<FeatureKey, String>,
     /// What grants each feature by its rows ([`Catalog::feature_holders`]).
@@ -967,11 +916,6 @@ impl FeatureFacts {
             .filter(|feature| name_counts[feature.name.as_str()] > 1)
             .map(|feature| feature.key.clone())
             .collect();
-        let bonuses = features
-            .iter()
-            .filter(|feature| !feature.ability_bonuses.is_empty())
-            .map(|feature| (feature.key.clone(), feature.ability_bonuses.clone()))
-            .collect();
         let rows = features
             .iter()
             .filter_map(|feature| Some((feature.key.clone(), feature.option_row.clone()?)))
@@ -980,22 +924,6 @@ impl FeatureFacts {
             .iter()
             .filter(|feature| feature.daily_choice)
             .map(|feature| feature.key.clone())
-            .collect();
-        let floors = features
-            .iter()
-            .filter(|feature| {
-                feature.bab_at_least_mythic_rank_plus.is_some()
-                    || feature.skill_ranks_at_least_mythic_rank
-            })
-            .map(|feature| {
-                (
-                    feature.key.clone(),
-                    (
-                        feature.bab_at_least_mythic_rank_plus,
-                        feature.skill_ranks_at_least_mythic_rank,
-                    ),
-                )
-            })
             .collect();
         let names = features
             .iter()
@@ -1011,18 +939,11 @@ impl FeatureFacts {
             .filter(|feature| !feature.weapons.is_empty())
             .map(|feature| (feature.key.clone(), feature.weapons.clone()))
             .collect();
-        let steps = features
-            .iter()
-            .filter_map(|feature| Some((feature.key.clone(), feature.steps.clone()?)))
-            .collect();
         Self {
-            bonuses,
             rows,
             daily_choices,
             favoured_weapons,
             weapons,
-            floors,
-            steps,
             names,
             shared_names,
             holders,
@@ -1119,16 +1040,4 @@ fn holders(data: &GameData) -> Holders {
 enum ClassAt {
     Base(usize),
     Prestige(usize),
-}
-
-/// The Item bonuses (ticket 151).
-impl Catalog {
-    /// The positions in the data's bonuses ([`GameData::bonuses`]) of the bonuses an item gives, by its kind and its
-    /// key's text ([`BonusItem::kind_and_key`](crate::BonusItem::kind_and_key)), in the data's order; empty for one
-    /// that gives none.
-    pub(super) fn bonus_rows(&self, kind: BonusItemKind, key: &str) -> &[usize] {
-        (self.bonus_rows.0.get(kind as usize))
-            .and_then(|rows| rows.get(key))
-            .map_or(&[], Vec::as_slice)
-    }
 }

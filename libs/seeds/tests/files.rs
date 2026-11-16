@@ -7,12 +7,13 @@ use std::fs;
 
 use common::{copy_fixture, fixture_dir};
 use rules::{
-    Ability, AbilityBonus, Advancement, ArchetypeKey, ArchetypeLevelRow, ArmourType,
-    BabProgression, BackgroundGroup, ClassKey, CountsAs, CountsToward, DataAt, FeatKey,
+    Ability, Advancement, ArchetypeKey, ArchetypeLevelRow, ArmourType, BabProgression,
+    BackgroundGroup, ClassKey, Component, CountsAs, CountsToward, DataAt, Descriptor, FeatKey,
     FeatListKey, FeatSlot, FeatValue, FeatureKey, FeatureSelectionKey, GameData, LevelFrom,
     MythicAbilityGroup, MythicFeatGroup, MythicPathKey, OptionGroup, OptionLevelRow, OptionRow,
     Parameter, ParameterKind, Prerequisite, Repeat, Save, SaveException, SaveProgression,
-    SelectionOptionKey, SkillKey, SpellLevels, Story, WeaponKey, WeaponProficiency,
+    SelectionOptionKey, SkillKey, SpellLevels, StatTarget, Story, Value, WeaponKey,
+    WeaponProficiency,
 };
 
 fn read_fixture() -> GameData {
@@ -694,9 +695,18 @@ fn reads_the_mythic_path_rules() {
     assert_eq!(switch.rank_after_switch(), 3);
     assert_eq!(switch.features, [FeatureKey::new("legend/legend")].into());
     let feature = |key: &str| data.feature(&FeatureKey::new(key)).unwrap();
+    // Its +4 to every score: a stat bonus per score (ticket 297).
+    let plus_four = |ability| Component::StatBonus {
+        stat: StatTarget::Ability(ability),
+        value: Value::PerRank(4),
+        descriptor: Descriptor::Racial,
+        multiplier: 1,
+        at_least: None,
+        only_if: None,
+    };
     assert_eq!(
-        feature("legend/legend").ability_bonuses,
-        [AbilityBonus::Every { amount: 4 }]
+        feature("legend/legend").components,
+        rules::AbilityScores::ABILITIES.map(plus_four)
     );
 
     let dragon = path("gold-dragon");
@@ -719,10 +729,10 @@ fn reads_the_mythic_path_rules() {
     let body = feature(dragon.ranks[0].features[1].as_str());
     assert_eq!(body.key.as_str(), "gold-dragon/perfect-body");
     assert_eq!(
-        body.ability_bonuses,
+        body.components,
         [
-            AbilityBonus::Highest { amount: 4 },
-            AbilityBonus::AtLeast { score: 14 }
+            Component::HighestAbilityBonus(4),
+            Component::AbilityAtLeast(14)
         ]
     );
     let breaths = data.selection(&dragon.ranks[0].selections[0]).unwrap();
@@ -734,12 +744,8 @@ fn reads_the_mythic_path_rules() {
         ]))
     );
 
-    // A feature without bonuses reads as none; an option may grant several feats.
-    assert!(
-        feature("trickster/trickster-tricks")
-            .ability_bonuses
-            .is_empty()
-    );
+    // A feature without components reads as none; an option may grant several feats.
+    assert!(feature("trickster/trickster-tricks").components.is_empty());
     let combat_trick = data
         .selection_option(&SelectionOptionKey::new("rogue/rogue-talents/combat-trick"))
         .unwrap();
@@ -1172,19 +1178,29 @@ fn reads_values_granted_asked_about_and_offered_and_defaults_them() {
         .iter()
         .find(|f| f.key.as_str() == "gold-dragon/dragon-might")
         .unwrap();
+    let floors = |f: &rules::Feature| -> Vec<Component> {
+        (f.components.iter())
+            .filter(|c| {
+                matches!(
+                    c,
+                    Component::BaseAttackAtLeast(_) | Component::GoldenDragonSkills
+                )
+            })
+            .cloned()
+            .collect()
+    };
     assert_eq!(
-        (
-            might.bab_at_least_mythic_rank_plus,
-            might.skill_ranks_at_least_mythic_rank
-        ),
-        (Some(15), true)
+        floors(might),
+        [
+            Component::BaseAttackAtLeast(15),
+            Component::GoldenDragonSkills
+        ]
     );
     assert!(
         features
             .iter()
             .filter(|f| f.key != might.key)
-            .all(|f| f.bab_at_least_mythic_rank_plus.is_none()
-                && !f.skill_ranks_at_least_mythic_rank)
+            .all(|f| floors(f).is_empty())
     );
 }
 

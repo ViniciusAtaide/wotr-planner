@@ -4,12 +4,12 @@
     name: "Bookworm's Headband",
     slot: Headwear,
     guide: "items#headwear",
-    bonuses: [
-        (target: Ability(Intelligence), amount: 2, kind: Enhancement),
-        (target: Ability(Charisma), amount: -2),
-        (target: Skill("persuasion"), amount: -3),
-    ],
     always_on: [
         "Immune to compulsion effects",
+    ],
+    components: [
+        GearStat(stat: Ability(Intelligence), value: 2, descriptor: Enhancement),
+        GearStat(stat: Ability(Charisma), value: -2),
+        GearStat(stat: Skill("persuasion"), value: -3),
     ],
 )

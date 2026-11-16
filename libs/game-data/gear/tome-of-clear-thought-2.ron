@@ -4,7 +4,7 @@
     name: "Tome of Clear Thought +2",
     slot: Usable,
     guide: "items#equipable-and-consumable",
-    bonuses: [
-        (target: Ability(Intelligence), amount: 2, kind: Inherent),
+    components: [
+        GearStat(stat: Ability(Intelligence), value: 2, descriptor: Inherent),
     ],
 )

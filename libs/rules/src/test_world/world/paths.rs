@@ -7,7 +7,7 @@ use crate::*;
 
 use crate::test_world::builds::{feat, feat_list, feature, option, path, skill};
 use crate::test_world::world::selections::selection_option;
-use crate::test_world::world::{bonus_feature, guide, list, plain_feature};
+use crate::test_world::world::{bonus_feature, every, fixed, guide, list, plain_feature};
 
 pub(super) fn trickster() -> MythicPath {
     let tricks = FeatureSelectionKey::new("trickster/tricks");
@@ -173,10 +173,7 @@ pub(super) fn legend() -> MythicPath {
         name: "Legend".into(),
         summary: String::new(),
         guide: guide("other-mythic-paths#legend"),
-        features: vec![bonus_feature(
-            "legend/legend",
-            vec![AbilityBonus::Every { amount: 4 }],
-        )],
+        features: vec![bonus_feature("legend/legend", every(4))],
         selections: vec![],
         feat_lists: vec![],
         ranks: vec![],
@@ -211,26 +208,24 @@ pub(super) fn gold_dragon() -> MythicPath {
             bonus_feature(
                 "gold-dragon/perfect-body",
                 vec![
-                    AbilityBonus::AtLeast { score: 14 },
-                    AbilityBonus::Highest { amount: 4 },
+                    Component::AbilityAtLeast(14),
+                    Component::HighestAbilityBonus(4),
                 ],
             ),
             // Also "your base attack bonus is at least 15 + your mythic rank" and "skill totals count ranks of at least
             // your mythic rank".
-            Feature {
-                bab_at_least_mythic_rank_plus: Some(15),
-                skill_ranks_at_least_mythic_rank: true,
-                ..bonus_feature(
-                    "gold-dragon/perfect-mind",
-                    vec![
-                        AbilityBonus::AtLeast { score: 18 },
-                        AbilityBonus::Highest { amount: 2 },
-                    ],
-                )
-            },
+            bonus_feature(
+                "gold-dragon/perfect-mind",
+                vec![
+                    Component::AbilityAtLeast(18),
+                    Component::HighestAbilityBonus(2),
+                    Component::BaseAttackAtLeast(15),
+                    Component::GoldenDragonSkills,
+                ],
+            ),
             bonus_feature(
                 "gold-dragon/perfect-soul",
-                vec![AbilityBonus::Highest { amount: 2 }],
+                vec![Component::HighestAbilityBonus(2)],
             ),
         ],
         selections: vec![FeatureSelection {
@@ -309,16 +304,7 @@ pub(super) fn swarm_that_walks() -> MythicPath {
         guide: guide("other-mythic-paths#swarm-that-walks"),
         features: vec![bonus_feature(
             "swarm-that-walks/eye-of-the-swarm",
-            vec![
-                AbilityBonus::Fixed {
-                    ability: Ability::Strength,
-                    amount: 4,
-                },
-                AbilityBonus::Fixed {
-                    ability: Ability::Dexterity,
-                    amount: 4,
-                },
-            ],
+            vec![fixed(Ability::Strength, 4), fixed(Ability::Dexterity, 4)],
         )],
         selections: vec![],
         feat_lists: vec![],

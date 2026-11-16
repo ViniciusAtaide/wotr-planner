@@ -311,7 +311,7 @@ mod tests {
             name: "Test".to_owned(),
             slot: GearSlot::Belt,
             guide,
-            bonuses: Vec::new(),
+            components: Vec::new(),
             always_on: Vec::new(),
             other_effects: vec!["On a critical hit: +1d6".to_owned()],
         }

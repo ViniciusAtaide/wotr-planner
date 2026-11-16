@@ -4,13 +4,13 @@
     name: "Razmir's Ring",
     slot: Ring,
     guide: "items#rings",
-    bonuses: [
-        (target: Ability(Intelligence), amount: 8, kind: Enhancement),
-        (target: Ability(Wisdom), amount: 8, kind: Enhancement),
-        (target: Ability(Charisma), amount: 8, kind: Enhancement),
-    ],
     always_on: [
         "All spells Intensified and Piercing",
         "Powers of the Magic domain",
+    ],
+    components: [
+        GearStat(stat: Ability(Intelligence), value: 8, descriptor: Enhancement),
+        GearStat(stat: Ability(Wisdom), value: 8, descriptor: Enhancement),
+        GearStat(stat: Ability(Charisma), value: 8, descriptor: Enhancement),
     ],
 )

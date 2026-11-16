@@ -4,13 +4,13 @@
     name: "Gorgon Belt",
     slot: Belt,
     guide: "items#belts",
-    bonuses: [
-        (target: Ability(Strength), amount: 4, kind: Enhancement),
-    ],
     always_on: [
         "Ignores difficult terrain",
     ],
     other_effects: [
         "Once a day: breathes a 50-foot cone that paralyses foes for 1d4 rounds (save DC 18 + Con mod).",
+    ],
+    components: [
+        GearStat(stat: Ability(Strength), value: 4, descriptor: Enhancement),
     ],
 )

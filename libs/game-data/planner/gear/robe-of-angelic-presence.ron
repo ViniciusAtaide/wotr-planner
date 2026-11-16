@@ -5,12 +5,12 @@
         name: "Robe of Angelic Presence",
         slot: Robe,
         guide: "items#robes",
-        bonuses: [
-            (target: Ability(Charisma), amount: 4, kind: Enhancement),
-            (target: Ability(Wisdom), amount: 4, kind: Enhancement),
-        ],
         other_effects: [
             "Greater Angelic Aspect can be used at will.",
+        ],
+        components: [
+            GearStat(stat: Ability(Charisma), value: 4, descriptor: Enhancement),
+            GearStat(stat: Ability(Wisdom), value: 4, descriptor: Enhancement),
         ],
     ),
 )

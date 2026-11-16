@@ -1724,30 +1724,34 @@ fn a_weapons_stats_are_dice_a_threat_range_and_multiplier_a_weapon_can_have() {
     );
 }
 
-fn gear_item(key: &str, name: &str, bonuses: Vec<rules::GearBonus>) -> rules::GearItem {
+fn gear_item(key: &str, name: &str, components: Vec<rules::Component>) -> rules::GearItem {
     rules::GearItem {
         key: rules::GearKey::new(key),
         blueprint: None,
         name: name.to_owned(),
         slot: rules::GearSlot::Belt,
         guide: None,
-        bonuses,
+        components,
         always_on: Vec::new(),
         other_effects: Vec::new(),
     }
 }
 
-fn gear_bonus(target: rules::GearTarget, amount: i8, kind: rules::BonusType) -> rules::GearBonus {
-    rules::GearBonus {
-        target,
-        amount,
-        kind,
+fn gear_bonus(
+    stat: rules::GearTarget,
+    value: i8,
+    descriptor: rules::Descriptor,
+) -> rules::Component {
+    rules::Component::GearStat {
+        stat,
+        value,
+        descriptor,
     }
 }
 
 #[test]
 fn gear_mistakes_are_found() {
-    use rules::{Ability, BonusType, GearTarget};
+    use rules::{Ability, Descriptor as BonusType, GearTarget};
     let dex = || GearTarget::Ability(Ability::Dexterity);
     let mut data = world();
     let mut bad = gear_item(
@@ -1867,39 +1871,34 @@ fn a_selection_is_not_filtered_by_itself_and_only_a_paths_is_levelled_by_mythic_
     );
 }
 
-/// Ticket 187: the database's `feature_ability_bonus_unique`.
+/// Ticket 297: a gear item's bonuses are `GearStat`s, the one kind it holds, and no other entry holds one.
 #[test]
-fn a_feature_has_one_ability_bonus_of_each_kind() {
-    use rules::{Ability, AbilityBonus};
+fn only_gear_holds_a_gear_stat_and_it_holds_nothing_else() {
+    use rules::{Component, Descriptor, GearTarget};
     let mut data = world();
-    let feature = feature_mut(&mut data, "fighter/bravery");
-    feature.ability_bonuses = vec![
-        AbilityBonus::Fixed {
-            ability: Ability::Strength,
-            amount: 2,
-        },
-        AbilityBonus::Fixed {
-            ability: Ability::Dexterity,
-            amount: 2,
-        },
-        AbilityBonus::Every { amount: 4 },
-        AbilityBonus::Highest { amount: 4 },
-        AbilityBonus::AtLeast { score: 14 },
-        AbilityBonus::Fixed {
-            ability: Ability::Strength,
-            amount: 4,
-        },
-        AbilityBonus::Every { amount: 2 },
-    ];
-    let at = DataAt::Feature(feature.key.clone());
+    let bonus = || gear_bonus(GearTarget::Initiative, 1, Descriptor::Untyped);
+    feature_mut(&mut data, "fighter/bravery")
+        .components
+        .push(bonus());
+    data.gear.push(gear_item(
+        "odd",
+        "Odd",
+        vec![bonus(), Component::GoldenDragonSkills],
+    ));
 
-    assert_eq!(
-        issues(&data),
-        [
-            (at.clone(), DataIssue::AbilityBonusTwice),
-            (at, DataIssue::AbilityBonusTwice)
-        ]
-    );
+    let found = issues_but_unknown_keys(&data);
+    for problem in [
+        (
+            DataAt::Feature(rules::FeatureKey::new("fighter/bravery")),
+            DataIssue::ComponentOnWrongEntry("GearStat"),
+        ),
+        (
+            DataAt::Gear(rules::GearKey::new("odd")),
+            DataIssue::ComponentOnWrongEntry("GoldenDragonSkills"),
+        ),
+    ] {
+        assert!(found.contains(&problem), "{problem:?} in {found:?}");
+    }
 }
 
 /// Ticket 187: the database's `<> ''` constraints on a slot's label, an interactions note, and a gear item's name
@@ -1924,7 +1923,7 @@ fn a_text_that_is_there_is_not_empty() {
         vec![gear_bonus(
             rules::GearTarget::Initiative,
             1,
-            rules::BonusType::Untyped,
+            rules::Descriptor::Untyped,
         )],
     );
     item.guide = Some(rules::GuideRef::new(""));

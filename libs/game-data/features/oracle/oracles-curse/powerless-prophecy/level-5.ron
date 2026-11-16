@@ -1,1 +1,1 @@
-(key: "oracle/oracles-curse/powerless-prophecy/level-5", blueprint: "abfd1deaddbf58140b8ba0e0bbb51e46", name: "Powerless Prophecy, Curse Level 5", summary: "+4 on initiative.", guide: "oracle#powerless-prophecy")
+(key: "oracle/oracles-curse/powerless-prophecy/level-5", blueprint: "abfd1deaddbf58140b8ba0e0bbb51e46", name: "Powerless Prophecy, Curse Level 5", summary: "+4 on initiative.", guide: "oracle#powerless-prophecy", components: [StatBonus(stat: Initiative, value: Flat(4))])

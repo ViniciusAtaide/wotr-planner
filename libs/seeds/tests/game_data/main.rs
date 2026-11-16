@@ -36,6 +36,7 @@ mod life_bonding_friendship;
 mod mercies_and_exploits;
 mod mythic;
 mod negated_prerequisites;
+mod numbers_as_components;
 mod option_families;
 mod option_follow_ups;
 mod option_levels;

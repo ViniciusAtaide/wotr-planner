@@ -1,1 +1,1 @@
-(key: "druid/nature-sense", blueprint: "3a859e435fdd6d343b80d4970a7664c1", name: "Nature Sense", summary: "+2 on Lore (Nature) checks.", guide: "druid#nature-sense")
+(key: "druid/nature-sense", blueprint: "3a859e435fdd6d343b80d4970a7664c1", name: "Nature Sense", summary: "+2 on Lore (Nature) checks.", guide: "druid#nature-sense", components: [StatBonus(stat: Skill("lore-nature"), value: Flat(2))])

@@ -1,1 +1,1 @@
-(key: "sorcerer/bloodline/fey/fey-magic", blueprint: "a9ffe3e08a080c8478bae321e70c7de6", name: "Fey Magic", summary: "From 15th level, +2 on caster level checks against spell resistance, stacking with Spell Penetration.", guide: "character-creation#fey-magic")
+(key: "sorcerer/bloodline/fey/fey-magic", blueprint: "a9ffe3e08a080c8478bae321e70c7de6", name: "Fey Magic", summary: "From 15th level, +2 on caster level checks against spell resistance, stacking with Spell Penetration.", guide: "character-creation#fey-magic", components: [SpellPenetration(value: Flat(2))])

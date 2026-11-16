@@ -1,15 +1,76 @@
 //! The attack line: one base weapon's attacks at a point of a Build, from BAB, the character's own ability scores and
-//! the feats held for that weapon. Unconditional numbers only.
+//! the components of the feats held for that weapon (ticket 297). Unconditional numbers only.
 
 use rules::{
-    CharacterState, Dice, Engine, FeatKey, Handedness, Ranged, Weapon, WeaponKey, WeaponStats,
+    CharacterState, Component, Dice, Engine, Feat, FeatKey, GameData, Handedness, MechanicsFlag,
+    Prerequisite, Ranged, Weapon, WeaponKey, WeaponStats,
 };
 
 use crate::support::{self, *};
 
-/// The test world with a greatsword, a longbow, a javelin and rays (no stats) beside its own weapons.
+/// The test world with the feats of the attack-line kinds it lacks (each taken for a weapon, a greater one requiring
+/// its lesser for the same weapon): Greater Weapon Focus and Specialization, Improved Critical and the Trickster's
+/// three.
+fn armed(mut data: GameData) -> GameData {
+    let template = (data.feats.iter())
+        .find(|feat| feat.key.as_str() == "weapon-focus")
+        .expect("Weapon Focus")
+        .clone();
+    for (key, kind, requires) in [
+        ("weapon-focus", Component::WeaponFocus, None),
+        (
+            "greater-weapon-focus",
+            Component::WeaponFocus,
+            Some("weapon-focus"),
+        ),
+        (
+            "weapon-specialization",
+            Component::WeaponSpecialization,
+            None,
+        ),
+        (
+            "greater-weapon-specialization",
+            Component::WeaponSpecialization,
+            Some("weapon-specialization"),
+        ),
+        ("improved-critical", Component::ImprovedCritical, None),
+        ("improved-improved-critical", Component::CriticalEdge, None),
+        (
+            "improved-improved-improved-critical",
+            Component::CriticalEdge,
+            None,
+        ),
+        (
+            "improved-improved-improved-critical-improved",
+            Component::CriticalMultiplier,
+            None,
+        ),
+        ("power-attack", Component::PowerAttack, None),
+    ] {
+        match data.feats.iter_mut().find(|feat| feat.key.as_str() == key) {
+            Some(feat) if feat.components.contains(&kind) => {}
+            Some(feat) => feat.components.push(kind),
+            None => data.feats.push(Feat {
+                key: FeatKey::new(key),
+                name: key.into(),
+                components: vec![kind],
+                prerequisite: requires
+                    .map(|lesser| Prerequisite::FeatForSameValue(FeatKey::new(lesser))),
+                ..template.clone()
+            }),
+        }
+    }
+    data
+}
+
+/// The armed test world ([`armed`]).
+fn engine() -> Engine {
+    engine_on(armed(world()))
+}
+
+/// The armed test world with a greatsword, a longbow, a javelin and rays (no stats) beside its own weapons.
 fn armoury() -> Engine {
-    let mut data = world();
+    let mut data = armed(world());
     let weapon = |key: &str, stats| Weapon {
         key: WeaponKey::new(key),
         blueprint: None,
@@ -342,7 +403,9 @@ fn a_ranged_weapon_attacks_with_dexterity_and_only_a_thrown_one_adds_strength_to
 fn weapon_finesse_attacks_with_dexterity_when_higher_with_a_finessable_weapon() {
     let engine = engine();
     let attack = |strength, dexterity, weapon: &str| {
-        let state = holding(character(1, strength, dexterity), "weapon-finesse", None);
+        // Weapon Finesse's flag (`AddMechanicsFeature` `WeaponFinesse`).
+        let mut state = character(1, strength, dexterity);
+        state.flags.insert(MechanicsFlag::WeaponFinesse, 1);
         let line = engine.attack_line(&state, &WeaponKey::new(weapon)).unwrap();
         (line.attacks[0], line.damage_bonus)
     };

@@ -4,10 +4,10 @@
     name: "Headband of Rigorous Training",
     slot: Headwear,
     guide: "items#headwear",
-    bonuses: [
-        (target: Ability(Wisdom), amount: 6, kind: Enhancement),
-    ],
     other_effects: [
         "5 extra uses of Perfect Strike a day.",
+    ],
+    components: [
+        GearStat(stat: Ability(Wisdom), value: 6, descriptor: Enhancement),
     ],
 )

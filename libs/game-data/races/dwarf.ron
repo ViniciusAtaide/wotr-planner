@@ -7,4 +7,7 @@
     ability_modifiers: [Fixed(ability: Constitution, amount: 2), Fixed(ability: Wisdom, amount: 2), Fixed(ability: Charisma, amount: -2)],
     weapons: ["battle-axe", "heavy-pick", "warhammer"],
     weapons_as_martial: ["dwarven-urgrosh", "dwarven-waraxe"],
+    components: [
+        StatBonus(stat: Skill("perception"), value: Flat(2)),
+    ],
 )

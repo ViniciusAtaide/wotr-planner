@@ -6,7 +6,7 @@ use super::judge::{check_pick, deferrable, skips_proficiency};
 use super::{Checkpoint, Deferred, GrantSource, Held, Pending, Probe, RankGrant, Walker};
 use crate::build::{AbilityScores, Pick, SlotId};
 use crate::choice::{Choice, Issue};
-use crate::engine::{Slot, SlotKind, with_bonuses};
+use crate::engine::{Slot, SlotKind, with_floors};
 use crate::keys::{FeatKey, FeatureKey, MythicFeatKey, SelectionOptionKey};
 use crate::parameter::Parameter;
 use crate::state::CharacterState;
@@ -194,9 +194,6 @@ impl<'a> Walker<'a> {
 
     /// Holds an item; `source` says which Mythic ascension granted it, so a Path switch can take it back.
     pub(super) fn hold(&mut self, item: Held, source: Option<GrantSource>) {
-        if self.sheet {
-            self.note_bonuses(&item);
-        }
         let state = &mut self.state;
         match &item {
             Held::Feat(key, values) => {
@@ -214,9 +211,6 @@ impl<'a> Walker<'a> {
             }
             Held::Feature(key) => {
                 add_feature(state, key);
-                if self.engine.catalog.ability_bonuses(key).is_some() {
-                    self.refresh_ability_scores();
-                }
                 for (feat, values) in self.favoured_weapon_feats(key) {
                     self.hold(Held::Feat(feat, values), None);
                 }
@@ -296,9 +290,6 @@ impl<'a> Walker<'a> {
         }
         match &item {
             Held::SelectionOption(key, _) if self.raises_bab(key) => self.refresh_bab(),
-            Held::Feature(key) if self.engine.catalog.floor(key).is_some() => {
-                self.refresh_floors();
-            }
             Held::MythicFeat(key, _) if self.removes_penalty(key) => {
                 self.refresh_ability_scores();
             }
@@ -352,9 +343,6 @@ impl<'a> Walker<'a> {
                     if *count == 0 {
                         state.features.remove(key);
                     }
-                }
-                if self.engine.catalog.ability_bonuses(key).is_some() {
-                    self.refresh_ability_scores();
                 }
                 for (feat, values) in self.favoured_weapon_feats(key) {
                     self.release(&Held::Feat(feat, values));
@@ -463,9 +451,6 @@ impl<'a> Walker<'a> {
         }
         match item {
             Held::SelectionOption(key, _) if self.raises_bab(key) => self.refresh_bab(),
-            Held::Feature(key) if self.engine.catalog.floor(key).is_some() => {
-                self.refresh_floors();
-            }
             Held::MythicFeat(key, _) if self.removes_penalty(key) => {
                 self.refresh_ability_scores();
             }
@@ -505,9 +490,10 @@ impl<'a> Walker<'a> {
             .any(|(key, _)| key == option)
     }
 
-    /// The base attack bonus: the class tables', or the most the options held set by ranks spent (Athletics III: the
-    /// ranks, and 5 more while the class tables' bonus equals the character level), or the most a feature held
-    /// raises it to (Perfect Mind: 15 + the Mythic rank). The sheet, the attack line and every prerequisite read it.
+    /// The base attack bonus: the class tables' with the stat bonuses held, or the most the options held set by ranks
+    /// spent (Athletics III: the ranks, and 5 more while the class tables' bonus equals the character level), or the
+    /// most a feature held raises it to ([`BaseAttackAtLeast`](crate::Component::BaseAttackAtLeast), Perfect Mind: 15 +
+    /// the Mythic rank). The sheet, the attack line and every prerequisite read it.
     pub(super) fn refresh_bab(&mut self) {
         let state = &self.state;
         let full = self.class_bab == state.character_level;
@@ -532,63 +518,30 @@ impl<'a> Walker<'a> {
         self.state.bab = class_bab.max(raised).max(by_rank);
     }
 
-    /// The floors of the features held (Perfect Mind: BAB 15 + MR, skill totals at the Mythic rank), and the BAB they
-    /// raise.
-    fn refresh_floors(&mut self) {
-        let catalog = &self.engine.catalog;
-        let (mut bab, mut skills) = (None, false);
-        for key in self.state.features.keys() {
-            if let Some((plus, at_rank)) = catalog.floor(key) {
-                bab = bab.max(plus);
-                skills |= at_rank;
-            }
-        }
-        self.state.bab_at_least_mythic_rank_plus = bab;
-        self.state.skill_ranks_at_least_mythic_rank = skills;
-        self.refresh_bab();
-    }
-
-    /// The character's scores: as every number reads them (with all the gear's bonuses), and as ability prerequisites
-    /// do (with the gear's bonuses that count there). Both from one base ([`own_base`](Self::own_base)).
+    /// The character's scores: as every number reads them (with every stat bonus, the gear's included), as ability
+    /// prerequisites do (with the permanent ones), and as a full ability prerequisite does (those and the `Feat` ones),
+    /// each stacked by type over every source ([`ability_amounts`](Self::ability_amounts)), then the Gold Dragon's
+    /// floor and highest-score bonus ([`with_floors`]). All from one base ([`own_base`](Self::own_base)).
     pub(super) fn refresh_ability_scores(&mut self) {
-        let (base, gear) = (self.own_base(), &self.gear);
-        let scores = self.with_feature_bonuses(WornGear::onto(gear.scores, base));
-        let permanent = if gear.permanent == gear.scores {
-            scores
-        } else {
-            self.with_feature_bonuses(WornGear::onto(gear.permanent, base))
-        };
-        // The components' stat bonuses after the gear's and the features', each score's stacked by type; an ability
-        // prerequisite counts only the permanent ones (ticket 295).
-        // A full ability prerequisite reads the permanent scores and the `Feat` ones.
-        (
-            self.state.ability_scores,
-            self.state.permanent_ability_scores,
-            self.state.full_ability_scores,
-        ) = if self.engine.catalog.has_components() {
-            let amounts = self.component_ability_amounts();
-            let permanent = WornGear::onto(amounts.permanent, permanent);
-            (
-                WornGear::onto(amounts.every, scores),
-                permanent,
-                WornGear::onto(amounts.feat, permanent),
-            )
-        } else {
-            (scores, permanent, permanent)
-        };
+        let base = self.own_base();
+        let amounts = self.ability_amounts(true);
+        let (floor, highest) = self.ability_floors();
+        let scores = with_floors(WornGear::onto(amounts.every, base), floor, highest);
+        let permanent = with_floors(WornGear::onto(amounts.permanent, base), floor, highest);
+        self.state.ability_scores = scores;
+        self.state.permanent_ability_scores = permanent;
+        self.state.full_ability_scores = WornGear::onto(amounts.feat, permanent);
     }
 
     /// The character's scores without gear: the base scores, without the race's penalties while a mythic feat removes
-    /// them (Destiny Beyond Birth), then the bonuses of every feature held ([`with_feature_bonuses`]).
-    ///
-    /// [`with_feature_bonuses`]: Self::with_feature_bonuses
+    /// them (Destiny Beyond Birth), with every other stat bonus and the Gold Dragon's floor and highest-score bonus.
     pub(super) fn own_scores(&self) -> AbilityScores {
-        let scores = self.with_feature_bonuses(self.own_base());
-        if self.engine.catalog.has_components() {
-            WornGear::onto(self.component_ability_amounts().every, scores)
-        } else {
-            scores
-        }
+        let (floor, highest) = self.ability_floors();
+        with_floors(
+            WornGear::onto(self.ability_amounts(false).every, self.own_base()),
+            floor,
+            highest,
+        )
     }
 
     /// The base scores, without the race's penalties while a mythic feat removes them (Destiny Beyond Birth).
@@ -616,23 +569,6 @@ impl<'a> Walker<'a> {
             }
         }
         base
-    }
-
-    /// `base` (with or without the gear's amounts, [`WornGear`]) with the bonuses of every feature held, once per grant.
-    /// Gear counts before the features (the user's choice, ticket 163), so a belt that makes another score the highest
-    /// moves a "highest score" bonus (Perfect Body) to it.
-    fn with_feature_bonuses(&self, base: AbilityScores) -> AbilityScores {
-        let catalog = &self.engine.catalog;
-        let bonuses = self
-            .state
-            .features
-            .iter()
-            .filter_map(|(key, count)| {
-                let bonuses = catalog.ability_bonuses(key)?;
-                Some(std::iter::repeat_n(bonuses, usize::from(*count)).flatten())
-            })
-            .flatten();
-        with_bonuses(base, bonuses)
     }
 }
 

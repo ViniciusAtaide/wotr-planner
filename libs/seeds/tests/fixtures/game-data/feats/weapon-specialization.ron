@@ -7,4 +7,7 @@
     parameter: Weapon,
     repeat: PerValue,
     prerequisite: All([FeatForSameValue("weapon-focus"), ClassLevel(class: "fighter", level: 4)]),
+    components: [
+        WeaponSpecialization,
+    ],
 )

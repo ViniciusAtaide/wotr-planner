@@ -1,17 +1,26 @@
 //! The attack line: one base weapon's attacks at a point of a Build (ticket 114).
 //!
 //! Unconditional numbers only, from what the Build fixes: the iterative attacks from BAB; the character's
-//! Strength, its gear's bonuses included (Dexterity to attack for a ranged weapon, or with Weapon Finesse and a
-//! finessable weapon when higher;
-//! 1½ times the Strength bonus to damage two-handed, none for a weapon that shoots unless the game gives it the
-//! Strength trait, as the sling staff); Weapon Focus, Greater Weapon
-//! Focus, Weapon Specialization and Greater Weapon Specialization held for the weapon; Improved Critical's doubled
-//! threat range and the Trickster's critical feats after it (ticket 131); and Power Attack's trade beside it. Everything else is [`ATTACK_LINE_LEAVES_OUT`].
+//! Strength, its gear's bonuses included (Dexterity to attack for a ranged weapon, or with Weapon Finesse's flag and a
+//! finessable weapon when higher; 1½ times the Strength bonus to damage two-handed, none for a weapon that shoots unless
+//! the game gives it the Strength trait, as the sling staff); and the components of the feats held for the weapon
+//! (ticket 297): Weapon Focus and Greater Weapon Focus ([`WeaponFocus`]), Weapon Specialization and its greater
+//! ([`WeaponSpecialization`]), Improved Critical's doubled threat range and the Trickster's critical feats after it
+//! ([`ImprovedCritical`], [`CriticalEdge`], [`CriticalMultiplier`]; ticket 131); and Power Attack's trade beside it
+//! ([`PowerAttack`]). Everything else is [`ATTACK_LINE_LEAVES_OUT`].
+//!
+//! [`WeaponFocus`]: crate::Component::WeaponFocus
+//! [`WeaponSpecialization`]: crate::Component::WeaponSpecialization
+//! [`ImprovedCritical`]: crate::Component::ImprovedCritical
+//! [`CriticalEdge`]: crate::Component::CriticalEdge
+//! [`CriticalMultiplier`]: crate::Component::CriticalMultiplier
+//! [`PowerAttack`]: crate::Component::PowerAttack
 
 use std::collections::BTreeSet;
 
 use super::LeftOut;
 use crate::build::BuildStart;
+use crate::component::{Component, MechanicsFlag};
 use crate::game_data::{Ability, Dice, Handedness, Ranged, Weapon};
 use crate::keys::{FeatKey, WeaponKey};
 use crate::parameter::Parameter;
@@ -157,28 +166,29 @@ impl Engine {
             .collect()
     }
 
-    /// The weapon an attack line is drawn for when nobody has chosen one: that of the Build's first Weapon Focus
-    /// with stats, by level (in key order within a level); `None` without one.
+    /// The weapon an attack line is drawn for when nobody has chosen one: that of the Build's first Weapon Focus (a feat
+    /// with a [`WeaponFocus`](Component::WeaponFocus) requiring no other, not Greater Weapon Focus) with stats, by level
+    /// (in key order within a level); `None` without one.
     pub fn default_attack_weapon(&self, sheet: &Sheet) -> Option<WeaponKey> {
-        let focus = FeatKey::new(WEAPON_FOCUS);
         let empty = CharacterState::default();
         let mut before = &empty;
         for level in &sheet.levels {
             let state = &level.state;
-            let first = state
-                .feat_values
-                .get(&focus)
-                .into_iter()
-                .flat_map(|values| values.keys())
-                .filter(|value| !before.has_feat_for(&focus, value))
-                .find_map(|value| match value {
-                    Parameter::Weapon(key) => self
-                        .catalog
-                        .weapon(key)
-                        .is_some_and(|weapon| weapon.stats.is_some())
-                        .then(|| key.clone()),
-                    _ => None,
-                });
+            let focus = (state.feat_values.keys()).filter(|feat| {
+                self.feat_kind(feat) == Some(Kind::Focus) && self.feat_depth(feat) == 0
+            });
+            let first = focus.into_iter().find_map(|feat| {
+                (state.feat_values[feat].keys())
+                    .filter(|value| !before.has_feat_for(feat, value))
+                    .find_map(|value| match value {
+                        Parameter::Weapon(key) => self
+                            .catalog
+                            .weapon(key)
+                            .is_some_and(|weapon| weapon.stats.is_some())
+                            .then(|| key.clone()),
+                        _ => None,
+                    })
+            });
             if first.is_some() {
                 return first;
             }
@@ -193,7 +203,7 @@ impl Engine {
         let scores = &state.ability_scores;
         let stats = self.catalog.weapon(weapon)?.stats?;
         let finesse = stats.finesse
-            && state.feat_count(&FeatKey::new(WEAPON_FINESSE)) > 0
+            && state.flags.contains_key(&MechanicsFlag::WeaponFinesse)
             && scores.dexterity > scores.strength;
         let to_attack = if stats.ranged.is_some() || finesse {
             Ability::Dexterity
@@ -225,61 +235,111 @@ impl Engine {
                 damage,
             });
         }
+        // The feats held for the weapon with a kind the line reads, focus before specialization, a feat after those it
+        // requires.
         let value = Parameter::Weapon(weapon.clone());
-        for (feat, attack, damage) in WEAPON_FEATS {
-            if state.has_feat_for(&FeatKey::new(feat), &value) {
+        let mut feats: Vec<(&FeatKey, Kind)> = (state.feat_values.iter())
+            .filter(|(_, values)| values.contains_key(&value))
+            .filter_map(|(feat, _)| Some((feat, self.feat_kind(feat)?)))
+            .collect();
+        feats.sort_by_cached_key(|(feat, kind)| (*kind, self.feat_depth(feat), *feat));
+        let (mut improved, mut widened, mut multiplier) = (false, 0u8, stats.multiplier);
+        for (feat, _) in &feats {
+            for component in self.catalog.feat_components(feat) {
+                let (attack, damage) = match component {
+                    Component::WeaponFocus => (1, 0),
+                    Component::WeaponSpecialization => (0, 2),
+                    Component::ImprovedCritical => {
+                        improved = true;
+                        continue;
+                    }
+                    Component::CriticalEdge => {
+                        widened = widened.saturating_add(1);
+                        continue;
+                    }
+                    Component::CriticalMultiplier => {
+                        multiplier = multiplier.saturating_add(1);
+                        continue;
+                    }
+                    _ => continue,
+                };
                 parts.push(AttackPart {
-                    name: self.feat_name(&FeatKey::new(feat)).to_owned(),
+                    name: self.feat_name(feat).to_owned(),
                     attack,
                     damage,
                 });
             }
         }
         let attack: i16 = parts.iter().map(|part| part.attack).sum();
-        let held = |feat: &str| state.has_feat_for(&FeatKey::new(feat), &value);
+        let power_attack = (state.feats.keys()).any(|feat| {
+            (self.catalog.feat_components(feat).iter())
+                .any(|component| matches!(component, Component::PowerAttack))
+        });
         Some(AttackLine {
             weapon: weapon.clone(),
             attacks: iteratives(state.bab).map(|base| base + attack).collect(),
             damage: stats.damage,
             damage_bonus: parts.iter().map(|part| part.damage).sum(),
             threat: {
-                let improved = if held(IMPROVED_CRITICAL) {
+                let improved = if improved {
                     // As many rolls again below the range: 19–20 (two rolls) becomes 17–20.
                     stats.threat.saturating_sub(21 - stats.threat)
                 } else {
                     stats.threat
                 };
-                let widened = THREAT_RANGE_FEATS.iter().filter(|feat| held(feat)).count();
-                improved
-                    .saturating_sub(u8::try_from(widened).unwrap_or(u8::MAX))
-                    .max(1)
+                improved.saturating_sub(widened).max(1)
             },
-            multiplier: stats.multiplier + u8::from(held(CRITICAL_MULTIPLIER_FEAT)),
-            power_attack: (stats.ranged.is_none()
-                && state.feat_count(&FeatKey::new(POWER_ATTACK)) > 0)
-                .then(|| power_attack(state.bab, stats.handedness)),
+            multiplier,
+            power_attack: (stats.ranged.is_none() && power_attack)
+                .then(|| power_attack_at(state.bab, stats.handedness)),
             parts,
             leaves_out: ATTACK_LINE_LEAVES_OUT,
         })
     }
+
+    /// The attack-line kind a feat's components give, when they give one: its parts' order.
+    fn feat_kind(&self, feat: &FeatKey) -> Option<Kind> {
+        (self.catalog.feat_components(feat).iter()).find_map(|component| match component {
+            Component::WeaponFocus => Some(Kind::Focus),
+            Component::WeaponSpecialization => Some(Kind::Specialization),
+            Component::ImprovedCritical
+            | Component::CriticalEdge
+            | Component::CriticalMultiplier => Some(Kind::Critical),
+            _ => None,
+        })
+    }
+
+    /// How far down its chain of attack-line feats a feat is: 0 for one whose prerequisite names none, else one more
+    /// than the furthest it names (Weapon Focus 0, Greater Weapon Focus and Weapon Specialization 1, Greater Weapon
+    /// Specialization 2), so a feat comes after those it requires.
+    fn feat_depth(&self, feat: &FeatKey) -> usize {
+        let mut named = std::collections::HashSet::new();
+        if let Some(prerequisite) = self
+            .catalog
+            .feat(feat)
+            .and_then(|f| f.prerequisite.as_ref())
+        {
+            prerequisite.collect_feats(&mut named);
+        }
+        (named.into_iter())
+            .filter(|key| *key != feat && self.feat_kind(key).is_some())
+            .map(|key| self.feat_depth(key) + 1)
+            .max()
+            .unwrap_or(0)
+    }
 }
 
-const WEAPON_FOCUS: &str = "weapon-focus";
-const POWER_ATTACK: &str = "power-attack";
-const IMPROVED_CRITICAL: &str = "improved-critical";
-const WEAPON_FINESSE: &str = "weapon-finesse";
-/// The Trickster's critical feats (`trickster#improved-improved-critical` and on), ordinary feats taken for a weapon:
-/// each of these widens its threat range by one more roll, after Improved Critical's doubling…
-const THREAT_RANGE_FEATS: [&str; 2] = [
-    "improved-improved-critical",
-    "improved-improved-improved-critical",
-];
-/// …and this one adds 1 to its critical multiplier.
-const CRITICAL_MULTIPLIER_FEAT: &str = "improved-improved-improved-critical-improved";
+/// An attack-line kind of a feat, in the order the line lists its parts.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+enum Kind {
+    Focus,
+    Specialization,
+    Critical,
+}
 
 /// Power Attack at a BAB, as the guide has it: −1 to attack for +2 damage, one step more at BAB 4 and every four
 /// after; +3 damage a step with a two-handed weapon.
-fn power_attack(bab: u8, handedness: Handedness) -> PowerAttack {
+fn power_attack_at(bab: u8, handedness: Handedness) -> PowerAttack {
     let steps = 1 + i16::from(bab) / 4;
     let per_step = match handedness {
         Handedness::TwoHanded => 3,
@@ -290,14 +350,6 @@ fn power_attack(bab: u8, handedness: Handedness) -> PowerAttack {
         damage_bonus: steps * per_step,
     }
 }
-
-/// The feats that count when held for the weapon, each with what it adds to attack and to damage.
-const WEAPON_FEATS: [(&str, i16, i16); 4] = [
-    ("weapon-focus", 1, 0),
-    ("greater-weapon-focus", 1, 0),
-    ("weapon-specialization", 0, 2),
-    ("greater-weapon-specialization", 0, 2),
-];
 
 /// An ability score's modifier: −1 for 8 or 9, +4 for 18 or 19.
 fn modifier(score: u8) -> i16 {

@@ -1,1 +1,1 @@
-(key: "inquisitor/cunning-initiative", blueprint: "6be8b4031d8b9fc4f879b72b5428f1e0", name: "Cunning Initiative", summary: "From 2nd level, adds both Wisdom and Dexterity modifiers to initiative.", guide: "inquisitor#cunning-initiative")
+(key: "inquisitor/cunning-initiative", blueprint: "6be8b4031d8b9fc4f879b72b5428f1e0", name: "Cunning Initiative", summary: "From 2nd level, adds both Wisdom and Dexterity modifiers to initiative.", guide: "inquisitor#cunning-initiative", components: [StatBonus(stat: Initiative, value: Rank((base: StatBonus(Wisdom))))])

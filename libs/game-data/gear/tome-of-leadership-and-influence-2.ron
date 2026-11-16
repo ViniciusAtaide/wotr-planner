@@ -4,7 +4,7 @@
     name: "Tome of Leadership and Influence +2",
     slot: Usable,
     guide: "items#equipable-and-consumable",
-    bonuses: [
-        (target: Ability(Charisma), amount: 2, kind: Inherent),
+    components: [
+        GearStat(stat: Ability(Charisma), value: 2, descriptor: Inherent),
     ],
 )

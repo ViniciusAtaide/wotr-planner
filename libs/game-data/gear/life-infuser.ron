@@ -4,12 +4,12 @@
     name: "Life Infuser",
     slot: Armour,
     guide: "items#unique-armour",
-    bonuses: [
-        (target: Ability(Constitution), amount: 8, kind: Armour),
-        (target: Ability(Strength), amount: 8, kind: Armour),
-    ],
     always_on: [
         "A +5 breastplate",
         "Moderate fortification",
+    ],
+    components: [
+        GearStat(stat: Ability(Constitution), value: 8, descriptor: Armour),
+        GearStat(stat: Ability(Strength), value: 8, descriptor: Armour),
     ],
 )

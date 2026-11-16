@@ -5,11 +5,11 @@
     name: "Battlemage's Headband",
     slot: Headwear,
     guide: "items#headwear",
-    bonuses: [
-        (target: Ability(Intelligence), amount: 2, kind: Enhancement),
-        (target: Ability(Charisma), amount: 2, kind: Enhancement),
-    ],
     other_effects: [
         "Killing with a melee weapon empowers the next spell cast.",
     ],
+components: [
+    GearStat(stat: Ability(Intelligence), value: 2, descriptor: Enhancement),
+    GearStat(stat: Ability(Charisma), value: 2, descriptor: Enhancement),
+],
 )

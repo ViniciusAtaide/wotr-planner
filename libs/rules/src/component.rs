@@ -10,6 +10,11 @@
 //! - the grants hold their facts through the walk's holds, as a level row's do;
 //! - the stat bonuses feed the ability scores, the base attack bonus and the bonuses in force
 //!   ([`BonusInForce`](crate::BonusInForce)), with their values worked out from the state at that level ([`Value`]);
+//!   every source's bonuses to one stat stack together by type, a gear item's ([`GearStat`](Component::GearStat))
+//!   included ([`game_stacking`]);
+//! - the caster line's kinds (a spell DC, Spell Focus and Expanded Arsenal, spell penetration, concentration, Heighten
+//!   Spell) join the bonuses in force, and the attack line reads the kinds of the feats held for its weapon (ticket
+//!   297: the numbers the planner held in hand-shaped fields and named feats);
 //! - the prerequisite modifiers ([`PrerequisiteClassLevels`](Component::PrerequisiteClassLevels),
 //!   [`PrerequisiteStat`](Component::PrerequisiteStat)) change what a prerequisite reads off the state.
 //!
@@ -20,8 +25,10 @@ use std::collections::{BTreeSet, HashMap};
 
 use serde::{Deserialize, Serialize};
 
+use crate::bonus::SpellScope;
 use crate::build::AbilityScores;
 use crate::game_data::{Ability, Alignment, GameData, Save, SpellType, WeaponProficiency};
+use crate::gear::GearTarget;
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, RaceKey, SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
@@ -150,6 +157,107 @@ pub enum Component {
     /// While held, a mechanics flag is set: the game's `AddMechanicsFeature`
     /// (`UnitLogic/FactLogic/AddMechanicsFeature.cs` `OnTurnOn`).
     Flag(MechanicsFlag),
+    /// While held, a bonus to the save DC of the spells of `scope`: the game's `IncreaseSpellSchoolDC` (a school),
+    /// `IncreaseSpellDescriptorDC` (an energy or a subschool, the game's spell descriptors), `IncreaseAllSpellsDC`, and
+    /// `ArcaneBloodlineArcana` (a spell with metamagic but Heighten), each adding its bonus through
+    /// `RuleCalculateAbilityParams.AddBonusDC` in `OnEventAboutToTrigger` (`Designers/Mechanics/Facts/…`). A scope of
+    /// [`Value`](crate::SpellScope::Value) is the school or energy its entry is held for (Elemental Focus (Fire)).
+    SpellDc { scope: SpellScope, value: Value },
+    /// Spell Focus: `bonus` to the DC of the spells of the school its entry is held for, doubled while `mythic_focus` is
+    /// held for that school (or for any school while an Expanded Arsenal names this one), and none for a school an
+    /// Expanded Arsenal names, whose spells take [`ExpandedArsenal`](Component::ExpandedArsenal)'s bonus instead: the
+    /// game's `SpellFocusParametrized` (`Designers/Mechanics/Facts/SpellFocusParametrized.cs` `OnEventAboutToTrigger`,
+    /// `GetBonusDC`; `UntypedStackable`).
+    SpellFocus { bonus: i8, mythic_focus: Fact },
+    /// Expanded Arsenal held for a school: a spell of any school an Expanded Arsenal is held for gets, from each
+    /// Expanded Arsenal held, the most the `focuses` held for one other school add up to (each its
+    /// [`SpellFocus`](Component::SpellFocus) bonus, doubled or not): the game's `ExpandedArsenalMagicSchools`
+    /// (`Designers/Mechanics/Facts/ExpandedArsenalMagicSchools.cs` `OnTurnOn`, `OnEventAboutToTrigger`: each fact's handler
+    /// checks the shared list of schools, so two add it twice). Its `m_SchoolMastery` caster level is left out with
+    /// School Mastery.
+    ExpandedArsenal { focuses: BTreeSet<Fact> },
+    /// While held, and while `only_while` holds when it is set, a bonus to caster level checks against spell
+    /// resistance: the game's `SpellPenetrationBonus` (`Designers/Mechanics/Facts/SpellPenetrationBonus.cs`
+    /// `OnEventAboutToTrigger`, its `CheckFact` and `m_RequiredFact` a held fact). Spell Penetration (Mythic)'s two
+    /// stages, which the game holds as two features its `AddFeatureIfHasFact` grants with and without Greater Spell
+    /// Penetration and `RecalculateOnFactsChange` swaps (`SpellPenetrationMythicFeat`
+    /// 51b6b22ff184eef46a675449e837365d), are two of these with a `Has` and a `HasNot`.
+    SpellPenetration {
+        value: Value,
+        #[serde(default, rename = "while", skip_serializing_if = "Option::is_none")]
+        only_while: Option<Condition>,
+    },
+    /// While held, a bonus to concentration checks: the game's `ConcentrationBonus`
+    /// (`Designers/Mechanics/Facts/ConcentrationBonus.cs` `GetStaticConcentrationBonus`).
+    Concentration(Value),
+    /// While held, the character may apply a metamagic: the game's `AddMetamagicFeat`
+    /// (`UnitLogic/FactLogic/AddMetamagicFeat.cs`). The caster line reads Heighten Spell's.
+    Metamagic(MetamagicKind),
+    /// +1 to attack rolls with the weapon its entry is held for: the game's `WeaponFocusParametrized`
+    /// (`Designers/Mechanics/Facts/WeaponFocusParametrized.cs` `OnEventAboutToTrigger`, `UntypedStackable`). Its
+    /// `m_MythicFocus` doubling is a mythic feat's, which the attack line leaves out.
+    WeaponFocus,
+    /// +2 to damage with the weapon its entry is held for: the game's `WeaponSpecializationParametrized` with `Mythic`
+    /// unset (`Designers/Mechanics/Facts/WeaponSpecializationParametrized.cs` `OnEventAboutToTrigger`).
+    WeaponSpecialization,
+    /// The weapon its entry is held for threatens on twice the rolls: the game's `ImprovedCriticalParametrized`
+    /// (`Designers/Mechanics/Facts/ImprovedCriticalParametrized.cs`, `DoubleCriticalEdge`).
+    ImprovedCritical,
+    /// The weapon its entry is held for threatens on one roll more, after Improved Critical's doubling: the game's
+    /// `ImprovedCriticalEdgeParametrized` (`Designers/Mechanics/Facts/ImprovedCriticalEdgeParametrized.cs`,
+    /// `CriticalEdgeBonus`).
+    CriticalEdge,
+    /// +1 to the critical multiplier of the weapon its entry is held for: the game's
+    /// `ImprovedCriticalMythicParametrized` (`Designers/Mechanics/Facts/ImprovedCriticalMythicParametrized.cs`,
+    /// `AdditionalCriticalMultiplier`).
+    CriticalMultiplier,
+    /// While held, Power Attack's trade: the game's `AddFacts` of `PowerAttackToggleAbility` with `PowerAttackWatcher`
+    /// (`PowerAttackFeature` 9972f33f977fc724c838e59641b2fca5); the attack line gives the trade as the guide has it.
+    PowerAttack,
+    /// One always-on bonus of a gear item, the only kind a gear item holds: the game's `AddStatBonusEquipment`,
+    /// `AllSavesBonusEquipment` and the flat bonuses of the facts an item gives its wearer (`AddUnitFeatureEquipment`;
+    /// `Designers/Mechanics/EquipmentEnchants/AddStatBonusEquipment.cs` `OnTurnOn`, with the item as the modifier's
+    /// source). Its bonuses stack with every other source's by type ([`game_stacking`]), and an enhancement one counts
+    /// toward ability prerequisites ([`Descriptor::is_permanent`]). Never 0; a penalty is untyped.
+    GearStat {
+        stat: GearTarget,
+        value: i8,
+        #[serde(default, skip_serializing_if = "Descriptor::is_untyped")]
+        descriptor: Descriptor,
+    },
+    /// While held, the highest ability score (after every stat bonus; on a tie the first in Str, Dex, Con, Int, Wis, Cha
+    /// order) gets this for each rank of its entry: the Gold Dragon's Perfect Body, Mind and Soul. The game applies one
+    /// buff per score through a tree of conditions (`AddFactContextActions` on `DragonLevel1MaxAbilityStrengthFeature`
+    /// 6a7f8ee85c7f42228c83bb9d2f1711f2 and its siblings); this is that pattern.
+    HighestAbilityBonus(i8),
+    /// While held, every ability score is at least this, after every stat bonus and before
+    /// [`HighestAbilityBonus`](Component::HighestAbilityBonus): Perfect Body's 14 and Perfect Mind's 18. The game's
+    /// per-score overrides (`DragonLevel2StrengthOverride` 9ed55389d2079714eab8495957964af2: a shared value over the
+    /// score's base value) read the score before the gear's and the other bonuses; this reads it after them, as the
+    /// planner always has (the data note lists the difference).
+    AbilityAtLeast(u8),
+    /// While held, the base attack bonus is at least this plus the Mythic rank: Perfect Mind's
+    /// `DragonLevel2BABOverride` f4af14e9f4408d44c830d891fee8f4a5 (a property of the base attack bonus less this and the
+    /// Mythic rank, the game's code; its text says 15).
+    BaseAttackAtLeast(u8),
+    /// While held, every skill is a class skill and a skill's total counts at least the Mythic rank for its ranks:
+    /// Perfect Mind's `AddGoldenDragonSkillBonus` (`UnitLogic/FactLogic/AddGoldenDragonSkillBonus.cs` `OnTurnOn`: a
+    /// modifier of the Mythic rank less the skill's base value, at least 0) with its class skills. A skill-rank
+    /// prerequisite still reads the ranks spent.
+    GoldenDragonSkills,
+    /// While held, the feature rises one step each time the rank's value rises past one of its bands: a
+    /// `ContextRankConfig` on the level its numbers read (`ContextRankConfig.GetValue`), so its steps follow that level
+    /// whatever rows are traded (ticket 254: Infernal Resistance on bloodrager levels). The step is the value
+    /// ([`Engine::steps_reached`](crate::Engine::steps_reached)); the levels it rises at are worked out from it.
+    Scales(RankConfig),
+}
+
+/// A metamagic a [`Metamagic`](Component::Metamagic) component lets the character apply: the game's `Metamagic` the
+/// planner reads.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub enum MetamagicKind {
+    /// A spell cast as one of a higher level (the caster line's heightened DC).
+    Heighten,
 }
 
 /// The two prerequisite groups of `BlueprintFeature.MeetsPrerequisites`.
@@ -324,6 +432,9 @@ pub enum StatRef {
     /// A skill's ranks.
     Skill(SkillKey),
     BaseAttack,
+    /// The skill a parameterised entry is held for (Skill Focus (Persuasion)): only in a value
+    /// ([`RankBase::BaseStat`]), on an entry taken for a skill.
+    Parameter,
 }
 
 /// How a held [`PrerequisiteStat`](Component::PrerequisiteStat) changes the value a prerequisite reads
@@ -435,12 +546,55 @@ pub enum StatTarget {
     BaseAttack,
     Save(Save),
     Initiative,
+    /// The stat a parameterised entry is held for, on an entry taken for a skill or a stat: Skill Focus (Persuasion)'s
+    /// skill, Stat Focus (Will)'s save. The planner holds those feats parameterised; the game has a feature per skill
+    /// (`SkillFocusAcrobatics` 52dd89af385466c499338b7297896ded), its selections' shape (298). A stat with no line
+    /// (Stat Focus (Strength)) counts in no total.
+    Parameter,
     /// The stats the planner has no line for yet: kept in the data and counted in no total.
     ArmourClass,
     CombatManeuverBonus,
     CombatManeuverDefense,
     HitPoints,
     Speed,
+}
+
+impl StatTarget {
+    /// The stat a bonus adds to for an entry held for `value`: a [`Parameter`](StatTarget::Parameter) one is the
+    /// value's skill, initiative or save (`None` for a stat with no line, or no value); any other is itself.
+    pub(crate) fn resolve(
+        &self,
+        value: Option<&crate::parameter::Parameter>,
+    ) -> Option<StatTarget> {
+        use crate::parameter::{Parameter as P, Stat};
+        match (self, value) {
+            (Self::Parameter, Some(P::Skill(skill))) => Some(Self::Skill(skill.clone())),
+            (Self::Parameter, Some(P::Stat(stat))) => match stat {
+                Stat::Initiative => Some(Self::Initiative),
+                Stat::Fortitude => Some(Self::Save(Save::Fortitude)),
+                Stat::Reflex => Some(Self::Save(Save::Reflex)),
+                Stat::Will => Some(Self::Save(Save::Will)),
+                _ => None,
+            },
+            (Self::Parameter, _) => None,
+            (stat, _) => Some(stat.clone()),
+        }
+    }
+}
+
+/// The amount a [`StatBonus`](Component::StatBonus) adds at the state of `context`: its value times its multiplier, at
+/// least its minimum when it has one (`AddContextStatBonus.CalculateBaseValue`), kept within `i16`.
+pub(crate) fn stat_bonus_amount(
+    value: &Value,
+    multiplier: i8,
+    at_least: Option<i16>,
+    context: &ValueContext<'_>,
+) -> i16 {
+    let mut amount = value.at(context) * i32::from(multiplier);
+    if let Some(minimum) = at_least {
+        amount = amount.max(i32::from(minimum));
+    }
+    i16::try_from(amount).unwrap_or(if amount < 0 { i16::MIN } else { i16::MAX })
 }
 
 /// The type of a stat bonus: the game's `ModifierDescriptor`, the values blueprints the planner reaches use.
@@ -501,49 +655,47 @@ impl Descriptor {
     }
 
     /// Whether an ability prerequisite counts a bonus of the type: `ModifiableValue.Modifier.IsPermanent`, a racial
-    /// one (an enhancement counts only from an item, and a component is never one), which
-    /// `ModifiableValueAttributeStat.CalculatePermanentValue` filters by.
-    pub fn is_permanent(self) -> bool {
-        self == Self::Racial
+    /// one, or an enhancement one from an item (`from_item`: a gear item's
+    /// [`GearStat`](Component::GearStat)), which `ModifiableValueAttributeStat.CalculatePermanentValue` filters by.
+    pub fn is_permanent(self, from_item: bool) -> bool {
+        self == Self::Racial || (from_item && self == Self::Enhancement)
+    }
+
+    /// Lower case, as a summary prints it ("enhancement", "natural armour"); "" for the untyped ones (`None`,
+    /// `UntypedStackable`).
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Untyped | Self::UntypedStackable => "",
+            Self::Alchemical => "alchemical",
+            Self::Armour => "armour",
+            Self::Circumstance => "circumstance",
+            Self::Competence => "competence",
+            Self::Deflection => "deflection",
+            Self::Dodge => "dodge",
+            Self::Enhancement => "enhancement",
+            Self::Feat => "feat",
+            Self::Focus => "focus",
+            Self::Inherent => "inherent",
+            Self::Insight => "insight",
+            Self::Luck => "luck",
+            Self::Morale => "morale",
+            Self::Mythic => "mythic",
+            Self::NaturalArmour => "natural armour",
+            Self::Penalty => "penalty",
+            Self::Profane => "profane",
+            Self::Racial => "racial",
+            Self::Resistance => "resistance",
+            Self::Sacred => "sacred",
+            Self::Shield => "shield",
+            Self::Size => "size",
+            Self::Trait => "trait",
+        }
     }
 
     /// Whether a full ability prerequisite counts a bonus of the type beside the permanent ones: a `Feat` one
     /// (`PrerequisiteFullStatValue.GetFullStatValue`).
     pub fn counts_in_full_value(self) -> bool {
         self == Self::Feat
-    }
-
-    /// The planner's [`BonusType`](crate::BonusType) a bonus in force shows: the same type, or untyped for the game's
-    /// own ones (`UntypedStackable`, `Feat`, `Focus`, `Mythic`, `Penalty`, `Trait`).
-    pub fn bonus_type(self) -> crate::BonusType {
-        use crate::BonusType as T;
-        match self {
-            Self::Alchemical => T::Alchemical,
-            Self::Armour => T::Armour,
-            Self::Circumstance => T::Circumstance,
-            Self::Competence => T::Competence,
-            Self::Deflection => T::Deflection,
-            Self::Dodge => T::Dodge,
-            Self::Enhancement => T::Enhancement,
-            Self::Inherent => T::Inherent,
-            Self::Insight => T::Insight,
-            Self::Luck => T::Luck,
-            Self::Morale => T::Morale,
-            Self::NaturalArmour => T::NaturalArmour,
-            Self::Profane => T::Profane,
-            Self::Racial => T::Racial,
-            Self::Resistance => T::Resistance,
-            Self::Sacred => T::Sacred,
-            Self::Shield => T::Shield,
-            Self::Size => T::Size,
-            Self::Untyped
-            | Self::UntypedStackable
-            | Self::Feat
-            | Self::Focus
-            | Self::Mythic
-            | Self::Penalty
-            | Self::Trait => T::Untyped,
-        }
     }
 }
 
@@ -668,6 +820,9 @@ pub enum RankBase {
     StatBonus(Ability),
     /// A stat's base value: an ability's score before any modifier, the race's included (they are `Racial` modifiers:
     /// `ElfRace`'s `AddStatBonus`, `SelectRaceStat.Apply`), a skill's ranks (`BaseStat`: `ModifiableValue.BaseValue`).
+    /// A skill's ranks are those its total counts, with [`GoldenDragonSkills`](Component::GoldenDragonSkills)' floor
+    /// (`CharacterState::skill_ranks_in_total`), as the planner's ten-ranks bonuses always read them; the game's floor
+    /// is a modifier, which leaves `BaseValue` alone (the data note of ticket 297 lists it).
     BaseStat(StatRef),
     /// The base attack bonus (`BaseAttack`).
     BaseAttack,
@@ -772,18 +927,37 @@ pub struct SharedValue {
     pub modifier: i8,
 }
 
-/// What a value reads besides the state: the rank of the entry holding it, the ability scores' base values, and the
-/// class of an archetype.
+/// What a value reads besides the state: the rank of the entry holding it, the value it is held for, the ability
+/// scores' base values, and the class of an archetype.
 pub(crate) struct ValueContext<'a> {
     pub state: &'a CharacterState,
     /// The rank of the entry whose component it is ([`Value::PerRank`]).
     pub own_rank: u8,
+    /// The value the entry is held for, for a parameterised one ([`StatRef::Parameter`]).
+    pub value: Option<&'a Parameter>,
     /// The scores bought and raised at levels, without the race's modifiers ([`RankBase::BaseStat`]).
     pub base_scores: AbilityScores,
     pub archetype_class: &'a dyn Fn(&ArchetypeKey) -> Option<&'a ClassKey>,
 }
 
 impl Value {
+    /// Whether something held besides its own entry may change it: a rank on a fact's rank, a score or the base
+    /// attack bonus. A flat value, one per own rank (its entry's hold works it out again) and a rank on a level or the
+    /// Mythic rank (worked out again at each level and rank) don't.
+    pub(crate) fn reads_state(&self) -> bool {
+        match self {
+            Self::Flat(_) | Self::PerRank(_) => false,
+            Self::Rank(config) => !matches!(
+                &config.base,
+                RankBase::ClassLevel { .. } | RankBase::CharacterLevel | RankBase::MythicLevel
+            ),
+            Self::Shared(shared) => [&shared.count, &shared.bonus]
+                .into_iter()
+                .flatten()
+                .any(|part| part.reads_state()),
+        }
+    }
+
     /// The value at the state of `context`.
     pub(crate) fn at(&self, context: &ValueContext<'_>) -> i32 {
         match self {
@@ -874,7 +1048,11 @@ impl RankBase {
             Self::BaseStat(StatRef::Ability(ability)) => {
                 i32::from(context.base_scores.get(*ability))
             }
-            Self::BaseStat(StatRef::Skill(skill)) => i32::from(state.skill_ranks(skill)),
+            Self::BaseStat(StatRef::Skill(skill)) => i32::from(state.skill_ranks_in_total(skill)),
+            Self::BaseStat(StatRef::Parameter) => match context.value {
+                Some(Parameter::Skill(skill)) => i32::from(state.skill_ranks_in_total(skill)),
+                _ => 0,
+            },
             Self::BaseStat(StatRef::BaseAttack) | Self::BaseAttack => i32::from(state.bab),
         }
     }
@@ -899,7 +1077,68 @@ impl Component {
             Self::SkillPoints(_) => "SkillPoints",
             Self::Proficiency { .. } => "Proficiency",
             Self::Flag(_) => "Flag",
+            Self::SpellDc { .. } => "SpellDc",
+            Self::SpellFocus { .. } => "SpellFocus",
+            Self::ExpandedArsenal { .. } => "ExpandedArsenal",
+            Self::SpellPenetration { .. } => "SpellPenetration",
+            Self::Concentration(_) => "Concentration",
+            Self::Metamagic(_) => "Metamagic",
+            Self::WeaponFocus => "WeaponFocus",
+            Self::WeaponSpecialization => "WeaponSpecialization",
+            Self::ImprovedCritical => "ImprovedCritical",
+            Self::CriticalEdge => "CriticalEdge",
+            Self::CriticalMultiplier => "CriticalMultiplier",
+            Self::PowerAttack => "PowerAttack",
+            Self::GearStat { .. } => "GearStat",
+            Self::HighestAbilityBonus(_) => "HighestAbilityBonus",
+            Self::AbilityAtLeast(_) => "AbilityAtLeast",
+            Self::BaseAttackAtLeast(_) => "BaseAttackAtLeast",
+            Self::GoldenDragonSkills => "GoldenDragonSkills",
+            Self::Scales(_) => "Scales",
         }
+    }
+
+    /// Whether it changes a number the walk keeps on the state as it goes (an ability score, the base attack bonus,
+    /// the skill points, the skill floor, a prerequisite's reading), rather than one the lines and totals read at a
+    /// level's end: the walk works those out again when an entry holding one comes or goes.
+    pub(crate) fn changes_state_numbers(&self) -> bool {
+        match self {
+            Self::StatBonus { stat, .. } => {
+                matches!(stat, StatTarget::Ability(_) | StatTarget::BaseAttack)
+            }
+            Self::SkillPoints(_)
+            | Self::PrerequisiteClassLevels { .. }
+            | Self::PrerequisiteStat { .. }
+            | Self::HighestAbilityBonus(_)
+            | Self::AbilityAtLeast(_)
+            | Self::BaseAttackAtLeast(_)
+            | Self::GoldenDragonSkills => true,
+            _ => false,
+        }
+    }
+
+    /// Whether a state number it changes may change when something else is held: a stat bonus whose value reads the
+    /// state (a rank, a fact's rank, a score), worked out again at every hold. The others change only with their
+    /// entry, the level or the Mythic rank, when the walk works them out anyway.
+    pub(crate) fn reads_state(&self) -> bool {
+        matches!(self, Self::StatBonus { value, .. } if self.changes_state_numbers() && value.reads_state())
+    }
+
+    /// Whether the walk acts on it while its entry is held: every kind the walk holds, works out or records. The
+    /// attack line's kinds, Heighten Spell's and a feature's `Scales` are read off what is held instead, so an entry
+    /// holding only those needs no activation.
+    pub(crate) fn walk_reads(&self) -> bool {
+        !matches!(
+            self,
+            Self::WeaponFocus
+                | Self::WeaponSpecialization
+                | Self::ImprovedCritical
+                | Self::CriticalEdge
+                | Self::CriticalMultiplier
+                | Self::PowerAttack
+                | Self::Metamagic(_)
+                | Self::Scales(_)
+        )
     }
 
     /// Whether it is a `Requires`, which the checked data holds compiled into its entry's prerequisite.
@@ -911,7 +1150,10 @@ impl Component {
     /// prerequisite, and gone from the checked data the engine takes) and `NoSelectionIf` (read where its selection is
     /// granted).
     pub(crate) fn applies_while_held(&self) -> bool {
-        !matches!(self, Self::Requires { .. } | Self::NoSelectionIf { .. })
+        !matches!(
+            self,
+            Self::Requires { .. } | Self::NoSelectionIf { .. } | Self::GearStat { .. }
+        )
     }
 }
 
@@ -991,7 +1233,7 @@ fn lone_or(
 
 impl Condition {
     /// The planner's prerequisite for the condition.
-    fn compile<'a>(
+    pub(crate) fn compile<'a>(
         &self,
         archetype_class: &impl Fn(&ArchetypeKey) -> Option<&'a ClassKey>,
     ) -> Prerequisite {
@@ -1054,6 +1296,8 @@ impl Condition {
                 // The base attack bonus's permanent value is its full one
                 // (`ModifiableValue.CalculatePermanentValue` filters nothing for it).
                 StatRef::BaseAttack => P::BaseAttackBonus(*value),
+                // No prerequisite reads it (the check refuses one that does): never met.
+                StatRef::Parameter => P::Not(Box::new(P::All(Vec::new()))),
             },
             Self::ClassSpellLevel(class, level) => P::ClassSpellLevel {
                 class: class.clone(),

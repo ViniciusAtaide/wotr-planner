@@ -32,14 +32,15 @@ pub struct CharacterState {
     pub fort: u8,
     pub reflex: u8,
     pub will: u8,
-    /// The character's ability scores, as every derived number sees them: the base scores, the always-on bonuses and
-    /// penalties of the gear the Build holds, stacked by type (ticket 166), then the ability bonuses of the features
-    /// held (Legend's +4). A level's skill points read the scores without the gear, and ability prerequisites read
+    /// The character's ability scores, as every derived number sees them: the base scores with every stat bonus held (an
+    /// entry's, Legend's +4, and the always-on bonuses and penalties of the gear the Build holds: ticket 166), every
+    /// source's stacked together by type, then the Gold Dragon's floor and highest-score bonus (ticket 297). A level's
+    /// skill points read the scores without the gear, and ability prerequisites read
     /// [`permanent_ability_scores`](Self::permanent_ability_scores).
     pub ability_scores: AbilityScores,
     /// The scores ability prerequisites read (ticket 252): as [`ability_scores`](Self::ability_scores), but of the
-    /// gear's bonuses only the [`counts_toward_prerequisites`](crate::BonusType::counts_toward_prerequisites) ones, an
-    /// item's Enhancement: the game's permanent value.
+    /// stat bonuses only the [permanent](crate::Descriptor::is_permanent) ones, a racial one or an item's enhancement:
+    /// the game's permanent value.
     pub permanent_ability_scores: AbilityScores,
     /// The scores a full ability prerequisite reads (ticket 295): the [`permanent`](Self::permanent_ability_scores)
     /// ones plus the components' bonuses of descriptor `Feat` (`PrerequisiteFullStatValue.GetFullStatValue`). The
@@ -111,11 +112,13 @@ pub struct CharacterState {
     pub mythic_feats: BTreeSet<MythicFeatKey>,
     /// Each parameterised mythic feat held, with the values it's held for (Improved Critical (Mythic): Longsword).
     pub mythic_feat_values: BTreeMap<MythicFeatKey, BTreeSet<Parameter>>,
-    /// While a feature held raises the BAB to at least this plus the Mythic rank (Perfect Mind: 15), this; `None`
-    /// otherwise. [`bab`](Self::bab) already counts it.
+    /// While an entry held raises the BAB to at least this plus the Mythic rank
+    /// ([`BaseAttackAtLeast`](crate::Component::BaseAttackAtLeast), Perfect Mind: 15), this; `None` otherwise.
+    /// [`bab`](Self::bab) already counts it.
     pub bab_at_least_mythic_rank_plus: Option<u8>,
-    /// Set while a feature makes every skill's total count at least the Mythic rank for its ranks (Perfect Mind).
-    /// Prerequisites still read the ranks spent.
+    /// Set while an entry makes every skill's total count at least the Mythic rank for its ranks, and every skill a
+    /// class skill ([`GoldenDragonSkills`](crate::Component::GoldenDragonSkills), Perfect Mind). Prerequisites still read
+    /// the ranks spent.
     pub skill_ranks_at_least_mythic_rank: bool,
     /// The highest spell level castable from each class taken that has a spellbook (with the prestige levels that
     /// advance it), 0 before its first: what a [`Prerequisite::ClassSpellLevel`] reads. Classes without one are left
@@ -134,8 +137,8 @@ pub struct CharacterState {
     /// The Mythic rank reached: 3 after a Legend switch, whatever the rank before.
     pub mythic_rank: u8,
     pub mythic_path: Option<MythicPathKey>,
-    /// The bonuses in force at the end of the level: the Item bonuses in the data's order, then those of the gear
-    /// the Build holds. What the caster line and the totals add up. The walk records them on the sheet's states ([`Engine::evaluate`]), and levels with the same bonuses
+    /// The bonuses in force at the end of the level: the components' of the entries held, in the order
+    /// [`BonusInForce`](crate::BonusInForce) gives, then those of the gear the Build holds. What the caster line and the totals add up. The walk records them on the sheet's states ([`Engine::evaluate`]), and levels with the same bonuses
     /// share one list; a walk that keeps no sheet (a picker's or a recheck's) leaves them empty, as does a state
     /// just before a slot. So the two lines take a level of the sheet ([`LevelSheet`]), never a bare state.
     ///

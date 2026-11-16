@@ -1,11 +1,11 @@
-//! The caster line on the real data (ticket 119): the casting abilities, the bonuses of `bonuses.ron`, and the Max
-//! DC run's Build (a Kitsune Sorcerer 20, Arcane bloodline, Second Bloodline Fey, Spell Focus, Greater and Mythic in
+//! The caster line on the real data (ticket 119): the casting abilities, the caster-line components of the entries
+//! (ticket 297; `bonuses.ron` before), and the Max DC run's Build (a Kitsune Sorcerer 20, Arcane bloodline, Second Bloodline Fey, Spell Focus, Greater and Mythic in
 //! Enchantment, School Power Enchantment, Expanded Arsenal in Conjuration and Necromancy, the three Spell
 //! Penetrations, Combat Casting), from its planner link.
 
 use rules::{
-    Ability, BonusAmount, BonusItem, BonusTarget, Build, CasterLine, ClassKey, Engine, SpellDc,
-    SpellSchool, SpellScope, SpellTraits, Subschool,
+    Ability, Build, CasterLine, ClassKey, Component, Engine, Fact, FeatKey, MythicFeatKey, SpellDc,
+    SpellSchool, SpellScope, SpellTraits, Subschool, Value,
 };
 
 use crate::support::*;
@@ -97,7 +97,6 @@ fn the_max_dc_runs_enchantment_compulsion_dc_at_20_with_its_breakdown() {
 // school); SpellFocus 16fa59cc9a72a6043b566b49184f53fe; SpellFocusGreater 5b04b45b228461c43bad768eb0f7c7bf;
 // SpellFocusMythicFeat 41fa2470ab50ff441b4cfbb2fc725109
 #[test]
-#[ignore = "waits on ticket 258: the game gives the Max DC run's focus feats +4 and its DCs 26 + spell level, 35 heightened, 36 with metamagic"]
 fn mythic_spell_focus_doubles_the_max_dc_runs_spell_focus_feats() {
     let engine = engine();
     let (line, metamagic) = max_dc_run_lines_at_20(&engine);
@@ -147,8 +146,8 @@ fn the_max_dc_runs_dcs_by_level_follow_its_picks() {
     let ninth_or_highest = ninth_or_highest_by_level();
 
     // Level 1: Cha 20 (+5), Kitsune and Spell Focus: 10 + 1 + 7. Level 3: Greater Spell Focus. Level 6: 3rd-level
-    // spells and Second Bloodline Fey's arcana (+2). From level 7 (Spell Focus (Mythic) at MR 2) the game's values
-    // wait on a ticket (`the_max_dc_runs_dcs_from_level_7_count_mythic_spell_focus_doubled`).
+    // spells and Second Bloodline Fey's arcana (+2). From level 7, Spell Focus (Mythic) at MR 2 doubles the two
+    // (`the_max_dc_runs_dcs_from_level_7_count_mythic_spell_focus_doubled`).
     // Game: SpellFocus 16fa59cc9a72a6043b566b49184f53fe; SpellFocusGreater 5b04b45b228461c43bad768eb0f7c7bf;
     // KitsuneMagic 0b71c1a7941bfa4429e281245371efc6; BloodlineFeyArcana 6fe1c3f9437d88749a07e294c08799b9
     assert_eq!(ninth_or_highest[0], (1, 18));
@@ -161,7 +160,6 @@ fn the_max_dc_runs_dcs_by_level_follow_its_picks() {
 // Game: SpellFocusParametrized.GetBonusDC, WrathDecompiled 6ce4a6b; SpellFocusMythicFeat
 // 41fa2470ab50ff441b4cfbb2fc725109
 #[test]
-#[ignore = "waits on ticket 258: the game gives the Max DC run 25, 27, 32, 34 and 35 at levels 7, 8, 15, 16 and 20"]
 fn the_max_dc_runs_dcs_from_level_7_count_mythic_spell_focus_doubled() {
     let ninth_or_highest = ninth_or_highest_by_level();
     assert_eq!(ninth_or_highest[6], (3, 25));
@@ -178,7 +176,6 @@ fn the_max_dc_runs_dcs_from_level_7_count_mythic_spell_focus_doubled() {
 // 6ce4a6b; ExpandedArsenalSchool f137089c48364014aa3ec3b92ccaf2e2. That the two choices are two facts, each with its
 // handler, is read from the code's per-fact component.
 #[test]
-#[ignore = "waits on ticket 258: the game gives the Max DC run's Conjuration spells +8 from Expanded Arsenal"]
 fn the_max_dc_runs_expanded_arsenal_gives_conjuration_enchantments_spell_focus_feats() {
     let engine = engine();
     let build = max_dc_run(&engine);
@@ -261,57 +258,101 @@ fn every_class_that_casts_has_its_casting_ability() {
     );
 }
 
-#[test]
-fn the_bonuses_cover_the_dc_runs_sources() {
-    let has = |item: BonusItem, target: BonusTarget, amount: BonusAmount| {
-        DATA.bonuses
+/// The components of an entry of the real data.
+fn components(entry: Fact) -> &'static [Component] {
+    let found = match &entry {
+        Fact::Feat(key) => DATA
+            .feats
             .iter()
-            .any(|bonus| bonus.item == item && bonus.target == target && bonus.amount == amount)
+            .find(|e| &e.key == key)
+            .map(|e| &e.components),
+        Fact::MythicFeat(key) => (DATA.mythic_feats.iter())
+            .find(|e| &e.key == key)
+            .map(|e| &e.components),
+        Fact::Feature(key) => (DATA.features.iter())
+            .find(|e| &e.key == key)
+            .map(|e| &e.components),
+        Fact::Race(key) => DATA
+            .races
+            .iter()
+            .find(|e| &e.key == key)
+            .map(|e| &e.components),
+        _ => unreachable!("{entry:?}"),
     };
-    let dc = BonusTarget::SpellDc;
-    use BonusAmount::Flat;
+    found.unwrap_or_else(|| panic!("no entry {entry:?}"))
+}
 
-    // Game: SpellFocus 16fa59cc9a72a6043b566b49184f53fe (BonusDC 1, doubled with the mythic feat: see above)
-    assert!(has(
-        BonusItem::Feat(rules::FeatKey::new("spell-focus")),
-        dc(SpellScope::Value),
-        Flat(1)
-    ));
-    // Game: ExpandedArsenalSchool f137089c48364014aa3ec3b92ccaf2e2 (another school's Spell Focus feats)
-    assert!(has(
-        BonusItem::MythicFeat(rules::MythicFeatKey::new("expanded-arsenal")),
-        dc(SpellScope::Value),
-        BonusAmount::SpellFocusOfAnotherSchool
-    ));
+fn dc(scope: SpellScope, amount: i16) -> Component {
+    Component::SpellDc {
+        scope,
+        value: Value::Flat(amount),
+    }
+}
+
+#[test]
+fn the_components_cover_the_dc_runs_sources() {
+    let spell_focus = || Fact::Feat(FeatKey::new("spell-focus"));
+    let greater = || Fact::Feat(FeatKey::new("greater-spell-focus"));
+    let doubled_by = Component::SpellFocus {
+        bonus: 1,
+        mythic_focus: Fact::MythicFeat(MythicFeatKey::new("spell-focus-mythic")),
+    };
+
+    // Game: SpellFocus 16fa59cc9a72a6043b566b49184f53fe and SpellFocusGreater 5b04b45b228461c43bad768eb0f7c7bf
+    // (`SpellFocusParametrized`, BonusDC 1, m_MythicFocus SpellFocusMythicFeat 41fa2470ab50ff441b4cfbb2fc725109)
+    assert!(components(spell_focus()).contains(&doubled_by));
+    assert!(components(greater()).contains(&doubled_by));
+    // Spell Focus (Mythic) has no DC bonus of its own. Game: SpellFocusMythicFeat 41fa2470ab50ff441b4cfbb2fc725109
+    // (a PrerequisiteFeature alone)
+    assert_eq!(
+        components(Fact::MythicFeat(MythicFeatKey::new("spell-focus-mythic"))),
+        []
+    );
+    // Game: ExpandedArsenalSchool f137089c48364014aa3ec3b92ccaf2e2 (`ExpandedArsenalMagicSchools`, m_Focuses
+    // SpellFocusGreater and SpellFocus)
+    assert!(
+        components(Fact::MythicFeat(MythicFeatKey::new("expanded-arsenal"))).contains(
+            &Component::ExpandedArsenal {
+                focuses: [spell_focus(), greater()].into(),
+            }
+        )
+    );
     // Game: BloodlineInfernalArcana 67f151cdb9f0c9d4092ccfd5a9ccc6c9 (+2 Charm)
-    assert!(has(
-        BonusItem::Feature(rules::FeatureKey::new(
+    assert!(
+        components(Fact::Feature(rules::FeatureKey::new(
             "sorcerer/bloodline/infernal/infernal-arcana"
-        )),
-        dc(SpellScope::Subschool(Subschool::Charm)),
-        Flat(2)
-    ));
+        )))
+        .contains(&dc(SpellScope::Subschool(Subschool::Charm), 2))
+    );
     // Game: PyromaniacGnome fc74a68e18a8479a9e8af34e761a70b3 (+1 Fire)
-    assert!(has(
-        BonusItem::Subrace(rules::SubraceKey::new("gnome/pyromaniac")),
-        dc(SpellScope::Energy(rules::Energy::Fire)),
-        Flat(1)
-    ));
+    let pyromaniac = (DATA.subraces.iter())
+        .find(|subrace| subrace.key.as_str() == "gnome/pyromaniac")
+        .unwrap();
+    assert!(
+        pyromaniac
+            .components
+            .contains(&dc(SpellScope::Energy(rules::Energy::Fire), 1))
+    );
     // Game: OreadRace grants AcidAffinityOread 763a97c2216fd124da93b164994fd82b (+1 Acid)
-    assert!(has(
-        BonusItem::Race(rules::RaceKey::new("oread")),
-        dc(SpellScope::Energy(rules::Energy::Acid)),
-        Flat(1)
-    ));
+    assert!(
+        components(Fact::Race(rules::RaceKey::new("oread")))
+            .contains(&dc(SpellScope::Energy(rules::Energy::Acid), 1))
+    );
     // Game: BloodlineArcaneSchoolPowerFeature 8891303b67eb273428f1691864b08cf8 (one feature with a spell-school
     // parameter, +2; the eight schools are an inference from the parameter type)
     assert_eq!(
-        DATA.bonuses
-            .iter()
-            .filter(
-                |bonus| matches!(&bonus.item, BonusItem::SelectionOption(option)
-                if option.as_str().starts_with("sorcerer/bloodline/arcane/school-power/"))
-            )
+        (DATA.options.iter())
+            .filter(|option| option
+                .key
+                .as_str()
+                .starts_with("sorcerer/bloodline/arcane/school-power/"))
+            .filter(|option| option.components.iter().any(|component| matches!(
+                component,
+                Component::SpellDc {
+                    scope: SpellScope::School(_),
+                    value: Value::Flat(2)
+                }
+            )))
             .count(),
         8
     );
