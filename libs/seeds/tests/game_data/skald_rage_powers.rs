@@ -560,7 +560,7 @@ fn extra_rage_power_is_closed_to_a_battle_scion_with_no_other_rage_power_selecti
     // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a (RagePowerSelection,
     // InstinctualWarriorRagePowerSelection or SkaldRagePowerSelection, Group Any); BattleScionArchetype
     // 71d41dd6309ea994886908c34c87ccd9 removes SkaldRagePowerSelection.
-    let extra = &feat("extra-rage-power").extra_pick_of;
+    let extra = picks_of(feat("extra-rage-power"));
     assert!(extra.iter().all(|s| s.as_str() != SCION_SLOT));
     let mut scion = skald(Some(BATTLE_SCION), 3);
     scion.picks.insert(

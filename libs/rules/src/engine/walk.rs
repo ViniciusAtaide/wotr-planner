@@ -250,8 +250,8 @@ struct Walker<'a> {
     holdings: Vec<Holding>,
     /// The slots granted at this level that have no slot yet: options' rows' and feats'.
     pending: Vec<Pending>,
-    /// The Feature selections the walk has reached a slot of, in the order it first reached each: which one a feat's
-    /// extra pick is of ([`Feat::extra_pick_of`](crate::Feat::extra_pick_of)).
+    /// The Feature selections the walk has reached a slot of, in the order it first reached each: what a nested
+    /// selection's [`needs_slot_of`](crate::FeatureSelection::needs_slot_of) reads (ticket 302).
     selections_had: Vec<FeatureSelectionKey>,
     /// While an option row's selection slot is filled: the option whose row granted it, for a selection levelled
     /// by [`LevelFrom::GrantingOption`](crate::LevelFrom::GrantingOption).
@@ -278,7 +278,7 @@ struct Walker<'a> {
     gear: gear::WornGear,
     /// The Mythic rank being taken, while one is: what gives the slots filled meanwhile.
     ascending: Option<u8>,
-    /// Each slot a level keys by its place among the slots granted there (an option row's, a feat's extra pick)
+    /// Each slot a level keys by its place among the slots granted there (an option row's, a feat's selection's)
     /// that a Mythic rank's pick gave, with that rank: a rank taken at another level takes its slots along, and
     /// the places of the slots after them shift ([`Engine::shifted_picks`]).
     rank_slots: Vec<(SlotId, u8)>,
@@ -305,7 +305,7 @@ struct Deferred {
 enum Pending {
     /// A Feature selection or feat slot an option's row granted, with that option.
     Row(SlotKind, SelectionOptionKey),
-    /// A Feature selection slot a feat pick gives (Extra Rage Power), of the selection its extra pick is of.
+    /// The slot of the selection a feat pick grants (Extra Rage Power; ticket 302).
     Feat(FeatKey),
 }
 

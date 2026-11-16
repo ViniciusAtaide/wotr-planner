@@ -120,7 +120,10 @@ fn the_general_mythic_pick_alternates_ability_and_feat() {
         mythic_slot_kinds(&sheet, 2),
         [
             (SlotId::Mythic { rank: 2 }, SlotKind::MythicFeat),
-            (SlotId::MythicExtra { rank: 2 }, SlotKind::MythicAbility),
+            (
+                SlotId::MythicExtra { rank: 2 },
+                SlotKind::MythicAbilities(FeatureSelectionKey::new("mythic/extra-mythic-ability"))
+            ),
         ]
     );
     // Ranks not reached yet are listed, with no slots.

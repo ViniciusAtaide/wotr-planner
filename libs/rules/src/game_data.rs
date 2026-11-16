@@ -223,7 +223,6 @@ impl GameData {
         for ability in &mut self.mythic_abilities {
             canonicalize_prerequisite(&mut ability.prerequisite);
             ability.features.sort();
-            ability.selections.sort();
         }
         sort_by_key(&mut self.mythic_feats, |f| f.key.clone());
         for feat in &mut self.mythic_feats {
@@ -530,7 +529,7 @@ impl BackgroundGroup {
 /// The Feature selection whose options are the domains: what a deity's domains and a blessing's domain name.
 pub const DOMAIN_SELECTION: &str = "cleric/domain";
 /// The selection of feats the general feat slot at odd character levels picks from, and Extra Feat's
-/// ([`MythicExtraPick::Feat`]): the game's `BasicFeatSelection` 247a4068296e8be42890143f451b4b45, which
+/// ([`MythicFeat::selection`]): the game's `BasicFeatSelection` 247a4068296e8be42890143f451b4b45, which
 /// `BasicFeatsProgression` 5b72dd2ca2cb73b49903806ee8986325 grants at levels 1, 3, 5, … (ticket 301).
 pub const BASIC_FEAT_SELECTION: &str = "feats";
 /// The feat a follower holds for an exotic favoured weapon, taken for that weapon (Achaekek: Sawtooth Saber).
@@ -682,12 +681,12 @@ pub struct Feat {
     /// How many times it can be taken (Weapon Focus: once per weapon; Extra Hex: three times).
     #[serde(default)]
     pub repeat: Repeat,
-    /// The Feature selections a pick of it gives one more slot of, each time it's taken, at the level it's taken
-    /// ("You gain one additional hex": a witch's or a shaman's). The slot is of the one of these the character had a
-    /// slot of first; a character that had a slot of none gets none. Empty: it gives no slot (Extra Rage, Extra
-    /// Channel).
-    #[serde(default)]
-    pub extra_pick_of: BTreeSet<FeatureSelectionKey>,
+    /// The Feature selection a pick of it grants, each time it's taken, at the level it's taken: the game's Extra
+    /// feat is itself a selection ("You gain one additional hex": `ExtraWitchHexSelection`
+    /// b6054088b4ab4be286724127cbf48b35), and that selection's pick is the slot it opens (ticket 302). `None`: it
+    /// grants none (Extra Rage, Extra Channel), and left out when written.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selection: Option<FeatureSelectionKey>,
     /// The weapon it is taken for must be one the character is proficient with, in every slot, whatever the slot's
     /// list ignores: the game's `RequireProficiency`, which `BlueprintParametrizedFeature.CanSelect` checks on the
     /// feature's own flag, not the selection's (WrathDecompiled 6ce4a6b). Read only for a weapon value.
@@ -1132,6 +1131,18 @@ pub struct FeatureSelection {
     /// a value: the row grants it (`feats`). Empty for a selection of options, and left out when written.
     #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
     pub feats: BTreeSet<FeatKey>,
+    /// The mythic abilities it offers (ticket 302): Extra Mythic Ability's, as the game's
+    /// `ExtraMythicAbilityMythicFeat` 8a6a511c55e67d04db328cc49aaad2b8 lists them. Empty for any other selection, and
+    /// left out when written.
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    pub mythic_abilities: BTreeSet<MythicAbilityKey>,
+    /// The planner's form until 293 writes the game's lists (ticket 302): a pick that grants this selection opens its
+    /// slot only for a character who had a slot of one of these first, as the planner's Extra feats always have. A
+    /// selection with no list of its own then gives a slot of the first of these the character had a slot of (Extra
+    /// Rogue Talent: a rogue's talents, a Sylvan Trickster's fey tricks or a Feyform Shifter's talents). Empty: no
+    /// such condition, and left out when written.
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    pub needs_slot_of: BTreeSet<FeatureSelectionKey>,
     /// Set on a bonus list, a class's own bonus-feat list (a monk's bonus feats, a ranger's combat style): a pick of
     /// one of its `feats` ignores the feat's prerequisites (the game's `IgnorePrerequisites`). It still has to be on the
     /// list and not already held, and it counts as held afterwards.
@@ -1327,6 +1338,21 @@ impl FeatureSelection {
     /// lists (ticket 301).
     pub fn offers_feats(&self) -> bool {
         !self.feats.is_empty() || self.option_lists.is_some()
+    }
+
+    /// Whether it's a selection of mythic abilities, whose slot is a mythic ability slot (Extra Mythic Ability's,
+    /// ticket 302).
+    pub fn offers_mythic_abilities(&self) -> bool {
+        !self.mythic_abilities.is_empty()
+    }
+
+    /// Whether it lists anything of its own to pick: options, feats or mythic abilities. One that doesn't stands for
+    /// the first selection had of its [`needs_slot_of`](Self::needs_slot_of) (ticket 302).
+    pub fn has_list(&self) -> bool {
+        self.offers_feats()
+            || self.offers_mythic_abilities()
+            || !self.options.is_empty()
+            || !self.shared_options.is_empty()
     }
 
     /// Whether a pick of `option` may fill this selection's slot: one of its own options, or one it shares. (A
@@ -1556,9 +1582,11 @@ pub struct MythicAbility {
     /// Features the ability grants while it's held (Bloodline Ascendance).
     #[serde(default)]
     pub features: Vec<FeatureKey>,
-    /// Feature selection slots the ability grants when it's picked (Second Bloodline: another bloodline).
-    #[serde(default)]
-    pub selections: Vec<FeatureSelectionKey>,
+    /// The Feature selection the ability grants when it's picked, whose pick is the slot it opens (Second Bloodline:
+    /// another bloodline; the game's ability is that selection, ticket 302). `None`: it grants none, and left out
+    /// when written.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selection: Option<FeatureSelectionKey>,
     /// What the ability is taken for, when the guide says to choose one (Favorite Metamagic: a metamagic). Each pick
     /// of it then names a value of this kind, or none yet ([`ParameterKind::may_stay_open`]).
     #[serde(default)]
@@ -1597,10 +1625,12 @@ pub struct MythicFeat {
     /// Birth).
     #[serde(default)]
     pub removes_racial_penalty: bool,
-    /// The one more pick a pick of it gives, at the Mythic rank it's taken (Extra Feat: "You can select any normal
-    /// feat"). `None`: it gives none.
-    #[serde(default)]
-    pub extra_pick: Option<MythicExtraPick>,
+    /// The selection a pick of it grants, at the Mythic rank it's taken, whose pick is the slot it opens
+    /// ([`SlotId::MythicExtra`](crate::SlotId)): Extra Feat's, the general feats ([`BASIC_FEAT_SELECTION`]); Extra
+    /// Mythic Ability's, a selection of mythic abilities (ticket 302). `None`: it grants none, and left out when
+    /// written.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub selection: Option<FeatureSelectionKey>,
     /// As [`Feat::requires_proficiency`] (Improved Critical (Mythic)).
     #[serde(default)]
     pub requires_proficiency: bool,
@@ -1610,15 +1640,6 @@ pub struct MythicFeat {
     /// for none, and left out when written.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub components: Vec<Component>,
-}
-
-/// What the slot a mythic feat gives offers ([`MythicFeat::extra_pick`], [`SlotId::MythicExtra`](crate::SlotId)).
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub enum MythicExtraPick {
-    /// A feat slot that offers what the general slot offers: any feat whose prerequisites are met (Extra Feat).
-    Feat,
-    /// A mythic ability slot that offers what a rank's general pick does (Extra Mythic Ability).
-    MythicAbility,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

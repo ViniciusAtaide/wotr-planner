@@ -1,13 +1,14 @@
 //! What a slot accepts: the options a selection offers (its own and shared; of a filtered pool, the picker lists those
-//! its held options admit) and the feats a selection of feats offers, from its own list or a held option's. Whether a pick fits its slot is the walk's one check,
+//! its held options admit), the feats a selection of feats offers, from its own list or a held option's, and the
+//! mythic abilities a selection of them lists. Whether a pick fits its slot is the walk's one check,
 //! `walk::judge::check_pick`, which reads these.
 //!
 //! All of it reads only the game data and the character's state, so it's an `impl Catalog` block. The engine's
 //! public answer here delegates to it.
 
-use super::{Catalog, Engine};
+use super::{Catalog, Engine, SlotKind};
 use crate::game_data::{Feat, FeatureSelection, OptionLists};
-use crate::keys::{FeatureSelectionKey, SelectionOptionKey};
+use crate::keys::{FeatureSelectionKey, MythicAbilityKey, SelectionOptionKey};
 use crate::prerequisite::Prerequisite;
 use crate::state::CharacterState;
 
@@ -110,6 +111,18 @@ impl Catalog {
                 })
                 .map(|list| self.named_selection(list))
                 .collect(),
+        }
+    }
+
+    /// Whether a mythic ability slot of `kind` offers `ability`: a rank's general pick, any; a selection of mythic
+    /// abilities, those it lists (ticket 302). `false` for any other slot.
+    pub(super) fn lists_mythic_ability(&self, kind: &SlotKind, ability: &MythicAbilityKey) -> bool {
+        match kind {
+            SlotKind::MythicAbility => true,
+            SlotKind::MythicAbilities(key) => self
+                .selection(key)
+                .is_some_and(|selection| selection.mythic_abilities.contains(ability)),
+            _ => false,
         }
     }
 

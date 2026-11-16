@@ -341,6 +341,29 @@ impl Catalog {
         Some(&self.data.selections[*self.indexes.selections.get(key)?])
     }
 
+    /// The kind of slot a selection makes: a Feat slot for a selection of feats ([`FeatureSelection::offers_feats`]),
+    /// a mythic ability slot for one of mythic abilities, a Feature selection slot for any other (ticket 302).
+    pub(super) fn slot_kind(selection: &FeatureSelection) -> SlotKind {
+        let key = selection.key.clone();
+        if selection.offers_feats() {
+            SlotKind::Feat(key)
+        } else if selection.offers_mythic_abilities() {
+            SlotKind::MythicAbilities(key)
+        } else {
+            SlotKind::Selection(key)
+        }
+    }
+
+    /// The band of the slot a selection makes, as [`band`](Self::band) gives it for its [`slot_kind`](Self::slot_kind)
+    /// without building one.
+    pub(super) fn slot_band(selection: &FeatureSelection) -> Band {
+        if selection.offers_feats() {
+            Band::Features
+        } else {
+            selection.band
+        }
+    }
+
     /// Whether a row's selection is one of feats, whose slot is a Feat slot ([`FeatureSelection::offers_feats`]);
     /// `false` for one the data lacks.
     pub(super) fn offers_feats(&self, key: &FeatureSelectionKey) -> bool {
@@ -362,7 +385,7 @@ impl Catalog {
     /// or feat's, [`Band::MythicAbility`]; a feat slot's, [`Band::Features`].
     pub(super) fn band(&self, kind: &SlotKind) -> Band {
         match kind {
-            SlotKind::Selection(key) => self.selection_band(key),
+            SlotKind::Selection(key) | SlotKind::MythicAbilities(key) => self.selection_band(key),
             SlotKind::MythicAbility | SlotKind::MythicFeat => Band::MythicAbility,
             SlotKind::Feat(_) => Band::Features,
         }

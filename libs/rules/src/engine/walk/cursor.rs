@@ -409,9 +409,9 @@ impl<'a> Cursor<'a> {
 
     /// The feats a walk of the Build can look at: each feat picked (whether it's held already), each option's
     /// chosen feat, the feats named by the prerequisites of the picks and of the classes and archetypes the Build
-    /// takes, and every feat with an extra pick. Holding any other feat touches nothing but that feat's entries in
+    /// takes, and every feat granting a selection. Holding any other feat touches nothing but that feat's entries in
     /// the state, so a feat pick outside these changes no later check: the walk with it fails exactly the choices
-    /// the walk without it fails. A feat with an extra pick also gives a slot, which takes its level's next
+    /// the walk without it fails. A feat granting a selection also gives a slot, which takes its level's next
     /// [`SlotId::FeatSelection`] index from a later feat's, so it's always walked.
     fn named_feats(&self) -> HashSet<&'a FeatKey> {
         let (catalog, build) = (&self.engine.catalog, self.build);
@@ -419,7 +419,7 @@ impl<'a> Cursor<'a> {
             .data()
             .feats
             .iter()
-            .filter(|feat| !feat.extra_pick_of.is_empty())
+            .filter(|feat| feat.selection.is_some())
             .map(|feat| &feat.key)
             .collect();
         for item in build

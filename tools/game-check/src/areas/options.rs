@@ -1,6 +1,6 @@
-//! What a choice offers: each selection's options (its own and the ones it shares) or feats (ticket 301) against the
-//! blueprint's `m_AllFeatures`, and the planner's feats, mythic abilities and mythic feats against the game's general
-//! pools (`BasicFeatSelection`, `MythicAbilitySelection`, `MythicFeatSelection`).
+//! What a choice offers: each selection's options (its own and the ones it shares), feats (ticket 301) or mythic
+//! abilities (ticket 302) against the blueprint's `m_AllFeatures`, and the planner's feats, mythic abilities and mythic
+//! feats against the game's general pools (`BasicFeatSelection`, `MythicAbilitySelection`, `MythicFeatSelection`).
 
 use std::collections::BTreeSet;
 
@@ -18,7 +18,15 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
     for selection in &data.selections {
         let at = DataAt::FeatureSelection(selection.key.clone());
         if selection.option_lists.is_some() {
-            out.skip(AREA, "a selection of a held option's feat lists (302)");
+            out.skip(AREA, "a selection of a held option's feat lists (304)");
+            continue;
+        }
+        // An Extra feat's planner list: the slot is of the first selection it names the character had (ticket 302).
+        if !selection.has_list() {
+            out.skip(
+                AREA,
+                "a selection standing for the first selection had (293)",
+            );
             continue;
         }
         // A filtered pool (`filtered_by`, ticket 243) offers all its options, as the game's one selection does
@@ -30,6 +38,10 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
                     .feats
                     .iter()
                     .map(|feat| DataAt::Feat(feat.clone())),
+            )
+            .chain(
+                (selection.mythic_abilities.iter())
+                    .map(|ability| DataAt::MythicAbility(ability.clone())),
             );
         let planner = guids(ctx, out, offered);
         // Whether a pick ignores prerequisites is a selection of feats' own (a bonus list's).

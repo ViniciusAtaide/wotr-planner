@@ -4,5 +4,5 @@
     group: Class,
     guide: "mythic-paths#second-bloodline",
     prerequisite: SpontaneousSpellLevel(spell_type: Arcane, level: 1),
-    selections: ["sorcerer/bloodline"],
+    selection: "sorcerer/bloodline",
 )

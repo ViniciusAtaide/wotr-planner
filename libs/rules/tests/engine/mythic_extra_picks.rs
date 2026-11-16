@@ -86,7 +86,10 @@ fn extra_mythic_ability_gives_a_mythic_ability_slot_offering_what_a_ranks_does()
     let build = with_mythic_feat("fighter", "extra-mythic-ability");
     let sheet = engine.evaluate(&build);
     let slot = sheet.slot(&extra(2)).expect("the extra slot");
-    assert_eq!(slot.kind, SlotKind::MythicAbility);
+    assert_eq!(
+        slot.kind,
+        SlotKind::MythicAbilities(FeatureSelectionKey::new("mythic/extra-mythic-ability"))
+    );
     assert_eq!(engine.slot_label(slot), "Mythic ability");
     assert_eq!(
         offered(&build, &extra(2)),

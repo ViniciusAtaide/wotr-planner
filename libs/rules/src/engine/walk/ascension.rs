@@ -8,10 +8,20 @@ use crate::build::{Pick, SlotId};
 use crate::engine::{
     MythicPickKind, PATH_CHOICE_RANK, PATH_SWITCH_RANK, RankStatus, SlotKind, mythic_pick_kind,
 };
-use crate::game_data::{BASIC_FEAT_SELECTION, MythicExtraPick, MythicPath, PathSwitch};
-use crate::keys::{FeatureKey, FeatureSelectionKey, MythicAbilityKey};
+use crate::game_data::{MythicPath, PathSwitch};
+use crate::keys::{FeatureKey, MythicAbilityKey};
 
 impl GrantSource {
+    /// What a rank's general pick, or a pick nested in it, grants: not the path's, of no selection or slot.
+    fn general(rank: u8) -> Self {
+        Self {
+            rank,
+            from_path: false,
+            selection: None,
+            slot: None,
+        }
+    }
+
     /// Whether a Path switch takes away what this source granted ([`PathSwitch::drops`]); `feature` when the grant
     /// is one.
     fn dropped_by(&self, switch: &PathSwitch, feature: Option<&FeatureKey>) -> bool {
@@ -46,8 +56,8 @@ impl<'a> Walker<'a> {
         self.level_components();
         self.advance_by_mythic_rank();
 
-        // The general pick first, then the slot its mythic feat gives (Extra Feat, Extra Mythic Ability): a mythic
-        // ability either holds may grant selection slots (Second Bloodline).
+        // The general pick first, then the slot its mythic feat's selection opens (Extra Feat, Extra Mythic Ability):
+        // a mythic ability either holds may grant a selection, whose slot comes next (Second Bloodline; ticket 302).
         let general_id = SlotId::Mythic { rank };
         let general_pick = self.build.picks.get(&general_id);
         let mut ability = self.newly_held_ability(general_pick);
@@ -66,44 +76,22 @@ impl<'a> Walker<'a> {
             Some(rank),
         );
         let mut slots = vec![general];
-        if let Some(extra) = feat
+        if let Some(kind) = feat
             .filter(|key| self.state.mythic_feats.contains(*key))
-            .and_then(|key| catalog.mythic_feat(key))
-            .and_then(|feat| feat.extra_pick)
+            .and_then(|key| catalog.mythic_feat(key)?.selection.as_ref())
+            .and_then(|selection| self.granted_slot(selection, Some(&GrantSource::general(rank))))
         {
             let id = SlotId::MythicExtra { rank };
             ability = self.newly_held_ability(self.build.picks.get(&id));
-            let kind = match extra {
-                MythicExtraPick::Feat => {
-                    SlotKind::Feat(FeatureSelectionKey::new(BASIC_FEAT_SELECTION))
-                }
-                MythicExtraPick::MythicAbility => SlotKind::MythicAbility,
-            };
             slots.push(self.fill(id, kind, Some(rank)));
         }
         let mut slot_kinds = Vec::new();
-        if let Some(ability) = ability
+        if let Some(kind) = ability
             .filter(|key| self.state.mythic_abilities.contains(*key))
-            .and_then(|key| catalog.mythic_ability(key))
+            .and_then(|key| catalog.mythic_ability(key)?.selection.as_ref())
+            .and_then(|selection| self.granted_slot(selection, Some(&GrantSource::general(rank))))
         {
-            let source = GrantSource {
-                rank,
-                from_path: false,
-                selection: None,
-                slot: None,
-            };
-            for (index, selection) in ability.selections.iter().enumerate() {
-                if self.grant_without_slot(selection, Some(&source)) {
-                    continue;
-                }
-                slot_kinds.push((
-                    SlotKind::Selection(selection.clone()),
-                    SlotId::MythicSelection {
-                        rank,
-                        index: u8::try_from(index).unwrap_or(u8::MAX),
-                    },
-                ));
-            }
+            slot_kinds.push((kind, SlotId::MythicSelection { rank, index: 0 }));
         }
         // MR 1 and 2 give the first ascension's rows (the MR 3 path's, without one of its own); from MR 3 on, the
         // path in force gives its own.

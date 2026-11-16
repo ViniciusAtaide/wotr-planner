@@ -125,7 +125,9 @@ pub(super) fn check_pick_with(
         }
         (_, Pick::MythicAbility { ability: key, .. }) => {
             let ability = catalog.mythic_ability(key).ok_or(Issue::UnknownKey)?;
-            if kind != &SlotKind::MythicAbility || !catalog.value_fits(ability.parameter, value) {
+            if !catalog.lists_mythic_ability(kind, key)
+                || !catalog.value_fits(ability.parameter, value)
+            {
                 return Err(Issue::NotAllowed);
             }
             let held = match (ability.repeat, value) {

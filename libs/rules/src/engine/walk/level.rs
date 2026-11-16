@@ -12,8 +12,10 @@ use crate::engine::catalog::Catalog;
 use crate::engine::{
     SkillPoints, Slot, SlotKind, advanced_spellcasting, class_level_cap, most_advanced,
 };
-use crate::game_data::{Ability, BASIC_FEAT_SELECTION, Band, Class, CountsToward, Save, SpellType};
-use crate::keys::{ClassKey, FeatKey, FeatureKey, FeatureSelectionKey};
+use crate::game_data::{
+    Ability, BASIC_FEAT_SELECTION, Band, Class, CountsToward, FeatureSelection, Save, SpellType,
+};
+use crate::keys::{ClassKey, FeatureKey, FeatureSelectionKey};
 use crate::state::{CharacterState, ClassLevels};
 
 impl<'a> Walker<'a> {
@@ -393,19 +395,10 @@ impl<'a> Walker<'a> {
         &mut self,
         slots: Vec<(SlotKind, SlotId)>,
     ) -> Vec<(SlotKind, SlotId)> {
-        let mut kept = Vec::with_capacity(slots.len());
-        for (kind, id) in slots {
-            match &kind {
-                SlotKind::Selection(selection) => {
-                    if self.grant_without_slot(selection, None) {
-                        continue;
-                    }
-                    kept.push((kind, id));
-                }
-                _ => kept.push((kind, id)),
-            }
-        }
-        kept
+        slots
+            .into_iter()
+            .filter(|(kind, _)| self.opens_slot(kind, None))
+            .collect()
     }
 
     /// Whether a granted selection needs no slot: it's for characters without its options and one is held, or it
@@ -446,16 +439,16 @@ impl<'a> Walker<'a> {
 
     /// Fills a level's own slots and the slots its picks grant, band by band in the game's order ([`Band`]). Within a
     /// band, a pick refused at its turn for an unmet prerequisite or a weapon not yet proficient
-    /// ([`deferrable`](super::judge::deferrable)) is tried again after the band's other picks and the
-    /// slots they grant, until no more holds: so it holds when some order of the band's picks holds it, each checked
-    /// with the ones before it, as the game applies the picks of one band in the order the player makes them
+    /// ([`deferrable`](super::judge::deferrable)) is tried again after the band's other picks and the slots they
+    /// grant, until no more holds: so it holds when some order of the band's picks holds it, each checked with the ones
+    /// before it, as the game applies the picks of one band in the order the player makes them
     /// (`LevelUpController.AddAction`, WrathDecompiled 6ce4a6b). Never with itself, nor with a later band's pick, a
     /// Mythic rank's or a later level's. Any other refusal at its turn is final, though the game's player could take
     /// the band's picks in another order: trying every order is left out. So a pick is still refused when another
     /// pick of its band whose slot comes first holds what it refuses (a `Not`, a `NoOtherOptionOfGroup`, an
-    /// `AlreadyHeld` or `MaxTimes`), or when its slot's list depends on the state (a selection of feats taking an option's lists,
-    /// [`Catalog::slot_lists`]) and the option that gives it is a later pick of the band (`NotAllowed`). The slots
-    /// come back in the level's slot order, then the granted ones in the order granted.
+    /// `AlreadyHeld` or `MaxTimes`), or when its slot's list depends on the state (a selection of feats taking an
+    /// option's lists, [`Catalog::slot_lists`]) and the option that gives it is a later pick of the band
+    /// (`NotAllowed`). The slots come back in the level's slot order, then the granted ones in the order granted.
     pub(super) fn fill_bands(
         &mut self,
         level: u8,
@@ -517,14 +510,15 @@ impl<'a> Walker<'a> {
             let (kind, granting) = match self.pending.remove(at) {
                 Pending::Row(kind, granting) => (kind, granting),
                 Pending::Feat(feat) => {
-                    if let Some(selection) = self.extra_pick_selection(&feat)
-                        && !self.grant_without_slot(&selection, None)
+                    let selection =
+                        (self.engine.catalog.feat(&feat)).and_then(|feat| feat.selection.as_ref());
+                    if let Some(kind) =
+                        selection.and_then(|selection| self.granted_slot(selection, None))
                     {
                         let index = self.feat_selection_slots;
                         self.feat_selection_slots = self.feat_selection_slots.saturating_add(1);
                         let id = SlotId::FeatSelection { level, index };
                         self.note_rank_slot(&id);
-                        let kind = SlotKind::Selection(selection);
                         slots.push(self.fill(id, kind, None));
                     }
                     continue;
@@ -559,11 +553,9 @@ impl<'a> Walker<'a> {
         let catalog = &self.engine.catalog;
         match pending {
             Pending::Row(kind, _) => catalog.band(kind),
-            Pending::Feat(feat) => self
-                .extra_pick_of(feat)
-                .map_or(Band::Features, |selection| {
-                    catalog.selection_band(selection)
-                }),
+            Pending::Feat(feat) => (catalog.feat(feat))
+                .and_then(|feat| self.nested_selection(feat.selection.as_ref()?))
+                .map_or(Band::Features, Catalog::slot_band),
         }
     }
 
@@ -574,18 +566,41 @@ impl<'a> Walker<'a> {
         }
     }
 
-    /// The selection a feat's extra pick is of: the one of its [`extra_pick_of`](crate::Feat::extra_pick_of) the
-    /// walk reached a slot of first, if any.
-    fn extra_pick_selection(&self, feat: &FeatKey) -> Option<FeatureSelectionKey> {
-        self.extra_pick_of(feat).cloned()
+    /// The slot a picked entry's selection opens (ticket 302), granted from `source`: a slot of its
+    /// [`nested_selection`](Self::nested_selection), unless that one is granted with no pick
+    /// ([`opens_slot`](Self::opens_slot)). `None`: no slot.
+    pub(super) fn granted_slot(
+        &mut self,
+        key: &FeatureSelectionKey,
+        source: Option<&GrantSource>,
+    ) -> Option<SlotKind> {
+        let kind = Catalog::slot_kind(self.nested_selection(key)?);
+        self.opens_slot(&kind, source).then_some(kind)
     }
 
-    /// [`extra_pick_selection`](Self::extra_pick_selection), borrowed.
-    fn extra_pick_of(&self, feat: &FeatKey) -> Option<&FeatureSelectionKey> {
-        let of = &self.engine.catalog.feat(feat)?.extra_pick_of;
-        self.selections_had
-            .iter()
-            .find(|selection| of.contains(*selection))
+    /// The selection whose slot a picked entry's selection opens: the selection itself, as the game adds a picked
+    /// selection to the level-up's (`SelectFeature.Apply`, WrathDecompiled 6ce4a6b). The planner's condition until
+    /// 293 ([`needs_slot_of`](crate::FeatureSelection::needs_slot_of)): only after a slot of one of the selections it
+    /// names, and the first of them the walk reached a slot of when it lists nothing of its own. `None`: no slot.
+    fn nested_selection(&self, key: &FeatureSelectionKey) -> Option<&'a FeatureSelection> {
+        let catalog = &self.engine.catalog;
+        let selection = catalog.selection(key)?;
+        if selection.needs_slot_of.is_empty() {
+            return Some(selection);
+        }
+        let had =
+            (self.selections_had.iter()).find(|had| selection.needs_slot_of.contains(*had))?;
+        if selection.has_list() {
+            Some(selection)
+        } else {
+            catalog.selection(had)
+        }
+    }
+
+    /// Whether a granted selection's slot of `kind` takes a pick: a Feature selection granted with no pick
+    /// ([`grant_without_slot`](Self::grant_without_slot)) has none.
+    fn opens_slot(&mut self, kind: &SlotKind, source: Option<&GrantSource>) -> bool {
+        !matches!(kind, SlotKind::Selection(selection) if self.grant_without_slot(selection, source))
     }
 
     // ---- Tables -------------------------------------------------------------------------------------------

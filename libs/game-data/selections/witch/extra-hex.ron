@@ -1,0 +1,12 @@
+(
+    key: "witch/extra-hex",
+    blueprint: "b6054088b4ab4be286724127cbf48b35",
+    name: "Extra Hex",
+    summary: "One more hex whose prerequisites you meet; up to 3 times.",
+    guide: "feats#extra-hex",
+    needs_slot_of: [
+        "shaman/hex",
+        "witch/hex",
+        "witch/wandering-hex",
+    ],
+)

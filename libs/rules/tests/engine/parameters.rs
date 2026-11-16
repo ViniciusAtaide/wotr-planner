@@ -396,13 +396,6 @@ fn an_option_repeats_up_to_its_number_of_times() {
 
 // ---- options that repeat (ticket 47) --------------------------------------------------------------------------
 
-/// The world changed by `change`, which must keep it passing the data check.
-fn engine_with(change: impl FnOnce(&mut GameData)) -> Engine {
-    let mut data = world();
-    change(&mut data);
-    engine_on(data)
-}
-
 fn rogue_talent_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut SelectionOption {
     option_mut(data, key)
 }

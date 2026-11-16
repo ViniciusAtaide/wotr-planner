@@ -1,1 +1,1 @@
-(key: "extra-mythic-ability", blueprint: "8a6a511c55e67d04db328cc49aaad2b8", name: "Extra Mythic Ability", summary: "Gain one more mythic ability.", group: Miscellaneous, guide: "mythic-paths#extra-mythic-ability", extra_pick: MythicAbility)
+(key: "extra-mythic-ability", blueprint: "8a6a511c55e67d04db328cc49aaad2b8", name: "Extra Mythic Ability", summary: "Gain one more mythic ability.", group: Miscellaneous, guide: "mythic-paths#extra-mythic-ability", selection: "mythic/extra-mythic-ability")

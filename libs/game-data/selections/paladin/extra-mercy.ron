@@ -1,0 +1,28 @@
+(
+    key: "paladin/extra-mercy",
+    blueprint: "8a49abed5be9473da1e1fd1e2457562e",
+    name: "Mercy",
+    summary: "One more mercy whose prerequisites you meet; up to 3 times.",
+    guide: "feats#extra-mercy",
+    needs_slot_of: [
+        "paladin/mercy",
+    ],
+    options: [],
+    shared_options: [
+        "paladin/mercy/blinded",
+        "paladin/mercy/confused",
+        "paladin/mercy/cursed",
+        "paladin/mercy/dazed",
+        "paladin/mercy/diseased",
+        "paladin/mercy/exhausted",
+        "paladin/mercy/fatigued",
+        "paladin/mercy/frightened",
+        "paladin/mercy/nauseated",
+        "paladin/mercy/paralyzed",
+        "paladin/mercy/poisoned",
+        "paladin/mercy/shaken",
+        "paladin/mercy/sickened",
+        "paladin/mercy/staggered",
+        "paladin/mercy/stunned",
+    ],
+)

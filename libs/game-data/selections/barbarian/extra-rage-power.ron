@@ -1,0 +1,11 @@
+(
+    key: "barbarian/extra-rage-power",
+    blueprint: "0c7f01fbbe687bb4baff8195cb02fe6a",
+    name: "Extra Rage Power",
+    summary: "One more rage power; can be taken more than once.",
+    guide: "feats#extra-rage-power",
+    needs_slot_of: [
+        "barbarian/rage-power",
+        "skald/battle-scion/rage-power-or-teamwork-feat",
+    ],
+)

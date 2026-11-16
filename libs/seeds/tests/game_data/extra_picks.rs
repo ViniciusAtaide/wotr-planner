@@ -52,11 +52,11 @@ type ExtraPick = (String, BTreeSet<String>);
 fn data_extra_picks() -> BTreeSet<ExtraPick> {
     DATA.feats
         .iter()
-        .filter(|feat| !feat.extra_pick_of.is_empty())
+        .filter(|feat| feat.selection.is_some())
         .map(|feat| {
             (
                 feat.key.to_string(),
-                feat.extra_pick_of.iter().map(|s| s.to_string()).collect(),
+                picks_of(feat).iter().map(|s| s.to_string()).collect(),
             )
         })
         .collect()
@@ -98,7 +98,7 @@ fn the_extra_feats_that_give_a_pick_name_their_selections() {
         "extra-rage",         // Game: ExtraRage 1a54bbbafab728348a015cf9ffcf50a7
         "extra-reservoir",    // Game: ExtraReservoir 29afc53efa4d469b9476760fa09576de
     ] {
-        assert!(feat(key).extra_pick_of.is_empty(), "{key}");
+        assert!(feat(key).selection.is_none(), "{key}");
     }
 }
 
@@ -361,7 +361,7 @@ fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
         assert!(possible(&build), "{feat} at {level}");
         assert_eq!(
             kind_at(&build, &extra_slot(level, 0)),
-            Some(selection_kind(selection)),
+            Some(selection_kind(slot_selection(feat, selection))),
             "{feat} at {level}"
         );
         let filled = with_selections_filled(build);
@@ -375,6 +375,26 @@ fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
 
 fn times(class: &'static str, n: usize) -> Vec<&'static str> {
     vec![class; n]
+}
+
+/// The selection of the slot an Extra feat gives a character who had a slot of `had` (ticket 302): the feat's own
+/// when it lists its own picks (standing for `had`, with its header), else `had`.
+fn slot_selection<'a>(feat_key: &str, had: &'a str) -> &'a str {
+    let own = feat(feat_key)
+        .selection
+        .as_ref()
+        .map(|key| any_selection(key.as_str()))
+        .filter(|selection| selection.has_list());
+    match own {
+        Some(own) => {
+            assert_eq!(
+                own.needs_slot_of,
+                BTreeSet::from([rules::FeatureSelectionKey::new(had)])
+            );
+            own.key.as_str()
+        }
+        None => had,
+    }
 }
 
 /// The Extra feats the game refuses: Extra Discovery to an Underground Chemist (its discovery selection meets no

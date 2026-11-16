@@ -97,24 +97,58 @@ pub fn world() -> GameData {
     };
     nested::flatten(nested, &mut data);
     data.selections.extend(pools(&data.feats));
+    data.selections.extend(granted_selections());
     list_feats_in_pools(&mut data);
     attach_bonuses(&mut data);
     data
 }
 
 /// Lists `data`'s feats as they are now in the general and category selections ([`pools`]) and Gold Dragon's Dragon
-/// Feats (every feat), so a feat a test adds to the world is offered as the world's own are.
+/// Feats (every feat), and its mythic abilities in Extra Mythic Ability's selection (ticket 302), so a feat or mythic
+/// ability a test adds to the world is offered as the world's own are.
 pub fn list_feats_in_pools(data: &mut GameData) {
     let mut pools = pools(&data.feats);
     pools.push(FeatureSelection {
         feats: data.feats.iter().map(|feat| feat.key.clone()).collect(),
         ..feat_selection("gold-dragon/dragon-feats", "")
     });
+    let abilities: BTreeSet<MythicAbilityKey> = (data.mythic_abilities.iter())
+        .map(|ability| ability.key.clone())
+        .collect();
     for selection in &mut data.selections {
         if let Some(pool) = pools.iter().find(|pool| pool.key == selection.key) {
             selection.feats.clone_from(&pool.feats);
         }
+        if selection.key.as_str() == EXTRA_MYTHIC_ABILITY {
+            selection.mythic_abilities.clone_from(&abilities);
+        }
     }
+}
+
+/// The selection of mythic abilities Extra Mythic Ability grants, listing every one (filled by
+/// [`list_feats_in_pools`]).
+const EXTRA_MYTHIC_ABILITY: &str = "mythic/extra-mythic-ability";
+
+/// The selections the Extra feats and Extra Mythic Ability grant (ticket 302): the feats' name the selections a
+/// character must have had a slot of, and give a slot of the first it had; Extra Mythic Ability's lists every mythic
+/// ability.
+fn granted_selections() -> Vec<FeatureSelection> {
+    let first_had = |key: &str, of: &[&str]| FeatureSelection {
+        needs_slot_of: of.iter().map(|key| feat_list(key)).collect(),
+        ..feat_selection(key, "")
+    };
+    vec![
+        first_had(
+            "rogue/extra-rogue-talent",
+            &["rogue/rogue-talents", "slayer/slayer-talents"],
+        ),
+        first_had("witch/extra-hex", &["witch/hex"]),
+        first_had("slayer/slayer-trick", &["slayer/slayer-talents"]),
+        FeatureSelection {
+            band: Band::MythicAbility,
+            ..feat_selection(EXTRA_MYTHIC_ABILITY, "Mythic ability")
+        },
+    ]
 }
 
 /// The selections of feats of the general slot and the category slots, each listing the feats it offers (ticket
@@ -152,6 +186,8 @@ fn feat_selection(key: &str, name: &str) -> FeatureSelection {
         guide: guide(key),
         options: BTreeSet::new(),
         feats: BTreeSet::new(),
+        mythic_abilities: BTreeSet::new(),
+        needs_slot_of: BTreeSet::new(),
         ignores_prerequisites: false,
         skips_proficiency: false,
         option_lists: None,

@@ -30,11 +30,11 @@ with one, and keys that links name never change.
 | --- | --- |
 | `races/`, `subraces/` | `Race`; `Subrace`, naming its `race` |
 | `weapons/` | `Weapon`: the weapons a feat can be taken for, from the guide's simple, martial and exotic lists (`proficiency`), plus what Weapon Focus names besides weapons (unarmed strike, touch attacks, rays), each natural attack, Kinetic Blast and Bomb; each weapon's stats for the attack line (ticket 114) |
-| `feats/` | `Feat` |
+| `feats/` | `Feat`; one that grants a pick names the selection it grants (`selection`, ticket 302: Extra Rage Power's) |
 | `classes/`, `prestige/` | one base or prestige `Class`: its tables and level rows |
 | `archetypes/` | `Archetype`, naming its `class`: the rows where it differs from its class |
-| `features/`, `selections/`, `options/` | `Feature`; `FeatureSelection`, whose `options` are the keys of its own options and `shared_options` others', or whose `feats` are the feats it offers (a selection of feats, ticket 301: what `feat-lists/` and the feat slots were); `SelectionOption` |
-| `mythic/abilities/`, `mythic/feats/`, `mythic/paths/` | `MythicAbility`; `MythicFeat`; `MythicPath`: its rank table and switch rule |
+| `features/`, `selections/`, `options/` | `Feature`; `FeatureSelection`, whose `options` are the keys of its own options and `shared_options` others', or whose `feats` are the feats it offers (a selection of feats, ticket 301: what `feat-lists/` and the feat slots were), or whose `mythic_abilities` are the mythic abilities it offers (Extra Mythic Ability's, ticket 302); `needs_slot_of`, the planner's condition on a selection a feat grants until ticket 293 (`notes/302-nested-selections.md`); `SelectionOption` |
+| `mythic/abilities/`, `mythic/feats/`, `mythic/paths/` | `MythicAbility`; `MythicFeat` (each naming the selection it grants, if any: `selection`, ticket 302); `MythicPath`: its rank table and switch rule |
 | `backgrounds/` | `Background`: the user's list (ticket 34) |
 | `deities/` | `Deity`: the guide's deity table (`character-creation#deities`, ticket 86): the alignments a follower may have, the favoured weapons and the domains (`cleric/domain` options) |
 | `gear/` | `GearItem`: the named items with their always-on bonuses, `GearStat` components (tickets 165, 297); the plain stat belts and headbands come from the user, with no guide link |

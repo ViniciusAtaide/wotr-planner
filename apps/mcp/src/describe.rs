@@ -104,7 +104,7 @@ pub(crate) fn describe(planner: &Planner, kind: Kind, key: &str) -> Result<Item,
                 .expect("an indexed mythic ability");
             item.features = Some(features(planner, ability.features.iter()));
             let granted: Vec<&FeatureSelection> = ability
-                .selections
+                .selection
                 .iter()
                 .filter_map(|key| data.selection(key))
                 .collect();

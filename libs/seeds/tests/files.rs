@@ -632,7 +632,7 @@ fn checking_the_files_names_every_missing_key() {
             text.replace("Feat(\"power-attack\")", "Feat(\"no-such-feat\")")
                 .replacen(
                     "    repeat: Times(3),\n",
-                    "    repeat: Times(3),\n    extra_pick_of: [\"rogue/no-such-selection\"],\n",
+                    "    repeat: Times(3),\n    selection: \"rogue/no-such-selection\",\n",
                     1,
                 ),
         )
@@ -1029,8 +1029,8 @@ fn reads_options_with_rows_by_option_level_and_defaults_them() {
         .find(|a| a.key.as_str() == "second-bloodline")
         .unwrap();
     assert_eq!(
-        second.selections,
-        [FeatureSelectionKey::new("sorcerer/bloodline")]
+        second.selection,
+        Some(FeatureSelectionKey::new("sorcerer/bloodline"))
     );
 
     // Everything else defaults to none.

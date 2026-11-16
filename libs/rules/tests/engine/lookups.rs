@@ -124,7 +124,14 @@ fn the_selections_are_one_catalog_the_class_selections_then_each_paths() {
         "aeon/enforcing-gaze",
         "gold-dragon/breaths",
     ];
-    assert_eq!(keys, [&CLASS_SELECTIONS[..], &paths].concat());
+    // Then those the Extra feats and Extra Mythic Ability grant (ticket 302).
+    let granted = [
+        "rogue/extra-rogue-talent",
+        "witch/extra-hex",
+        "slayer/slayer-trick",
+        "mythic/extra-mythic-ability",
+    ];
+    assert_eq!(keys, [&CLASS_SELECTIONS[..], &paths, &granted].concat());
 }
 
 #[test]

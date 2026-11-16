@@ -270,17 +270,17 @@ fn chooses(summary: &str) -> bool {
 fn every_item_whose_summary_chooses_has_its_pick_or_was_checked() {
     let mut without_pick = BTreeSet::new();
     for feat in DATA.feats.iter().filter(|feat| chooses(&feat.summary)) {
-        if feat.parameter.is_none() && feat.extra_pick_of.is_empty() {
+        if feat.parameter.is_none() && feat.selection.is_none() {
             without_pick.insert(format!("feat {}", feat.key.as_str()));
         }
     }
     for ability in DATA.mythic_abilities.iter().filter(|a| chooses(&a.summary)) {
-        if ability.parameter.is_none() && ability.selections.is_empty() {
+        if ability.parameter.is_none() && ability.selection.is_none() {
             without_pick.insert(format!("mythic ability {}", ability.key.as_str()));
         }
     }
     for feat in DATA.mythic_feats.iter().filter(|f| chooses(&f.summary)) {
-        if feat.parameter.is_none() && feat.extra_pick.is_none() {
+        if feat.parameter.is_none() && feat.selection.is_none() {
             without_pick.insert(format!("mythic feat {}", feat.key.as_str()));
         }
     }

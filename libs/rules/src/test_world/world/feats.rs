@@ -62,7 +62,7 @@ fn feat_row(key: &str, category: FeatCategory, prerequisite: Option<Prerequisite
         guide: guide(&format!("feats#{key}")),
         parameter: None,
         repeat: Repeat::Once,
-        extra_pick_of: BTreeSet::new(),
+        selection: None,
         aliases: BTreeSet::new(),
         requires_proficiency: false,
         prerequisite,
@@ -92,13 +92,10 @@ fn repeat_feat_row(key: &str, category: FeatCategory, repeat: Repeat) -> Feat {
     }
 }
 
-/// A feat taken more than once that gives one more slot of one of `selections` each time.
-fn extra_pick_row(key: &str, category: FeatCategory, repeat: Repeat, selections: &[&str]) -> Feat {
+/// A feat taken more than once that grants `selection` each time, whose pick is one more slot (ticket 302).
+fn granting_row(key: &str, category: FeatCategory, repeat: Repeat, selection: &str) -> Feat {
     Feat {
-        extra_pick_of: selections
-            .iter()
-            .map(|key| FeatureSelectionKey::new(*key))
-            .collect(),
+        selection: Some(FeatureSelectionKey::new(selection)),
         ..repeat_feat_row(key, category, repeat)
     }
 }
@@ -215,21 +212,21 @@ pub(super) fn feats() -> Vec<Feat> {
             }),
         ),
         // One more rogue talent, or slayer talent for a character who had a slayer talent slot first (as Extra Hex
-        // names the witch's and the shaman's hexes).
-        extra_pick_row(
+        // names the witch's and the shaman's hexes): their selections are in `granted_selections`.
+        granting_row(
             "extra-rogue-talent",
             Class,
             Repeat::Times(3),
-            &["rogue/rogue-talents", "slayer/slayer-talents"],
+            "rogue/extra-rogue-talent",
         ),
-        extra_pick_row("extra-hex", Class, Repeat::Times(3), &["witch/hex"]),
-        // Invented: a Combat feat with an extra pick, so a fighter's bonus slot can hold one before the general
+        granting_row("extra-hex", Class, Repeat::Times(3), "witch/extra-hex"),
+        // Invented: a Combat feat granting a selection, so a fighter's bonus slot can hold one before the general
         // slot's at the same level.
-        extra_pick_row(
+        granting_row(
             "slayer-trick",
             Weapon,
             Repeat::Unlimited,
-            &["slayer/slayer-talents"],
+            "slayer/slayer-trick",
         ),
         repeat_feat_row("extra-ki", Class, Repeat::Unlimited),
         feat_row(

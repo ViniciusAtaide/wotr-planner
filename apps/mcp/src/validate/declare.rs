@@ -5,7 +5,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
     Ability, AbilityScores, Address, Alignment, ArchetypeKey, BackgroundKey, Build, ClassKey,
-    Faith, FeatKey, GameData, GearKey, GearSpot, LevelUp, MythicAbilityKey, MythicExtraPick,
+    Faith, FeatKey, FeatureSelection, GameData, GearKey, GearSpot, LevelUp, MythicAbilityKey,
     MythicFeatKey, MythicPathKey, MythicPickKind, Parameter, Pick, PointBuy, RaceKey,
     SelectionOptionKey, SkillKey, SlotId, SubraceKey, has_ability_increase, mythic_pick_kind,
 };
@@ -677,19 +677,20 @@ fn bare_pick(data: &GameData, picks: &BTreeMap<SlotId, Pick>, slot: &SlotId, key
             MythicPickKind::Feat => Pick::mythic_feat(MythicFeatKey::new(key)),
         },
         SlotId::MythicExtra { rank } => {
-            let extra = match picks.get(&SlotId::Mythic { rank }) {
+            // The mythic feat's selection (ticket 302): one of mythic abilities takes one, any other a feat.
+            let of_abilities = match picks.get(&SlotId::Mythic { rank }) {
                 Some(Pick::MythicFeat { feat, .. }) => data
                     .mythic_feats
                     .iter()
                     .find(|known| &known.key == feat)
-                    .and_then(|feat| feat.extra_pick),
-                _ => None,
+                    .and_then(|feat| data.selection(feat.selection.as_ref()?))
+                    .is_some_and(FeatureSelection::offers_mythic_abilities),
+                _ => false,
             };
-            match extra {
-                Some(MythicExtraPick::MythicAbility) => {
-                    Pick::mythic_ability(MythicAbilityKey::new(key))
-                }
-                _ => Pick::feat(FeatKey::new(key)),
+            if of_abilities {
+                Pick::mythic_ability(MythicAbilityKey::new(key))
+            } else {
+                Pick::feat(FeatKey::new(key))
             }
         }
     }

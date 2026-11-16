@@ -47,6 +47,16 @@ option lists / in game only / pool general feats / MagicalTail -> 293
 option lists / in planner only / pool general feats / magical-tail (MagicalTail1) -> 293
 option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> 293
 
+# From 302 (nested selections, decisions Q1, Q2 and Q4): the selections an Extra feat, a mythic ability and Extra
+# Mythic Ability grant list the planner's list of the selection each stands for (every mythic ability for Extra Mythic
+# Ability), not the game's own; 293 writes the game's.
+option lists / * / selection arcanist/extra-arcanist-exploit -> 293
+option lists / * / selection bloodrager/second-bloodline -> 293
+option lists / * / selection kineticist/extra-wild-talent -> 293
+option lists / * / selection mythic/extra-mythic-ability -> 293
+option lists / * / selection oracle/beneficial-curse -> 293
+option lists / * / selection slayer/extra-slayer-talent -> 293
+
 # The difference tickets, 247–291 (filed 2026-11-15 from the first run's 3,908 findings not known before): each
 # section names the entries whose differences its ticket removes, one line per entry, or per kind or value where an
 # entry's findings belong to two tickets. A ticket that lands deletes its section: a line left behind matches nothing

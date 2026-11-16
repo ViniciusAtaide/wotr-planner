@@ -17,7 +17,7 @@ pub(super) fn mythic_abilities() -> Vec<MythicAbility> {
         guide: guide(key),
         prerequisite,
         features: vec![],
-        selections: vec![],
+        selection: None,
         parameter: None,
         repeat: Repeat::Once,
     };
@@ -47,7 +47,7 @@ pub(super) fn mythic_abilities() -> Vec<MythicAbility> {
         },
         // A further domain, levelled like the domains held (or a false god's way).
         MythicAbility {
-            selections: vec![FeatureSelectionKey::new("cleric/impossible-domain")],
+            selection: Some(FeatureSelectionKey::new("cleric/impossible-domain")),
             ..ability(
                 "impossible-domain",
                 Some(Prerequisite::Any(vec![
@@ -61,7 +61,7 @@ pub(super) fn mythic_abilities() -> Vec<MythicAbility> {
         },
         // A second bloodline, a full pick on the same class levels.
         MythicAbility {
-            selections: vec![FeatureSelectionKey::new("sorcerer/bloodline")],
+            selection: Some(FeatureSelectionKey::new("sorcerer/bloodline")),
             ..ability(
                 "second-bloodline",
                 Some(Prerequisite::ClassLevel {
@@ -85,7 +85,7 @@ pub(super) fn mythic_feats() -> Vec<MythicFeat> {
         parameter: None,
         repeat: Repeat::Once,
         removes_racial_penalty: false,
-        extra_pick: None,
+        selection: None,
         requires_proficiency: false,
         prerequisite,
     };
@@ -94,12 +94,12 @@ pub(super) fn mythic_feats() -> Vec<MythicFeat> {
         mythic_feat("toughness-mythic", Some(needs_feat("toughness"))),
         // "You can select a mythic ability."
         MythicFeat {
-            extra_pick: Some(MythicExtraPick::MythicAbility),
+            selection: Some(FeatureSelectionKey::new("mythic/extra-mythic-ability")),
             ..mythic_feat("extra-mythic-ability", None)
         },
         // "You can select any normal feat."
         MythicFeat {
-            extra_pick: Some(MythicExtraPick::Feat),
+            selection: Some(FeatureSelectionKey::new(BASIC_FEAT_SELECTION)),
             ..mythic_feat("extra-feat", None)
         },
         mythic_feat("improved-critical-mythic", None),

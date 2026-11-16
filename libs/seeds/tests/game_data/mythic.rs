@@ -307,10 +307,13 @@ fn slot_options(build: &Build, slot: &SlotId) -> Vec<SlotOption> {
 /// more.
 #[test]
 fn extra_feat_and_extra_mythic_ability_are_the_mythic_feats_that_give_a_pick() {
-    let giving: Vec<(String, rules::MythicExtraPick, Repeat)> = DATA
+    let giving: Vec<(String, String, Repeat)> = DATA
         .mythic_feats
         .iter()
-        .filter_map(|feat| Some((feat.key.to_string(), feat.extra_pick?, feat.repeat)))
+        .filter_map(|feat| {
+            let selection = feat.selection.as_ref()?.to_string();
+            Some((feat.key.to_string(), selection, feat.repeat))
+        })
         .collect();
     // Game: ExtraFeatMythicFeat e10c4f18a6c8b4342afe6954bde0587b and ExtraMythicAbilityMythicFeat
     // 8a6a511c55e67d04db328cc49aaad2b8 are selections of Ranks 1; MythicFeatSelection
@@ -321,12 +324,12 @@ fn extra_feat_and_extra_mythic_ability_are_the_mythic_feats_that_give_a_pick() {
         [
             (
                 "extra-feat".to_owned(),
-                rules::MythicExtraPick::Feat,
+                rules::BASIC_FEAT_SELECTION.to_owned(),
                 Repeat::Once
             ),
             (
                 "extra-mythic-ability".to_owned(),
-                rules::MythicExtraPick::MythicAbility,
+                "mythic/extra-mythic-ability".to_owned(),
                 Repeat::Once
             ),
         ]
@@ -431,7 +434,12 @@ fn extra_mythic_ability_gives_a_mythic_ability_slot_offering_what_a_ranks_does()
     let build = with_mythic_feat("fighter", 7, "extra-mythic-ability");
     let sheet = engine.evaluate(&build);
     let slot = sheet.slot(&mythic_extra(2)).expect("the extra slot");
-    assert_eq!(slot.kind, SlotKind::MythicAbility);
+    assert_eq!(
+        slot.kind,
+        SlotKind::MythicAbilities(rules::FeatureSelectionKey::new(
+            "mythic/extra-mythic-ability"
+        ))
+    );
     assert_eq!(engine.slot_label(slot), "Mythic ability");
     let picks = |slot: &SlotId| -> BTreeSet<Pick> {
         slot_options(&build, slot)
@@ -462,7 +470,7 @@ fn extra_mythic_ability_gives_a_mythic_ability_slot_offering_what_a_ranks_does()
     let second = SlotId::MythicSelection { rank: 2, index: 0 };
     assert_eq!(
         kind_at(&sorcerer, &second),
-        Some(selection_kind("sorcerer/bloodline"))
+        Some(selection_kind("sorcerer/second-bloodline"))
     );
     let open = slot_options(&sorcerer, &second)
         .into_iter()
@@ -580,7 +588,16 @@ fn beneficial_curse_gives_a_slot_of_the_oracles_curses() {
     // (LameCurseNoPenaltyProgression f9dadbcdecb41c6419f9297a2425eabd) and needs OracleCurseSelection
     // b0a5118b4fb793241bc7042464b23fab (equivalent model: the same nine curses; that the game's carry no penalty is
     // the difference ticket 243 recorded).
-    assert_eq!(curse.selections, [rules::FeatureSelectionKey::new(CURSES)]);
+    // Its selection (ticket 302: the game's ability is one) stands for the oracle's curses.
+    let own = curse
+        .selection
+        .as_ref()
+        .expect("Beneficial Curse's selection");
+    assert_eq!(own.as_str(), BENEFICIAL_CURSE_SELECTION);
+    assert_eq!(
+        any_selection(own.as_str()).offered(),
+        any_selection(CURSES).offered()
+    );
     let held: BTreeSet<String> = match curse.prerequisite.as_ref() {
         Some(Prerequisite::Any(children)) => children
             .iter()
@@ -609,15 +626,11 @@ fn beneficial_curse_gives_a_slot_of_the_oracles_curses() {
 fn witch_wandering_hex_gives_a_daily_hex_ability_and_no_slot() {
     // Game: WitchWanderingHex fb8490d1721bd5a4883c3b6559310351 is a feature, not a selection: it adds
     // WitchWanderingHexAbility b209beab784d93546b40a2fa2a09ffa8 and a daily resource.
-    assert!(
-        mythic_ability_data(WITCH_WANDERING_HEX)
-            .selections
-            .is_empty()
-    );
+    assert!(mythic_ability_data(WITCH_WANDERING_HEX).selection.is_none());
     let giving: BTreeSet<&str> = DATA
         .mythic_abilities
         .iter()
-        .filter(|ability| !ability.selections.is_empty())
+        .filter(|ability| ability.selection.is_some())
         .map(|ability| ability.key.as_str())
         .collect();
     // Game: MythicAbilitySelection ba0e5a900b775be4a99702f1ed08914d's selections: BeneficialCurse
@@ -723,7 +736,7 @@ fn beneficial_curse_gives_an_oracle_curse_slot_offering_only_curses_not_held() {
     assert!(possible(&oracle));
     let sheet = engine.evaluate(&oracle);
     let slot = sheet.slot(&mr_1_selection()).expect("the curse slot");
-    assert_eq!(slot.kind, selection_kind(CURSES));
+    assert_eq!(slot.kind, selection_kind(BENEFICIAL_CURSE_SELECTION));
     assert_eq!(engine.slot_label(slot), "Oracle's Curse");
     let held = oracle
         .picks

@@ -390,7 +390,7 @@ fn with_expanded_arsenal() -> Engine {
         parameter: Some(ParameterKind::SpellSchool),
         repeat: Repeat::PerValue,
         prerequisite: None,
-        extra_pick: None,
+        selection: None,
         requires_proficiency: false,
         removes_racial_penalty: false,
         ..template
