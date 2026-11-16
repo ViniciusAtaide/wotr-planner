@@ -699,6 +699,13 @@ pub struct Feat {
     /// `None`: the guide lists no prerequisites, so there are none.
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
+    /// Keys the feat had before a rename or a split (ticket 298), as an option's
+    /// [`aliases`](SelectionOption::aliases): read only by the link decoder and [`Engine::open_link`]'s migration, so
+    /// a link naming an old key still opens. Empty for none, and left out when written.
+    ///
+    /// [`Engine::open_link`]: crate::Engine::open_link
+    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
+    pub aliases: BTreeSet<FeatKey>,
     /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
     /// for none, and left out when written.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
@@ -1412,8 +1419,12 @@ pub struct SelectionOption {
     /// once. The selection it's held through says which class levels make up its level.
     #[serde(default)]
     pub levels: Vec<OptionLevelRow>,
-    /// Keys the option had before it merged with another or moved (Combat Healer (Life), now Combat Healer): read
-    /// only by the link decoder ([`LinkKeys`](crate::LinkKeys)), so a link naming an old key still opens.
+    /// Keys the option had before it merged with another, moved or was split (Combat Healer (Life), now Combat
+    /// Healer): read only by the link decoder ([`LinkKeys`](crate::LinkKeys)) and [`Engine::open_link`]'s migration,
+    /// so a link naming an old key still opens. An alias may be a key still live (a split that keeps it in one slot)
+    /// or one other entries name too (a split's copies): a link's pick opens as the one of them that holds at its slot.
+    ///
+    /// [`Engine::open_link`]: crate::Engine::open_link
     #[serde(default)]
     pub aliases: BTreeSet<SelectionOptionKey>,
     /// Picking this option skips the row, at the level reached, of the option held in that selection (a

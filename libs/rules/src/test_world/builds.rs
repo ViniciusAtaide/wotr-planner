@@ -168,6 +168,13 @@ pub fn engine_on(data: GameData) -> Engine {
 
 // ---- impossible Builds ----------------------------------------------------------------------------------------
 
+/// The Build with `pick` in `slot`.
+pub fn with(build: &Build, slot: SlotId, pick: Pick) -> Build {
+    let mut build = build.clone();
+    build.picks.insert(slot, pick);
+    build
+}
+
 /// The Build without the pick in `slot`.
 pub fn without(build: &Build, slot: &SlotId) -> Build {
     let mut build = build.clone();

@@ -1,7 +1,7 @@
 # Selections as the game has them: the link migration
 
 Type: build (engine)
-Status: open
+Status: resolved
 Blocked by: 297
 Model: Opus to build: every link must keep opening.
 Map: [WotR Build Planner](../map.md)
@@ -101,3 +101,55 @@ proposed keys and every place that names a shared selection. The form proof's re
 `<scratchpad>/game/298/proof-before/`.
 
 **A correction to the research above** (main session, 2026-11-16): two blueprints are named `BardTalentSelection`. The research read 40f85fbe8cc35ef4fa96c66e06eeafe8, which only units reference. `BardProgression` 8127f5ff40f5b484b8be98609358b9d2 grants 94e2cd84bf3a8e04f8609fe502892f4f, whose list holds EmboldeningStrike, TerrainMastery, BlindingStrike, Familiar and PetrifyingStrike. The bard counts above are wrong, and the other selections' counts are unchecked. 293 identifies each selection through the progression or archetype that grants it (`game-check refs`), never by name.
+
+## Answer
+
+**Built** (2026-11-16) as rescoped: the data check's three fixes (`1d10d1ab`, Build notes above) and the link migration.
+No data and no game fact changed, so there is no data note; the precedent is 243's and 244's `aliases`.
+
+**The migration** (`Engine::open_link`, `libs/rules/src/engine/walk.rs`): a link decodes, and when its Build isn't
+possible, while the first failure is a pick at a slot whose key an option's or feat's `aliases` name
+(`LinkKeys::heirs`), each such entry is tried in the pick's place with the same value, and the one whose slot then
+fails nothing replaces it. None or several: the link is stale. Each slot migrates once. A possible Build is never
+touched, so its cost stays one walk.
+
+**The decoder** (`LinkKeys`, `libs/rules/src/codec.rs`) keeps, per kind and hash, the text hashed, whether it's a live
+key and the live keys naming it as an alias. A live key reads as itself (even when aliases name it: 294's shape); an old
+key one entry names reads as that entry (243's behaviour, kept); an old key several name reads as itself, a key no
+entry has, which the migration then reads by its slot (293's shape). Collisions are still between different texts.
+
+**Decisions:**
+- Feats get `aliases` too (`Feat::aliases`, default empty, not written when empty): the main session's brief, for 293's
+  Extra Hex and Extra Channel.
+- An alias may name a key still live, or one other entries name (builder: 294 and 293 need both). The data check
+  (`check.rs`, `Checker::aliases`) now refuses only an entry's own key as its alias and a malformed alias; 243's test
+  (`ranks_and_pools::a_link_naming_an_options_old_key_reads_as_the_option`) changed to say so.
+- "Holds at its slot" is the walk's own judgement, no failure at that slot with the heir in place (builder). The
+  simplify review suggested the cursor's `pick_fits` instead; kept the walk, the same judge `is_possible` uses.
+- The corpus link test runs in the suite (builder): about 45 s in debug.
+- `tools/game-check/known.txt`: section 298's 83 lines move to section 293, unchanged but the ticket (user, rescope).
+  The game check exits 0.
+- `corpus::bench` is public, with `links` and `open`, so the link test and `bench_builds` read the benchmark one way
+  (simplify review).
+
+**Tests:**
+- `libs/rules/tests/engine/link_migration.rs`, planted renames in the test world (the rogue's Fast Stealth, shared with
+  the slayer; a copy of Toughness): `a_renamed_options_old_key_opens_on_its_new_key_with_an_alias_and_is_refused_without`,
+  `a_split_that_keeps_the_old_key_opens_each_slot_on_the_entry_it_offers`,
+  `an_old_key_two_copies_name_opens_each_slot_on_the_copy_it_offers`, `a_pick_two_live_aliases_hold_at_is_refused`,
+  `a_pick_no_alias_holds_at_is_refused`,
+  `a_renamed_feats_old_key_opens_on_its_new_key_with_an_alias_and_is_refused_without`,
+  `a_split_feats_old_key_opens_on_the_one_copy_that_holds_at_its_slot`.
+- `tools/corpus/tests/links.rs`: `every_corpus_and_bench_link_opens_with_the_same_picks` (each of the 2,162 corpus
+  Builds' links opens as the Build, but the 161 that aren't possible, which open nothing as at `7a793c6a`; each of the
+  5 benchmark links opens with the picks it decodes to, a pick changing key only to an entry whose alias names it),
+  and `a_planted_rename_opens_through_its_alias_and_is_refused_without_one` (legend40's first feat nothing else names,
+  renamed in the real data: with the alias the link opens on the new key and passes the check above; without, it
+  doesn't decode).
+
+**The form proof:** `compare` against the record at `7a793c6a`: 2162 Builds compared (2001 open), 2162 old links
+reopened, 0 differences.
+
+**Not done:** no data uses an alias in the new ways yet; 293 and 294 will. The migration's cost on a link that needs
+it (a walk per heir per migrated pick) is untimed.
+

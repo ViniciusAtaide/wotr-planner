@@ -24,9 +24,12 @@
 //! `no_two_keys_of_one_kind_share_a_link_hash` fails if a game-data change ever makes two collide; then the hash
 //! gets wider or another offset basis, which is a new format. A hash no key of its kind has (a key the game data no
 //! longer has), or one that two keys of its kind share, is [`DecodeError::UnknownKey`]. So a link survives every
-//! game-data change that keeps the keys it names. An option that merged with another or moved keeps its old keys as
-//! [`aliases`](crate::SelectionOption::aliases), whose hashes read as the option's key (and count in the collision
-//! test), so a link naming one opens on the option it became.
+//! game-data change that keeps the keys it names. An option or feat renamed, merged, moved or split keeps its old keys
+//! as [`aliases`](crate::SelectionOption::aliases) (a feat's [`aliases`](crate::Feat::aliases) since ticket 298), whose
+//! hashes count in the collision test. An old key no entry has any more reads as the one entry naming it; one that is
+//! still live reads as itself, and one several entries name reads as itself too, a key no entry has. Either way
+//! [`Engine::open_link`](crate::Engine::open_link) then migrates a pick that no longer holds at its slot to the one
+//! entry naming its key that holds there, so a link naming an old key opens on the entry it became.
 //!
 //! **Structure.** Bytes in this order. `varint` is unsigned LEB128 in the fewest bytes (one byte below 128).
 //! `opt(x)` is `0` for none, or `1` then `x`. `key(kind)` writes nothing here: it takes the next hash from the list,
@@ -237,12 +240,14 @@ pub struct LinkKeys {
     collisions: Vec<KeyCollision>,
 }
 
-/// The first key of a kind with a hash, the text hashed (the key, or an old key it reads as), and whether another
-/// key of the kind has the hash too.
+/// The first text of a kind with a hash (a live key, or an old key that aliases name), whether it is a live key, the
+/// live keys that name it as an old key (its heirs, in key order), and whether another text of the kind has the hash
+/// too.
 #[derive(Clone, Debug)]
 struct HashedKey {
-    key: String,
     named: String,
+    live: bool,
+    heirs: BTreeSet<String>,
     shared: bool,
 }
 
@@ -279,12 +284,15 @@ impl LinkKeys {
         }
         for feat in &data.feats {
             keys.insert(KeyKind::Feat, feat.key.as_str());
+            for alias in &feat.aliases {
+                keys.insert_alias(KeyKind::Feat, alias.as_str(), feat.key.as_str());
+            }
         }
         for option in &data.options {
             keys.insert(KeyKind::SelectionOption, option.key.as_str());
             // An option's old keys read as the option (Combat Healer (Life) as Combat Healer).
             for alias in &option.aliases {
-                keys.insert_as(
+                keys.insert_alias(
                     KeyKind::SelectionOption,
                     alias.as_str(),
                     option.key.as_str(),
@@ -318,21 +326,28 @@ impl LinkKeys {
         &self.collisions
     }
 
+    /// A live key.
     fn insert(&mut self, kind: KeyKind, key: &str) {
-        self.insert_as(kind, key, key);
+        self.hashed(kind, key).live = true;
     }
 
-    /// Reads `named`'s hash as `key`: the key itself, or an old key of it.
-    fn insert_as(&mut self, kind: KeyKind, named: &str, key: &str) {
+    /// `alias`, an old key that the live `key` names in its `aliases`.
+    fn insert_alias(&mut self, kind: KeyKind, alias: &str, key: &str) {
+        self.hashed(kind, alias).heirs.insert(key.to_owned());
+    }
+
+    /// The entry of `named`'s hash, noting a collision when another text of the kind has it.
+    fn hashed(&mut self, kind: KeyKind, named: &str) -> &mut HashedKey {
         let held = self
             .keys
             .entry((kind, key_hash(named)))
             .or_insert_with(|| HashedKey {
-                key: key.to_owned(),
                 named: named.to_owned(),
+                live: false,
+                heirs: BTreeSet::new(),
                 shared: false,
             });
-        if held.key != key {
+        if held.named != named {
             held.shared = true;
             let mut keys = [held.named.clone(), named.to_owned()];
             keys.sort();
@@ -341,14 +356,49 @@ impl LinkKeys {
                 self.collisions.push(collision);
             }
         }
+        held
     }
 
-    /// The key of a kind with a hash, unless no key or more than one has it.
+    /// The key of a kind with a hash, unless no text or more than one has it: a live key as itself; an old key one
+    /// live key names as the key naming it; an old key several name as itself, a key no entry has, which
+    /// [`Engine::open_link`](crate::Engine::open_link) migrates by its slot.
     fn get(&self, kind: KeyKind, hash: u32) -> Option<&str> {
-        let held = self.keys.get(&(kind, hash))?;
-        (!held.shared).then_some(held.key.as_str())
+        let held = self.keys.get(&(kind, hash)).filter(|held| !held.shared)?;
+        Some(match held.heirs.first() {
+            Some(heir) if !held.live && held.heirs.len() == 1 => heir.as_str(),
+            _ => held.named.as_str(),
+        })
+    }
+
+    /// The picks `pick` may migrate to: the same pick of each live option or feat whose `aliases` name its key, in key
+    /// order.
+    pub(crate) fn heirs(&self, pick: &Pick) -> Vec<Pick> {
+        let (kind, heir_pick): (KeyKind, HeirPick) = match pick {
+            Pick::Feat { .. } => (KeyKind::Feat, |heir, parameter| Pick::Feat {
+                feat: FeatKey::new(heir),
+                parameter,
+            }),
+            Pick::SelectionOption { .. } => (KeyKind::SelectionOption, |heir, parameter| {
+                Pick::SelectionOption {
+                    option: SelectionOptionKey::new(heir),
+                    parameter,
+                }
+            }),
+            Pick::MythicAbility { .. } | Pick::MythicFeat { .. } => return Vec::new(),
+        };
+        let key = pick.key();
+        self.keys
+            .get(&(kind, key_hash(key)))
+            .filter(|held| held.named == key && !held.shared)
+            .into_iter()
+            .flat_map(|held| &held.heirs)
+            .map(|heir| heir_pick(heir, pick.parameter().cloned()))
+            .collect()
     }
 }
+
+/// Makes a pick of a kind from an heir's key and the old pick's value.
+type HeirPick = fn(&str, Option<Parameter>) -> Pick;
 
 /// The link code for a Build, in the current format version.
 pub fn encode_build(build: &Build) -> String {

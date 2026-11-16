@@ -693,6 +693,7 @@ impl GameData {
         for feat in &self.feats {
             let at = DataAt::Feat(feat.key.clone());
             check.key(&at);
+            check.aliases(&at, feat.aliases.iter().cloned().map(DataAt::Feat));
             check.names_each(&at, &feat.extra_pick_of, DataAt::FeatureSelection);
             check.repeat(&at, feat.repeat, feat.parameter.is_some());
             check.prerequisite(&at, feat.prerequisite.as_ref(), feat.parameter);
@@ -880,8 +881,6 @@ struct Checker {
     archetype_classes: HashMap<ArchetypeKey, ClassKey>,
     /// Every selection's position in the data.
     selection_at: HashMap<FeatureSelectionKey, usize>,
-    /// The options' old keys, which only the link decoder reads: checked once the walk has seen every key.
-    aliases: Vec<SelectionOptionKey>,
     /// Every entry holding a [`SpellFocus`](crate::Component::SpellFocus).
     spell_focuses: HashSet<DataAt>,
     /// Every fact an [`ExpandedArsenal`](crate::Component::ExpandedArsenal) names, with its entry: each checked to
@@ -935,6 +934,21 @@ impl Checker {
         }
         if at.key().is_some_and(|key| !well_formed_key(key)) {
             self.problem(at, DataIssue::MalformedKey);
+        }
+    }
+
+    /// An option's or feat's old keys, which only the link decoder and its migration read. An old key reads in a link
+    /// as its entry, or by its slot as the one entry naming it that holds there (`Engine::open_link`, ticket 298): it
+    /// may be a key still live (a split that keeps it in one slot) or one several copies name, but not the entry's
+    /// own. Nothing else names it.
+    fn aliases(&mut self, entry: &DataAt, aliases: impl Iterator<Item = DataAt>) {
+        for alias in aliases {
+            if alias == *entry {
+                self.problem(&alias, DataIssue::DuplicateKey);
+            }
+            if alias.key().is_some_and(|key| !well_formed_key(key)) {
+                self.problem(&alias, DataIssue::MalformedKey);
+            }
         }
     }
 
@@ -1002,17 +1016,6 @@ impl Checker {
         for (at, named) in std::mem::take(&mut self.named) {
             if !self.keys.contains(&named) {
                 self.problem(&at, DataIssue::UnknownKey(named));
-            }
-        }
-        // An old key reads in a link as its option, so no option nor other alias may have it; nothing else names it.
-        let mut aliases = HashSet::new();
-        for alias in std::mem::take(&mut self.aliases) {
-            let at = DataAt::SelectionOption(alias);
-            if self.keys.contains(&at) || !aliases.insert(at.clone()) {
-                self.problem(&at, DataIssue::DuplicateKey);
-            }
-            if at.key().is_some_and(|key| !well_formed_key(key)) {
-                self.problem(&at, DataIssue::MalformedKey);
             }
         }
         let ranks: HashSet<u8> = data
@@ -1362,7 +1365,10 @@ impl Checker {
         for option in &data.options {
             let at = DataAt::SelectionOption(option.key.clone());
             self.key(&at);
-            self.aliases.extend(option.aliases.iter().cloned());
+            self.aliases(
+                &at,
+                option.aliases.iter().cloned().map(DataAt::SelectionOption),
+            );
             let count = defined.get(&option.key).copied().unwrap_or(0);
             if count != 1 {
                 self.problem(&at, DataIssue::OptionNotDefinedOnce(count));

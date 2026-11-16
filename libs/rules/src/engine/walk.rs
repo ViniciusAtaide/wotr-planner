@@ -76,11 +76,47 @@ impl Engine {
     /// Opens a link: its Build when it decodes with the game data's keys and [is possible](Self::is_possible), and
     /// otherwise the one generic error, whatever the reason (the game data changed since the link was made, a key
     /// included, or the link is damaged or hand-edited). The sheet then shows a blank Build.
+    ///
+    /// The link migration (ticket 298): while the first choice that fails is a pick whose key an option's or feat's
+    /// `aliases` name (a key renamed or split since the link was made, live or not), the pick is read as the one of
+    /// those entries that holds at its slot, with the same value. When none or several hold there, the link is
+    /// stale. A Build that is possible is never migrated, so a link that opened before opens the same.
+    ///
+    /// Costs one walk when the Build is possible; a link that isn't costs one more, and each migrated pick one per entry
+    /// naming its key.
     pub fn open_link(&self, code: &str) -> Result<Build, StaleLink> {
-        decode_build(code, &self.link_keys)
-            .ok()
-            .filter(|build| self.is_possible(build))
-            .ok_or(StaleLink)
+        let mut build = decode_build(code, &self.link_keys).map_err(|_| StaleLink)?;
+        if self.is_possible(&build) {
+            return Ok(build);
+        }
+        let mut failures = self.failures(&build);
+        let mut migrated = FxHashSet::default();
+        while let Some(first) = failures.first() {
+            let Choice::Slot(slot) = &first.choice else {
+                return Err(StaleLink);
+            };
+            // Each slot migrates once, so this ends.
+            let Some(pick) = build
+                .picks
+                .get(slot)
+                .filter(|_| migrated.insert(slot.clone()))
+            else {
+                return Err(StaleLink);
+            };
+            let mut holding = self.link_keys.heirs(pick).into_iter().filter_map(|heir| {
+                let mut trial = build.clone();
+                trial.picks.insert(slot.clone(), heir);
+                let failures = self.failures(&trial);
+                let holds = !(failures.iter())
+                    .any(|failure| matches!(&failure.choice, Choice::Slot(at) if at == slot));
+                holds.then_some((trial, failures))
+            });
+            (build, failures) = match (holding.next(), holding.next()) {
+                (Some(trial), None) => trial,
+                _ => return Err(StaleLink),
+            };
+        }
+        Ok(build)
     }
 
     /// The state just before a slot is filled, or `None` when the Build has no such slot. Tests only.

@@ -21,7 +21,7 @@
 //! queue of tickets by the main session (`CLAUDE.md`, "Parallel agents"). A self-check never outranks the game: when
 //! one disagrees with it, the engine is fixed (`CLAUDE.md`, "Behaviour checks").
 
-mod bench;
+pub mod bench;
 pub mod builds;
 mod generate;
 

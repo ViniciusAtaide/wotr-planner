@@ -34,6 +34,7 @@ mod held_selections;
 mod indexed_lookups;
 mod labels;
 mod level_pickers;
+mod link_migration;
 mod lookups;
 mod mythic;
 mod mythic_extra_picks;

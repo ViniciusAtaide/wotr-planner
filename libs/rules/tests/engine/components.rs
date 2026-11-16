@@ -31,6 +31,7 @@ fn component_feat(key: &str, components: Vec<Component>) -> Feat {
         parameter: None,
         repeat: Repeat::Once,
         extra_pick_of: BTreeSet::new(),
+        aliases: BTreeSet::new(),
         requires_proficiency: false,
         prerequisite: None,
         components,
