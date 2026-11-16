@@ -1,0 +1,481 @@
+# kind	entry-key	target (blueprint name, GUID, or - for empty)	reason
+option	alchemist/incense-synthesizer/incense-fog/incense-fog-greater-sacred-incense	IncenseFogSacredIncenseGreaterFeature	was the plain Sacred Incense; the Greater one is its own option of IncenseSynthesizerIncenseFogSelection
+option	barbarian/rage-power/deflect-arrows-instinctual-warrior	RageDeflectArrowsFeature	an option of InstinctualWarriorRagePowerSelection; was the selection itself
+option	barbarian/rage-power/diamond-body-instinctual-warrior	RageDiamondBodyFeature	same
+option	barbarian/rage-power/diamond-soul-instinctual-warrior	RageDiamondSoulFeature	same
+option	barbarian/rage-power/perfect-self-instinctual-warrior	RagePerfectSelfFeature	same
+option	barbarian/rage-power/purity-of-body-instinctual-warrior	RagePurityOfBodyFeature	same; was the archetype's proficiencies
+feature	cleric/domain/artifice/aura-of-efficiency	ArtificeDomainBaseFeature	the base power of ArtificeDomainProgression, as for every other domain; was the Separatist copy
+feature	cleric/domain/death/bleeding-touch	DeathDomainBaseFeature	the base power of DeathDomainProgression; was the Murder subdomain's
+feature	cleric/domain/earth/acid-dart	EarthDomainBaseFeature	the base power of EarthDomainProgression; was the wizard's conjuration Acid Dart
+feature	cleric/domain/weather/storm-burst	WeatherDomainBaseFeature	the base power of WeatherDomainProgression; was a shaman spirit's
+feature	cleric/domain/chaos/touch-of-chaos	ChaosDomainBaseFeature	leftover: the base power of ChaosDomainProgression
+feature	cleric/domain/darkness/touch-of-darkness	DarknessDomainBaseFeature	leftover: the base power of DarknessDomainProgression
+feature	cleric/domain/evil/touch-of-evil	EvilDomainBaseFeature	leftover: the base power of EvilDomainProgression
+feature	cleric/domain/good/touch-of-good	GoodDomainBaseFeature	leftover: the base power of GoodDomainProgression
+feature	cleric/domain/healing/rebuke-death	HealingDomainBaseFeature	leftover: the base power of HealingDomainProgression
+option	kineticist/element/air	2bd0d44953a536f489082534c48f8e31	ElementalFocusAir, an option of the kineticist's ElementalFocusSelection; was the selection
+option	kineticist/element/earth	c6816ad80a3df9c4ea7d3b012b06bacd	ElementalFocusEarth, same
+option	kineticist/element/fire	3d8d3d6678b901444a07984294a1bc24	ElementalFocusFire, same
+option	kineticist/element/water	7ab8947ce2e19c44a9edcf5fd1466686	ElementalFocusWater, same
+feature	magus/spell-dancer/spell-dance-ii	SpellDanceBlurFeature	SpellDancerArchetype adds it at 5 with SpellDanceHasteFeature (named in the note); was the base Spell Dance
+feature	magus/spell-dancer/spell-dance-iii	SpellDanceDoorFeature	SpellDancerArchetype adds it at 9
+feature	magus/spell-dancer/spell-dance-iv	SpellDanceFreedomFeature	SpellDancerArchetype adds it at 13
+feature	oracle/curse-2	-	planner placeholder: the chosen curse's own progression moves it on at 5; OracleProgression grants nothing there
+feature	oracle/curse-3	-	same, at 10
+feature	oracle/curse-4	-	same, at 15
+feature	oracle/divine-herbalist/curse-2	-	same
+feature	oracle/divine-herbalist/curse-3	-	same
+feature	oracle/divine-herbalist/curse-4	-	same
+feature	oracle/dual-cursed-oracle/curse-2	-	same
+feature	oracle/dual-cursed-oracle/curse-3	-	same
+feature	oracle/dual-cursed-oracle/curse-4	-	same
+feature	oracle/enlightened-philosopher/curse-2	-	same
+feature	oracle/enlightened-philosopher/curse-3	-	same
+feature	oracle/enlightened-philosopher/curse-4	-	same
+feature	oracle/lone-strider/curse-2	-	same
+feature	oracle/lone-strider/curse-3	-	same
+feature	oracle/lone-strider/curse-4	-	same
+feature	oracle/possessed-oracle/curse-2	-	same
+feature	oracle/possessed-oracle/curse-3	-	same
+feature	oracle/possessed-oracle/curse-4	-	same
+feature	oracle/purifier/curse-2	-	same
+feature	oracle/purifier/curse-3	-	same
+feature	oracle/purifier/curse-4	-	same
+feature	oracle/seeker/curse-2	-	same
+feature	oracle/seeker/curse-3	-	same
+feature	oracle/seeker/curse-4	-	same
+feature	oracle/wind-whisperer/curse-2	-	same
+feature	oracle/wind-whisperer/curse-3	-	same
+feature	oracle/wind-whisperer/curse-4	-	same
+feature	oracle/mystery/ancestor/ancestor-final-revelation	OracleAncestorFinalRevelation	granted by OracleAncestorsMysteryFeature; was the class's generic Final Revelation
+feature	oracle/mystery/battle/battle-final-revelation	OracleBattleFinalRevelation	same, by its mystery
+feature	oracle/mystery/bones/bones-final-revelation	OracleBonesFinalRevelation	same
+feature	oracle/mystery/flame/flame-final-revelation	OracleFlameFinalRevelation	same
+feature	oracle/mystery/life/life-final-revelation	OracleLifeFinalRevelation	same
+feature	oracle/mystery/nature/nature-final-revelation	OracleNatureFinalRevelation	same
+feature	oracle/mystery/stone/stone-final-revelation	OracleStoneFinalRevelation	same
+feature	oracle/mystery/waves/waves-final-revelation	OracleWavesFinalRevelation	same
+feature	oracle/mystery/wind/wind-final-revelation	OracleWindFinalRevelation	same
+feature	oracle/revelations/battle/war-sight/uncanny-dodge	OracleRevelationWarSight7	OracleRevelationWarSight's 7th-level piece, which adds UncannyDodge; was the classes' UncannyDodgeChecker
+selection	oracle/revelations/ancestor	OracleRevelationSelection	context split: the game's one revelation selection, its options filtered by the mystery held (the research had OracleRevelation, a different feature)
+selection	oracle/revelations/battle	OracleRevelationSelection	context split: the game's one revelation selection, its options filtered by the mystery held (the research had OracleRevelation, a different feature)
+selection	oracle/revelations/bones	OracleRevelationSelection	context split: the game's one revelation selection, its options filtered by the mystery held (the research had OracleRevelation, a different feature)
+selection	oracle/revelations/flame	OracleRevelationSelection	context split: the game's one revelation selection, its options filtered by the mystery held (the research had OracleRevelation, a different feature)
+selection	oracle/revelations/life	OracleRevelationSelection	context split: the game's one revelation selection, its options filtered by the mystery held (the research had OracleRevelation, a different feature)
+selection	oracle/revelations/nature	OracleRevelationSelection	context split: the game's one revelation selection, its options filtered by the mystery held (the research had OracleRevelation, a different feature)
+selection	oracle/revelations/stone	OracleRevelationSelection	context split: the game's one revelation selection, its options filtered by the mystery held (the research had OracleRevelation, a different feature)
+selection	oracle/revelations/waves	OracleRevelationSelection	context split: the game's one revelation selection, its options filtered by the mystery held (the research had OracleRevelation, a different feature)
+selection	oracle/revelations/wind	OracleRevelationSelection	context split: the game's one revelation selection, its options filtered by the mystery held (the research had OracleRevelation, a different feature)
+option	oracle/revelations/battle/battlecry	OracleRevelationBattlecry	an option of OracleRevelationSelection; was the Battle mystery feature
+option	oracle/revelations/life/channel	OracleRevelationChannel	same; was Channel Resistance +2
+option	oracle/revelations/life/combat-healer-life	OracleRevelationCombatHealer	the Combat Healer revelation, listed under Life too; was Resist Life
+option	oracle/revelations/waves/blizzard	OracleRevelationBlizzard	same; was a shifter aspect
+option	oracle/revelations/waves/punitive-transformation	OracleRevelationPunitiveTransformation	same; was a witch patron
+option	oracle/revelations/battle/weapon-mastery	OracleRevelationWeaponMastery	leftover: the option of OracleRevelationSelection
+option	oracle/revelations/flame/touch-of-flame	OracleRevelationTouchOfFlame	leftover: same
+option	oracle/revelations/nature/friend-to-animals	OracleRevelationFriendToAnimals	leftover: same
+option	oracle/revelations/nature/spirit-of-nature	OracleRevelationSpiritOfNature	leftover: same
+option	oracle/revelations/stone/stone-stability	OracleRevelationStoneStability	leftover: same
+option	oracle/revelations/stone/touch-of-acid	OracleRevelationTouchOfAcid	leftover: same
+option	oracle/revelations/waves/ice-armor	OracleRevelationIceArmor	leftover: same
+option	oracle/revelations/wind/air-barrier	OracleRevelationAirBarrier	leftover: same
+option	oracle/revelations/wind/invisibility	OracleRevelationInvisibility	leftover: same
+option	oracle/revelations/wind/vortex-spells	OracleRevelationVortexSpells	leftover: same
+selection	skald/battle-scion/rage-power-or-teamwork-feat	BattleProwessSelection	BattleScionArchetype adds it at 3, 6, ... 18; the manual BattleScionTeamworkFeat is referenced by nothing in the game
+feature	skald/battle-scion/battle-prowess	BattleProwessFeature	BattleScionArchetype adds it at 3; was the selection
+option	skald/battle-scion/rage-power-or-teamwork-feat/teamwork-feat	-	planner-made: BattleProwessSelection lists the teamwork feats themselves
+selection	slayer/combat-style	-	planner-made pool: the game's slayer-talent options are RangerStyleSelection2/6/10 themselves
+selection	inquisitor/judgment	JudgmentFeature	leftover: InquisitorProgression's Judgment (FaithHunter has its own)
+option	inquisitor/judgment/judgement-resiliency	-	an ability of JudgmentFeature in the game, not a feature
+option	inquisitor/judgment/judgement-resistance	-	same
+option	inquisitor/judgment/judgment-destruction	-	same
+option	inquisitor/judgment/judgment-healing	-	same
+option	inquisitor/judgment/judgment-justice	-	same
+option	inquisitor/judgment/judgment-piercing	-	same
+option	inquisitor/judgment/judgment-protection	-	same
+option	inquisitor/judgment/judgment-purity	-	same
+option	inquisitor/judgment/judgment-smiting	-	same; was JudgmentFeature's container
+option	sorcerer/geomancer/geomancy/geomancy-abyss	-	the game's Geomancy (30493b3bd627435aa6b1cf3011dc762c) is one feature; each terrain is a set of abilities, one per spell level
+option	sorcerer/geomancer/geomancy/geomancy-desert	-	same
+option	sorcerer/geomancer/geomancy/geomancy-forest	-	same
+option	sorcerer/geomancer/geomancy/geomancy-highlands	-	same
+option	sorcerer/geomancer/geomancy/geomancy-underground	-	same
+option	sorcerer/geomancer/geomancy/geomancy-urban	-	same
+feat-list	fighter/titan-fighter/bonus-feats-2	TitanFighterStyleTwoWeaponSelection2	leftover: TitanFighterArchetype adds it at 2 (the game's list adds Toughness, Dodge and the save feats)
+feat-list	fighter/titan-fighter/bonus-feats-6	TitanFighterStyleTwoWeaponSelection6	leftover: same, at 6
+feat-list	ranger/bonus-feats-2b	RangerStyleArcherySelection2	leftover: NomadArchetype and StormwalkerArchetype add it at 2
+feat-list	ranger/bonus-feats-6b	RangerStyleArcherySelection6	NomadArchetype and StormwalkerArchetype add it at 6
+feat-list	ranger/bonus-feats-10b	RangerStyleArcherySelection10	NomadArchetype and StormwalkerArchetype add it at 10, 14, 18
+feature	aeon/summon-wood-golem	AeonSummonBaseFeature	displayed Summon Wood Golem; was Tier6 (Gold Golem)
+feature	aeon/summon-gold-golems	AeonSummonFeatureTier7	inference: rank 7 of AeonSummonProgression, no display name; a summon tier is its rank (angel, azata, demon, lich names agree)
+feature	aeon/summon-adamantine-golems	AeonSummonFeatureTier9	inference: same, rank 9
+feature	angel/summon-spirit-paladins	AngelSummonFeatureTier3	displayed Summon Spirit Paladins; was the base feature
+feature	angel/astral-devas-x4	AngelSummonFeatureTier8	leftover, inference: rank 8 of AngelSummonProgression, no display name
+feature	angel/summon-spirit-guardian	AngelSummonFeatureTier9	leftover, inference: rank 9, no display name
+feature	angel/summon-spirit-guardians	AngelSummonTier10	leftover, inference: rank 10, no display name
+feature	demon/oolooddroo	DemonSummonFeatureTier5	leftover: displayed Summon Oolioddroo, rank 5
+feature	demon/paianjai	DemonSummonFeatureTier6	leftover: displayed Summon Painajai, rank 6
+feature	trickster/summon-wild-hunt-i	TricksterSummonFeatureTier7	leftover: rank 7 of TricksterSummonProgression
+feature	trickster/summon-wild-hunt-ii	TricksterSummonFeatureTier9	leftover: rank 9
+feature	demon/demonic-rage	DemonRageFeature	DemonMythicClass grants it; was DemonicCurseNoPenaltyProgression
+feature	demon/demonkind	DemonResistances	DemonFirstLevelsProgression grants it at 2; was True Demonkind
+feature	demon/close-to-the-abyss	DemonFirstAscension	leftover: DemonFirstLevelsProgression at 1
+feature	aeon/force-reality	AeonFirstAscension	leftover: displayed Force Reality
+feature	angel/close-to-the-heavens	AngelFirstAscension	leftover: displayed Close to the Heavens
+feature	azata/instrument-of-freedom	AzataFirstAscension	leftover: displayed Instrument of Freedom
+feature	lich/danse-macabre	LichFirstAscension	leftover: displayed Danse Macabre
+feature	trickster/bit-of-fun	TricksterFirstAscension	leftover: displayed Bit of Fun
+feature	gold-dragon/perfect-mind	DragonLevel2Immunities	GoldenDragonClass rank 2 grants ten Perfect Mind features; the immunities one, like Perfect Body and Soul (the rest in the note)
+selection	gold-dragon/improved-gold-dragon-breath	GoldDragonBreathFeatureSelection	displayed Improved Gold Dragon Breath, its options the breaths; was the breath feature
+feature	legend/legend	LegendFeature	LegendProgression's; FakeLegendFeature is a stand-in
+option	student-of-war/know-your-enemy/defensive-stance-student-of-war	-	a stance of StudentOfWarKnowYourEnemyFeature, an ability in the game; StudentOfWarKnowYourEnemyDefensiveStanceExtraFeature is its 6th-level upgrade
+option	student-of-war/know-your-enemy/martial-stance	-	same; StudentOfWarKnowYourEnemyMartialStanceExtraFeature is its upgrade
+feat-list	half-elf/adaptability	Adaptability	the half-elf's Adaptability selection (BaseRaseHalfElfSelection); was the rogue's Master of All
+selection	druid/blight-druid/domain	BlightDruidBond	BlightDruid adds it at 1; its options are the summary's twelve domains
+selection	druid/winter-child/domain	WinterChildDomainSelection	WinterChildArchetype adds it at 1
+selection	arcanist/magic-deceiver/domain	FakeDivineSparkSelection	Hollow Spark: MagicDeceiverWayOfLivingGodProgression grants it twice at 20, options the domains; was the Magic domain
+feature	arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/acolyte-of-the-first-step	RazmiryInfiltratorMaskFeature	leftover: the Razmiri mask's own feature, its steps the numbered ones
+feature	arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/priest-of-the-third-step	RazmiryInfiltratorMaskFeature3	leftover
+feature	arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/herald-of-the-eighth-step	RazmiryInfiltratorMaskFeature9	leftover: RazmiryInfiltratorMaskFeature grants it by AddFeatureOnClassLevel(ArcanistClass, 8)
+feature	arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/mask-of-the-twelfth-step	RazmiryInfiltratorMaskFeature12	leftover
+feature	arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator/vision-of-the-fifteenth-step	RazmiryInfiltratorMaskFeature15	leftover
+option	wizard/school/diviner	SpecialisationSchoolDivinationProgression	the option of SpecialistSchoolSelection; was the base feature
+option	wizard/school/invoker	SpecialisationSchoolEvocationProgression	leftover: same
+option	wizard/school/necromancer	SpecialisationSchoolNecromancyProgression	same; was a background
+feature	wizard/school/diviner/forewarned	DivinationSchoolBaseInitiativeFeature	inside DivinationSchoolBaseFeature at 1; DivinationSchoolForewarnedFeature is the 20th-level part (note)
+feature	wizard/school/invoker/force-missile	ForceMissileFeature	leftover: inside SpecializationSchoolEvocation
+feature	wizard/school/invoker/intense-spells	SpecializationSchoolEvocation	inference: no Intense Spells feature exists; the evocation school feature carries it (IntenseSpellsPenetration is the 20th-level part)
+feature	wizard/school/necromancer/grave-touch	NecromancySchoolBaseFeature	holds the Grave Touch ability; was the undead bloodline's
+feature	wizard/school/necromancer/power-over-undead	NecromancySchoolBaseFeature	leftover: holds the Turn Undead (Necromancy) ability too
+feature	wizard/school/abjurer/resistance	AbjurationResistanceFeature	leftover: inside SpecializationSchoolAbjuration
+feature	wizard/school/conjurer/summoners-charm	SpecializationSchoolConjuration	leftover, inference: the conjuration school feature carries the summon duration bonus
+feature	wizard/school/transmuter/physical-enhancement	TransmutationPhysicalEnhancementFeature	inside SpecializationSchoolTransmutation; the capstone TransmutationPhysicalEnhancementCapstone is in the note
+option	warpriest/blessings/air-domain	AirBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/air-domain/minor-blessing	AirBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/air-domain/major-blessing	AirBlessingMajorFeature	the major blessing, which AirBlessingFeature grants
+option	warpriest/blessings/animal-domain	AnimalBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/animal-domain/minor-blessing	AnimalBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/animal-domain/major-blessing	AnimalBlessingMajorFeature	the major blessing, which AnimalBlessingFeature grants
+option	warpriest/blessings/chaos-domain	ChaosBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/chaos-domain/minor-blessing	ChaosBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/chaos-domain/major-blessing	ChaosBlessingMajorFeature	the major blessing, which ChaosBlessingFeature grants
+option	warpriest/blessings/darkness-domain	DarknessBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/darkness-domain/minor-blessing	DarknessBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/darkness-domain/major-blessing	DarknessBlessingMajorFeature	the major blessing, which DarknessBlessingFeature grants
+option	warpriest/blessings/death-domain	DeathBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/death-domain/minor-blessing	DeathBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/death-domain/major-blessing	DeathBlessingMajorFeature	the major blessing, which DeathBlessingFeature grants
+option	warpriest/blessings/destruction	DestructionBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/destruction/minor-blessing	DestructionBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/destruction/major-blessing	DestructionBlessingMajorFeature	the major blessing, which DestructionBlessingFeature grants
+option	warpriest/blessings/earth	EarthBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/earth/minor-blessing	EarthBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/earth/major-blessing	EarthBlessingMajorFeature	the major blessing, which EarthBlessingFeature grants
+option	warpriest/blessings/evil-domain	EvilBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/evil-domain/minor-blessing	EvilBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/evil-domain/major-blessing	EvilBlessingMajorFeature	the major blessing, which EvilBlessingFeature grants
+option	warpriest/blessings/fire	FireBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/fire/minor-blessing	FireBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/fire/major-blessing	FireBlessingMajorFeature	the major blessing, which FireBlessingFeature grants
+option	warpriest/blessings/good-domain	GoodBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/good-domain/minor-blessing	GoodBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/good-domain/major-blessing	GoodBlessingMajorFeature	the major blessing, which GoodBlessingFeature grants
+option	warpriest/blessings/healing-domain	HealingBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/healing-domain/minor-blessing	HealingBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/healing-domain/major-blessing	HealingBlessingMajorFeature	the major blessing, which HealingBlessingFeature grants
+option	warpriest/blessings/law-domain	LawBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/law-domain/minor-blessing	LawBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/law-domain/major-blessing	LawBlessingMajorFeature	the major blessing, which LawBlessingFeature grants
+option	warpriest/blessings/liberation	LiberationBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/liberation/minor-blessing	LiberationBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/liberation/major-blessing	LiberationBlessingMajorFeature	the major blessing, which LiberationBlessingFeature grants
+option	warpriest/blessings/luck	LuckBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/luck/minor-blessing	LuckBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/luck/major-blessing	LuckBlessingMajorFeature	the major blessing, which LuckBlessingFeature grants
+option	warpriest/blessings/madness	MadnessBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/madness/minor-blessing	MadnessBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/madness/major-blessing	MadnessBlessingMajorFeature	the major blessing, which MadnessBlessingFeature grants
+option	warpriest/blessings/magic	MagicBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/magic/minor-blessing	MagicBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/magic/major-blessing	MagicBlessingMajorFeature	the major blessing, which MagicBlessingFeature grants
+option	warpriest/blessings/nobility	NobilityBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/nobility/minor-blessing	NobilityBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/nobility/major-blessing	NobilityBlessingMajorFeature	the major blessing, which NobilityBlessingFeature grants
+option	warpriest/blessings/protection	ProtectionBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/protection/minor-blessing	ProtectionBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/protection/major-blessing	ProtectionBlessingMajorFeature	the major blessing, which ProtectionBlessingFeature grants
+option	warpriest/blessings/repose	ReposeBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/repose/minor-blessing	ReposeBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/repose/major-blessing	ReposeBlessingMajorFeature	the major blessing, which ReposeBlessingFeature grants
+option	warpriest/blessings/strength	StrengthBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/strength/minor-blessing	StrengthBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/strength/major-blessing	StrengthBlessingMajorFeature	the major blessing, which StrengthBlessingFeature grants
+option	warpriest/blessings/sun	SunBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/sun/minor-blessing	SunBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/sun/major-blessing	SunBlessingMajorFeature	the major blessing, which SunBlessingFeature grants
+option	warpriest/blessings/travel	TravelBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/travel/minor-blessing	TravelBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/travel/major-blessing	TravelBlessingMajorFeature	the major blessing, which TravelBlessingFeature grants
+option	warpriest/blessings/trickery	TrickeryBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/trickery/minor-blessing	TrickeryBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/trickery/major-blessing	TrickeryBlessingMajorFeature	the major blessing, which TrickeryBlessingFeature grants
+option	warpriest/blessings/water	WaterBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/water/minor-blessing	WaterBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/water/major-blessing	WaterBlessingMajorFeature	the major blessing, which WaterBlessingFeature grants
+option	warpriest/blessings/weather	WeatherBlessingFeature	the option of BlessingSelection; the cleric's domain progression is another object
+feature	warpriest/blessings/weather/minor-blessing	WeatherBlessingFeature	the minor blessing is the blessing feature's own ability
+feature	warpriest/blessings/weather/major-blessing	WeatherBlessingMajorFeature	the major blessing, which WeatherBlessingFeature grants
+feature	sorcerer/empyreal-sorcerer/bloodline-spell-banishment	BloodlineCelestialSpellLevel7	the spell-level feature of EmpyrealBloodlineProgression that names this spell
+feature	sorcerer/empyreal-sorcerer/bloodline-spell-bless	BloodlineCelestialSpellLevel1	the spell-level feature of EmpyrealBloodlineProgression that names this spell
+feature	sorcerer/empyreal-sorcerer/bloodline-spell-dispel-magic-greater	BloodlineCelestialSpellLevel6	the spell-level feature of EmpyrealBloodlineProgression that names this spell
+feature	sorcerer/empyreal-sorcerer/bloodline-spell-flame-strike	BloodlineCelestialSpellLevel5	the spell-level feature of EmpyrealBloodlineProgression that names this spell
+feature	sorcerer/empyreal-sorcerer/bloodline-spell-protection-from-energy	BloodlineCelestialSpellLevel3	the spell-level feature of EmpyrealBloodlineProgression that names this spell
+feature	sorcerer/empyreal-sorcerer/bloodline-spell-remove-curse	BloodlineCelestialSpellLevel4	the spell-level feature of EmpyrealBloodlineProgression that names this spell
+feature	sorcerer/empyreal-sorcerer/bloodline-spell-resist-energy	BloodlineCelestialSpellLevel2	the spell-level feature of EmpyrealBloodlineProgression that names this spell
+feature	sorcerer/empyreal-sorcerer/bloodline-spell-summon-monster-ix	BloodlineCelestialSpellLevel9	the spell-level feature of EmpyrealBloodlineProgression that names this spell
+feature	sorcerer/empyreal-sorcerer/bloodline-spell-sunburst	BloodlineCelestialSpellLevel8	the spell-level feature of EmpyrealBloodlineProgression that names this spell
+feature	sorcerer/sage-sorcerer/bloodline-spell-banishment	BloodlineArcaneSpellLevel7	the spell-level feature of SageBloodlineProgression that names this spell
+feature	sorcerer/sage-sorcerer/bloodline-spell-break-enchantment	BloodlineArcaneSpellLevel5	the spell-level feature of SageBloodlineProgression that names this spell
+feature	sorcerer/sage-sorcerer/bloodline-spell-clashing-rocks	BloodlineArcaneSpellLevel9	the spell-level feature of SageBloodlineProgression that names this spell
+feature	sorcerer/sage-sorcerer/bloodline-spell-dimension-door	BloodlineArcaneSpellLevel4	the spell-level feature of SageBloodlineProgression that names this spell
+feature	sorcerer/sage-sorcerer/bloodline-spell-dispel-magic	BloodlineArcaneSpellLevel3	the spell-level feature of SageBloodlineProgression that names this spell
+feature	sorcerer/sage-sorcerer/bloodline-spell-invisibility	BloodlineArcaneSpellLevel2	the spell-level feature of SageBloodlineProgression that names this spell
+feature	sorcerer/sage-sorcerer/bloodline-spell-magic-missile	BloodlineArcaneSpellLevel1	the spell-level feature of SageBloodlineProgression that names this spell
+feature	sorcerer/sage-sorcerer/bloodline-spell-power-word-stun	BloodlineArcaneSpellLevel8	the spell-level feature of SageBloodlineProgression that names this spell
+feature	sorcerer/sage-sorcerer/bloodline-spell-true-seeing	BloodlineArcaneSpellLevel6	the spell-level feature of SageBloodlineProgression that names this spell
+feature	sorcerer/sylvan-sorcerer/bloodline-spell-changestaff	BloodlineFeySpellLevel7	the spell-level feature of SylvanBloodlineProgression that names this spell
+feature	sorcerer/sylvan-sorcerer/bloodline-spell-deep-slumber	BloodlineFeySpellLevel3	the spell-level feature of SylvanBloodlineProgression that names this spell
+feature	sorcerer/sylvan-sorcerer/bloodline-spell-dispel-magic-greater	BloodlineFeySpellLevel6	the spell-level feature of SylvanBloodlineProgression that names this spell
+feature	sorcerer/sylvan-sorcerer/bloodline-spell-entangle	BloodlineFeySpellLevel1	the spell-level feature of SylvanBloodlineProgression that names this spell
+feature	sorcerer/sylvan-sorcerer/bloodline-spell-hideous-laughter	BloodlineFeySpellLevel2	the spell-level feature of SylvanBloodlineProgression that names this spell
+feature	sorcerer/sylvan-sorcerer/bloodline-spell-poison	BloodlineFeySpellLevel4	the spell-level feature of SylvanBloodlineProgression that names this spell
+feature	sorcerer/sylvan-sorcerer/bloodline-spell-summon-hamadryad	BloodlineFeySpellLevel9	the spell-level feature of SylvanBloodlineProgression that names this spell
+feature	sorcerer/sylvan-sorcerer/bloodline-spell-summon-nereid	BloodlineFeySpellLevel8	the spell-level feature of SylvanBloodlineProgression that names this spell
+feature	sorcerer/sylvan-sorcerer/bloodline-spell-vinetrap	BloodlineFeySpellLevel5	the spell-level feature of SylvanBloodlineProgression that names this spell
+feature	sorcerer/bloodline/abyssal/demonic-arcana	BloodlineAbyssalArcana	leftover: the bloodline progression's arcana
+feature	sorcerer/bloodline/arcane/arcane-arcana	BloodlineArcaneArcana	leftover: the bloodline progression's arcana
+feature	sorcerer/bloodline/celestial/angelic-arcana	BloodlineCelestialArcana	leftover: the bloodline progression's arcana
+feature	sorcerer/bloodline/fey/fey-arcana	BloodlineFeyArcana	leftover: the bloodline progression's arcana
+feature	sorcerer/bloodline/infernal/infernal-arcana	BloodlineInfernalArcana	leftover: the bloodline progression's arcana
+feature	sorcerer/bloodline/serpentine/serpentine-arcana	BloodlineSerpentineArcana	leftover: the bloodline progression's arcana
+feature	sorcerer/bloodline/undead/undead-arcana	BloodlineUndeadArcana	leftover: the bloodline progression's arcana
+feature	sorcerer/sage-sorcerer/arcane-arcana	SageBloodlineArcana	leftover: SageBloodlineProgression's arcana at 1
+feature	sorcerer/empyreal-sorcerer/empyreal-arcana	EmpyrealBloodlineArcana	EmpyrealBloodlineProgression's arcana at 1; was the progression
+feature	sorcerer/empyreal-sorcerer/apotheosis	BloodlineCelestialAscensionAbility	EmpyrealBloodlineProgression's 20th level (displayed Ascension); was the arcane bloodline's Apotheosis
+option	sorcerer/bloodline/fey	BloodlineFeyProgression	the option of SorcererBloodlineSelection; was the Fey creature type
+option	sorcerer/bloodline/arcane/school-power/abjuration	BloodlineArcaneSchoolPowerFeature	leftover: the one option of BloodlineArcaneSchoolPowerSelection, a feature parametrized by school
+option	sorcerer/bloodline/arcane/school-power/conjuration	BloodlineArcaneSchoolPowerFeature	same
+option	sorcerer/bloodline/arcane/school-power/divination	BloodlineArcaneSchoolPowerFeature	same
+option	sorcerer/bloodline/arcane/school-power/enchantment	BloodlineArcaneSchoolPowerFeature	same; was the arcane bloodline's 11th-level spell
+option	sorcerer/bloodline/arcane/school-power/evocation	BloodlineArcaneSchoolPowerFeature	same; was Greater Spell Focus
+option	sorcerer/bloodline/arcane/school-power/illusion	BloodlineArcaneSchoolPowerFeature	same
+option	sorcerer/bloodline/arcane/school-power/necromancy	BloodlineArcaneSchoolPowerFeature	same
+option	sorcerer/bloodline/arcane/school-power/transmutation	BloodlineArcaneSchoolPowerFeature	same
+option	shifter/shifter-aspect/bear-aspect	ShifterAspectBear	by name in ShifterAspectSelectionFeature; the research's elimination pairing had Spider
+option	shifter/shifter-aspect/boar-aspect	ShifterAspectBoar	same; had Horse
+option	shifter/shifter-aspect/dinosaur-aspect	ShifterAspectDinosaur	leftover: same
+option	shifter/shifter-aspect/horse-aspect	ShifterAspectHorse	leftover: same
+option	shifter/shifter-aspect/lizard-aspect	ShifterAspectLizard	leftover: same
+option	shifter/shifter-aspect/mammoth-aspect	ShifterAspectElephant	leftover: displayed Mammoth
+option	shifter/shifter-aspect/spider-aspect	ShifterAspectSpider	same; had Wolf
+option	shifter/shifter-aspect/tiger-aspect	ShifterAspectTiger	same; had Elephant (Mammoth)
+option	shifter/shifter-aspect/wolf-aspect	ShifterAspectWolf	same; had Dinosaur
+feature	druid/wild-shape-smilodon-large-elemental-shambling-mound	WildShapeIIISmilodonFeature	DruidProgression at 10 grants Smilodon, Large Elemental and Shambling Mound (and an extra use): the first named is the primary; was the extra use
+feature	druid/blight-druid/wild-shape-smilodon-large-elemental-shambling-mound	WildShapeIIISmilodonFeature	leftover: the class's level-10 grants; same primary
+feature	druid/defender-of-the-true-world/wild-shape-smilodon-large-elemental-shambling-mound	WildShapeIIISmilodonFeature	leftover: same
+feature	druid/primal-druid/wild-shape-smilodon-large-elemental-shambling-mound	WildShapeIIISmilodonFeature	leftover: same
+feature	druid/wild-shape-bear-medium-elemental	WildShapeIVBearFeature	the first named form is the primary, as for every combined wild shape; was Medium Elemental
+feature	druid/blight-druid/wild-shape-bear-medium-elemental	WildShapeIVBearFeature	same
+feature	druid/defender-of-the-true-world/wild-shape-bear-medium-elemental	WildShapeIVBearFeature	same
+feature	druid/primal-druid/wild-shape-bear-medium-elemental	WildShapeIVBearFeature	same
+feature	druid/wild-shape-leopard-small-elemental	WildShapeIILeopardFeature	same; was Small Elemental
+feature	druid/blight-druid/wild-shape-leopard-small-elemental	WildShapeIILeopardFeature	same
+feature	druid/defender-of-the-true-world/wild-shape-leopard-small-elemental	WildShapeIILeopardFeature	same
+feature	druid/primal-druid/wild-shape-leopard-small-elemental	WildShapeIILeopardFeature	same
+feature	magus/sword-saint/sword-saint-proficiencies	-	SwordSaintArchetype removes MagusProficiencies and adds no proficiency feature; was its Chosen Weapon selection
+feat-list	magus/sword-saint/chosen-weapon	SwordSaintChosenWeaponSelection	leftover: SwordSaintArchetype adds it at 1
+feature	rogue/eldritch-scoundrel/sneak-attack-eldritch-scoundrel	SneakAttack	the rogue's own SneakAttack on the archetype's levels; was the archetype's proficiencies
+feature	shaman/orisons	ShamanCantripsFeature	leftover: ShamanProgression's at 1
+feature	shaman/possessed-shaman/orisons	ShamanCantripsFeature	leftover: same
+feature	shaman/prophet-of-pestilence/orisons	ShamanCantripsFeature	leftover: same
+feature	shaman/spirit-hunter/orisons	ShamanCantripsFeature	leftover: same
+feature	shaman/spirit-warden/orisons	ShamanCantripsFeature	leftover: same
+feature	shaman/unsworn-shaman/orisons	ShamanCantripsFeature	leftover: same
+feature	shaman/wildland-shaman/orisons	ShamanCantripsFeature	leftover: same
+feature	shaman/witch-doctor/orisons	ShamanCantripsFeature	leftover: same
+feature	shaman/shadow-shaman/orisons	ShamanCantripsFeature	same; was the archetype's Stealth
+feature	shaman/wildland-shaman/battle-hex	-	no blueprint of its own: WildlandShamanArchetype adds ShamanBattleSpiritProgression at 1; the hex slot is the class's
+feature	sorcerer/bloodline/abyssal/strength-of-the-abyss	BloodlineAbyssalStrengthAbilityAddLevel1	BloodlineAbyssalProgression at 9; was its 17th-level spell
+feature	sorcerer/bloodline/serpentine/snakeskin	BloodlineSerpentineSnakeskinFeatureAddLevel1	BloodlineSerpentineProgression at 9; was its 17th-level spell
+feature	sorcerer/bloodline/draconic/draconic-resistances	-	one blueprint per dragon colour (BloodlineDraconic<Colour>ResistancesAbilityAdd…); was the gold bloodline's 15th-level spell
+feature	warpriest/fervor	WarpriestFervorBase	WarpriestProgression at 2; was the 5th-level rank-up
+feature	warpriest/shieldbearer/sacred-shield	SacredArmorShieldFeature	ShieldbearerArchetype at 4 (the +2 to +5 enchantments at 8 to 20); was Shield Bash
+feature	warpriest/shieldbearer/sacred-weapon-shieldbearer	SacredWeaponShieldEnchantFeature	ShieldbearerArchetype at 4; was the +4 enchantment
+feature	angel/angelic-halo	AngelHaloFeature	AngelProgression's; was the Improved Angelic Halo selection
+feat-list	monk/student-of-stone/bonus-feats-6	StudentOfStoneBonusFeatSelectionLevel6	StudentOfStoneArchetype adds it at 6; was the monk's own
+feature	witch/cantrips	WitchCantripsFeature	WitchProgression at 1; was Improved Cantrips
+feature	witch/elemental-witch/cantrips	WitchCantripsFeature	same
+feature	witch/hag-of-gyronna/cantrips	WitchCantripsFeature	same
+feature	witch/hagbound/cantrips	WitchCantripsFeature	same
+feature	witch/hex-channeler/cantrips	WitchCantripsFeature	same
+feature	witch/ley-line-guardian/cantrips	WitchCantripsFeature	same
+feature	witch/stigmatized-witch/cantrips	WitchCantripsFeature	same
+feature	witch/witch-of-the-veil/cantrips	WitchCantripsFeature	same
+feature	wizard/spell-master/object-bond	ItemBondFeature	SpellMasterArchetype at 1 (Arcane Bond — Object); was the 5th-level specialization
+feature	wizard/spell-master/item-bond-specialization	SpellMasterItemBondSpecializationFeature	leftover: SpellMasterArchetype at 5, 10, 15, 20
+feature	cavalier/challenge	CavalierChallengeFeature	leftover: CavalierProgression's
+feature	cavalier/order/order-of-the-sword/mounted-mastery	CavalierMountedMastery	leftover: CavalierOrderOfTheSwordProgression at 8
+feature	cavalier/order/order-of-the-sword/mounted-combat-feat	CavalierMountedMasteryFeatSelection	the same progression's selection at 8; was the Mounted Combat feat
+selection	bloodrager/primalist/primal-choices	PrimalistLevel4Selection	PrimalistProgression's selection at 4 (its copies at 8, 12, 16, 20 in the note); was the progression
+option	bloodrager/primalist/primal-choices/bloodline-ability	PrimalistTakeBloodlinePower4	leftover: the option of PrimalistLevel4Selection (copies at 8–20)
+option	bloodrager/primalist/primal-choices/rage-powers	PrimalistTakeRagePowers4	leftover: same
+feature	bloodrager/mixed-blood-rager/bloodline-ability	-	one blueprint per bloodline held (the bloodline progressions' powers)
+feature	bloodrager/bloodline/draconic/breath-weapon	-	one blueprint per dragon colour (BloodragerDragon<Colour>Breath)
+feature	bloodrager/bloodline/draconic/dragon-form	-	one blueprint per dragon colour
+feature	bloodrager/bloodline/elemental/elemental-form	-	one blueprint per element
+feature	bloodrager/bloodline/elemental/elemental-strikes	-	one blueprint per element
+feature	bloodrager/bloodline/elemental/elemental-body	-	one blueprint per element; was the electricity one
+feature	sorcerer/bloodline/draconic/grow-claws	-	one blueprint per dragon colour
+feature	sorcerer/bloodline/draconic/power-of-wyrms	-	one blueprint per dragon colour
+feature	sorcerer/bloodline/draconic/draconic-arcana	-	one blueprint per dragon colour (BloodlineDraconic<Colour>Arcana)
+feature	sorcerer/bloodline/elemental/elemental-arcana	-	one blueprint per element (BloodlineElemental<Element>Arcana)
+feature	sorcerer/bloodline/elemental/elemental-blast	-	one blueprint per element
+feature	sorcerer/bloodline/elemental/elemental-body	-	one blueprint per element
+feature	sorcerer/bloodline/elemental/elemental-ray	-	one blueprint per element
+feature	sorcerer/bloodline/elemental/elemental-resistances	-	one blueprint per element
+feature	fighter/dragonheir-scion/draconic-defences	-	one blueprint per dragon energy (DragonicDefences<Energy>)
+feature	fighter/dragonheir-scion/draconic-strike	-	one blueprint per dragon energy
+feature	fighter/dragonheir-scion/might-of-wyrms	-	one blueprint per dragon energy
+feature	druid/elemental-rampager/elemental-ability	-	one blueprint per element
+feature	druid/elemental-rampager/energy-immunity	-	one blueprint per element (four RampageEI)
+feature	druid/elemental-rampager/energy-resistance	-	one blueprint per element (RampageER5…)
+feature	druid/elemental-rampager/claws	ElementalRampagerClaws1d6	leftover: ElementalRampagerArchetype at 1 (1d8 at 9, 1d10 at 15 in the note)
+feature	monk/scaled-fist/dragon-breath	-	one progression per dragon colour (ScaledFist<Colour>Progression under ScaledFistDragonSelection)
+feature	shifter/weretouched/major-lycanthrophic-form	-	three blueprints, one per form (MajorFormWererat/Weretiger/WerewolfFeature), none primary
+feature	kineticist/kinetic-knight/defensive-wild-talent	-	no blueprint of its own: the element focus grants its defence talent
+feature	kineticist/infusion-specialization	InfusionSpecialization	leftover: KineticistProgression grants it (InfusionSpecializationProgression raises it)
+feat-list	kineticist/element/air/wild-talent-feats	WildTalentBonusFeatAir	leftover: the unnumbered of four copies WildTalentSelection offers (Air1–3 in the note)
+feat-list	kineticist/element/earth/wild-talent-feats	WildTalentBonusFeatEarth	leftover: same
+feat-list	kineticist/element/fire/wild-talent-feats	WildTalentBonusFeatFire	leftover: same
+feat-list	kineticist/element/water/wild-talent-feats	WildTalentBonusFeatWater	leftover: same (Water1–5)
+option	kineticist/wild-talents/kineticist-bonus-feat	-	one selection per element (WildTalentBonusFeat<Element>…), none primary; was the earth one
+option	magus/magus-arcana/devoted-blade-level-12	DevotedBladeFeature	leftover: MagusArcanaSelection's (the Eldritch Scion copy is another)
+option	magus/magus-arcana/hasted-assault-level-9	HastedAssaultFeature	leftover: same
+option	magus/magus-arcana/wand-mastery	WandMastery	leftover: same
+option	magus/magus-arcana/wand-wielder	WandWielder	leftover: same
+feature	monk/ki-strike-adamantine	KiStrikeAdamantine	leftover: the monk's (Sohei has unlock copies)
+feature	monk/ki-strike-lawful	KiStrikeLawful	leftover: same
+feature	monk/ki-strike-magic	KiStrikeMagic	leftover: same
+feature	monk/stunning-fist-fatigue	StunningFistFatigueFeature	leftover: the monk's (Scaled Fist has a copy)
+feature	monk/ki-power-extra-attack	-	an ability of KiPowerFeature (KiExtraAttack), not a feature
+feature	monk/sohei/sohei-proficiencies	SoheiProficiencies	leftover: SoheiArchetype at 1
+feature	monk/sohei/weapon-training	SoheiWeaponTrainingSelection	leftover: SoheiArchetype at 6, 12, 18 (SoheiWeaponRankUpTrainingSelection in the note)
+feature	monk/zen-archer/zen-archer-proficiencies	ZenArcherProficiency	leftover: ZenArcherArchetype at 1
+option	oracle/revelations/life/safe-cure	OracleRevelationSafeCuring	leftover: the option of OracleRevelationSelection
+option	oracle/revelations/nature/animal-companion	OracleRevelationBondedMount	leftover, inference: the one companion revelation in OracleRevelationSelection (displayed Animal Companion)
+feature	paladin/martyr/stigmata-move-action	BardMovePerformance	review fix: MartyrArchetype AddFeatures at 7; MartyrStigmataFeature is granted at 1 only
+feature	paladin/martyr/stigmata-swift-action	BardSwiftPerformance	review fix: MartyrArchetype AddFeatures at 13; MartyrStigmataFeature is granted at 1 only
+feature	paladin/warrior-of-the-holy-light/power-of-faith	PowerOfFaithTier1MainFeature	leftover: WarriorOfTheHolyLightArchetype at 4 (tiers 2–5 at 8–20 in the note)
+option	ranger/combat-style-feat/archery-feats	RangerStyleArcherySelection2	leftover: the option of RangerStyleSelection2, as the other four styles
+feat-list	ranger/combat-style-feat/two-weapon-combat-feats-2	RangerStyleTwoWeaponSelection2	leftover: the ranger's (the Titan Fighter's copy is another)
+feat-list	ranger/combat-style-feat/two-weapon-combat-feats-6	RangerStyleTwoWeaponSelection6	leftover: same
+feat-list	ranger/combat-style-feat/two-weapon-combat-feats-10	RangerStyleTwoWeaponSelection10	leftover: same
+feature	shaman/wandering-spirit-greater-ability	-	planner placeholder: each spirit's wandering progression grants it
+feature	shaman/wandering-spirit-true-ability	-	same
+feature	shaman/possessed-shaman/wandering-spirit-greater-ability	-	same
+feature	shaman/possessed-shaman/wandering-spirit-true-ability	-	same
+feature	shaman/spirit-warden/wandering-spirit-greater-ability	-	same
+feature	shaman/spirit-warden/wandering-spirit-true-ability	-	same
+feature	shaman/unsworn-shaman/wandering-spirit-2-greater-ability	-	same
+feature	shaman/unsworn-shaman/wandering-spirit-greater-ability	-	same
+feature	shaman/unsworn-shaman/wandering-spirit-true-ability	-	same
+feature	shaman/witch-doctor/wandering-spirit-greater-ability	-	same
+feature	shaman/witch-doctor/wandering-spirit-true-ability	-	same
+feature	skald/skald-proficiencies	SkaldProficiencies	leftover: SkaldProgression at 1
+feature	slayer/master-slayer	MasterSlayerFeature	leftover: SlayerProgression at 20 (the Imitator has its own)
+option	slayer/imitator/imitation/barbarian-stance	-	an ability of ImitationFeature (ImitationBarbarianAbility)
+option	slayer/imitator/imitation/fighter-stance	-	same
+option	slayer/imitator/imitation/monk-stance	-	same; was ImitationMonkACBonus, a part no blueprint grants
+option	slayer/imitator/imitation/rogue-stance	-	same
+feature	sorcerer/sage-sorcerer/bonus-spell	BloodlineArcaneNewArcanaSelection	leftover: SageBloodlineProgression's New Arcana at 9, 13, 17
+feat-list	warpriest/disenchanter/bonus-feats-3	DisenchanterFeatSelection	leftover: DisenchanterArchetype at 3
+feat	advanced-weapon-training	AdvancedWeaponTraining1	leftover: the game has AdvancedWeaponTraining1 to 4, one per pick (2–4 in the note)
+feature	aeon/aeon-immunities	AeonThirdLevelImmunities	leftover: AeonMythicClass at 1 (fifth, seventh and tenth-level ones at 3, 5, 8 in the note)
+feature	aeon/enforcing-gaze-extra-gaze	AeonGazeFeatureExtraGaze	leftover: AeonMythicClass at 4 (ExtraGaze2 at 8 in the note)
+feature	aeon/mythic-suppression	AeonDemythication	leftover: AeonMythicClass at 3 (upgrades 1 and 2 at 5 and 7 in the note)
+option	devil/hells-decree/decree-of	-	an ability of HellsDecreeFeature, not a feature
+option	devil/hells-decree/decree-of-hells-fires	-	same
+option	devil/hells-decree/decree-of-hunt	-	same
+option	devil/hells-decree/decree-of-neverending-war	-	same
+option	devil/hells-decree/decree-of-vengeance	-	same
+option	devil/hells-seal/seal-of-burning-flames	-	an ability of HellsSealFeature, not a feature
+option	devil/hells-seal/seal-of-devouring-flames	-	same
+option	devil/hells-seal/seal-of-fear-eater	-	same
+option	devil/hells-seal/seal-of-fire-eating	-	same
+option	devil/hells-seal/seal-of-reflective-mind	-	same
+feat-list	gold-dragon/dragon-feats	DragonLevel2FeatSelection	leftover: GoldenDragonClass grants it three times at rank 2
+option	trickster/greater-mythic-trick/knowlege-world-iii	TricksterKnowledgeWorldTier3Feature	leftover: in TricksterRank3Selection
+feature	assassin/poison-use-three-saves-required	AssassinCreatePoisonIncreasedSavingThrows	leftover: AssassinProgression at 9 grants it again (at 5 for two saves)
+feature	assassin/target-assassination	AssassinDeathAttack	leftover, inference: AssassinProgression at 1, which holds the Target Assassination ability
+option	stalwart-defender/defensive-powers/immobile	-	not among StalwartDefenderDefensivePowerSelection's options in the game (a difference for 238)
+option	stalwart-defender/defensive-powers/mighty-resilience	-	same
+option	student-of-war/know-your-enemy/tactical-stance	-	a stance of StudentOfWarKnowYourEnemyFeature, an ability
+option	rogue/finesse-training/weapon	-	one parameterised option for the game's per-weapon FinesseTraining features
+spell	army-of-heaven	AngelArmyOfHeaven	leftover: displayed Army of Heaven
+spell	crusaders-edge	CrusadersEdgeCast	leftover: the one on the spell lists (CrusadersEdge is its effect)
+spell	dragon-storm	DragonUltimateApsu	leftover: on GoldDragonSpellListMythic (DragonUltimateDahak is the corrupted list's)
+spell	wand-of-summon-monster-zero	SummonSpecialSpell	leftover, inference: Summon Monster 0 on the spell lists (SummonSpecial is the wand's)
+spell	burst-of-nettles	-	no blueprint found by name or display name
+spell-list	angel/merged	-	planner-made: the angel's merged list
+spell-list	lich/merged	-	planner-made: the lich's merged list
+gear	robe-of-angelic-presence	-	no blueprint found by name or display name
+weapon	elven-curve-blade	ElvenCurvedBlade	leftover: the weapon type named as its category
+weapon	sawtooth-saber	SawtoothSabre	leftover: same
+weapon	dwarven-urgrosh	DwarvenUrgrosh	leftover: category Urgrosh, the axe head (DwarvenUrgroshSpearHead in the note)
+weapon	gnome-hooked-hammer	GnomeHookedHammerHead	leftover: category HookedHammer, the hammer head (GnomeHookedHammerHook in the note)
+weapon	orc-double-axe	DoubleAxe	leftover: category DoubleAxe
+weapon	two-bladed-sword	DoubleSword	leftover: category DoubleSword
+weapon	heavy-shield-bash	WeaponHeavyShield	leftover: category WeaponHeavyShield
+weapon	light-shield-bash	WeaponLightShield	leftover: category WeaponLightShield
+weapon	bomb	BombType	leftover: the base type of category Bomb, which the per-weapon feats name
+weapon	rays	RayType	leftover: same, category Ray
+weapon	touch-attacks	TouchType	leftover: same, category Touch
+weapon	unarmed-strike	Unarmed	leftover: same, category UnarmedStrike
+weapon	bite	BiteType	leftover: the base type of category Bite, which WeaponFocus and the other per-weapon feats name
+weapon	claw	ClawType	leftover: same
+weapon	gore	GoreType	leftover: same
+weapon	hoof	HoofType	leftover: same
+weapon	slam	SlamType	leftover: same
+weapon	spike	SpikeType	leftover: same
+weapon	tail	TailType	leftover: same
+weapon	talon	TalonsType	leftover: same
+weapon	wing	WingType	leftover: same
+weapon	kinetic-blast	-	four types of category KineticBlast (energy, physical, each with a blade), none primary
+feature	alchemist/metamorph/shapechanger-beast-shape-i	MetamorphBeastShapeIFeature	leftover: MetamorphArchetype at 4, with MetamorphShapechangerFeature (in the note)
+feature	alchemist/metamorph/shapechanger-beast-shape-iv-dragonkind-i	MetamorphBeastShapeIVFeature	leftover: MetamorphArchetype at 13 (MetamorphFormOfTheDragonIFeature in the note)
+feat-list	bloodrager/bloodline/abyssal/feats	BloodragerAbyssalFeatSelection	leftover: the bloodrager's own (the Greenrager copy is another)
+feat-list	bloodrager/bloodline/arcane/feats	BloodragerArcaneFeatSelection	leftover: the bloodrager's own (the Greenrager copy is another)
+feat-list	bloodrager/bloodline/celestial/feats	BloodragerCelestialFeatSelection	leftover: the bloodrager's own (the Greenrager copy is another)
+feat-list	bloodrager/bloodline/draconic/feats	BloodragerDragonFeatSelection	leftover: the bloodrager's own (the Greenrager copy is another)
+feat-list	bloodrager/bloodline/elemental/feats	BloodragerElementalFeatSelection	leftover: the bloodrager's own (the Greenrager copy is another)
+feat-list	bloodrager/bloodline/fey/feats	BloodragerFeyFeatSelection	leftover: the bloodrager's own (the Greenrager copy is another)
+feat-list	bloodrager/bloodline/infernal/feats	BloodragerInfernalFeatSelection	leftover: the bloodrager's own (the Greenrager copy is another)
+feat-list	bloodrager/bloodline/serpentine/feats	BloodragerSerpentineFeatSelection	leftover: the bloodrager's own (the Greenrager copy is another)
+feat-list	bloodrager/bloodline/undead/feats	BloodragerUndeadFeatSelection	leftover: the bloodrager's own (the Greenrager copy is another)
+option	shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-black-dragon	DragonbloodShifterBlackBreathWeaponFeature	review fix: DragonbloodShifterBlackBuff grants it by AddFeatureOnClassLevel(ShifterClass, 10); the planner offers it at 20 as a Greater Wyrmshifter option (a difference for 238)
+option	shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-brass-dragon	DragonbloodShifterBrassBreathWeaponFeature	review fix: DragonbloodShifterBrassBuff grants it by AddFeatureOnClassLevel(ShifterClass, 10); the planner offers it at 20 as a Greater Wyrmshifter option (a difference for 238)
+option	shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-bronze-dragon	DragonbloodShifterBronzeBreathWeaponFeature	review fix: DragonbloodShifterBronzeBuff grants it by AddFeatureOnClassLevel(ShifterClass, 10); the planner offers it at 20 as a Greater Wyrmshifter option (a difference for 238)
+option	shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-buse-dragon	DragonbloodShifterBlueBreathWeaponFeature	review fix: DragonbloodShifterBlueBuff grants it by AddFeatureOnClassLevel(ShifterClass, 10); the planner offers it at 20 as a Greater Wyrmshifter option (a difference for 238)
+option	shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-copper-dragon	DragonbloodShifterCopperBreathWeaponFeature	review fix: DragonbloodShifterCopperBuff grants it by AddFeatureOnClassLevel(ShifterClass, 10); the planner offers it at 20 as a Greater Wyrmshifter option (a difference for 238)
+option	shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-gold-dragon	DragonbloodShifterGoldBreathWeaponFeature	review fix: DragonbloodShifterGoldBuff grants it by AddFeatureOnClassLevel(ShifterClass, 10); the planner offers it at 20 as a Greater Wyrmshifter option (a difference for 238)
+option	shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-green-dragon	DragonbloodShifterGreenBreathWeaponFeature	review fix: DragonbloodShifterGreenBuff grants it by AddFeatureOnClassLevel(ShifterClass, 10); the planner offers it at 20 as a Greater Wyrmshifter option (a difference for 238)
+option	shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-red-dragon	DragonbloodShifterRedBreathWeaponFeature	review fix: DragonbloodShifterRedBuff grants it by AddFeatureOnClassLevel(ShifterClass, 10); the planner offers it at 20 as a Greater Wyrmshifter option (a difference for 238)
+option	shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-silver-dragon	DragonbloodShifterSilverBreathWeaponFeature	review fix: DragonbloodShifterSilverBuff grants it by AddFeatureOnClassLevel(ShifterClass, 10); the planner offers it at 20 as a Greater Wyrmshifter option (a difference for 238)
+option	shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-white-dragon	DragonbloodShifterWhiteBreathWeaponFeature	review fix: DragonbloodShifterWhiteBuff grants it by AddFeatureOnClassLevel(ShifterClass, 10); the planner offers it at 20 as a Greater Wyrmshifter option (a difference for 238)
+option	wizard/cruromancer/blood-infusion/focused-infusion	-	an ability of BloodInfusionFeature (FocusedInfusionAbility)
+option	wizard/cruromancer/blood-infusion/sickening-infusion	-	an ability of BloodInfusionFeature (SickeningInfusionAbility)
+selection	wizard/spell-master/school	-	planner-made one-option selection: SpellMasterArchetype adds SpecialisationSchoolUniversalistProgression directly
+selection	alchemist/incense-synthesizer/incense-fog	IncenseSynthesizerIncenseFogSelection	review fix: its m_AllFeatures are the ten options; IncenseFogFeature is the fog itself, added at 1 (the planner offers a pick at 1, the game first at 3: a difference for 238)
+feature	wizard/school/transmuter/change-shape-ii	TransmutationSchoolChangeShapeFeature	review fix: TransmutationSchoolChangeShapeFeatureAdd grants it by AddFeatureOnClassLevel(WizardClass, 12)
+option	stalwart-defender/defensive-powers/clear-mind	ClearMindFeature	review fix: kept, but not among StalwartDefenderDefensivePowerSelection m_AllFeatures (a difference for 238)
