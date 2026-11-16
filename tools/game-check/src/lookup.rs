@@ -1,11 +1,14 @@
 //! Blueprint lookups (ticket 299): `show`, `grep` and `refs` over every blueprint of the pinned dump, whatever its
-//! kind, so a ticket's research reads a blueprint with one command.
+//! kind, so a ticket's research reads a blueprint with one command. Ticket 311 adds `granted-by`, and a banner on
+//! `show` and `refs` when a name is shared by several blueprints: a research agent once took the first of two
+//! `BardTalentSelection`s, the one only units use, for the bard's.
 //!
 //! The output is safe to paste into a ticket: a blueprint is named by asset name and GUID, and every field that
 //! holds the game's display text is left out ([`PLACEHOLDER`] stands in its place) and never matched by `grep`.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fmt::Write;
+use std::sync::OnceLock;
 
 use regex::Regex;
 use serde_json::Value;
@@ -27,6 +30,19 @@ const TEXT_FIELDS: [&str; 5] = [
 /// The keys of a localized string's object: a reference into the strings chunk.
 const TEXT_KEYS: [&str; 3] = ["m_Key", "Shared", "stringkey"];
 
+/// The blueprint kinds [`Library::granted_by`] stops at: what gives a character the thing.
+const GRANTING_KINDS: [&str; 5] = [
+    "BlueprintProgression",
+    "BlueprintArchetype",
+    "BlueprintCharacterClass",
+    "BlueprintRace",
+    "BlueprintUnit",
+];
+
+/// How many chains `granted-by` prints per blueprint, and how many granters a banner names.
+const CHAINS_SHOWN: usize = 30;
+const GRANTERS_IN_BANNER: usize = 5;
+
 struct Entry {
     name: String,
     kind: String,
@@ -39,6 +55,8 @@ pub struct Library {
     entries: BTreeMap<String, Entry>,
     /// A name's GUIDs, in GUID order.
     by_name: BTreeMap<String, Vec<String>>,
+    /// A blueprint's referrers (the blueprints whose JSON holds `!bp_<guid>`), built when first asked.
+    referrers: OnceLock<BTreeMap<String, Vec<String>>>,
 }
 
 impl Library {
@@ -47,6 +65,7 @@ impl Library {
         let mut library = Library {
             entries: BTreeMap::new(),
             by_name: BTreeMap::new(),
+            referrers: OnceLock::new(),
         };
         binz::scan(bytes, |guid, name, type_name, raw| {
             let entry = Entry {
@@ -102,6 +121,7 @@ impl Library {
             if guids.is_empty() {
                 return Err(format!("no blueprint is named or numbered {query}"));
             }
+            out.push_str(&self.banner(&guids));
             for guid in guids {
                 let entry = &self.entries[guid];
                 let json = parse_json(entry, guid)?;
@@ -141,6 +161,7 @@ impl Library {
         if guids.is_empty() {
             return Err(format!("no blueprint is named or numbered {query}"));
         }
+        let banner = self.banner(&guids);
         let needles: Vec<String> = guids.iter().map(|guid| format!("!bp_{guid}")).collect();
         let found = self
             .entries
@@ -150,7 +171,152 @@ impl Library {
                     && needles.iter().any(|needle| entry.raw.contains(needle))
             })
             .collect();
-        Ok(self.listing(found))
+        Ok(banner + &self.listing(found))
+    }
+
+    /// For each named blueprint, the chains of referrers from it up to the first progression, archetype, class,
+    /// race or unit (`name guid <- name guid <- … [type]`): what grants it, found by following [`Library::refs`]
+    /// upward. A name several blueprints share gets one block per GUID.
+    pub fn granted_by(&self, query: &str) -> Result<String, String> {
+        let guids = self.resolve(query);
+        if guids.is_empty() {
+            return Err(format!("no blueprint is named or numbered {query}"));
+        }
+        let mut out = self.banner(&guids);
+        for guid in guids {
+            let chains = self.grant_chains(guid);
+            let _ = writeln!(out, "{}", self.label_with_kind(guid));
+            if chains.is_empty() {
+                out.push_str("  (no progression, archetype, class, race or unit reaches it)\n");
+            }
+            for chain in chains.iter().take(CHAINS_SHOWN) {
+                let links: Vec<String> = chain.iter().map(|g| self.label(g)).collect();
+                let last = chain
+                    .last()
+                    .map_or("", |g| self.entries[g.as_str()].kind.as_str());
+                let _ = writeln!(out, "  {} [{last}]", links.join(" <- "));
+            }
+            if chains.len() > CHAINS_SHOWN {
+                let _ = writeln!(out, "  … and {} more", chains.len() - CHAINS_SHOWN);
+            }
+        }
+        Ok(out)
+    }
+
+    /// A line per GUID of a shared name, and a blank line; nothing for a name one blueprint holds.
+    fn banner(&self, guids: &[&str]) -> String {
+        let [first, _, ..] = guids else {
+            return String::new();
+        };
+        let mut out = format!(
+            "shared name: {} is {} blueprints; pick one by what grants it (`granted-by <guid>`):\n",
+            self.entries[*first].name,
+            guids.len()
+        );
+        for guid in guids {
+            // Units last: a unit holding a feature says little about who gets it from a class or progression.
+            let granters: BTreeSet<(bool, String)> = (self.grant_chains(guid).iter())
+                .filter_map(|chain| chain.last())
+                .map(|last| {
+                    let entry = &self.entries[last.as_str()];
+                    (
+                        entry.kind == "BlueprintUnit",
+                        format!("{} ({})", entry.name, entry.kind),
+                    )
+                })
+                .collect();
+            let shown: Vec<&str> = (granters.iter())
+                .take(GRANTERS_IN_BANNER)
+                .map(|(_, text)| text.as_str())
+                .collect();
+            let more = granters.len().saturating_sub(GRANTERS_IN_BANNER);
+            let grant = match (shown.is_empty(), more) {
+                (true, _) => "nothing grants it".to_owned(),
+                (false, 0) => format!("granted by {}", shown.join(", ")),
+                (false, more) => format!("granted by {}, and {more} more", shown.join(", ")),
+            };
+            let _ = writeln!(out, "  {}: {grant}", self.label_with_kind(guid));
+        }
+        out.push('\n');
+        out
+    }
+
+    /// `<name> <guid> <type>`.
+    fn label_with_kind(&self, guid: &str) -> String {
+        format!("{} {}", self.label(guid), self.entries[guid].kind)
+    }
+
+    /// The paths from a blueprint up its referrers to each granting blueprint it reaches first (breadth first, so
+    /// each is by a shortest path; a granting blueprint is not climbed past). A granting blueprint's own chain is
+    /// itself.
+    fn grant_chains(&self, start: &str) -> Vec<Vec<String>> {
+        let granting = |guid: &str| GRANTING_KINDS.contains(&self.entries[guid].kind.as_str());
+        if granting(start) {
+            return vec![vec![start.to_owned()]];
+        }
+        let referrers = self.referrers();
+        let mut parent: BTreeMap<&str, &str> = BTreeMap::new();
+        let mut seen: BTreeSet<&str> = BTreeSet::from([start]);
+        let mut queue = VecDeque::from([start]);
+        let mut found = Vec::new();
+        while let Some(at) = queue.pop_front() {
+            for above in referrers.get(at).into_iter().flatten() {
+                if !seen.insert(above.as_str()) {
+                    continue;
+                }
+                parent.insert(above, at);
+                if granting(above) {
+                    found.push(above.as_str());
+                } else {
+                    queue.push_back(above);
+                }
+            }
+        }
+        let mut chains: Vec<Vec<String>> = found
+            .into_iter()
+            .map(|top| {
+                let mut chain = vec![top.to_owned()];
+                let mut at = top;
+                while let Some(below) = parent.get(at) {
+                    chain.push((*below).to_owned());
+                    at = below;
+                }
+                chain.reverse();
+                chain
+            })
+            .collect();
+        chains.sort_by_key(|chain| {
+            let top = chain.last().map(|g| &self.entries[g.as_str()]);
+            (chain.len(), top.map(|e| e.name.clone()), chain.clone())
+        });
+        chains
+    }
+
+    /// Each blueprint's referrers, in GUID order.
+    fn referrers(&self) -> &BTreeMap<String, Vec<String>> {
+        self.referrers.get_or_init(|| {
+            let mut index: BTreeMap<String, BTreeSet<&str>> = BTreeMap::new();
+            for (guid, entry) in &self.entries {
+                let mut rest: &str = &entry.raw;
+                while let Some(at) = rest.find("!bp_") {
+                    rest = &rest[at + 4..];
+                    let named = rest.get(..32).filter(|id| {
+                        id.bytes()
+                            .all(|b| b.is_ascii_hexdigit() && !b.is_ascii_uppercase())
+                    });
+                    if let Some(named) = named
+                        && named != guid
+                        && self.entries.contains_key(named)
+                    {
+                        index.entry(named.to_owned()).or_default().insert(guid);
+                    }
+                }
+            }
+            index
+                .into_iter()
+                .map(|(guid, above)| (guid, above.into_iter().map(str::to_owned).collect()))
+                .collect()
+        })
     }
 
     fn listing(&self, mut found: Vec<(&String, &Entry)>) -> String {

@@ -1,7 +1,7 @@
 # The queue's retro: tooling that stops the mistakes it found
 
 Type: build (tools and docs)
-Status: open
+Status: resolved
 Blocked by: none
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)
@@ -40,3 +40,19 @@ From the retro of queue 235–310 (user, 2026-11-16, "fix 1 2 3 5 6"):
 - The form proof's `record` then `compare` on one tree passes with 0 offer differences. A planted throwaway change to one option's prerequisite shows that option's change, and is not committed.
 - `scripts/test-modules.sh` passes on the tree and fails when a planted test file is undeclared. `bash -n` passes on each changed script.
 - `cargo fmt --all --check` passes.
+
+## Answer
+
+Built in the lane `lane-game` on `ticket/311-retro-tooling`; item 3 (research in a scratchpad) and item 6 are the skill change below. Item 4 was not part of the ticket.
+
+**What was built**
+1. `game-check` (`tools/game-check/src/lookup.rs`, `main.rs`): `show` and `refs` print a banner first when the name is shared, naming each GUID and what grants it (progressions, archetypes, classes and races before units, five at most, then "and N more"). New `granted-by <name|guid>` follows `refs` upward, breadth first, to the first `BlueprintProgression`, `BlueprintArchetype`, `BlueprintCharacterClass`, `BlueprintRace` or `BlueprintUnit` and prints each chain (30 at most). On the real dump, `show BardTalentSelection` prints the banner and `granted-by 94e2cd84bf3a8e04f8609fe502892f4f` reaches `BardProgression`. The check report is byte-identical before and after (`cmp` on the real dump). CLAUDE.md's "Reading a blueprint" line names `granted-by` and says to pick by what grants it.
+2. `tools/corpus/tests/form_proof.rs`: an offers record (`offers.bin`: per Build, 9 bytes an option, a FNV-1a hash of slot and pick and the index of the status kind; `offers-kinds.txt`), written and read a Build at a time. `compare` reports each changed option as (pick key, kind before -> after) with counts and Builds, plus options that appeared or disappeared, and fails on any. An old record without `offers.bin` compares as before and says offers were not recorded. `FORM_PROOF_KIND_MAP=<file>` (old kind TAB new kind) is applied to `slots.txt` and the reopened slots, and `compare` prints the mapped lines apart from the differences. The existing four files and their output are unchanged. The test's header and CLAUDE.md's form-proof line document both.
+3. `ticket-queue` skill: research reports and decisions go to `.scratch/wotr-planner/research/<ticket>/`, committed with the ticket files; step 3 says no builder starts on a ticket without its report; step 6 hands the builder its path.
+5. CLAUDE.md: "Rust tests" is a short paragraph over the new `scripts/test-modules.sh` (in `queue-checks.sh`, the pre-commit hook and CI); "Formatting" is three sentences; "Dev server" moved to `docs/dev-server.md` behind a one-line pointer; "One-off tools" now says no Python in any form (user, 2026-11-16, relayed by the main session).
+
+**Decisions** (mine, within the ticket): record every option's kind in 9 bytes instead of ok-in-full plus a hash per slot, so every changed option is named, not only the ok ones. A disappeared option is counted and not named (the record holds hashes). The offers are judged on the Builds the old links open to.
+
+**Tests:** `lookup::a_shared_name_gets_a_banner_naming_each_guid_and_what_grants_it`, `lookup::a_name_one_blueprint_holds_gets_no_banner`, `lookup::granted_by_follows_referrers_up_to_the_first_granting_blueprint`, `lookup::granted_by_of_a_name_prints_a_block_per_guid_and_says_when_nothing_grants` (game-check fixture); `pieces::*` in `form_proof` (fnv, pick_key, status_kind, record round trip, changed-status report, disappearing option, kind map, mapped lines counted apart). No expected value is a game fact: the tools' behaviour is pinned on invented blueprints.
+
+**Measured:** the corpus's offers record is 162,808,457 bytes for 18,079,504 options (7 status kinds). `record` took 47 s and `compare` 48 s in release; `compare`'s peak (`/usr/bin/time -l`, maximum resident set) was 588 MB, of which the recorded `numbers.txt`/`sheets.txt` text is most; the offers are never held whole. `record` then `compare` on one tree: 0 differences, 0 offer differences. Planted `power-attack` Strength 13 -> 17 (reverted): `power-attack: ok -> Unmet` 543 options and `BreaksLater -> Unmet` 15, in 392 Builds, nothing else moved. An old record without offers: "offers: not recorded", 0 differences. `scripts/test-modules.sh` passes on the tree and fails on a planted undeclared `tests/fixture/planted.rs`.

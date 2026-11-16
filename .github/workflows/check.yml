@@ -41,6 +41,8 @@ jobs:
         run: cargo fmt --all --check
       - name: css-classes
         run: scripts/css-classes.sh
+      - name: test-modules
+        run: scripts/test-modules.sh
       - name: clippy
         run: cargo clippy -q --workspace --all-targets -- -D warnings
       - name: clippy, frontend wasm

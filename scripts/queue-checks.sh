@@ -3,8 +3,8 @@
 #
 #   scripts/queue-checks.sh
 #
-# fmt, css-classes (scripts/css-classes.sh: every class in the stylesheet is used), clippy (workspace and the
-# frontend's wasm target), the workspace tests, the rules wasm build, `check-data` (the data files), the cargo-leptos
+# fmt, css-classes (scripts/css-classes.sh: every class in the stylesheet is used), test-modules (every test file is declared),
+# clippy (workspace and the frontend's wasm target), the workspace tests, the rules wasm build, `check-data` (the data files), the cargo-leptos
 # dev and release builds, and scripts/build-mcp.sh (the standalone MCP server, `wotr-mcp`).
 # Prints one line per step with its time, and ALL-OK at the end. Stops at the first failing step and shows its output.
 # A ticket runs only the scoped checks of CLAUDE.md "Checks"; the self-checks' long runs and the game check are not here.
@@ -35,6 +35,7 @@ step() {
 
 step fmt cargo fmt --all --check
 step css-classes scripts/css-classes.sh
+step test-modules scripts/test-modules.sh
 step clippy cargo clippy -q --workspace --all-targets -- -D warnings
 step wasm-clippy cargo clippy -q -p frontend --target wasm32-unknown-unknown -- -D warnings
 step test cargo test -q --workspace
