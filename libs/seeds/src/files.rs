@@ -12,7 +12,9 @@
 //!   `bonuses.ron`, and `interactions.ron` (optional, since data from before ticket 124 has none).
 //!
 //! A missing folder reads as empty. Any other `.ron` file is an error, so a misplaced file can't be silently
-//! skipped, and so is a file whose path isn't its entry's key. Files with other extensions (a README) are ignored.
+//! skipped, and so is a file whose path isn't its entry's key. A file of another extension under a kind's folder is an
+//! error too (`NotRon`), but for a `README.md` and hidden files (Finder's `.DS_Store`); outside the kinds' folders (the data folder's
+//! README, `notes/`) such files are ignored.
 //! Order in the files means nothing: the result is [canonical](GameData::canonicalize).
 
 use std::fmt;
@@ -82,6 +84,10 @@ pub enum FilesError {
     NoReason {
         path: PathBuf,
     },
+    /// A file under a kind's folder that isn't a `.ron` file (nor a `README.md`), which would otherwise be skipped.
+    NotRon {
+        path: PathBuf,
+    },
 }
 
 impl fmt::Display for FilesError {
@@ -104,6 +110,11 @@ impl fmt::Display for FilesError {
                 "{}: a planner-made entry says why no blueprint stands behind it",
                 path.display()
             ),
+            Self::NotRon { path } => write!(
+                f,
+                "{}: not a .ron file; a kind's folder holds only entries' .ron files and a README.md",
+                path.display()
+            ),
         }
     }
 }
@@ -113,16 +124,25 @@ impl std::error::Error for FilesError {
         match self {
             Self::Io { source, .. } => Some(source),
             Self::Parse { source, .. } => Some(source.as_ref()),
-            Self::Unexpected { .. } | Self::Misnamed { .. } | Self::NoReason { .. } => None,
+            Self::Unexpected { .. }
+            | Self::Misnamed { .. }
+            | Self::NoReason { .. }
+            | Self::NotRon { .. } => None,
         }
     }
 }
 
 /// Reads every data file under `dir` into one canonical [`GameData`].
 pub fn read_game_data_files(dir: &Path) -> Result<GameData, FilesError> {
-    for file in ron_files(dir)? {
-        if !is_in_layout(&file) {
-            return Err(FilesError::Unexpected {
+    for file in data_files(dir)? {
+        if is_ron(&file) {
+            if !is_in_layout(&file) {
+                return Err(FilesError::Unexpected {
+                    path: dir.join(file),
+                });
+            }
+        } else if in_a_kinds_folder(&file) && !is_no_data(&file) {
+            return Err(FilesError::NotRon {
                 path: dir.join(file),
             });
         }
@@ -161,15 +181,30 @@ pub fn read_game_data_files(dir: &Path) -> Result<GameData, FilesError> {
 
 /// A single file, or a file under a kind's folder, directly or under `planner/`.
 fn is_in_layout(file: &str) -> bool {
+    SINGLE_FILES.contains(&file) || in_a_kinds_folder(file)
+}
+
+/// A file under a kind's folder, directly or under `planner/`.
+fn in_a_kinds_folder(file: &str) -> bool {
     let entry = (file.strip_prefix(PLANNER))
         .and_then(|rest| rest.strip_prefix('/'))
         .unwrap_or(file);
-    SINGLE_FILES.contains(&file)
-        || FOLDERS.iter().any(|folder| {
-            entry
-                .strip_prefix(folder)
-                .is_some_and(|rest| rest.starts_with('/'))
-        })
+    FOLDERS.iter().any(|folder| {
+        entry
+            .strip_prefix(folder)
+            .is_some_and(|rest| rest.starts_with('/'))
+    })
+}
+
+/// A file a kind's folder may hold beside its entries: a `README.md`, or a hidden file (Finder's `.DS_Store`, an
+/// editor's swap file).
+fn is_no_data(file: &str) -> bool {
+    let name = file.rsplit('/').next().unwrap_or(file);
+    name == "README.md" || name.starts_with('.')
+}
+
+fn is_ron(file: &str) -> bool {
+    file.ends_with(".ron")
 }
 
 /// A planner-made entry: the reason no game blueprint stands behind it, and the entry.
@@ -249,13 +284,20 @@ fn read<T: DeserializeOwned>(path: &Path) -> Result<T, FilesError> {
 
 /// Every `.ron` file under `dir`, as sorted `/`-separated paths relative to `dir`.
 fn ron_files(dir: &Path) -> Result<Vec<String>, FilesError> {
+    let mut files = data_files(dir)?;
+    files.retain(|file| is_ron(file));
+    Ok(files)
+}
+
+/// Every file under `dir`, as sorted `/`-separated paths relative to `dir`.
+fn data_files(dir: &Path) -> Result<Vec<String>, FilesError> {
     let mut files = Vec::new();
-    collect_ron_files(dir, "", &mut files)?;
+    collect_files(dir, "", &mut files)?;
     files.sort();
     Ok(files)
 }
 
-fn collect_ron_files(dir: &Path, prefix: &str, files: &mut Vec<String>) -> Result<(), FilesError> {
+fn collect_files(dir: &Path, prefix: &str, files: &mut Vec<String>) -> Result<(), FilesError> {
     for entry in read_dir(dir)? {
         let path = entry.path();
         let name = entry.file_name().to_string_lossy().into_owned();
@@ -265,8 +307,8 @@ fn collect_ron_files(dir: &Path, prefix: &str, files: &mut Vec<String>) -> Resul
             source,
         })?;
         if file_type.is_dir() {
-            collect_ron_files(&path, &format!("{relative}/"), files)?;
-        } else if path.extension().is_some_and(|ext| ext == "ron") {
+            collect_files(&path, &format!("{relative}/"), files)?;
+        } else {
             files.push(relative);
         }
     }

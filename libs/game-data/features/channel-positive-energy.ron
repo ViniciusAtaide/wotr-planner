@@ -1,1 +1,1 @@
-(key: "channel-positive-energy", blueprint: "a79013ff4bcd4864cb669622a29ddafb", name: "Channel Positive Energy", summary: "Channel energy that can only be positive, never negative.", guide: "cleric#angelfire-apostle")
+(key: "channel-positive-energy", blueprint: "a79013ff4bcd4864cb669622a29ddafb", name: "Channel Positive Energy", summary: "Channels positive energy, healing the living or harming undead; the Priest of Balance channels negative energy too, as another feature.", guide: "cleric#channel-energy")

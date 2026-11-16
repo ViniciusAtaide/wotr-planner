@@ -136,6 +136,18 @@ Data note: `libs/game-data/notes/244-the-game-data-laid-out-by-blueprint.md`.
   - `summaries` lowers the empty class-feature summaries from 104 to 28.
 - **MCP:** `gained.rs`, `describe.rs` and `compact.rs` use the new keys.
 
+**Review fixes (2026-11-15):**
+- **A shared name's holder.** `feature_name_apart` named the first holder in key order, whatever the Build held: a Rogue 4's Uncanny Dodge read "(Assassin)".
+  - `Engine::feature_name_for(feature, state)` (new) names the class taken whose rows up to its level grant the feature (its archetype when only the archetype's rows do), else the path or an option held that grants it. The MCP sheet's level and rank features and the bonus names use it.
+  - Without a Build, `feature_name_apart` names the one holder there is (a class with its archetypes counts as the class), and none when several classes, paths or options grant it ("Uncanny Dodge").
+  - A prerequisite's text uses the no-Build name, since any holder's copy meets it (ours).
+  - Game: UncannyDodgeChecker 8f800ed6ce8c42e8a01fd8f3e990c459 from RogueProgression b57b2a75a5abcaf47a01cf84672b50e9 at 4 and BarbarianProgression 74ad9fbd930a1d84aaf9a230f29f8f12 at 2; OracleRevelationWarSight7 374008ffbe3d8884aa79077766fa3f3f shares the name.
+  - Tests: `collapsed_features::a_collapsed_feature_is_named_for_the_builds_own_class`, `collapsed_features::without_a_build_a_feature_several_classes_grant_names_no_holder`, MCP `gained::real_data_the_sheet_names_a_shared_feature_for_the_builds_own_holder`.
+  - Not changed: a told-apart option's selection holder still reads the first; no selection was collapsed.
+- **Summaries.** The 30 collapsed groups whose copies' summaries differed were read against their blueprints; 15 were rewritten true for every holder and 15 already were (the note's "Summaries rewritten" lists each). Channel Positive Energy is one game feature for the Angelfire Apostle and the Priest of Balance (ChannelEnergyFeature a79013ff4bcd4864cb669622a29ddafb), the Priest's negative channel another. Elemental Overflow stays collapsed: the Psychokineticist's MentalOverflowProgression 42b8ce9dfb087c74db531bad426ad2f3 grants the same ElementalOverflowBonusFeature 2496916d8465dbb4b9ddeafdf28c67d8 at 3, so nothing was un-collapsed.
+- **The loader** refuses a file of another extension under a kind's folder (`FilesError::NotRon`), but for a `README.md` and hidden files (ours: Finder's `.DS_Store` and editors' swap files would otherwise stop the server). Test: `files::a_file_of_another_extension_under_a_kinds_folder_fails`.
+- **The browser's JSON.** Test: `browser_json::the_game_data_comes_through_the_browsers_json_whole_but_for_what_it_leaves_out` serialises the real data as the backend does, reads it as the web app does, checks it and compares every catalog but the blueprints, spells and spell lists. `seeds` gains `serde_json` as a dev-dependency, which made one inferred `assert_eq!(levels, [])` in `finesse_training.rs` ambiguous; it reads `is_empty()` now.
+
 **Left open, for the next build of this ticket, the importer (293) or a gap ticket:**
 - **The selections the game keeps per class** (the `known.txt` group "a selection the game keeps separate", 199 findings): the bard's, skald's, slayer's 6th- and 10th-level, Dark Lurker's, Instinctual Warrior's, Exploiter's, Provocateur's, Hexcrafter's, Order of the Paw's, Elemental Witch's, Nine-Tailed Heir's and the third elemental focus. Each needs its game option list read and mapped.
 - **Entries holding several blueprints:** Blessing and Second Blessing, the Aeon gaze tiers, the kineticist element feat lists, Advanced Weapon Training, Extra Channel, Extra Hex, Magical Tail and Abundant Smite.

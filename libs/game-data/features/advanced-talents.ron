@@ -1,1 +1,1 @@
-(key: "advanced-talents", blueprint: "a33b99f95322d6741af83e9381b2391c", name: "Advanced Talents", summary: "Can choose advanced rogue talents.", guide: "rogue#advanced-rogue-talents")
+(key: "advanced-talents", blueprint: "a33b99f95322d6741af83e9381b2391c", name: "Advanced Talents", summary: "Opens the advanced talents to the holder's talent picks; a Vivisectionist's discoveries gain Confounding Blades, Crippling Strike and Dispelling Attack.", guide: "rogue#advanced-rogue-talents")

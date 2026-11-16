@@ -211,7 +211,7 @@ fn every_rogue_archetype_but_the_rowdy_chooses_at_3_11_and_19() {
         assert!(possible(&build), "{key}");
         let levels = levels_with_slot_of(&build, SELECTION);
         if key == "rogue/rowdy" {
-            assert_eq!(levels, [], "{key}");
+            assert!(levels.is_empty(), "{key}: {levels:?}");
             continue;
         }
         assert_eq!(levels, LEVELS, "{key}");

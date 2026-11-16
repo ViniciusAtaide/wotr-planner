@@ -218,7 +218,11 @@ pub(crate) fn sheet_of(
         point_buy_spent: build.start.ability_scores.cost(),
         point_buy_budget: POINT_BUY_BUDGET,
         levels: lines.levels(build, sheet),
-        ranks: sheet.ranks.iter().map(|rank| lines.rank(rank)).collect(),
+        ranks: sheet
+            .ranks
+            .iter()
+            .map(|rank| lines.rank(rank, sheet))
+            .collect(),
         level_cap: sheet.level_cap,
         caster_level: last.caster_level,
         spell_levels: SpellLevels {
@@ -495,8 +499,10 @@ impl Lines<'_> {
         lines
     }
 
-    fn rank(&self, rank: &rules::RankSheet) -> RankLine {
+    fn rank(&self, rank: &rules::RankSheet, sheet: &Sheet) -> RankLine {
         let engine = self.engine;
+        // The state at the rank's level names a feature for the Build's own path.
+        let state = sheet.at(rank.character_level);
         RankLine {
             rank: rank.rank,
             character_level: rank.character_level,
@@ -530,7 +536,11 @@ impl Lines<'_> {
                 }
                 (counted.into_iter())
                     .map(|(feature, times)| {
-                        gained(feature, &engine.feature_name_apart(feature), times, None)
+                        let name = match state {
+                            Some(state) => engine.feature_name_for(feature, state),
+                            None => engine.feature_name_apart(feature),
+                        };
+                        gained(feature, &name, times, None)
                     })
                     .collect()
             },
@@ -593,7 +603,7 @@ fn new_features(engine: &Engine, before: &CharacterState, after: &CharacterState
                 step: stepped.then(|| engine.feature_step(after, feature)),
                 ..gained(
                     feature,
-                    &engine.feature_name_apart(feature),
+                    &engine.feature_name_for(feature, after),
                     more.into(),
                     Some(*times),
                 )

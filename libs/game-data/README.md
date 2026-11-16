@@ -46,7 +46,9 @@ with one, and keys that links name never change.
 | `interactions.ron` | `Vec<ItemInteractions>`: what the guide says about how an item combines with others, at most one note per item (ticket 124); optional |
 
 A missing folder reads as empty. A file whose path isn't its entry's key, and a planner file that gives no reason,
-are errors. Any other `.ron` file is an error; other files (like this README) are ignored. Order means nothing anywhere
+are errors. Any other `.ron` file is an error, and so is a file of another extension under a kind's folder (a
+feature saved as `.txt`), but for a `README.md` and hidden files (Finder's `.DS_Store`, an editor's swap file); other files outside those folders (like this
+README and `notes/`) are ignored. Order means nothing anywhere
 in the data: catalogs are sorted by key, class levels by level, mythic ranks by rank, and the children of
 `All`/`Any`/`AtLeast` are a set, so write entries in whatever order reads best.
 

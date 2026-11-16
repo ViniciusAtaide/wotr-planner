@@ -12,5 +12,7 @@ serde.workspace = true
 
 [dev-dependencies]
 tempfile = "3.27.0"
+# The browser-JSON round trip of the real data, as the backend writes it and the web app reads it.
+serde_json = "1.0.154"
 # The real-data tests use the rules crate's test helpers.
 rules = { workspace = true, features = ["testing"] }

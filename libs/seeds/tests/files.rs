@@ -416,7 +416,6 @@ fn a_missing_required_file_fails() {
 #[test]
 fn a_ron_file_outside_the_layout_fails() {
     let dir = copy_fixture();
-    fs::write(dir.path().join("classes").join("stray.txt"), "ignored").unwrap();
     fs::write(dir.path().join("fireball.ron"), "()").unwrap();
 
     let error = seeds::read_game_data_files(dir.path())
@@ -424,6 +423,49 @@ fn a_ron_file_outside_the_layout_fails() {
         .to_string();
 
     assert!(error.contains("fireball.ron"), "{error}");
+}
+
+/// Ticket 244, review: a file of another extension under a kind's folder, or under `planner/`'s, fails naming it
+/// (a feature saved as `.txt` would otherwise be skipped without a word). A `README.md` there, a hidden file (Finder's `.DS_Store`, an editor's swap file),
+/// and any file outside the kinds' folders (the data folder's own README, `notes/`) are no data and read as nothing.
+#[test]
+fn a_file_of_another_extension_under_a_kinds_folder_fails() {
+    for stray in [
+        "classes/stray.txt",
+        "features/rogue/sneak-attack.ron.bak",
+        "planner/features/note.md",
+    ] {
+        let dir = copy_fixture();
+        let path = dir.path().join(stray);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, "()").unwrap();
+
+        let error = seeds::read_game_data_files(dir.path()).unwrap_err();
+
+        assert!(
+            matches!(&error, seeds::FilesError::NotRon { path: at } if *at == path),
+            "{stray}: {error}"
+        );
+        assert!(error.to_string().contains(stray), "{stray}: {error}");
+    }
+
+    let dir = copy_fixture();
+    for harmless in [
+        "features/README.md",
+        "planner/features/README.md",
+        "features/rogue/.DS_Store",
+        "features/rogue/.sneak-attack.ron.swp",
+        "README.md",
+        "notes/244-a-note.md",
+    ] {
+        let path = dir.path().join(harmless);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, "no data").unwrap();
+    }
+    assert_eq!(
+        seeds::read_game_data_files(dir.path()).unwrap(),
+        read_fixture()
+    );
 }
 
 /// Data from before ticket 121 has no `spells/` and no `spell-lists/` folder, and reads as no spells and no lists;

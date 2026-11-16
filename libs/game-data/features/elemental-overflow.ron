@@ -1,1 +1,1 @@
-(key: "elemental-overflow", blueprint: "2496916d8465dbb4b9ddeafdf28c67d8", name: "Elemental Overflow", summary: "Blasts gain +1 attack per Burn (max +1 per 3 levels) and twice that to damage; at high Burn, bonuses to physical scores.", guide: "kineticist#elemental-overflow")
+(key: "elemental-overflow", blueprint: "2496916d8465dbb4b9ddeafdf28c67d8", name: "Elemental Overflow", summary: "Blasts gain +1 attack per Burn (max 1 per 3 levels) and twice that to damage; from 6th, high Burn raises physical scores (mental: Psychokineticist).", guide: "kineticist#elemental-overflow")

@@ -210,3 +210,49 @@ async fn real_data_a_feature_granted_after_its_step_level_is_gained_with_no_step
         "{validated}"
     );
 }
+
+/// A human of `levels` levels of one class, with `path` if any.
+async fn one_class(client: &Client, class: &str, levels: u8, path: Option<&str>) -> Value {
+    let mut choices = Map::new();
+    for (address, value) in [
+        ("start.race", json!("human")),
+        ("start.faith", json!("atheism")),
+        ("start.alignment", json!("chaotic-good")),
+    ] {
+        choices.insert(address.to_owned(), value);
+    }
+    if let Some(path) = path {
+        choices.insert("mythic.path".to_owned(), json!(path));
+    }
+    for level in 1..=levels {
+        choices.insert(format!("level.{level}.class"), json!({ "class": class }));
+    }
+    client.ok("validate", json!({ "choices": choices })).await["build"].clone()
+}
+
+/// A feature several classes grant, whose name another feature shares, is named for the Build's own class (ticket
+/// 244, review): a Rogue's Uncanny Dodge is the Rogue's, a Barbarian's the Barbarian's. A Mythic rank's feature is
+/// named for the Build's path. Game: UncannyDodgeChecker 8f800ed6ce8c42e8a01fd8f3e990c459 is granted by
+/// RogueProgression b57b2a75a5abcaf47a01cf84672b50e9 at 4 and BarbarianProgression 74ad9fbd930a1d84aaf9a230f29f8f12 at
+/// 2; War Sight's Uncanny Dodge (OracleRevelationWarSight7 374008ffbe3d8884aa79077766fa3f3f) shares its name.
+#[tokio::test]
+async fn real_data_the_sheet_names_a_shared_feature_for_the_builds_own_holder() {
+    let client = Client::start().await;
+    let rogue = one_class(&client, "rogue", 20, Some("angel")).await;
+    let sheet = client.ok("sheet", json!({ "build": rogue })).await;
+    assert_eq!(
+        feature(&sheet["levels"][3]["features"], "uncanny-dodge")["name"],
+        "Uncanny Dodge (Rogue)"
+    );
+    // The Angel's Wings at MR 8 share their name with the Demon's, the Devil's and the Gold Dragon's.
+    assert_eq!(
+        feature(&sheet["ranks"][7]["features"], "angel/wings")["name"],
+        "Wings (Angel)"
+    );
+    let barbarian = one_class(&client, "barbarian", 2, None).await;
+    let sheet = client.ok("sheet", json!({ "build": barbarian })).await;
+    assert_eq!(
+        feature(&sheet["levels"][1]["features"], "uncanny-dodge")["name"],
+        "Uncanny Dodge (Barbarian)"
+    );
+}

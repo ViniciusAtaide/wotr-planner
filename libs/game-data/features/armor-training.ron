@@ -1,1 +1,1 @@
-(key: "armor-training", blueprint: "3c380607706f209499d951b29d3c44f3", name: "Armor Training", summary: "Armour check penalty -1 and max Dex +1, +1 more every 4 levels (max 4); full speed in medium armour, heavy from 7th.", guide: "fighter#armor-training")
+(key: "armor-training", blueprint: "3c380607706f209499d951b29d3c44f3", name: "Armor Training", summary: "Per rank (at most 5, from each class's rows): armour check penalty -1 and max Dex +1; full speed in medium armour, and in heavy armour from rank 2.", guide: "fighter#armor-training")

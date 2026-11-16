@@ -2126,6 +2126,7 @@ dependencies = [
  "ron",
  "rules",
  "serde",
+ "serde_json",
  "tempfile",
 ]
 

@@ -13,6 +13,7 @@ mod bloodline_ascendance;
 mod blueprints;
 mod bonus_feat_choices;
 mod borrowed_selections;
+mod browser_json;
 mod build_sheets;
 mod caster_line;
 mod class_rules;

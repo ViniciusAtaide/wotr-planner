@@ -2,9 +2,9 @@
 //! path each had its own copy, a prerequisite now reads the one feature's rank across them, as the game reads the one
 //! blueprint's.
 
-use rules::{ArchetypeKey, ClassChoice, ClassKey, Issue, Prerequisite};
+use rules::{ArchetypeKey, ClassChoice, ClassKey, FeatureKey, Issue, Prerequisite};
 
-use crate::support::{classes_build, conditions, engine, faithful};
+use crate::support::{at, build, classes_build, conditions, engine, faithful};
 
 /// The Arcane Trickster's entry for a Build of `classes`, one per level, an alchemist as a Vivisectionist.
 fn arcane_trickster_status(classes: &[&str]) -> Result<(), Issue> {
@@ -53,4 +53,69 @@ fn the_arcane_trickster_reads_sneak_attack_summed_across_classes() {
     // One class's 1d6 is not enough.
     let one_class = arcane_trickster_status(&["rogue", "wizard", "wizard", "wizard", "wizard"]);
     assert!(sneak_attack_unmet(&one_class), "{one_class:?}");
+}
+
+/// Uncanny Dodge, the one `UncannyDodgeChecker`, for a Build of one class per level, at its last level.
+fn uncanny_dodge_for(classes: &[&str]) -> String {
+    let build = classes_build(classes);
+    let state = at(&build, u8::try_from(classes.len()).unwrap());
+    engine().feature_name_for(&FeatureKey::new(UNCANNY_DODGE), &state)
+}
+
+const UNCANNY_DODGE: &str = "uncanny-dodge";
+
+/// A collapsed feature several classes grant is named for the Build's own class, the one whose rows reached it: a
+/// Rogue's Uncanny Dodge is the Rogue's and a Barbarian's the Barbarian's, where the first holder in key order once
+/// named the Barbarian for both. Its name is told apart because War Sight's Uncanny Dodge shares it.
+#[test]
+fn a_collapsed_feature_is_named_for_the_builds_own_class() {
+    // Game: UncannyDodgeChecker 8f800ed6ce8c42e8a01fd8f3e990c459 is granted by RogueProgression
+    // b57b2a75a5abcaf47a01cf84672b50e9 at 4 and BarbarianProgression 74ad9fbd930a1d84aaf9a230f29f8f12 at 2;
+    // OracleRevelationWarSight7 374008ffbe3d8884aa79077766fa3f3f is another blueprint of the same name.
+    assert_eq!(uncanny_dodge_for(&["rogue"; 4]), "Uncanny Dodge (Rogue)");
+    assert_eq!(
+        uncanny_dodge_for(&["barbarian"; 2]),
+        "Uncanny Dodge (Barbarian)"
+    );
+    // A barbarian 1 has no Uncanny Dodge yet: the rogue's 4th level gave it.
+    assert_eq!(
+        uncanny_dodge_for(&["barbarian", "rogue", "rogue", "rogue", "rogue"]),
+        "Uncanny Dodge (Rogue)"
+    );
+}
+
+/// Without a Build (search, describe, a prerequisite's text), a feature several classes grant names none of them,
+/// never a wrong one, and one only one holder grants still names it.
+#[test]
+fn without_a_build_a_feature_several_classes_grant_names_no_holder() {
+    let engine = engine();
+    let uncanny_dodge = FeatureKey::new(UNCANNY_DODGE);
+    assert_eq!(engine.feature_name_apart(&uncanny_dodge), "Uncanny Dodge");
+    assert_eq!(
+        engine.prerequisite_text(
+            &Prerequisite::Feature {
+                feature: uncanny_dodge,
+                count: 1
+            },
+            None
+        ),
+        "Uncanny Dodge"
+    );
+    assert_eq!(
+        engine.feature_name_apart(&FeatureKey::new(
+            "oracle/revelations/battle/war-sight/uncanny-dodge"
+        )),
+        "Uncanny Dodge (War Sight)"
+    );
+    // A class and its archetypes grant the Barbarian's Damage Reduction: the class is its one holder.
+    assert_eq!(
+        engine.feature_name_apart(&FeatureKey::new("barbarian/damage-reduction")),
+        "Damage Reduction (Barbarian)"
+    );
+    // A Build that holds none of the holders reads as without a Build.
+    let wizard = at(&build("wizard", 1), 1);
+    assert_eq!(
+        engine.feature_name_for(&FeatureKey::new(UNCANNY_DODGE), &wizard),
+        "Uncanny Dodge"
+    );
 }

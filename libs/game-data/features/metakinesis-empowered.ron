@@ -1,1 +1,1 @@
-(key: "metakinesis-empowered", blueprint: "70322f5a2a294e54a9552f77ee85b0a7", name: "Metakinesis - Empowered", summary: "Accept 1 extra Burn to empower a blast as with the Empower metamagic.", guide: "kineticist")
+(key: "metakinesis-empowered", blueprint: "70322f5a2a294e54a9552f77ee85b0a7", name: "Metakinesis - Empowered", summary: "Empowers a blast as the Empower metamagic does for 1 more Burn, which the Overwhelming Soul, who can't accept Burn, must cut away with Gather Power.", guide: "kineticist")
