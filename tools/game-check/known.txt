@@ -13,29 +13,30 @@
 # Ticket 243 (ranked features and filtered pools) is resolved: the differences of its shape it left are not known,
 # and wait on difference tickets.
 
-# Ticket 298 (selections as the game has them; from 244, the layout, which left them on 2026-11-15). Copies and entries holding one of several blueprints (237's
-# Answer, group a and its list of entries with several): a selection the planner shares where the game keeps one per
-# class, and the blueprints an entry's primary leaves out.
-progression rows / a selection the game keeps separate -> 298
-mythic ranks / a selection the game keeps separate -> 298
-option lists / * / selection warpriest/blessings -> 298
-option lists / * / selection aeon/enforcing-gaze -> 298
-option lists / * / feat list kineticist/element/air/wild-talent-feats -> 298
-option lists / * / feat list kineticist/element/earth/wild-talent-feats -> 298
-option lists / * / feat list kineticist/element/fire/wild-talent-feats -> 298
-option lists / * / feat list kineticist/element/water/wild-talent-feats -> 298
-option lists / in game only / pool general feats / AdvancedWeaponTraining2 -> 298
-option lists / in game only / pool general feats / AdvancedWeaponTraining3 -> 298
-option lists / in game only / pool general feats / AdvancedWeaponTraining4 -> 298
-option lists / in game only / pool general feats / ExtraChannelEmpyrealSorcerer -> 298
-option lists / in game only / pool general feats / ExtraChannelHexChanneler -> 298
-option lists / in game only / pool general feats / ExtraChannelHospitaler -> 298
-option lists / in game only / pool general feats / ExtraChannelOracle -> 298
-option lists / in game only / pool general feats / ExtraChannelShaman -> 298
-option lists / in game only / pool general feats / ExtraShamanHexSelection -> 298
-option lists / in game only / pool general feats / MagicalTail -> 298
-option lists / in planner only / pool general feats / magical-tail (MagicalTail1) -> 298
-option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> 298
+# Ticket 293 (the importer; from 244, the layout, which left them on 2026-11-15, by way of 298, which moved them here on
+# 2026-11-16, "B: forms now, splits in 293"). Copies and entries holding one of several blueprints (237's Answer, group
+# a and its list of entries with several): a selection the planner shares where the game keeps one per class, and the
+# blueprints an entry's primary leaves out.
+progression rows / a selection the game keeps separate -> 293
+mythic ranks / a selection the game keeps separate -> 293
+option lists / * / selection warpriest/blessings -> 293
+option lists / * / selection aeon/enforcing-gaze -> 293
+option lists / * / feat list kineticist/element/air/wild-talent-feats -> 293
+option lists / * / feat list kineticist/element/earth/wild-talent-feats -> 293
+option lists / * / feat list kineticist/element/fire/wild-talent-feats -> 293
+option lists / * / feat list kineticist/element/water/wild-talent-feats -> 293
+option lists / in game only / pool general feats / AdvancedWeaponTraining2 -> 293
+option lists / in game only / pool general feats / AdvancedWeaponTraining3 -> 293
+option lists / in game only / pool general feats / AdvancedWeaponTraining4 -> 293
+option lists / in game only / pool general feats / ExtraChannelEmpyrealSorcerer -> 293
+option lists / in game only / pool general feats / ExtraChannelHexChanneler -> 293
+option lists / in game only / pool general feats / ExtraChannelHospitaler -> 293
+option lists / in game only / pool general feats / ExtraChannelOracle -> 293
+option lists / in game only / pool general feats / ExtraChannelShaman -> 293
+option lists / in game only / pool general feats / ExtraShamanHexSelection -> 293
+option lists / in game only / pool general feats / MagicalTail -> 293
+option lists / in planner only / pool general feats / magical-tail (MagicalTail1) -> 293
+option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> 293
 
 # The difference tickets, 247–291 (filed 2026-11-15 from the first run's 3,908 findings not known before): each
 # section names the entries whose differences its ticket removes, one line per entry, or per kind or value where an
@@ -43,70 +44,70 @@ option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> 298
 # and fails the check. Tickets 247–254, 257, 258 and 290 are engine rules or data the check doesn't read, with no line
 # here.
 
-# 298 (from 244): options the game keeps per selection, the mysteries' and domains' copies.
-option lists / * / selection oracle/divine-herbalist/mystery -> 298
-option lists / * / selection oracle/enlightened-philosopher/mystery -> 298
-option lists / * / selection shaman/hex -> 298
-prerequisites / * / selection option oracle/revelations/ancestor/blood-of-heroes -> 298
-prerequisites / * / selection option oracle/revelations/ancestor/phantom-touch -> 298
-prerequisites / * / selection option oracle/revelations/ancestor/sacred-council -> 298
-prerequisites / * / selection option oracle/revelations/ancestor/spirit-shield -> 298
-prerequisites / * / selection option oracle/revelations/battle/battlecry -> 298
-prerequisites / * / selection option oracle/revelations/battle/battlefield-clarity -> 298
-prerequisites / * / selection option oracle/revelations/battle/maneuver-mastery -> 298
-prerequisites / * / selection option oracle/revelations/battle/skill-at-arms -> 298
-prerequisites / * / selection option oracle/revelations/battle/war-sight -> 298
-prerequisites / * / selection option oracle/revelations/battle/weapon-mastery -> 298
-prerequisites / * / selection option oracle/revelations/bones/armor-of-bones -> 298
-prerequisites / * / selection option oracle/revelations/bones/deaths-touch -> 298
-prerequisites / * / selection option oracle/revelations/bones/near-death -> 298
-prerequisites / * / selection option oracle/revelations/bones/resist-life -> 298
-prerequisites / * / selection option oracle/revelations/flame/burning-magic -> 298
-prerequisites / * / selection option oracle/revelations/flame/cinder-dance -> 298
-prerequisites / * / selection option oracle/revelations/flame/fire-breath -> 298
-prerequisites / * / selection option oracle/revelations/flame/heat-aura -> 298
-prerequisites / * / selection option oracle/revelations/flame/molten-skin -> 298
-prerequisites / * / selection option oracle/revelations/flame/touch-of-flame -> 298
-prerequisites / * / selection option oracle/revelations/life/channel -> 298
-prerequisites / * / selection option oracle/revelations/life/enhanced-cures -> 298
-prerequisites / * / selection option oracle/revelations/life/life-link -> 298
-prerequisites / * / selection option oracle/revelations/life/safe-cure -> 298
-prerequisites / * / selection option oracle/revelations/life/spirit-boost -> 298
-prerequisites / * / selection option oracle/revelations/nature/animal-companion -> 298
-prerequisites / * / selection option oracle/revelations/nature/erosion-touch -> 298
-prerequisites / * / selection option oracle/revelations/nature/friend-to-animals -> 298
-prerequisites / * / selection option oracle/revelations/nature/natures-whispers -> 298
-prerequisites / * / selection option oracle/revelations/nature/spirit-of-nature -> 298
-prerequisites / * / selection option oracle/revelations/stone/acid-skin -> 298
-prerequisites / * / selection option oracle/revelations/stone/clobbering-strike -> 298
-prerequisites / * / selection option oracle/revelations/stone/mighty-pebble -> 298
-prerequisites / * / selection option oracle/revelations/stone/shard-explosion -> 298
-prerequisites / * / selection option oracle/revelations/stone/stone-stability -> 298
-prerequisites / * / selection option oracle/revelations/stone/touch-of-acid -> 298
-prerequisites / * / selection option oracle/revelations/waves/fluid-nature -> 298
-prerequisites / * / selection option oracle/revelations/waves/freezing-spells -> 298
-prerequisites / * / selection option oracle/revelations/waves/ice-armor -> 298
-prerequisites / * / selection option oracle/revelations/waves/icy-skin -> 298
-prerequisites / * / selection option oracle/revelations/waves/wintry-touch -> 298
-prerequisites / * / selection option oracle/revelations/wind/air-barrier -> 298
-prerequisites / * / selection option oracle/revelations/wind/lightning-breath -> 298
-prerequisites / * / selection option oracle/revelations/wind/spark-skin -> 298
-prerequisites / * / selection option oracle/revelations/wind/touch-of-electricity -> 298
-prerequisites / * / selection option oracle/revelations/wind/vortex-spells -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/ancestor/spirit-of-the-warrior -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/ancestor/storm-of-souls -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/battle/combat-healer -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/battle/iron-skin -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/bones/soul-siphon -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/bones/spirit-walk -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/flame/firestorm -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/flame/form-of-flame -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/life/lifesense -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/nature/life-leech -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/waves/blizzard -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/waves/punitive-transformation -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/wind/invisibility -> 298
-prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/wind/thunderburst -> 298
+# 293 (from 244 by way of 298): options the game keeps per selection, the mysteries' and domains' copies.
+option lists / * / selection oracle/divine-herbalist/mystery -> 293
+option lists / * / selection oracle/enlightened-philosopher/mystery -> 293
+option lists / * / selection shaman/hex -> 293
+prerequisites / * / selection option oracle/revelations/ancestor/blood-of-heroes -> 293
+prerequisites / * / selection option oracle/revelations/ancestor/phantom-touch -> 293
+prerequisites / * / selection option oracle/revelations/ancestor/sacred-council -> 293
+prerequisites / * / selection option oracle/revelations/ancestor/spirit-shield -> 293
+prerequisites / * / selection option oracle/revelations/battle/battlecry -> 293
+prerequisites / * / selection option oracle/revelations/battle/battlefield-clarity -> 293
+prerequisites / * / selection option oracle/revelations/battle/maneuver-mastery -> 293
+prerequisites / * / selection option oracle/revelations/battle/skill-at-arms -> 293
+prerequisites / * / selection option oracle/revelations/battle/war-sight -> 293
+prerequisites / * / selection option oracle/revelations/battle/weapon-mastery -> 293
+prerequisites / * / selection option oracle/revelations/bones/armor-of-bones -> 293
+prerequisites / * / selection option oracle/revelations/bones/deaths-touch -> 293
+prerequisites / * / selection option oracle/revelations/bones/near-death -> 293
+prerequisites / * / selection option oracle/revelations/bones/resist-life -> 293
+prerequisites / * / selection option oracle/revelations/flame/burning-magic -> 293
+prerequisites / * / selection option oracle/revelations/flame/cinder-dance -> 293
+prerequisites / * / selection option oracle/revelations/flame/fire-breath -> 293
+prerequisites / * / selection option oracle/revelations/flame/heat-aura -> 293
+prerequisites / * / selection option oracle/revelations/flame/molten-skin -> 293
+prerequisites / * / selection option oracle/revelations/flame/touch-of-flame -> 293
+prerequisites / * / selection option oracle/revelations/life/channel -> 293
+prerequisites / * / selection option oracle/revelations/life/enhanced-cures -> 293
+prerequisites / * / selection option oracle/revelations/life/life-link -> 293
+prerequisites / * / selection option oracle/revelations/life/safe-cure -> 293
+prerequisites / * / selection option oracle/revelations/life/spirit-boost -> 293
+prerequisites / * / selection option oracle/revelations/nature/animal-companion -> 293
+prerequisites / * / selection option oracle/revelations/nature/erosion-touch -> 293
+prerequisites / * / selection option oracle/revelations/nature/friend-to-animals -> 293
+prerequisites / * / selection option oracle/revelations/nature/natures-whispers -> 293
+prerequisites / * / selection option oracle/revelations/nature/spirit-of-nature -> 293
+prerequisites / * / selection option oracle/revelations/stone/acid-skin -> 293
+prerequisites / * / selection option oracle/revelations/stone/clobbering-strike -> 293
+prerequisites / * / selection option oracle/revelations/stone/mighty-pebble -> 293
+prerequisites / * / selection option oracle/revelations/stone/shard-explosion -> 293
+prerequisites / * / selection option oracle/revelations/stone/stone-stability -> 293
+prerequisites / * / selection option oracle/revelations/stone/touch-of-acid -> 293
+prerequisites / * / selection option oracle/revelations/waves/fluid-nature -> 293
+prerequisites / * / selection option oracle/revelations/waves/freezing-spells -> 293
+prerequisites / * / selection option oracle/revelations/waves/ice-armor -> 293
+prerequisites / * / selection option oracle/revelations/waves/icy-skin -> 293
+prerequisites / * / selection option oracle/revelations/waves/wintry-touch -> 293
+prerequisites / * / selection option oracle/revelations/wind/air-barrier -> 293
+prerequisites / * / selection option oracle/revelations/wind/lightning-breath -> 293
+prerequisites / * / selection option oracle/revelations/wind/spark-skin -> 293
+prerequisites / * / selection option oracle/revelations/wind/touch-of-electricity -> 293
+prerequisites / * / selection option oracle/revelations/wind/vortex-spells -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/ancestor/spirit-of-the-warrior -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/ancestor/storm-of-souls -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/battle/combat-healer -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/battle/iron-skin -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/bones/soul-siphon -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/bones/spirit-walk -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/flame/firestorm -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/flame/form-of-flame -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/life/lifesense -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/nature/life-leech -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/waves/blizzard -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/waves/punitive-transformation -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/wind/invisibility -> 293
+prerequisites / missing in planner, a blueprint it doesn't map / selection option oracle/revelations/wind/thunderburst -> 293
 
 # 294, the domain split with a slot-aware link migration (deferred from 244 by the user, 2026-11-15, "Defer the domain
 # split"): the cleric's second domain, the Separatist's and the druid's and Blight Druid's domains, which the game keeps

@@ -249,7 +249,11 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   each revelation's prerequisite naming its mystery), and the others as usual (the Dual-Cursed Oracle's Misfortune and
   Fortune); within a level its slot is checked after the other selections'. An option that merged with another or
   moved keeps its old keys in `aliases`, which only the link decoder reads (`aliases:
-  ["oracle/revelations/life/combat-healer-life"]` on Combat Healer). This bullet was read from the guide, but for the
+  ["oracle/revelations/life/combat-healer-life"]` on Combat Healer). Since ticket 298 a feat may have `aliases` too,
+  and an alias may name a key still live or one other entries name: a link's pick whose key the data no longer has,
+  or its slot no longer takes, opens as the one entry naming its key that holds there (`Engine::open_link`'s
+  migration), and is refused when none or several do. A pick its slot still offers is never replaced: one that fails
+  there (a prerequisite unmet) is refused as before. This bullet was read from the guide, but for the
   ticket 243's terms (`option_level_archetypes`, `half_other_classes`, `filtered_by`, `aliases`), read from the
   game's blueprints and code (`notes/243-ranked-features-and-filtered-pools.md`).
 - Ticket 33 (the user's decisions on tickets 30 and 31):

@@ -278,8 +278,9 @@ fn stealth_aliases(data: &mut GameData) -> &mut BTreeSet<SelectionOptionKey> {
     &mut option_mut(data, "rogue/rogue-talents/fast-stealth").aliases
 }
 
-/// A link naming an option's old key opens on the option. An old key is read only by the link decoder: no option nor
-/// other alias may have it, and nothing else may name it.
+/// A link naming an option's old key opens on the option. An old key is read only by the link decoder and its
+/// migration: it may be another option's key or another option's alias too (ticket 298, `link_migration`), but not
+/// the option's own key, and nothing else may name it.
 #[test]
 fn a_link_naming_an_options_old_key_reads_as_the_option() {
     let mut data = world();
@@ -298,12 +299,16 @@ fn a_link_naming_an_options_old_key_reads_as_the_option() {
     assert_eq!(decode_build(&encode_build(&old), &keys), Ok(new));
     assert_eq!(data.check(), []);
 
-    // An alias that is another option's key, an alias two options have, and a prerequisite naming an old key.
+    // An alias that is another option's key and an alias two options have are fine; the option's own key as an alias
+    // and a prerequisite naming an old key are not.
     let trick = SelectionOptionKey::new("rogue/rogue-talents/combat-trick");
+    let stealth = SelectionOptionKey::new("rogue/rogue-talents/fast-stealth");
     stealth_aliases(&mut data).insert(trick.clone());
     option_mut(&mut data, trick.as_str())
         .aliases
         .insert(old_key.clone());
+    assert_eq!(data.check(), []);
+    stealth_aliases(&mut data).insert(stealth.clone());
     let dodge = data
         .feats
         .iter_mut()
@@ -322,8 +327,7 @@ fn a_link_naming_an_options_old_key_reads_as_the_option() {
                 DataAt::Feat(rules::FeatKey::new("dodge")),
                 DataIssue::UnknownKey(DataAt::SelectionOption(old_key.clone()))
             ),
-            (DataAt::SelectionOption(trick), DataIssue::DuplicateKey),
-            (DataAt::SelectionOption(old_key), DataIssue::DuplicateKey),
+            (DataAt::SelectionOption(stealth), DataIssue::DuplicateKey),
         ]
     );
 }

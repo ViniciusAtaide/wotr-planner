@@ -175,3 +175,36 @@ fn a_scales_names_known_classes_and_sits_on_a_feature() {
         )]
     );
 }
+
+/// Ticket 298 (from 297's review): a `Scales` is checked at load. Its steps come only from a level, so its base names
+/// at least one class (or the character level), and a `Custom` progression with no band would never step: both are
+/// refused.
+#[test]
+fn a_scales_reads_a_level_and_a_custom_progression_has_a_band() {
+    let at = DataAt::Feature(feature(RESISTANCES));
+    let issues = |data: &GameData| -> Vec<(DataAt, DataIssue)> {
+        data.check()
+            .into_iter()
+            .map(|DataProblem { at, issue }| (at, issue))
+            .collect()
+    };
+    assert_eq!(issues(&stepping(RankBase::CharacterLevel, &[9])), []);
+    assert_eq!(
+        issues(&stepping(on_classes(&[]), &[9])),
+        [(at.clone(), DataIssue::ScalesWithoutLevel)]
+    );
+    assert_eq!(
+        issues(&stepping(RankBase::MythicLevel, &[9])),
+        [(at.clone(), DataIssue::ScalesWithoutLevel)]
+    );
+    let mut data = world();
+    feature_mut(&mut data, RESISTANCES)
+        .components
+        .push(Component::Scales(RankConfig {
+            base: on_sorcerer(),
+            progression: RankProgression::Custom(Vec::new()),
+            min: None,
+            max: None,
+        }));
+    assert_eq!(issues(&data), [(at, DataIssue::EmptyCustom)]);
+}

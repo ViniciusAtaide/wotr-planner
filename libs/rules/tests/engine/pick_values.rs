@@ -31,6 +31,7 @@ fn world_with_pick_values() -> GameData {
         parameter: None,
         repeat: Repeat::Once,
         extra_pick_of: BTreeSet::new(),
+        aliases: BTreeSet::new(),
         requires_proficiency: false,
         prerequisite: None,
     };
