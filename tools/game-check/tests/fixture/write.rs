@@ -888,3 +888,61 @@ fn the_embedded_registry_names_only_entries_the_data_has() {
     assert!(!facts.is_empty());
     assert_eq!(facts.stale(&data), Vec::<String>::new());
 }
+
+#[test]
+fn the_most_specific_line_wins() {
+    use game_check::Area;
+    use game_check::write::facts::Decision;
+    // The real class-table line shapes: the area-wide kind held, one entry applied.
+    let facts = Facts::parse(
+        "class tables / class skills differ (the user's facts) -> held\n\
+         class tables / class skills differ (the user's facts) / archetype alchemist/metamorph -> applied 262\n\
+         items -> held\n\
+         items / bonuses -> applied 7\n\
+         items / * / gear item cloak-of-test -> held\n",
+    )
+    .unwrap();
+    let skills = "class skills differ (the user's facts)";
+    // Entry over kind.
+    assert_eq!(
+        facts.decide(Area::ClassTables, skills, "archetype alchemist/metamorph"),
+        Decision::Applied("262".to_owned())
+    );
+    assert_eq!(
+        facts.decide(Area::ClassTables, skills, "archetype alchemist/other"),
+        Decision::Held
+    );
+    // Kind over area, and the entry over both.
+    assert_eq!(
+        facts.decide(Area::Items, "bonuses", "gear item ring-of-nothing"),
+        Decision::Applied("7".to_owned())
+    );
+    assert_eq!(
+        facts.decide(Area::Items, "slot", "gear item ring-of-nothing"),
+        Decision::Held
+    );
+    assert_eq!(
+        facts.decide(Area::Items, "bonuses", "gear item cloak-of-test"),
+        Decision::Held
+    );
+    // A kind no line names in an area no line names is free.
+    assert_eq!(
+        facts.decide(Area::ClassTables, "bab differs", "class warden"),
+        Decision::Free
+    );
+}
+
+#[test]
+fn two_lines_of_one_specificity_are_a_parse_error() {
+    for bad in [
+        "items / * / gear item x -> held\nitems / * / gear item x -> applied 1",
+        "items -> held\nitems / * -> applied 1",
+        "items / bonuses -> held\nitems / bonuses -> held",
+    ] {
+        let error = Facts::parse(bad).unwrap_err().to_string();
+        assert!(
+            error.contains("line 2: the same as line 1"),
+            "{bad}: {error}"
+        );
+    }
+}

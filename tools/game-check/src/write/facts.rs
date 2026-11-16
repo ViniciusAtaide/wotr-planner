@@ -47,6 +47,9 @@ pub enum Decision {
     Held,
 }
 
+// TODO(293h): when `ClassTables` becomes a `WriteArea`, add a test that every kind in `user-facts.txt` other than `*` is
+// one the check emits for its area (`areas/class_tables.rs`, `areas/items.rs`), so a misspelled kind can't silently
+// protect nothing.
 impl Facts {
     /// The repo's own registry, `tools/game-check/user-facts.txt`.
     pub fn embedded() -> Result<Facts, Error> {
@@ -79,6 +82,15 @@ impl Facts {
             let entry = parts.next().map(str::to_owned);
             if parts.next().is_some() {
                 return Err(bad("more than area, kind and entry"));
+            }
+            // Two lines of one specificity for one thing (`area` and `area / *` are one) would leave the winner to their order.
+            let same = |other: &Line| {
+                other.area == area
+                    && other.entry == entry
+                    && other.kind.as_deref().unwrap_or("*") == kind.as_deref().unwrap_or("*")
+            };
+            if let Some(first) = lines.iter().find(|other| same(other)) {
+                return Err(bad(&format!("the same as line {}", first.number)));
             }
             lines.push(Line {
                 number,
