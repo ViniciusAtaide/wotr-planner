@@ -4,11 +4,11 @@
     name: "Owl's Cowl",
     slot: Headwear,
     guide: "items#headwear",
-    bonuses: [
-        (target: Ability(Wisdom), amount: 6, kind: Enhancement),
-    ],
     other_effects: [
         "While in a shifter aspect, natural attacks get +2 circumstance.",
         "With the Cat's Boots too: +2 circumstance to AC.",
+    ],
+    components: [
+        GearStat(stat: Ability(Wisdom), value: 6, descriptor: Enhancement),
     ],
 )

@@ -5,12 +5,12 @@
     name: "Elixir of Inconceivable Transmutations of Body, and Soul, and Also Mind",
     slot: Usable,
     guide: "items#equipable-and-consumable",
-    bonuses: [
-        (target: Ability(Strength), amount: 2, kind: Inherent),
-        (target: Ability(Dexterity), amount: 2, kind: Inherent),
-        (target: Ability(Constitution), amount: 2, kind: Inherent),
-        (target: Ability(Intelligence), amount: 2, kind: Inherent),
-        (target: Ability(Wisdom), amount: 2, kind: Inherent),
-        (target: Ability(Charisma), amount: 2, kind: Inherent),
-    ],
+components: [
+    GearStat(stat: Ability(Strength), value: 2, descriptor: Inherent),
+    GearStat(stat: Ability(Dexterity), value: 2, descriptor: Inherent),
+    GearStat(stat: Ability(Constitution), value: 2, descriptor: Inherent),
+    GearStat(stat: Ability(Intelligence), value: 2, descriptor: Inherent),
+    GearStat(stat: Ability(Wisdom), value: 2, descriptor: Inherent),
+    GearStat(stat: Ability(Charisma), value: 2, descriptor: Inherent),
+],
 )

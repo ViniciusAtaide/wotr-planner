@@ -7,4 +7,9 @@
     ability_modifiers: [Fixed(ability: Dexterity, amount: 2), Fixed(ability: Constitution, amount: -2), Fixed(ability: Intelligence, amount: 2)],
     weapons: ["long-bow", "longsword", "rapier", "short-bow"],
     weapons_as_martial: ["elven-curve-blade"],
+    components: [
+        SpellPenetration(value: Flat(2)),
+        StatBonus(stat: Skill("knowledge-arcana"), value: Flat(2)),
+        StatBonus(stat: Skill("perception"), value: Flat(2)),
+    ],
 )

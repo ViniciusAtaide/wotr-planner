@@ -5,11 +5,11 @@
     name: "Grand Festival Cloak",
     slot: Cloak,
     guide: "items#cloaks",
-    bonuses: [
-        (target: AllSaves, amount: 7, kind: Resistance),
-        (target: Ability(Charisma), amount: 2, kind: Circumstance),
-    ],
     always_on: [
         "Persuasion (Bluff) +5 circumstance",
     ],
+components: [
+    GearStat(stat: AllSaves, value: 7, descriptor: Resistance),
+    GearStat(stat: Ability(Charisma), value: 2, descriptor: Circumstance),
+],
 )

@@ -1,14 +1,14 @@
 //! The caster line: a spell's save DC at each spell level, caster level against spell resistance and concentration,
-//! from the casting class, the character's own casting ability and the flat bonuses of the items held. Unconditional
-//! numbers only.
+//! from the casting class, the character's own casting ability and the components of the entries held (ticket 297).
+//! Unconditional numbers only.
 //!
 //! Each line is read off a walked Build's state (ticket 151).
 
 use rules::{
-    Ability, BonusAmount, BonusItem, BonusTarget, Build, ClassChoice, DataIssue, Energy, Engine,
-    Feat, FeatCategory, FeatKey, FeatureKey, GameData, ItemBonus, MythicFeat, MythicFeatKey,
-    Parameter, ParameterKind, Pick, Prerequisite, RaceKey, Repeat, SlotId, SpellDc, SpellSchool,
-    SpellScope, SpellTraits, SubraceKey, Subschool,
+    Ability, BonusItem, Build, ClassChoice, Component, Condition, DataIssue, Energy, Engine, Fact,
+    Feat, FeatCategory, FeatKey, FeatureKey, GameData, MetamagicKind, MythicFeat, MythicFeatKey,
+    Parameter, ParameterKind, Pick, RaceKey, RankBase, RankProgression, Repeat, SlotId, SpellDc,
+    SpellSchool, SpellScope, SpellTraits, SubraceKey, Subschool, Value,
 };
 
 use crate::support::*;
@@ -50,19 +50,18 @@ fn school(school: SpellSchool) -> Parameter {
     Parameter::SpellSchool(school)
 }
 
-fn bonus(item: BonusItem, target: BonusTarget, amount: BonusAmount) -> ItemBonus {
-    ItemBonus {
-        item,
-        target,
-        amount,
-        requires: None,
-    }
+/// The test world with these components on an entry.
+fn with_components(item: BonusItem, components: impl IntoIterator<Item = Component>) -> GameData {
+    let mut data = world();
+    components_mut(&mut data, &item).extend(components);
+    data
 }
 
-fn with_bonuses(bonuses: impl IntoIterator<Item = ItemBonus>) -> GameData {
-    let mut data = world();
-    data.bonuses.extend(bonuses);
-    data
+fn dc(scope: SpellScope, amount: i16) -> Component {
+    Component::SpellDc {
+        scope,
+        value: Value::Flat(amount),
+    }
 }
 
 /// The caster line for a spell at the last level of a Build that holds up.
@@ -133,8 +132,12 @@ fn a_character_with_no_casting_class_has_no_line() {
     assert_eq!(line(&engine, &fighter, spell(SpellSchool::Evocation)), None);
 }
 
+/// Spell Focus's +1 is doubled while Spell Focus (Mythic) is held for its school, which adds nothing of its own; School
+/// Power's +2 is its school's.
+// Game: SpellFocusParametrized.GetBonusDC, WrathDecompiled 6ce4a6b (BonusDC × 2 while m_MythicFocus is held for the
+// school)
 #[test]
-fn spell_focus_its_mythic_feat_and_school_power_count_for_their_school_only() {
+fn spell_focus_doubled_by_its_mythic_feat_and_school_power_count_for_their_school_only() {
     // The Arcane bloodline, and its School Power at 15.
     let mut build = sorcerer_20_charisma_24();
     build.picks.extend([
@@ -170,8 +173,7 @@ fn spell_focus_its_mythic_feat_and_school_power_count_for_their_school_only() {
         parts(&evocation.dc_parts),
         [
             ("Charisma", 7),
-            ("spell-focus (Evocation)", 1),
-            ("spell-focus-mythic (Evocation)", 1),
+            ("spell-focus (Evocation)", 2),
             ("sorcerer/school-power (evocation)", 2),
         ]
     );
@@ -264,11 +266,13 @@ fn an_archetype_may_cast_with_another_ability() {
 #[test]
 fn a_subraces_bonuses_replace_its_races() {
     // An invented +1 for the half-elf race; Dual Heritage's +2 replaces it.
-    let engine = engine_on(with_bonuses([bonus(
+    let engine = engine_on(with_components(
         BonusItem::Race(RaceKey::new("half-elf")),
-        BonusTarget::SpellPenetration,
-        BonusAmount::Flat(1),
-    )]));
+        [Component::SpellPenetration {
+            value: Value::Flat(1),
+            only_while: None,
+        }],
+    ));
     let penetration = |subrace: Option<&str>| {
         let mut build = build("half-elf", &times("sorcerer", 10));
         build.start.subrace = subrace.map(SubraceKey::new);
@@ -289,26 +293,20 @@ fn a_subraces_bonuses_replace_its_races() {
 #[test]
 fn a_bonus_counts_only_when_its_requirement_holds() {
     // As Spell Penetration (Mythic): half the Mythic rank, or the full rank with Greater Spell Penetration.
-    let mythic = BonusItem::MythicFeat(MythicFeatKey::new("dodge-mythic"));
-    let greater = Prerequisite::Feat(FeatKey::new("spell-penetration"));
-    let engine = engine_on(with_bonuses([
-        ItemBonus {
-            requires: Some(Prerequisite::Not(Box::new(greater.clone()))),
-            ..bonus(
-                mythic.clone(),
-                BonusTarget::SpellPenetration,
-                BonusAmount::HalfMythicRank,
-            )
-        },
-        ItemBonus {
-            requires: Some(greater),
-            ..bonus(
-                mythic,
-                BonusTarget::SpellPenetration,
-                BonusAmount::MythicRank,
-            )
-        },
-    ]));
+    let greater = || Fact::Feat(FeatKey::new("spell-penetration"));
+    let engine = engine_on(with_components(
+        BonusItem::MythicFeat(MythicFeatKey::new("dodge-mythic")),
+        [
+            Component::SpellPenetration {
+                value: rank(RankBase::MythicLevel, RankProgression::Div2),
+                only_while: Some(Condition::HasNot(greater())),
+            },
+            Component::SpellPenetration {
+                value: rank(RankBase::MythicLevel, RankProgression::AsIs),
+                only_while: Some(Condition::Has(greater())),
+            },
+        ],
+    ));
     // A sorcerer 16: Mythic rank 7.
     let mut build = sorcerer(16);
     build.picks.insert(
@@ -331,21 +329,14 @@ fn a_bonus_counts_only_when_its_requirement_holds() {
 
 #[test]
 fn subschool_energy_and_metamagic_bonuses_count_when_the_spell_has_them() {
-    let arcana = BonusItem::Feature(FeatureKey::new("sorcerer/bloodline/arcane/arcane-bond"));
-    let dc = BonusTarget::SpellDc;
-    let engine = engine_on(with_bonuses([
-        bonus(
-            arcana.clone(),
-            dc(SpellScope::Subschool(Subschool::Compulsion)),
-            BonusAmount::Flat(2),
-        ),
-        bonus(
-            arcana.clone(),
-            dc(SpellScope::Energy(Energy::Fire)),
-            BonusAmount::Flat(1),
-        ),
-        bonus(arcana, dc(SpellScope::Metamagic), BonusAmount::Flat(1)),
-    ]));
+    let engine = engine_on(with_components(
+        BonusItem::Feature(FeatureKey::new("sorcerer/bloodline/arcane/arcane-bond")),
+        [
+            dc(SpellScope::Subschool(Subschool::Compulsion), 2),
+            dc(SpellScope::Energy(Energy::Fire), 1),
+            dc(SpellScope::Metamagic, 1),
+        ],
+    ));
     // The Arcane bloodline gives Arcane Bond at 1.
     let mut build = sorcerer(20);
     build.picks.insert(
@@ -385,16 +376,15 @@ fn subschool_energy_and_metamagic_bonuses_count_when_the_spell_has_them() {
     );
 }
 
-/// The test world with Expanded Arsenal (a mythic feat taken for a school) copying Spell Focus feats, and Spell
+/// The test world with Expanded Arsenal (a mythic feat taken for a school) adding up Spell Focus feats, and Spell
 /// Focus taken once per school.
 fn with_expanded_arsenal() -> Engine {
-    let mut data = with_bonuses([bonus(
-        BonusItem::MythicFeat(MythicFeatKey::new("expanded-arsenal")),
-        BonusTarget::SpellDc(SpellScope::Value),
-        BonusAmount::SpellFocusOfAnotherSchool,
-    )]);
+    let mut data = world();
     let template = data.mythic_feats[0].clone();
     data.mythic_feats.push(MythicFeat {
+        components: vec![Component::ExpandedArsenal {
+            focuses: [Fact::Feat(feat("spell-focus"))].into(),
+        }],
         key: MythicFeatKey::new("expanded-arsenal"),
         name: "Expanded Arsenal".into(),
         parameter: Some(ParameterKind::SpellSchool),
@@ -449,21 +439,30 @@ fn expanded_arsenal_gives_its_school_the_spell_focus_feats_of_another() {
     let level = last_level(&engine, &build);
     let line = |school| engine.caster_line(&level, spell(school)).unwrap();
 
-    // Necromancy gets the school with the most: Evocation's two.
+    // Necromancy, an arsenal school, gets from each Expanded Arsenal held (two) the school whose Spell Focus feats add
+    // up to the most: Evocation's, doubled by its mythic feat (2), level with Illusion's, doubled because an Expanded
+    // Arsenal names Illusion, the first in school order.
+    // Game: ExpandedArsenalMagicSchools.OnEventAboutToTrigger and SpellFocusParametrized.GetBonusDC, WrathDecompiled
+    // 6ce4a6b
+    let arsenal = [
+        ("Charisma", 0),
+        (
+            "Expanded Arsenal (Illusion): Evocation's Spell Focus feats",
+            2,
+        ),
+        (
+            "Expanded Arsenal (Necromancy): Evocation's Spell Focus feats",
+            2,
+        ),
+    ];
+    assert_eq!(parts(&line(SpellSchool::Necromancy).dc_parts), arsenal);
+    // Illusion is an arsenal school too: its own Spell Focus counts nothing for it (`SpellFocusParametrized` skips a
+    // school with an arsenal entry), and the arsenal gives it Evocation's.
+    assert_eq!(parts(&line(SpellSchool::Illusion).dc_parts), arsenal);
+    // Evocation isn't: its doubled Spell Focus.
     assert_eq!(
-        parts(&line(SpellSchool::Necromancy).dc_parts),
-        [
-            ("Charisma", 0),
-            (
-                "Expanded Arsenal (Necromancy): Evocation's Spell Focus feats",
-                2
-            ),
-        ]
-    );
-    // Illusion has a Spell Focus of its own: Expanded Arsenal does nothing there.
-    assert_eq!(
-        parts(&line(SpellSchool::Illusion).dc_parts),
-        [("Charisma", 0), ("spell-focus (Illusion)", 1)]
+        parts(&line(SpellSchool::Evocation).dc_parts),
+        [("Charisma", 0), ("spell-focus (Evocation)", 2)]
     );
 }
 
@@ -472,6 +471,7 @@ fn heighten_spell_gives_the_highest_levels_dc_to_any_spell() {
     let mut data = world();
     let template = data.feats[0].clone();
     data.feats.push(Feat {
+        components: vec![Component::Metamagic(MetamagicKind::Heighten)],
         key: feat("metamagic-heighten-spell"),
         name: "Heighten Spell".into(),
         category: FeatCategory::Magic,
@@ -505,16 +505,17 @@ fn the_data_check_refuses_a_caster_without_an_ability_and_a_value_bonus_on_an_it
             class.casting_ability = Some(Ability::Wisdom);
         }
     }
-    data.bonuses.push(bonus(
-        BonusItem::Feat(FeatKey::new("spell-penetration")),
-        BonusTarget::SpellDc(SpellScope::Value),
-        BonusAmount::Flat(1),
-    ));
-    data.bonuses.push(bonus(
-        BonusItem::Feat(FeatKey::new("no-such-feat")),
-        BonusTarget::Concentration,
-        BonusAmount::Flat(4),
-    ));
+    components_mut(
+        &mut data,
+        &BonusItem::Feat(FeatKey::new("spell-penetration")),
+    )
+    .extend([
+        dc(SpellScope::Value, 1),
+        Component::SpellPenetration {
+            value: Value::Flat(2),
+            only_while: Some(Condition::Has(Fact::Feat(FeatKey::new("no-such-feat")))),
+        },
+    ]);
     let issues: Vec<(String, DataIssue)> = data
         .check()
         .into_iter()
@@ -531,7 +532,7 @@ fn the_data_check_refuses_a_caster_without_an_ability_and_a_value_bonus_on_an_it
         DataIssue::BonusValueWithoutParameter
     )));
     assert!(issues.contains(&(
-        "feat no-such-feat".into(),
+        "feat spell-penetration".into(),
         DataIssue::UnknownKey(rules::DataAt::Feat(FeatKey::new("no-such-feat")))
     )));
 }

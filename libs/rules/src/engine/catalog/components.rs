@@ -7,9 +7,9 @@ use std::collections::BTreeSet;
 use rustc_hash::FxHashMap;
 
 use super::Catalog;
-use crate::component::{Component, Fact, Holder};
+use crate::component::{Component, Fact, Holder, RankConfig};
 use crate::game_data::GameData;
-use crate::keys::{ArchetypeKey, ClassKey, FeatureSelectionKey};
+use crate::keys::{ArchetypeKey, ClassKey, FeatKey, FeatureKey, FeatureSelectionKey};
 use crate::prerequisite::Prerequisite;
 
 /// The kinds of entry that hold components, as the index keeps them apart: one table each, by the key's text, so the
@@ -33,6 +33,26 @@ pub(in crate::engine) enum HolderKind {
 const HOLDER_KINDS: usize = 12;
 
 impl HolderKind {
+    /// Where an entry of the kind's bonuses go in the bonuses in force: the race, the subrace, the background, then
+    /// feats, mythic feats, mythic abilities, features, options, and the rest (the order the planner's bonuses always
+    /// had, ticket 151).
+    pub(in crate::engine) fn bonus_rank(self) -> u8 {
+        match self {
+            Self::Race => 0,
+            Self::Subrace => 1,
+            Self::Background => 2,
+            Self::Feat => 3,
+            Self::MythicFeat => 4,
+            Self::MythicAbility => 5,
+            Self::Feature => 6,
+            Self::Option => 7,
+            Self::Selection => 8,
+            Self::Class => 9,
+            Self::Archetype => 10,
+            Self::Deity => 11,
+        }
+    }
+
     /// The kind of a holder, and its key's text.
     pub(in crate::engine) fn of(holder: &Holder) -> (Self, &str) {
         match holder {
@@ -210,6 +230,22 @@ impl Catalog {
         (self.components.held.get(kind as usize))
             .and_then(|table| table.get(key))
             .map_or(&[], Vec::as_slice)
+    }
+
+    /// A feat's components, as the lines read them (Weapon Focus, Power Attack, Heighten Spell); empty for one with none.
+    pub(in crate::engine) fn feat_components(&self, feat: &FeatKey) -> &[Component] {
+        self.held_components(HolderKind::Feat, feat.as_str())
+    }
+
+    /// A feature's rank its steps follow ([`Component::Scales`]), when it scales.
+    pub(in crate::engine) fn scales(&self, feature: &FeatureKey) -> Option<&RankConfig> {
+        (self
+            .held_components(HolderKind::Feature, feature.as_str())
+            .iter())
+        .find_map(|component| match component {
+            Component::Scales(config) => Some(config),
+            _ => None,
+        })
     }
 
     /// The facts whose holding takes a selection's pick away (`NoSelectionIf`); none for most.

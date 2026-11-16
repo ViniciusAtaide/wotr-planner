@@ -1,1 +1,1 @@
-(key: "duelist/improved-reaction", blueprint: "d1b7dd3736ca41446aaff9f253768d1d", name: "Improved Reaction", summary: "+2 to initiative, +4 at 8th level.", guide: "prestige-classes#improved-reaction")
+(key: "duelist/improved-reaction", blueprint: "d1b7dd3736ca41446aaff9f253768d1d", name: "Improved Reaction", summary: "+2 to initiative, +4 at 8th level.", guide: "prestige-classes#improved-reaction", components: [StatBonus(stat: Initiative, value: Rank((base: ClassLevel(classes: ["duelist"]), progression: Custom([(7, 2), (100, 4)]))))])

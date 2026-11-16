@@ -5,4 +5,7 @@
     summary: "Trade attack bonus for damage.",
     guide: "feats#power-attack",
     prerequisite: AbilityScore(ability: Strength, score: 13),
+    components: [
+        PowerAttack,
+    ],
 )

@@ -5,14 +5,14 @@
     name: "Goggles of Ferocious Pact",
     slot: Glasses,
     guide: "items#glasses",
-    bonuses: [
-        (target: Ability(Wisdom), amount: 2, kind: Enhancement),
-        (target: Save(Will), amount: 3),
-        (target: Save(Fortitude), amount: -2),
-        (target: Skill("persuasion"), amount: -5),
-    ],
     always_on: [
         "AC -2",
         "Damage +4",
     ],
+components: [
+    GearStat(stat: Ability(Wisdom), value: 2, descriptor: Enhancement),
+    GearStat(stat: Save(Will), value: 3),
+    GearStat(stat: Save(Fortitude), value: -2),
+    GearStat(stat: Skill("persuasion"), value: -5),
+],
 )

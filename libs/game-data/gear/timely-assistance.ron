@@ -4,11 +4,11 @@
     name: "Timely Assistance",
     slot: Belt,
     guide: "items#belts",
-    bonuses: [
-        (target: Ability(Constitution), amount: 4, kind: Enhancement),
-        (target: Ability(Wisdom), amount: 4, kind: Enhancement),
-    ],
     other_effects: [
         "When an ally within 20 feet lands a killing blow, the wearer's next spell is extended.",
+    ],
+    components: [
+        GearStat(stat: Ability(Constitution), value: 4, descriptor: Enhancement),
+        GearStat(stat: Ability(Wisdom), value: 4, descriptor: Enhancement),
     ],
 )

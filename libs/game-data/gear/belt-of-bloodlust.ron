@@ -4,11 +4,11 @@
     name: "Belt of Bloodlust",
     slot: Belt,
     guide: "items#belts",
-    bonuses: [
-        (target: Ability(Strength), amount: 4, kind: Enhancement),
-        (target: Ability(Dexterity), amount: 4, kind: Enhancement),
-    ],
     other_effects: [
         "Killing an enemy: +5 morale on the next attack.",
+    ],
+    components: [
+        GearStat(stat: Ability(Strength), value: 4, descriptor: Enhancement),
+        GearStat(stat: Ability(Dexterity), value: 4, descriptor: Enhancement),
     ],
 )

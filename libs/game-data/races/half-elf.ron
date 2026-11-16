@@ -6,4 +6,7 @@
     guide: "character-creation#half-elf",
     ability_modifiers: [Chosen(amount: 2)],
     feat_slots: [OneOf(list: "half-elf/adaptability")],
+    components: [
+        StatBonus(stat: Skill("perception"), value: Flat(2)),
+    ],
 )

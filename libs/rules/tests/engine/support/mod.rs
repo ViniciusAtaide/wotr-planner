@@ -152,3 +152,65 @@ pub fn offered_on(engine: &Engine, build: &Build, slot: &SlotId) -> Vec<String> 
     keys.dedup();
     keys
 }
+
+/// The components of an entry named as an `interactions.ron` item names one (ticket 297: the bonuses `bonuses.ron` held
+/// are components of their entries), to give it some for a test.
+pub fn components_mut<'a>(
+    data: &'a mut GameData,
+    item: &rules::BonusItem,
+) -> &'a mut Vec<rules::Component> {
+    use rules::BonusItem as I;
+    let found = match item {
+        I::Race(key) => data
+            .races
+            .iter_mut()
+            .find(|e| &e.key == key)
+            .map(|e| &mut e.components),
+        I::Subrace(key) => (data.subraces.iter_mut())
+            .find(|e| &e.key == key)
+            .map(|e| &mut e.components),
+        I::Background(key) => (data.backgrounds.iter_mut())
+            .find(|e| &e.key == key)
+            .map(|e| &mut e.components),
+        I::Feat(key) => data
+            .feats
+            .iter_mut()
+            .find(|e| &e.key == key)
+            .map(|e| &mut e.components),
+        I::MythicFeat(key) => (data.mythic_feats.iter_mut())
+            .find(|e| &e.key == key)
+            .map(|e| &mut e.components),
+        I::MythicAbility(key) => (data.mythic_abilities.iter_mut())
+            .find(|e| &e.key == key)
+            .map(|e| &mut e.components),
+        I::Feature(key) => (data.features.iter_mut())
+            .find(|e| &e.key == key)
+            .map(|e| &mut e.components),
+        I::SelectionOption(key) => (data.options.iter_mut())
+            .find(|e| &e.key == key)
+            .map(|e| &mut e.components),
+    };
+    found.unwrap_or_else(|| panic!("no entry {item:?}"))
+}
+
+/// An untyped stat bonus of a value.
+pub fn stat_bonus(stat: rules::StatTarget, value: rules::Value) -> rules::Component {
+    rules::Component::StatBonus {
+        stat,
+        value,
+        descriptor: rules::Descriptor::Untyped,
+        multiplier: 1,
+        at_least: None,
+        only_if: None,
+    }
+}
+
+/// A rank's value: a base through a progression.
+pub fn rank(base: rules::RankBase, progression: rules::RankProgression) -> rules::Value {
+    rules::Value::Rank(rules::RankConfig {
+        base,
+        progression,
+        min: None,
+        max: None,
+    })
+}

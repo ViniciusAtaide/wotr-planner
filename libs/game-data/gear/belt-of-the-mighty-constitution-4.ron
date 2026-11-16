@@ -3,7 +3,7 @@
     blueprint: "dbeb5ba83e9fd2046a31590636b8b36d",
     name: "Belt of the Mighty Constitution +4",
     slot: Belt,
-    bonuses: [
-        (target: Ability(Constitution), amount: 4, kind: Enhancement),
+    components: [
+        GearStat(stat: Ability(Constitution), value: 4, descriptor: Enhancement),
     ],
 )

@@ -1,1 +1,1 @@
-(key: "magus/sword-saint/lightning-draw", blueprint: "4f1ac71e8ed95ae4c8612b53166106ef", name: "Lightning Draw", summary: "At 7th level, add Int as well as Dex to initiative.", guide: "magus#lightning-draw")
+(key: "magus/sword-saint/lightning-draw", blueprint: "4f1ac71e8ed95ae4c8612b53166106ef", name: "Lightning Draw", summary: "At 7th level, add Int as well as Dex to initiative.", guide: "magus#lightning-draw", components: [StatBonus(stat: Initiative, value: Rank((base: StatBonus(Intelligence))))])

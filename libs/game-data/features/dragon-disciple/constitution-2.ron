@@ -1,1 +1,1 @@
-(key: "dragon-disciple/constitution-2", blueprint: "95de611796547be489e527fae84abbd6", name: "Constitution +2", summary: "+2 Constitution.", guide: "prestige-classes#dragon-disciple", ability_bonuses: [Fixed(ability: Constitution, amount: 2)])
+(key: "dragon-disciple/constitution-2", blueprint: "95de611796547be489e527fae84abbd6", name: "Constitution +2", summary: "+2 Constitution.", guide: "prestige-classes#dragon-disciple", components: [StatBonus(stat: Ability(Constitution), value: PerRank(2), descriptor: Racial)])

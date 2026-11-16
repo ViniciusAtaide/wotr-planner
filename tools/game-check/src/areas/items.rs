@@ -7,7 +7,7 @@
 //! A bonus to a number the planner doesn't count (AC, speed) is left out, as are manuals and tomes, which give theirs
 //! through an ability (ticket 238's decisions: a later ticket).
 
-use rules::{BonusType, DataAt, GearSlot, GearTarget, Save, SpellScope};
+use rules::{DataAt, Descriptor, GearSlot, GearTarget, Save, SpellScope};
 use serde_json::Value;
 
 use super::{Ctx, ability_stat, is_ability_stat, skill_stat};
@@ -70,14 +70,9 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
             }
         }
         let planner: Vec<Bonus> = item
-            .bonuses
-            .iter()
-            .map(|bonus| {
-                (
-                    target(&bonus.target),
-                    bonus_type(bonus.kind),
-                    i64::from(bonus.amount),
-                )
+            .stats()
+            .map(|(stat, value, descriptor)| {
+                (target(stat), bonus_type(descriptor), i64::from(value))
             })
             .collect();
         bonuses(out, &at, guid, &name, game, planner);
@@ -188,8 +183,12 @@ fn descriptor(part: &Value) -> String {
     }
 }
 
-fn bonus_type(kind: BonusType) -> String {
-    format!("{kind:?}")
+/// A gear stat's type in the planner's words, as `descriptor` gives the game's.
+fn bonus_type(descriptor: Descriptor) -> String {
+    match descriptor {
+        Descriptor::UntypedStackable => "Untyped".to_owned(),
+        descriptor => format!("{descriptor:?}"),
+    }
 }
 
 fn target(target: &GearTarget) -> String {
@@ -212,7 +211,7 @@ fn target(target: &GearTarget) -> String {
 
 /// The types whose bonuses to one stat all count, in the planner's words: `ModifierDescriptorHelper`'s
 /// `DefaultStackingDescriptors`, with `None` and `UntypedStackable` as `Untyped` (WrathDecompiled 6ce4a6b). The game's
-/// rule, not the planner's (`rules::BonusType::stacks`, where only untyped bonuses stack).
+/// rule, which the planner's bonuses in force follow too since ticket 297 (`rules::game_stacking`).
 const STACKING: [&str; 10] = [
     "Untyped",
     "Racial",

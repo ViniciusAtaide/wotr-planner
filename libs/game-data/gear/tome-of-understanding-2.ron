@@ -4,7 +4,7 @@
     name: "Tome of Understanding +2",
     slot: Usable,
     guide: "items#equipable-and-consumable",
-    bonuses: [
-        (target: Ability(Wisdom), amount: 2, kind: Inherent),
+    components: [
+        GearStat(stat: Ability(Wisdom), value: 2, descriptor: Inherent),
     ],
 )

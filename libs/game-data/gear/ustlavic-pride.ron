@@ -4,14 +4,14 @@
     name: "Ustlavic Pride",
     slot: Armour,
     guide: "items#unique-armour",
-    bonuses: [
-        (target: Ability(Charisma), amount: 3, kind: Enhancement),
-    ],
     always_on: [
         "A +3 full plate",
         "CMD +4 enhancement",
     ],
     other_effects: [
         "DR 5/- against attacks from undead.",
+    ],
+    components: [
+        GearStat(stat: Ability(Charisma), value: 3, descriptor: Enhancement),
     ],
 )

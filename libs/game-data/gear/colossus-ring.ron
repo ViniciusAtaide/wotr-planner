@@ -5,10 +5,10 @@
     name: "Colossus Ring",
     slot: Ring,
     guide: "items#rings",
-    bonuses: [
-        (target: Ability(Constitution), amount: 2, kind: Luck),
-    ],
     other_effects: [
         "Twice a day: Enlarge Person, at wizard caster level 1.",
     ],
+components: [
+    GearStat(stat: Ability(Constitution), value: 2, descriptor: Luck),
+],
 )

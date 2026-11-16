@@ -4,10 +4,10 @@
     name: "Robe of Unspeakable Truth",
     slot: Robe,
     guide: "items#robes",
-    bonuses: [
-        (target: Ability(Wisdom), amount: 2, kind: Circumstance),
-    ],
     other_effects: [
         "Together with Glasses of Undeniable Truth: radiates fear 10 feet around, save DC 25 + Cha modifier.",
+    ],
+    components: [
+        GearStat(stat: Ability(Wisdom), value: 2, descriptor: Circumstance),
     ],
 )

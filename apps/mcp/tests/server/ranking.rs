@@ -43,7 +43,9 @@ async fn compare_by_the_compulsion_dc_orders_three_bloodline_branches() {
         )
         .await;
 
-    // Fey's arcana adds +2 to compulsions; Infernal's to charms, so it ties with Celestial, in the order given.
+    // Fey's arcana adds +2 to compulsions; Infernal's to charms, so it ties with Celestial, in the order given. Each
+    // has Spell Focus (Mythic) doubling its two focus feats.
+    // Game: SpellFocusParametrized.GetBonusDC, WrathDecompiled 6ce4a6b
     let ranked: Vec<(Value, Value)> = compared["builds"]
         .as_array()
         .unwrap()
@@ -53,9 +55,9 @@ async fn compare_by_the_compulsion_dc_orders_three_bloodline_branches() {
     assert_eq!(
         ranked,
         [
-            (json!(2), json!(34)),
-            (json!(0), json!(32)),
-            (json!(1), json!(32))
+            (json!(2), json!(35)),
+            (json!(0), json!(33)),
+            (json!(1), json!(33))
         ]
     );
     assert_eq!(compared["builds"][0]["build"], MAX_DC_RUN);
@@ -120,13 +122,14 @@ async fn improve_on_the_mr_4_mythic_feat_slot_lists_spell_focus_mythic_first_for
         .await;
 
     assert_eq!(improved["current"], 33);
+    // It doubles the two focus feats: +2. Game: SpellFocusParametrized.GetBonusDC, WrathDecompiled 6ce4a6b
     assert_eq!(
         improved["options"][0],
         json!({
             "value": { "key": "spell-focus-mythic", "parameter": "enchantment" },
             "name": "Spell Focus (Mythic) (Enchantment)",
-            "number": 34,
-            "change": 1,
+            "number": 35,
+            "change": 2,
         })
     );
     let no_change = improved["no_change"].as_array().unwrap();
@@ -150,19 +153,28 @@ async fn improve_lists_what_replacing_a_held_pick_loses() {
         )
         .await;
 
-    assert_eq!(improved["current"], 34);
+    // Game: SpellFocusParametrized.GetBonusDC, WrathDecompiled 6ce4a6b (Spell Focus (Mythic) doubles the two)
+    assert_eq!(improved["current"], 35);
     assert_eq!(
         improved["no_change"],
         json!(["Spell Focus (Mythic) (Enchantment)"])
     );
     let options = improved["options"].as_array().unwrap();
     assert!(!options.is_empty());
+    // Expanded Arsenal (Enchantment) also takes the school's own Spell Focus feats away, and no other school has any
+    // for it to add: −4.
+    // Game: SpellFocusParametrized.OnEventAboutToTrigger (no bonus for a school with an arsenal entry) and
+    // ExpandedArsenalMagicSchools.OnEventAboutToTrigger (the other schools' focuses only), WrathDecompiled 6ce4a6b
+    let own_arsenal = json!({ "key": "expanded-arsenal", "parameter": "enchantment" });
     assert!(
-        options
-            .iter()
-            .all(|line| line["change"] == -1 && line["number"] == 33),
+        options.iter().all(|line| if line["value"] == own_arsenal {
+            line["change"] == -4 && line["number"] == 31
+        } else {
+            line["change"] == -2 && line["number"] == 33
+        }),
         "{improved}"
     );
+    assert!(options.iter().any(|line| line["value"] == own_arsenal));
 }
 
 #[tokio::test]

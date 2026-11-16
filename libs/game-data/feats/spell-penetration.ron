@@ -1,1 +1,1 @@
-(key: "spell-penetration", blueprint: "ee7dc126939e4d9438357fbd5980d459", name: "Spell Penetration", summary: "+2 to caster level checks against spell resistance.", category: Magic, guide: "feats#spell-penetration")
+(key: "spell-penetration", blueprint: "ee7dc126939e4d9438357fbd5980d459", name: "Spell Penetration", summary: "+2 to caster level checks against spell resistance.", category: Magic, guide: "feats#spell-penetration", components: [SpellPenetration(value: Flat(2))])

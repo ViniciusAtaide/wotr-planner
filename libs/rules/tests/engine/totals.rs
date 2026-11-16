@@ -7,28 +7,41 @@
 use std::collections::BTreeSet;
 
 use rules::{
-    Ability, Background, BackgroundKey, BonusAmount, BonusItem, BonusTarget, Build, DataIssue,
-    Engine, Feat, FeatCategory, GameData, GuideRef, ItemBonus, ItemInteractions, MythicAbility,
-    MythicAbilityGroup, MythicAbilityKey, MythicFeat, MythicFeatGroup, MythicFeatKey, Parameter,
-    ParameterKind, Pick, Prerequisite, RaceKey, Repeat, Save, SkillKey, SlotId, Stat, Subrace,
-    SubraceKey, Total,
+    Ability, Background, BackgroundKey, BonusItem, Build, Component, DataIssue, Engine, Feat,
+    FeatCategory, GameData, GuideRef, ItemInteractions, MythicAbility, MythicAbilityGroup,
+    MythicAbilityKey, MythicFeat, MythicFeatGroup, MythicFeatKey, Parameter, ParameterKind, Pick,
+    RaceKey, RankBase, RankProgression, Repeat, Save, SkillKey, SlotId, Stat, StatRef, StatTarget,
+    Subrace, SubraceKey, Total, Value,
 };
 
 use crate::support::*;
 
-fn bonus(item: BonusItem, target: BonusTarget, amount: BonusAmount) -> ItemBonus {
-    ItemBonus {
-        item,
-        target,
-        amount,
-        requires: None,
+/// The test world with these components on their entries (the bonuses `bonuses.ron` held before ticket 297).
+fn engine_with(bonuses: impl IntoIterator<Item = (BonusItem, Vec<Component>)>) -> Engine {
+    let mut data = world_with_bonus_items();
+    for (item, components) in bonuses {
+        components_mut(&mut data, &item).extend(components);
     }
+    engine_on(data)
 }
 
-fn engine_with(bonuses: impl IntoIterator<Item = ItemBonus>) -> Engine {
-    let mut data = world_with_bonus_items();
-    data.bonuses.extend(bonuses);
-    engine_on(data)
+fn flat(amount: i16) -> Value {
+    Value::Flat(amount)
+}
+
+/// A bonus to every save.
+fn every_save(value: Value) -> Vec<Component> {
+    Save::ALL
+        .map(|save| stat_bonus(StatTarget::Save(save), value.clone()))
+        .to_vec()
+}
+
+/// `amount`, or `with_ten_ranks` from 10 ranks in a skill (`Custom` bands: 9 or fewer, more).
+fn ten_ranks(skill: StatRef, amount: i16, with_ten_ranks: i16) -> Value {
+    rank(
+        RankBase::BaseStat(skill),
+        RankProgression::Custom(vec![(9, amount), (100, with_ten_ranks)]),
+    )
 }
 
 /// The test world with the items these tests' bonuses name that it lacks, each with no more than a kind needs (no
@@ -134,25 +147,24 @@ fn character(scores: [u8; 6], classes: &[&str]) -> Build {
 #[test]
 fn initiative_is_dexterity_plus_the_bonuses_held_a_mythic_one_by_rank() {
     let engine = engine_with([
-        bonus(
+        (
             BonusItem::Feat(feat("improved-initiative")),
-            BonusTarget::Initiative,
-            BonusAmount::Flat(4),
+            vec![stat_bonus(StatTarget::Initiative, flat(4))],
         ),
-        bonus(
+        (
             BonusItem::MythicFeat(MythicFeatKey::new("improved-initiative-mythic")),
-            BonusTarget::Initiative,
-            BonusAmount::MythicRank,
+            vec![stat_bonus(
+                StatTarget::Initiative,
+                rank(RankBase::MythicLevel, RankProgression::AsIs),
+            )],
         ),
-        bonus(
+        (
             BonusItem::Background(BackgroundKey::new("pickpocket")),
-            BonusTarget::Initiative,
-            BonusAmount::Flat(2),
+            vec![stat_bonus(StatTarget::Initiative, flat(2))],
         ),
-        bonus(
+        (
             BonusItem::Feat(feat("stat-focus")),
-            BonusTarget::Held,
-            BonusAmount::Flat(1),
+            vec![stat_bonus(StatTarget::Parameter, flat(1))],
         ),
     ]);
     // A fighter 15 (Mythic rank 6) with Dexterity 16.
@@ -193,25 +205,21 @@ fn initiative_is_dexterity_plus_the_bonuses_held_a_mythic_one_by_rank() {
 #[test]
 fn a_save_is_its_base_its_ability_and_the_bonuses_for_it_or_every_save() {
     let engine = engine_with([
-        bonus(
+        (
             BonusItem::Feat(feat("iron-will")),
-            BonusTarget::Save(Save::Will),
-            BonusAmount::Flat(2),
+            vec![stat_bonus(StatTarget::Save(Save::Will), flat(2))],
         ),
-        bonus(
-            BonusItem::Race(RaceKey::new("human")),
-            BonusTarget::AllSaves,
-            BonusAmount::Flat(1),
-        ),
-        bonus(
+        (BonusItem::Race(RaceKey::new("human")), every_save(flat(1))),
+        (
             BonusItem::MythicAbility(MythicAbilityKey::new("grace")),
-            BonusTarget::AllSaves,
-            BonusAmount::AbilityModifier(Ability::Charisma),
+            every_save(rank(
+                RankBase::StatBonus(Ability::Charisma),
+                RankProgression::AsIs,
+            )),
         ),
-        bonus(
+        (
             BonusItem::Feat(feat("stat-focus")),
-            BonusTarget::Held,
-            BonusAmount::Flat(1),
+            vec![stat_bonus(StatTarget::Parameter, flat(1))],
         ),
     ]);
     // A fighter 5 / rogue 1 (base saves 4, 3 and 1, so each save's total is its own; Mythic rank 1).
@@ -264,27 +272,27 @@ fn a_save_is_its_base_its_ability_and_the_bonuses_for_it_or_every_save() {
 
 #[test]
 fn a_skill_is_its_ranks_its_ability_the_class_skill_bonus_when_trained_and_its_bonuses() {
+    let half_mythic_rank = rank(RankBase::MythicLevel, RankProgression::Div2);
     let engine = engine_with([
-        bonus(
+        (
             BonusItem::Feat(feat("skill-focus")),
-            BonusTarget::Held,
-            BonusAmount::TenRanks {
-                amount: 3,
-                with_ten_ranks: 6,
-            },
+            vec![stat_bonus(
+                StatTarget::Parameter,
+                ten_ranks(StatRef::Parameter, 3, 6),
+            )],
         ),
-        bonus(
+        (
             BonusItem::Feat(feat("toughness")),
-            BonusTarget::Skill(skill("athletics")),
-            BonusAmount::TenRanks {
-                amount: 2,
-                with_ten_ranks: 4,
-            },
+            vec![stat_bonus(
+                StatTarget::Skill(skill("athletics")),
+                ten_ranks(StatRef::Skill(skill("athletics")), 2, 4),
+            )],
         ),
-        bonus(
+        (
             BonusItem::Subrace(SubraceKey::new("half-elf/kindred")),
-            BonusTarget::AllSkills,
-            BonusAmount::HalfMythicRank,
+            ["athletics", "knowledge-arcana", "mobility", "persuasion"]
+                .map(|key| stat_bonus(StatTarget::Skill(skill(key)), half_mythic_rank.clone()))
+                .to_vec(),
         ),
     ]);
     // A bard 9 / monk 1: Persuasion and Mobility are class skills, Athletics isn't. Persuasion's ranks at every
@@ -368,25 +376,24 @@ fn under_perfect_mind_every_skill_is_a_class_skill_with_ranks_at_least_the_mythi
 }
 
 #[test]
-fn a_bonus_counts_only_with_what_it_requires() {
-    let engine = engine_with([
-        bonus(
-            BonusItem::Feat(feat("toughness")),
-            BonusTarget::Initiative,
-            BonusAmount::Flat(2),
-        ),
-        ItemBonus {
-            requires: Some(Prerequisite::ClassLevel {
-                class: class("fighter"),
-                level: 8,
-            }),
-            ..bonus(
-                BonusItem::Feat(feat("toughness")),
-                BonusTarget::Initiative,
-                BonusAmount::Flat(4),
-            )
-        },
-    ]);
+fn a_bonus_on_a_class_levels_rank_rises_at_that_level() {
+    // Toughness: +2, and +4 more from fighter 8 (a rank on the fighter's levels, `Custom` bands).
+    let engine = engine_with([(
+        BonusItem::Feat(feat("toughness")),
+        vec![
+            stat_bonus(StatTarget::Initiative, flat(2)),
+            stat_bonus(
+                StatTarget::Initiative,
+                rank(
+                    RankBase::ClassLevel {
+                        classes: [class("fighter")].into(),
+                        except: false,
+                    },
+                    RankProgression::Custom(vec![(7, 0), (100, 4)]),
+                ),
+            ),
+        ],
+    )]);
     let mut build = character([10, 10, 10, 10, 10, 10], &times("fighter", 8));
     build.picks.insert(race_slot(0), pick_feat("toughness"));
     let sheet = walked(&engine, &build);
@@ -397,32 +404,13 @@ fn a_bonus_counts_only_with_what_it_requires() {
 }
 
 #[test]
-fn the_data_check_refuses_a_held_or_ten_ranks_bonus_without_a_skill_and_two_notes_on_one_item() {
+fn the_data_check_refuses_a_bonus_to_the_held_stat_without_one_and_two_notes_on_one_item() {
     let mut data: GameData = world();
-    data.bonuses.extend([
-        bonus(
-            BonusItem::Feat(feat("toughness")),
-            BonusTarget::Held,
-            BonusAmount::Flat(1),
-        ),
-        bonus(
-            BonusItem::Feat(feat("dodge")),
-            BonusTarget::Initiative,
-            BonusAmount::TenRanks {
-                amount: 2,
-                with_ten_ranks: 4,
-            },
-        ),
-        bonus(
-            BonusItem::Feat(feat("dodge")),
-            BonusTarget::Skill(SkillKey::new("cooking")),
-            BonusAmount::Flat(1),
-        ),
-        bonus(
-            BonusItem::Background(BackgroundKey::new("no-such-background")),
-            BonusTarget::Initiative,
-            BonusAmount::Flat(1),
-        ),
+    components_mut(&mut data, &BonusItem::Feat(feat("toughness")))
+        .push(stat_bonus(StatTarget::Parameter, flat(1)));
+    components_mut(&mut data, &BonusItem::Feat(feat("dodge"))).extend([
+        stat_bonus(StatTarget::Initiative, ten_ranks(StatRef::Parameter, 2, 4)),
+        stat_bonus(StatTarget::Skill(SkillKey::new("cooking")), flat(1)),
     ]);
     let note = |text: &str| ItemInteractions {
         item: BonusItem::Feat(feat("dodge")),
@@ -437,17 +425,11 @@ fn the_data_check_refuses_a_held_or_ten_ranks_bonus_without_a_skill_and_two_note
 
     for expected in [
         ("feat toughness", DataIssue::HeldBonusWithoutSkillOrStat),
-        ("feat dodge", DataIssue::TenRanksWithoutSkill),
+        ("feat dodge", DataIssue::HeldBonusWithoutSkillOrStat),
         ("feat dodge", DataIssue::InteractionsTwice),
         (
             "feat dodge",
             DataIssue::UnknownKey(rules::DataAt::Skill(SkillKey::new("cooking"))),
-        ),
-        (
-            "background no-such-background",
-            DataIssue::UnknownKey(rules::DataAt::Background(BackgroundKey::new(
-                "no-such-background",
-            ))),
         ),
     ] {
         assert!(
@@ -458,16 +440,12 @@ fn the_data_check_refuses_a_held_or_ten_ranks_bonus_without_a_skill_and_two_note
 }
 
 #[test]
-fn the_data_check_refuses_a_ten_ranks_bonus_on_every_skill() {
-    // The walk works out a bonus's amount once, so a ten-ranks bonus is for one skill.
-    let mut data: GameData = world();
-    data.bonuses.push(bonus(
-        BonusItem::Feat(feat("toughness")),
-        BonusTarget::AllSkills,
-        BonusAmount::TenRanks {
-            amount: 2,
-            with_ten_ranks: 4,
-        },
+fn the_data_check_refuses_a_value_of_the_held_skill_on_an_entry_taken_for_a_stat() {
+    // Stat Focus is taken for a stat: a value reading the skill its entry is held for has none to read.
+    let mut data: GameData = world_with_bonus_items();
+    components_mut(&mut data, &BonusItem::Feat(feat("stat-focus"))).push(stat_bonus(
+        StatTarget::Parameter,
+        ten_ranks(StatRef::Parameter, 2, 4),
     ));
     let issues: Vec<(String, DataIssue)> = data
         .check()
@@ -476,7 +454,10 @@ fn the_data_check_refuses_a_ten_ranks_bonus_on_every_skill() {
         .collect();
 
     assert!(
-        issues.contains(&("feat toughness".to_owned(), DataIssue::TenRanksWithoutSkill)),
+        issues.contains(&(
+            "feat stat-focus".to_owned(),
+            DataIssue::HeldBonusWithoutSkillOrStat
+        )),
         "{issues:?}"
     );
 }

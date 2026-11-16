@@ -151,9 +151,13 @@ fn power_attacks_strength_13_is_a_requires_of_the_stat() {
         .find(|entry| entry.key == FeatKey::new("power-attack"))
         .unwrap();
     assert_eq!(power_attack.prerequisite, None);
+    // Its `Requires` (its Power Attack trade is a component of its own since ticket 297).
+    let requires: Vec<&Component> = (power_attack.components.iter())
+        .filter(|component| component.is_requires())
+        .collect();
     assert_eq!(
-        power_attack.components,
-        [Component::Requires {
+        requires,
+        [&Component::Requires {
             condition: Condition::Stat {
                 stat: StatRef::Ability(Ability::Strength),
                 value: 13,

@@ -1,1 +1,1 @@
-(key: "sorcerer/bloodline/arcane/school-power/divination", blueprint: "8891303b67eb273428f1691864b08cf8", name: "Divination", summary: "+2 to the DC of your divination spells, stacking with Spell Focus.", guide: "character-creation#school-power")
+(key: "sorcerer/bloodline/arcane/school-power/divination", blueprint: "8891303b67eb273428f1691864b08cf8", name: "Divination", summary: "+2 to the DC of your divination spells, stacking with Spell Focus.", guide: "character-creation#school-power", components: [SpellDc(scope: School(Divination), value: Flat(2))])

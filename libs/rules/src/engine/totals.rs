@@ -1,13 +1,13 @@
 //! Initiative, the saves and each skill's total at one point of a Build (ticket 120).
 //!
 //! Unconditional numbers only, from what the Build fixes: the character's scores (its gear's bonuses included), the
-//! saves' class progressions, the skill ranks and class skills, and the bonuses in force ([`BonusInForce`]): the Item
-//! bonuses of `bonuses.ron` (Improved Initiative, Iron Will and its kin, Skill Focus, racial and background bonuses,
-//! Halfling Luck, Mythic Resolve, Divine Grace) and the always-on bonuses of the Build's gear, stacked by type
-//! ([`counted`]). Everything else is [`TOTALS_LEAVE_OUT`].
+//! saves' class progressions, the skill ranks and class skills, and the bonuses in force ([`BonusInForce`](crate::BonusInForce)): what the
+//! components of the entries held give (Improved Initiative, Iron Will and its kin, Skill Focus, racial and background
+//! bonuses, Halfling Luck, Mythic Resolve, Divine Grace; ticket 297) and the always-on bonuses of the Build's gear,
+//! stacked by type over every source ([`counted`]). Everything else is [`TOTALS_LEAVE_OUT`].
 
 use super::LeftOut;
-use crate::bonus::{BonusInForce, BonusTarget, counted};
+use crate::bonus::{BonusTarget, counted};
 use crate::game_data::{Ability, Save};
 use crate::keys::SkillKey;
 
@@ -136,10 +136,10 @@ impl Engine {
             name: ability.name().to_owned(),
             value: i16::from(state.ability_scores.modifier(ability)),
         };
-        // The bonuses in force that add to one number and count there: gear's stack by type.
-        let bonuses = |adds: &dyn Fn(&BonusTarget, &BonusInForce) -> bool| {
-            let adding = (state.bonuses_in_force.iter())
-                .filter(|bonus| bonus.target.number().is_some_and(|to| adds(to, bonus)));
+        // The bonuses in force that add to one number and count there: every source's stack by type.
+        let bonuses = |to: &BonusTarget| {
+            let adding =
+                (state.bonuses_in_force.iter()).filter(|bonus| bonus.target.number() == Some(to));
             counted(adding)
                 .into_iter()
                 .map(|bonus| TotalPart {
@@ -150,9 +150,7 @@ impl Engine {
         };
 
         let mut initiative = vec![ability(Ability::Dexterity)];
-        initiative.extend(bonuses(&|target, bonus| {
-            target.adds_to_initiative(bonus.value.as_ref())
-        }));
+        initiative.extend(bonuses(&BonusTarget::Initiative));
 
         let save = |save: Save, base: u8, own: Ability| {
             let mut parts = vec![
@@ -162,13 +160,11 @@ impl Engine {
                 },
                 ability(own),
             ];
-            parts.extend(bonuses(&|target, bonus| {
-                target.adds_to_save(save, bonus.value.as_ref())
-            }));
+            parts.extend(bonuses(&BonusTarget::Save(save)));
             total(parts)
         };
 
-        // Perfect Mind: every skill is a class skill, with ranks at least the Mythic rank.
+        // Perfect Mind's `GoldenDragonSkills`: every skill is a class skill, with ranks at least the Mythic rank.
         let every_skill_a_class_skill = state.skill_ranks_at_least_mythic_rank;
         let skills = self
             .catalog
@@ -191,9 +187,7 @@ impl Engine {
                         value: CLASS_SKILL_BONUS,
                     });
                 }
-                parts.extend(bonuses(&|target, bonus| {
-                    target.adds_to_skill(key, bonus.value.as_ref())
-                }));
+                parts.extend(bonuses(&BonusTarget::Skill(key.clone())));
                 SkillTotal {
                     skill: key.clone(),
                     ranks,

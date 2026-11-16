@@ -4,11 +4,11 @@
     name: "Midnight Hunter's Ring",
     slot: Ring,
     guide: "items#rings",
-    bonuses: [
-        (target: Ability(Dexterity), amount: 2, kind: Enhancement),
-    ],
     other_effects: [
         "+2 enhancement to attacks against lycanthropes.",
         "Once a day: hastes the wearer for 5 rounds.",
+    ],
+    components: [
+        GearStat(stat: Ability(Dexterity), value: 2, descriptor: Enhancement),
     ],
 )

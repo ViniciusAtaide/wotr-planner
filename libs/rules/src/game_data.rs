@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 
-use crate::bonus::{ItemBonus, ItemInteractions};
+use crate::bonus::ItemInteractions;
 use crate::component::Component;
 use crate::gear::GearItem;
 use crate::keys::{
@@ -73,10 +73,6 @@ pub struct GameData {
     pub options: Vec<SelectionOption>,
     pub mythic_abilities: Vec<MythicAbility>,
     pub mythic_feats: Vec<MythicFeat>,
-    /// The flat bonuses items give while held (`bonuses.ron`, tickets 119 and 120): spell DCs, caster level against
-    /// spell resistance, concentration, initiative, saves and skills.
-    #[serde(default)]
-    pub bonuses: Vec<ItemBonus>,
     /// What the guide says about how some items combine with others (`interactions.ron`, ticket 124), at most one
     /// note per item.
     #[serde(default)]
@@ -215,9 +211,6 @@ impl GameData {
             canonicalize_archetype_rows(&mut archetype.levels);
         }
         sort_by_key(&mut self.features, |f| f.key.clone());
-        for feature in &mut self.features {
-            feature.ability_bonuses.sort();
-        }
         sort_by_key(&mut self.selections, |s| s.key.clone());
         sort_by_key(&mut self.options, |o| o.key.clone());
         for option in &mut self.options {
@@ -239,21 +232,10 @@ impl GameData {
         for feat in &mut self.mythic_feats {
             canonicalize_prerequisite(&mut feat.prerequisite);
         }
-        for bonus in &mut self.bonuses {
-            canonicalize_prerequisite(&mut bonus.requires);
-        }
-        sort_by_key(&mut self.bonuses, |b| {
-            (
-                b.item.clone(),
-                b.target.clone(),
-                b.amount,
-                b.requires.clone(),
-            )
-        });
         sort_by_key(&mut self.interactions, |note| note.item.clone());
         sort_by_key(&mut self.gear, |item| item.key.clone());
         for item in &mut self.gear {
-            item.bonuses.sort();
+            item.components.sort();
             item.other_effects.sort();
         }
         sort_by_key(&mut self.mythic_paths, |p| p.key.clone());
@@ -889,8 +871,8 @@ pub enum CountsToward {
     FeatPrerequisites,
     /// The class's rows that grant this feature are reached at the two classes' levels together (Frost Power:
     /// Winter Witch levels stack with witch levels for access to major and grand hexes). Only while the class is
-    /// held. A feature with [`FeatureSteps`] rises on the classes its steps name instead: rows it no longer has
-    /// can't be reached early.
+    /// held. A feature that [`Scales`](Component::Scales) rises on the level its rank reads instead: rows it no longer
+    /// has can't be reached early.
     Feature(FeatureKey),
 }
 
@@ -1164,11 +1146,6 @@ pub struct Feature {
     pub summary: String,
     #[serde(default)]
     pub guide: Option<GuideRef>,
-    /// What the feature does to the character's own ability scores while it's held (Legend: +4 to every score).
-    /// They count toward ability-score prerequisites like point buy and level increases do, after the gear's
-    /// bonuses (ticket 166). A feature granted more than once adds them once per grant (Strength of the Abyss: +2 at 9, 13 and 17).
-    #[serde(default)]
-    pub ability_bonuses: Vec<AbilityBonus>,
     /// The row at one option level of the option held in a selection, which the feature grants while it's held
     /// (Bloodline Ascendance: the bloodline's 20th-level row).
     #[serde(default)]
@@ -1177,14 +1154,6 @@ pub struct Feature {
     /// Abjurer's Resistance): it isn't part of a Build, so the sheet shows a note instead of a pick.
     #[serde(default)]
     pub daily_choice: bool,
-    /// While the feature is held, the base attack bonus itself is at least this plus the Mythic rank (Perfect Mind:
-    /// 15): the sheet, the attack line and every prerequisite read it.
-    #[serde(default)]
-    pub bab_at_least_mythic_rank_plus: Option<u8>,
-    /// While the feature is held, each skill's total counts at least the Mythic rank for its ranks (Perfect Mind). It
-    /// raises totals, not ranks: a skill-rank prerequisite still reads the ranks spent.
-    #[serde(default)]
-    pub skill_ranks_at_least_mythic_rank: bool,
     /// While the feature is held, the character is proficient with the favoured weapons of the Build's deity (Cleric
     /// Proficiencies): see [`Deity::favoured_weapons`].
     #[serde(default)]
@@ -1194,36 +1163,10 @@ pub struct Feature {
     /// feat on the level row instead.
     #[serde(default)]
     pub weapons: BTreeSet<WeaponKey>,
-    /// The levels where the feature's numbers rise after its one grant, read from the game's rank on a level
-    /// (`ContextRankConfig`, a class-level getter, `AddFeatureOnClassLevel`) rather than from rows (ticket 254:
-    /// Infernal Resistance rises at bloodrager 8). A row grants the feature again only where the game does (a feature
-    /// rank). See [`Engine::feature_step`](crate::Engine::feature_step).
-    #[serde(default)]
-    pub steps: Option<FeatureSteps>,
     /// Its components (ticket 295): what it does in the game's terms, beside its hand fields ([`Component`]). Empty
     /// for none, and left out when written.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub components: Vec<Component>,
-}
-
-/// Where a feature granted once rises: the levels its step reaches, on the level the game reads. The step follows
-/// that level while the feature is held, whatever rows an archetype or a pick trades away.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
-pub struct FeatureSteps {
-    pub on: StepLevel,
-    /// The levels of `on` at which it rises, each one step.
-    pub at: BTreeSet<u8>,
-}
-
-/// The level a feature's steps read.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum StepLevel {
-    /// These classes' levels added up (`ContextRankConfig.GetBaseValue`'s `ClassLevel` over its classes).
-    Classes(BTreeSet<ClassKey>),
-    /// The character level (a class feature's ability, whose caster level is the character level, or the unit
-    /// property `Level`).
-    CharacterLevel,
 }
 
 /// One option level's row of whatever option a selection holds.
@@ -1232,19 +1175,6 @@ pub enum StepLevel {
 pub struct OptionRow {
     pub selection: FeatureSelectionKey,
     pub level: u8,
-}
-
-/// A permanent change a feature makes to the character's own ability scores, as the guide states it.
-#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
-pub enum AbilityBonus {
-    /// `+amount` to one score (Eye of the Swarm: Strength and Dexterity +4).
-    Fixed { ability: Ability, amount: u8 },
-    /// `+amount` to every score (Legend: +4).
-    Every { amount: u8 },
-    /// `+amount` to the highest score (Perfect Body: +4).
-    Highest { amount: u8 },
-    /// Every score is at least `score` (Perfect Body: 14).
-    AtLeast { score: u8 },
 }
 
 /// The fixed list a Feature selection picks from, such as rogue talents or a path's picks: its own options plus

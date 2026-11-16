@@ -4,10 +4,10 @@
     name: "Hammer Fists",
     slot: Gloves,
     guide: "items#gloves",
-    bonuses: [
-        (target: Ability(Strength), amount: 4, kind: Enhancement),
-    ],
     always_on: [
         "AC +2 morale",
+    ],
+    components: [
+        GearStat(stat: Ability(Strength), value: 4, descriptor: Enhancement),
     ],
 )

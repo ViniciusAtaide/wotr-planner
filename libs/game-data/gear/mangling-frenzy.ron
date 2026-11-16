@@ -4,15 +4,15 @@
     name: "Mangling Frenzy",
     slot: Belt,
     guide: "items#belts",
-    bonuses: [
-        (target: Ability(Strength), amount: 4, kind: Enhancement),
-        (target: Ability(Dexterity), amount: 4, kind: Enhancement),
-        (target: Ability(Constitution), amount: 4, kind: Enhancement),
-    ],
     always_on: [
         "DR 3/-",
     ],
     other_effects: [
         "Critical hit while raging: +4d6 slashing damage.",
+    ],
+    components: [
+        GearStat(stat: Ability(Strength), value: 4, descriptor: Enhancement),
+        GearStat(stat: Ability(Dexterity), value: 4, descriptor: Enhancement),
+        GearStat(stat: Ability(Constitution), value: 4, descriptor: Enhancement),
     ],
 )

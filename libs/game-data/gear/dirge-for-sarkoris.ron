@@ -5,13 +5,13 @@
     name: "Dirge for Sarkoris",
     slot: Weapon,
     guide: "items-lord-of-nothing#weapons",
-    bonuses: [
-        (target: Ability(Strength), amount: 2),
-    ],
     always_on: [
         "A +2 keen club",
     ],
     other_effects: [
         "Extra holy damage against undead: 2d8.",
     ],
+components: [
+    GearStat(stat: Ability(Strength), value: 2),
+],
 )

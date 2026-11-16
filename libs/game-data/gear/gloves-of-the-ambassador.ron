@@ -5,9 +5,9 @@
     name: "Gloves of the Ambassador",
     slot: Gloves,
     guide: "items#gloves",
-    bonuses: [
-        (target: Ability(Charisma), amount: 2, kind: Enhancement),
-        (target: Skill("knowledge-world"), amount: 5, kind: Competence),
-        (target: Skill("persuasion"), amount: 5, kind: Competence),
-    ],
+components: [
+    GearStat(stat: Ability(Charisma), value: 2, descriptor: Enhancement),
+    GearStat(stat: Skill("knowledge-world"), value: 5, descriptor: Competence),
+    GearStat(stat: Skill("persuasion"), value: 5, descriptor: Competence),
+],
 )

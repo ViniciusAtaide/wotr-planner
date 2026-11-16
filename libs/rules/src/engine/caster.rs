@@ -2,16 +2,18 @@
 //! concentration bonus, at one point of a Build (ticket 119).
 //!
 //! Unconditional numbers only, from what the Build fixes: the casting class's caster level and casting ability
-//! (the character's score, its gear's bonuses included), and the bonuses in force ([`BonusInForce`]): the Item
-//! bonuses of `bonuses.ron` (Spell Focus and its kin, racial DCs, bloodline arcana, School Power, Spell Penetration,
-//! Combat Casting) and the always-on bonuses of the Build's gear to the DC, the caster level, spell penetration and
-//! concentration, stacked by type ([`counted`]). Everything else is [`CASTER_LINE_LEAVES_OUT`]. The line is for a spell the caller describes ([`SpellTraits`]: a school, and
-//! optionally a subschool, an energy type and metamagic), so no spell catalogue is needed.
+//! (the character's score, its gear's bonuses included), and the bonuses in force ([`BonusInForce`]): what the
+//! components of the entries held give (Spell Focus and Expanded Arsenal, racial DCs, bloodline arcana, School Power,
+//! Spell Penetration, Combat Casting; ticket 297) and the always-on bonuses of the Build's gear to the DC, the caster
+//! level, spell penetration and concentration, stacked by type ([`counted`]). Everything else is
+//! [`CASTER_LINE_LEAVES_OUT`]. The line is for a spell the caller describes ([`SpellTraits`]: a school, and optionally
+//! a subschool, an energy type and metamagic), so no spell catalogue is needed.
 
 use super::LeftOut;
 use crate::bonus::{BonusInForce, BonusTarget, InForceTarget, SpellTraits, counted};
+use crate::component::{Component, MetamagicKind};
 use crate::game_data::Ability;
-use crate::keys::{ClassKey, FeatKey};
+use crate::keys::ClassKey;
 use crate::state::CharacterState;
 
 use super::walk::advancing_levels;
@@ -107,8 +109,6 @@ pub const CASTER_LINE_LEAVES_OUT: &[LeftOut] = &[
     },
 ];
 
-const HEIGHTEN_SPELL: &str = "metamagic-heighten-spell";
-
 /// The casting class a line follows, with its ability, caster level and highest spell level.
 struct Casting {
     class: ClassKey,
@@ -127,7 +127,8 @@ impl Engine {
     pub fn caster_line(&self, level: &LevelSheet, spell: SpellTraits) -> Option<CasterLine> {
         let state = &level.state;
         let casting = self.casting(state)?;
-        // The bonuses in force that add to one number and count there: gear's stack by type.
+        // The bonuses in force that add to one number and count there: every source's stack by type. The walk records
+        // Spell Focus's and Expanded Arsenal's for the schools they add to.
         let parts = |adds: &dyn Fn(&BonusInForce) -> bool| {
             counted(state.bonuses_in_force.iter().filter(|bonus| adds(bonus)))
                 .into_iter()
@@ -146,9 +147,7 @@ impl Engine {
         };
         let mut dc_parts = vec![ability.clone()];
         dc_parts.extend(parts(&|bonus| match bonus.target {
-            InForceTarget::Number(BonusTarget::SpellDc(scope)) => {
-                scope.applies(&spell, bonus.value.as_ref())
-            }
+            InForceTarget::Number(BonusTarget::SpellDc(scope)) => scope.applies(&spell),
             _ => false,
         }));
         let spell_penetration_parts =
@@ -174,7 +173,8 @@ impl Engine {
             spell,
             caster_level: u8::try_from(caster_level).unwrap_or(u8::MAX),
             dcs: (1..=casting.spell_level).map(dc).collect(),
-            heightened: (state.feat_count(&FeatKey::new(HEIGHTEN_SPELL)) > 0)
+            heightened: self
+                .applies_metamagic(state, MetamagicKind::Heighten)
                 .then(|| dc(casting.spell_level)),
             spell_penetration: caster_level + sum(&spell_penetration_parts),
             spell_penetration_parts,
@@ -182,6 +182,13 @@ impl Engine {
             concentration_parts,
             dc_parts,
             leaves_out: CASTER_LINE_LEAVES_OUT,
+        })
+    }
+
+    /// Whether a feat held lets the character apply a metamagic ([`Component::Metamagic`]).
+    fn applies_metamagic(&self, state: &CharacterState, metamagic: MetamagicKind) -> bool {
+        (state.feats.keys()).any(|feat| {
+            (self.catalog.feat_components(feat)).contains(&Component::Metamagic(metamagic))
         })
     }
 

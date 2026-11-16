@@ -4,10 +4,10 @@
     name: "Headband of Subjugator",
     slot: Headwear,
     guide: "items#headwear",
-    bonuses: [
-        (target: Ability(Intelligence), amount: 6, kind: Enhancement),
-    ],
     other_effects: [
         "The first hit on a foe dazzles it for 3 rounds (resisted by a DC 30 Fortitude save); blinds it instead if its movement is impaired.",
+    ],
+    components: [
+        GearStat(stat: Ability(Intelligence), value: 6, descriptor: Enhancement),
     ],
 )

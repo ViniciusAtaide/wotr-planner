@@ -1,1 +1,1 @@
-(key: "pickpocket", blueprint: "9da9faf5f0ef4904db4a59a22dafbb06", name: "Pickpocket", group: StreetUrchin, note: "+2 initiative.", class_skills: ["stealth", "trickery"])
+(key: "pickpocket", blueprint: "9da9faf5f0ef4904db4a59a22dafbb06", name: "Pickpocket", group: StreetUrchin, note: "+2 initiative.", class_skills: ["stealth", "trickery"], components: [StatBonus(stat: Initiative, value: Flat(2))])

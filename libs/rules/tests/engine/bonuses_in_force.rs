@@ -1,28 +1,33 @@
-//! The Item bonuses in force (ticket 151): the walk records them on each state of the sheet, with what each adds at
-//! that level, so the caster line and the totals read a level of the sheet alone.
+//! The bonuses in force (ticket 151; from components since ticket 297): the walk records them on each state of the
+//! sheet, with what each adds at that level, so the caster line and the totals read a level of the sheet alone.
 
 use std::sync::Arc;
 
 use rules::{
-    BonusAmount, BonusInForce, BonusItem, BonusSource, BonusTarget, BonusType, Build, Engine,
-    InForceTarget, ItemBonus, Parameter, Prerequisite, SpellSchool, SpellScope,
+    BonusInForce, BonusSource, BonusTarget, Build, Component, Condition, Descriptor, Engine, Fact,
+    Holder, InForceTarget, Parameter, RankBase, RankConfig, RankProgression, SpellSchool,
+    SpellScope, Value,
 };
 
 use crate::support::*;
 
-/// The test world's bonuses, and toughness giving half the Mythic rank to initiative once the character has 4
+/// The test world's bonuses, and toughness giving half the Mythic rank to spell penetration once the character has 4
 /// sorcerer levels.
 fn engine_with_toughness() -> Engine {
     let mut data = world();
-    data.bonuses.push(ItemBonus {
-        item: BonusItem::Feat(feat("toughness")),
-        target: BonusTarget::Initiative,
-        amount: BonusAmount::HalfMythicRank,
-        requires: Some(Prerequisite::ClassLevel {
-            class: class("sorcerer"),
-            level: 4,
-        }),
-    });
+    let toughness = data.feats.iter_mut().find(|f| f.key == feat("toughness"));
+    toughness
+        .unwrap()
+        .components
+        .push(Component::SpellPenetration {
+            value: Value::Rank(RankConfig {
+                base: RankBase::MythicLevel,
+                progression: RankProgression::Div2,
+                min: None,
+                max: None,
+            }),
+            only_while: Some(Condition::ClassLevel(class("sorcerer"), 4)),
+        });
     engine_on(data)
 }
 
@@ -69,11 +74,13 @@ fn each_state_of_the_sheet_records_the_bonuses_held_there_with_their_item_value_
     assert_eq!(
         sheet.at(1).unwrap().bonuses_in_force[..],
         [BonusInForce {
-            source: BonusSource::Item(BonusItem::Feat(feat("spell-focus"))),
+            source: BonusSource::Component(Holder::Fact(Fact::Feat(feat("spell-focus")))),
             value: Some(Parameter::SpellSchool(SpellSchool::Evocation)),
-            target: InForceTarget::Number(BonusTarget::SpellDc(SpellScope::Value)),
+            target: InForceTarget::Number(BonusTarget::SpellDc(SpellScope::School(
+                SpellSchool::Evocation
+            ))),
             amount: 1,
-            kind: BonusType::Untyped,
+            descriptor: Descriptor::UntypedStackable,
             name: "spell-focus (Evocation)".to_owned(),
         }]
     );

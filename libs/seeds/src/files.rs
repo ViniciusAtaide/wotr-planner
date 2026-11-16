@@ -8,8 +8,9 @@
 //!   `mythic/feats/`, `mythic/paths/`, `backgrounds/`, `deities/`, `gear/`, `spells/`, `spell-lists/`;
 //! - `planner/<kind folder>/`: the entries the planner made, with no game blueprint behind them, each written as
 //!   `(why: "…", entry: …)`, the reason no blueprint stands behind it and the entry;
-//! - the single files `progression.ron`, `skills.ron` (the game's skills are a stat, with no blueprint),
-//!   `bonuses.ron`, and `interactions.ron` (optional, since data from before ticket 124 has none).
+//! - the single files `progression.ron`, `skills.ron` (the game's skills are a stat, with no blueprint) and
+//!   `interactions.ron` (optional, since data from before ticket 124 has none). `bonuses.ron` is gone (ticket 297): its
+//!   rows are components on the entries they name.
 //!
 //! A missing folder reads as empty. Any other `.ron` file is an error, so a misplaced file can't be silently
 //! skipped, and so is a file whose path isn't its entry's key. A file of another extension under a kind's folder is an
@@ -28,12 +29,7 @@ use serde::Deserialize;
 use serde::de::DeserializeOwned;
 
 /// The single files: `interactions.ron` may be missing, the others must be there.
-const SINGLE_FILES: [&str; 4] = [
-    "progression.ron",
-    "skills.ron",
-    "bonuses.ron",
-    "interactions.ron",
-];
+const SINGLE_FILES: [&str; 3] = ["progression.ron", "skills.ron", "interactions.ron"];
 
 /// The folders of one file per entry, by kind.
 const FOLDERS: [&str; 19] = [
@@ -150,7 +146,6 @@ pub fn read_game_data_files(dir: &Path) -> Result<GameData, FilesError> {
     let data = GameData {
         progression: read(&dir.join("progression.ron"))?,
         skills: read(&dir.join("skills.ron"))?,
-        bonuses: read(&dir.join("bonuses.ron"))?,
         interactions: read_optional(&dir.join("interactions.ron"))?,
         races: entries(dir, "races", |r: &rules::Race| r.key.as_str())?,
         subraces: entries(dir, "subraces", |s: &rules::Subrace| s.key.as_str())?,

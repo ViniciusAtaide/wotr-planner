@@ -5,34 +5,34 @@ use crate::*;
 
 use crate::test_world::builds::skill;
 
-fn item(key: &str, name: &str, slot: GearSlot, bonuses: Vec<GearBonus>) -> GearItem {
+fn item(key: &str, name: &str, slot: GearSlot, components: Vec<Component>) -> GearItem {
     GearItem {
         key: GearKey::new(key),
         blueprint: None,
         name: name.into(),
         slot,
         guide: None,
-        bonuses,
+        components,
         always_on: Vec::new(),
         other_effects: Vec::new(),
     }
 }
 
-fn bonus(target: GearTarget, amount: i8, kind: BonusType) -> GearBonus {
-    GearBonus {
-        target,
-        amount,
-        kind,
+fn bonus(stat: GearTarget, value: i8, descriptor: Descriptor) -> Component {
+    Component::GearStat {
+        stat,
+        value,
+        descriptor,
     }
 }
 
-fn score(ability: Ability, amount: i8, kind: BonusType) -> GearBonus {
+fn score(ability: Ability, amount: i8, kind: Descriptor) -> Component {
     bonus(GearTarget::Ability(ability), amount, kind)
 }
 
 pub(super) fn gear() -> Vec<GearItem> {
     use Ability::*;
-    use BonusType::*;
+    use Descriptor::*;
     vec![
         item(
             "belt-of-dexterity-2",

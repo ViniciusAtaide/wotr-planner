@@ -4,7 +4,7 @@
     name: "Manual of Bodily Health +2",
     slot: Usable,
     guide: "items#equipable-and-consumable",
-    bonuses: [
-        (target: Ability(Constitution), amount: 2, kind: Inherent),
+    components: [
+        GearStat(stat: Ability(Constitution), value: 2, descriptor: Inherent),
     ],
 )

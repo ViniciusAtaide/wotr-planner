@@ -95,18 +95,18 @@
     mythic_feats: [],
     gear: [
         // Agrees.
-        (key: "belt-of-test-strength", blueprint: "00000000000000000000000000000101", name: "Belt of Test Strength", slot: Belt, bonuses: [(target: Ability(Strength), amount: 2, kind: Enhancement)]),
+        (key: "belt-of-test-strength", blueprint: "00000000000000000000000000000101", name: "Belt of Test Strength", slot: Belt, components: [GearStat(stat: Ability(Strength), value: 2, descriptor: Enhancement)]),
         // Planted: +3 in the game.
-        (key: "cloak-of-test", blueprint: "00000000000000000000000000000102", name: "Cloak of Test", slot: Cloak, bonuses: [(target: AllSaves, amount: 2, kind: Resistance)]),
+        (key: "cloak-of-test", blueprint: "00000000000000000000000000000102", name: "Cloak of Test", slot: Cloak, components: [GearStat(stat: AllSaves, value: 2, descriptor: Resistance)]),
         // Planted: a headband in the game; Perception's bonus is insight there; the game's initiative is missing.
-        (key: "headband-of-test", blueprint: "00000000000000000000000000000103", name: "Headband of Test", slot: Belt, bonuses: [(target: Ability(Intelligence), amount: 2, kind: Enhancement), (target: Skill("perception"), amount: 1, kind: Competence)]),
+        (key: "headband-of-test", blueprint: "00000000000000000000000000000103", name: "Headband of Test", slot: Belt, components: [GearStat(stat: Ability(Intelligence), value: 2, descriptor: Enhancement), GearStat(stat: Skill("perception"), value: 1, descriptor: Competence)]),
         // A tome: deferred.
-        (key: "tome-of-test", blueprint: "00000000000000000000000000000104", name: "Tome of Test", slot: Usable, bonuses: [(target: Ability(Wisdom), amount: 2, kind: Inherent)]),
+        (key: "tome-of-test", blueprint: "00000000000000000000000000000104", name: "Tome of Test", slot: Usable, components: [GearStat(stat: Ability(Wisdom), value: 2, descriptor: Inherent)]),
         // Planted: no such bonus in the game.
-        (key: "ring-of-nothing", blueprint: "00000000000000000000000000000105", name: "Ring of Nothing", slot: Ring, bonuses: [(target: Concentration, amount: 1)]),
+        (key: "ring-of-nothing", blueprint: "00000000000000000000000000000105", name: "Ring of Nothing", slot: Ring, components: [GearStat(stat: Concentration, value: 1)]),
         // Agrees: the game's two enhancement bonuses to Charisma count once; its two untyped ones to Stealth both
         // count; its `BonusCasterLevel` is the caster level.
-        (key: "circlet-of-test", blueprint: "00000000000000000000000000000106", name: "Circlet of Test", slot: Headwear, bonuses: [(target: Ability(Charisma), amount: 2, kind: Enhancement), (target: CasterLevel, amount: 2), (target: Skill("stealth"), amount: 1), (target: Skill("stealth"), amount: 1)]),
+        (key: "circlet-of-test", blueprint: "00000000000000000000000000000106", name: "Circlet of Test", slot: Headwear, components: [GearStat(stat: Ability(Charisma), value: 2, descriptor: Enhancement), GearStat(stat: CasterLevel, value: 2), GearStat(stat: Skill("stealth"), value: 1), GearStat(stat: Skill("stealth"), value: 1)]),
     ],
     mythic_paths: [
         (

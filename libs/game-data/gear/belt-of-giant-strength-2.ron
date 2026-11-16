@@ -4,7 +4,7 @@
     blueprint: "c354de364a714ee4dbe2cfee628df267",
     name: "Belt of Giant Strength +2",
     slot: Belt,
-    bonuses: [
-        (target: Ability(Strength), amount: 2, kind: Enhancement),
-    ],
+components: [
+    GearStat(stat: Ability(Strength), value: 2, descriptor: Enhancement),
+],
 )

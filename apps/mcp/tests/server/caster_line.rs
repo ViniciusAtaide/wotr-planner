@@ -31,19 +31,21 @@ async fn the_sheet_gives_each_level_the_enchantment_compulsion_dcs_with_their_br
         json!({ "key": "sorcerer", "name": "Sorcerer" })
     );
     assert_eq!(caster(0)["ability"], "Charisma");
-    // Level 20: 9th-level spells at DC 34, Heighten Spell held.
+    // Level 20: 9th-level spells at DC 35, Heighten Spell held. Spell Focus (Mythic) doubles the two Spell Focus feats
+    // and adds nothing of its own.
+    // Game: SpellFocusParametrized.GetBonusDC, WrathDecompiled 6ce4a6b; SpellFocusMythicFeat
+    // 41fa2470ab50ff441b4cfbb2fc725109
     let last = full_row(&sheet, 20)["caster"].clone();
     assert_eq!(last["caster_level"], 20);
-    assert_eq!(last["dcs"][8], json!({ "spell_level": 9, "dc": 34 }));
-    assert_eq!(last["heightened"], json!({ "spell_level": 9, "dc": 34 }));
+    assert_eq!(last["dcs"][8], json!({ "spell_level": 9, "dc": 35 }));
+    assert_eq!(last["heightened"], json!({ "spell_level": 9, "dc": 35 }));
     assert_eq!(
         last["dc_counts"],
         json!([
             { "name": "Charisma", "value": 7 },
             { "name": "Kitsune", "value": 1 },
-            { "name": "Greater Spell Focus (Enchantment)", "value": 1 },
-            { "name": "Spell Focus (Enchantment)", "value": 1 },
-            { "name": "Spell Focus (Mythic) (Enchantment)", "value": 1 },
+            { "name": "Greater Spell Focus (Enchantment)", "value": 2 },
+            { "name": "Spell Focus (Enchantment)", "value": 2 },
             { "name": "Fey Arcana", "value": 2 },
             { "name": "School Power (Enchantment)", "value": 2 },
         ])
@@ -71,7 +73,8 @@ async fn with_metamagic_the_arcane_arcana_adds_one() {
         )
         .await;
 
-    assert_eq!(sheet["levels"][19]["caster"]["dcs"][8]["dc"], 35);
+    // Game: ArcaneBloodlineArcana.OnEventAboutToTrigger and SpellFocusParametrized.GetBonusDC, WrathDecompiled 6ce4a6b
+    assert_eq!(sheet["levels"][19]["caster"]["dcs"][8]["dc"], 36);
 }
 
 #[tokio::test]
@@ -94,7 +97,8 @@ async fn compare_gives_each_builds_summary_its_caster_line() {
         .await;
 
     let caster = &compared["builds"][0]["caster"];
-    assert_eq!(caster["dcs"][8]["dc"], 34);
+    // Game: SpellFocusParametrized.GetBonusDC, WrathDecompiled 6ce4a6b (the two focus feats doubled)
+    assert_eq!(caster["dcs"][8]["dc"], 35);
     assert!(
         caster["dc_counts"]
             .as_array()

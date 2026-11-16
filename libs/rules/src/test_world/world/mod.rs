@@ -51,7 +51,6 @@ pub fn world() -> GameData {
         prestige_classes: vec![],
         mythic_abilities: mythic_abilities(),
         mythic_feats: mythic_feats(),
-        bonuses: bonuses(),
         interactions: Vec::new(),
         gear: gear::gear(),
         mythic_paths: vec![],
@@ -96,6 +95,7 @@ pub fn world() -> GameData {
         ],
     };
     nested::flatten(nested, &mut data);
+    attach_bonuses(&mut data);
     data
 }
 
@@ -153,64 +153,82 @@ fn plain_feature(key: &str, name: &str) -> Feature {
         name: name.into(),
         summary: String::new(),
         guide: guide(key),
-        ability_bonuses: vec![],
         option_row: None,
         daily_choice: false,
-        bab_at_least_mythic_rank_plus: None,
-        skill_ranks_at_least_mythic_rank: false,
         favoured_weapon_proficiency: false,
         weapons: std::collections::BTreeSet::new(),
-        steps: None,
     }
 }
 
-fn bonus_feature(key: &str, ability_bonuses: Vec<AbilityBonus>) -> Feature {
+/// A feature whose components are its numbers (ticket 297): the ability bonuses and floors of the paths' features.
+fn bonus_feature(key: &str, components: Vec<Component>) -> Feature {
     Feature {
-        ability_bonuses,
+        components,
         ..plain_feature(key, key)
     }
 }
 
-/// The flat bonuses (ticket 119): Spell Focus and its mythic feat for the school they're held for, School Power's
-/// two schools, Spell Penetration and the half-elf Dual Heritage's caster level against spell resistance.
-fn bonuses() -> Vec<ItemBonus> {
-    let bonus = |item, target, amount| ItemBonus {
-        item,
-        target,
-        amount: BonusAmount::Flat(amount),
-        requires: None,
+/// `+amount` to one score for each grant, as a feature's ability bonus has always counted: of type `Racial`, so it
+/// counts toward ability prerequisites and stacks.
+fn fixed(ability: Ability, amount: i16) -> Component {
+    Component::StatBonus {
+        stat: StatTarget::Ability(ability),
+        value: Value::PerRank(amount),
+        descriptor: Descriptor::Racial,
+        multiplier: 1,
+        at_least: None,
+        only_if: None,
+    }
+}
+
+/// `+amount` to every score ([`fixed`] for each).
+fn every(amount: i16) -> Vec<Component> {
+    AbilityScores::ABILITIES
+        .into_iter()
+        .map(|ability| fixed(ability, amount))
+        .collect()
+}
+
+/// The bonuses (ticket 119), as components on their entries (ticket 297): Spell Focus for the school it's held for,
+/// doubled by its mythic feat; School Power's two schools; Spell Penetration and the half-elf Dual Heritage's caster
+/// level against spell resistance; and the attack line's Weapon Focus, Weapon Specialization and Power Attack.
+fn attach_bonuses(data: &mut GameData) {
+    let dc = |school, amount| Component::SpellDc {
+        scope: SpellScope::School(school),
+        value: Value::Flat(amount),
     };
-    let dc = |scope| BonusTarget::SpellDc(scope);
-    vec![
-        bonus(
-            BonusItem::Feat(FeatKey::new("spell-focus")),
-            dc(SpellScope::Value),
-            1,
-        ),
-        bonus(
-            BonusItem::MythicFeat(MythicFeatKey::new("spell-focus-mythic")),
-            dc(SpellScope::Value),
-            1,
-        ),
-        bonus(
-            BonusItem::SelectionOption(SelectionOptionKey::new("sorcerer/school-power/evocation")),
-            dc(SpellScope::School(SpellSchool::Evocation)),
-            2,
-        ),
-        bonus(
-            BonusItem::SelectionOption(SelectionOptionKey::new("sorcerer/school-power/necromancy")),
-            dc(SpellScope::School(SpellSchool::Necromancy)),
-            2,
-        ),
-        bonus(
-            BonusItem::Feat(FeatKey::new("spell-penetration")),
-            BonusTarget::SpellPenetration,
-            2,
-        ),
-        bonus(
-            BonusItem::Subrace(SubraceKey::new("half-elf/dual-heritage")),
-            BonusTarget::SpellPenetration,
-            2,
-        ),
-    ]
+    let penetration = || Component::SpellPenetration {
+        value: Value::Flat(2),
+        only_while: None,
+    };
+    for entry in &mut data.feats {
+        match entry.key.as_str() {
+            "spell-focus" => entry.components.push(Component::SpellFocus {
+                bonus: 1,
+                mythic_focus: Fact::MythicFeat(MythicFeatKey::new("spell-focus-mythic")),
+            }),
+            "spell-penetration" => entry.components.push(penetration()),
+            // The attack line's kinds (ticket 297).
+            "weapon-focus" => entry.components.push(Component::WeaponFocus),
+            "weapon-specialization" => entry.components.push(Component::WeaponSpecialization),
+            "power-attack" => entry.components.push(Component::PowerAttack),
+            _ => {}
+        }
+    }
+    for entry in &mut data.options {
+        match entry.key.as_str() {
+            "sorcerer/school-power/evocation" => {
+                entry.components.push(dc(SpellSchool::Evocation, 2));
+            }
+            "sorcerer/school-power/necromancy" => {
+                entry.components.push(dc(SpellSchool::Necromancy, 2));
+            }
+            _ => {}
+        }
+    }
+    for entry in &mut data.subraces {
+        if entry.key.as_str() == "half-elf/dual-heritage" {
+            entry.components.push(penetration());
+        }
+    }
 }

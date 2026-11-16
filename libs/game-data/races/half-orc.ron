@@ -7,4 +7,7 @@
     ability_modifiers: [Chosen(amount: 2)],
     weapons: ["falchion", "greataxe"],
     weapons_as_martial: ["orc-double-axe"],
+    components: [
+        StatBonus(stat: Skill("perception"), value: Flat(2)),
+    ],
 )

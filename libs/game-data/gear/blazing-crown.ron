@@ -4,10 +4,10 @@
     name: "Blazing Crown",
     slot: Headwear,
     guide: "items#headwear",
-    bonuses: [
-        (target: Ability(Charisma), amount: 4, kind: Enhancement),
-    ],
     other_effects: [
         "Spell damage to a foe: gain 10 temporary hit points, lasting 3 rounds.",
+    ],
+    components: [
+        GearStat(stat: Ability(Charisma), value: 4, descriptor: Enhancement),
     ],
 )

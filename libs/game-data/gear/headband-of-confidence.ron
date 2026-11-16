@@ -4,11 +4,11 @@
     name: "Headband of Confidence",
     slot: Headwear,
     guide: "items-inevitable-excess#headwear",
-    bonuses: [
-        (target: Ability(Wisdom), amount: 4, kind: Enhancement),
-        (target: Ability(Charisma), amount: 4, kind: Enhancement),
-    ],
     always_on: [
         "Saves +4 vs mind-affecting",
+    ],
+    components: [
+        GearStat(stat: Ability(Wisdom), value: 4, descriptor: Enhancement),
+        GearStat(stat: Ability(Charisma), value: 4, descriptor: Enhancement),
     ],
 )

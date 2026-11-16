@@ -4,12 +4,12 @@
     name: "Tome of Ancient Perfection",
     slot: Usable,
     guide: "items#equipable-and-consumable",
-    bonuses: [
-        (target: Ability(Strength), amount: 4, kind: Inherent),
-        (target: Ability(Dexterity), amount: 4, kind: Inherent),
-        (target: Ability(Constitution), amount: 4, kind: Inherent),
-        (target: Ability(Intelligence), amount: 4, kind: Inherent),
-        (target: Ability(Wisdom), amount: 4, kind: Inherent),
-        (target: Ability(Charisma), amount: 4, kind: Inherent),
+    components: [
+        GearStat(stat: Ability(Strength), value: 4, descriptor: Inherent),
+        GearStat(stat: Ability(Dexterity), value: 4, descriptor: Inherent),
+        GearStat(stat: Ability(Constitution), value: 4, descriptor: Inherent),
+        GearStat(stat: Ability(Intelligence), value: 4, descriptor: Inherent),
+        GearStat(stat: Ability(Wisdom), value: 4, descriptor: Inherent),
+        GearStat(stat: Ability(Charisma), value: 4, descriptor: Inherent),
     ],
 )

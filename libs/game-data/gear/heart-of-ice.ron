@@ -4,13 +4,13 @@
     name: "Heart of Ice",
     slot: Belt,
     guide: "items-lord-of-nothing#belts",
-    bonuses: [
-        (target: Ability(Constitution), amount: 4, kind: Enhancement),
-    ],
     always_on: [
         "AC +4 armour",
     ],
     other_effects: [
         "Once a day: casts Ice Cascade.",
+    ],
+    components: [
+        GearStat(stat: Ability(Constitution), value: 4, descriptor: Enhancement),
     ],
 )

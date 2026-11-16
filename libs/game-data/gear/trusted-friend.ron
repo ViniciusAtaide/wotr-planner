@@ -4,11 +4,11 @@
     name: "Trusted Friend",
     slot: Necklace,
     guide: "items#equipable-and-consumable",
-    bonuses: [
-        (target: Ability(Charisma), amount: 2, kind: Circumstance),
-        (target: Skill("persuasion"), amount: 5, kind: Circumstance),
-    ],
     other_effects: [
         "Only the Knight Commander can equip it.",
+    ],
+    components: [
+        GearStat(stat: Ability(Charisma), value: 2, descriptor: Circumstance),
+        GearStat(stat: Skill("persuasion"), value: 5, descriptor: Circumstance),
     ],
 )

@@ -4,11 +4,11 @@
     name: "Clutch of Corruption",
     slot: Belt,
     guide: "items#belts",
-    bonuses: [
-        (target: Ability(Strength), amount: 4, kind: Enhancement),
-        (target: Ability(Constitution), amount: 8, kind: Enhancement),
-    ],
     other_effects: [
         "Crit with a natural weapon: for 2 rounds the target is weak to unholy and negative-energy damage.",
+    ],
+    components: [
+        GearStat(stat: Ability(Strength), value: 4, descriptor: Enhancement),
+        GearStat(stat: Ability(Constitution), value: 8, descriptor: Enhancement),
     ],
 )

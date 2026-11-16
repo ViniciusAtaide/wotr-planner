@@ -37,12 +37,11 @@ with one, and keys that links name never change.
 | `mythic/abilities/`, `mythic/feats/`, `mythic/paths/` | `MythicAbility`; `MythicFeat`; `MythicPath`: its rank table and switch rule |
 | `backgrounds/` | `Background`: the user's list (ticket 34) |
 | `deities/` | `Deity`: the guide's deity table (`character-creation#deities`, ticket 86): the alignments a follower may have, the favoured weapons and the domains (`cleric/domain` options) |
-| `gear/` | `GearItem`: the named items with their always-on bonuses (ticket 165); the plain stat belts and headbands come from the user, with no guide link |
+| `gear/` | `GearItem`: the named items with their always-on bonuses, `GearStat` components (tickets 165, 297); the plain stat belts and headbands come from the user, with no guide link |
 | `spells/`, `spell-lists/` | `Spell` (ticket 121; its guide link names the page its block is on); `SpellList`: a spell list table, its owner, the classes that also use it and its entries by level |
 | `planner/<folder>/` | the entries the planner made, with no game blueprint behind them, as `(why: "...", entry: ...)`: the reason, then the entry |
 | `progression.ron` | `Progression`: the mythic rank table (the Character level each Mythic rank comes at, at the earliest: a Build may take a rank at a later level, ticket 171) |
 | `skills.ron` | `Vec<Skill>` (the game's skills are a stat, with no blueprint) |
-| `bonuses.ron` | `Vec<ItemBonus>`: the flat bonuses items give while held, each naming its item (tickets 119 and 120) |
 | `interactions.ron` | `Vec<ItemInteractions>`: what the guide says about how an item combines with others, at most one note per item (ticket 124); optional |
 
 A missing folder reads as empty. A file whose path isn't its entry's key, and a planner file that gives no reason,
@@ -114,7 +113,7 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Soul's wild talents at 6, 12 and 18). The bloodrager's Elemental Resistance does not step (the guide: "At 4th
   level, you gain resistance 10 against your bloodline's energy type"). Nothing reads the count of the features
   stepped so far, so a second grant changes no number there; that is not true in general (the Arcane Trickster's prerequisite is `Feature(..., count: 2)`, and
-  `ability_bonuses` multiply by the count), so an author stepping another feature checks both first. An archetype
+  `PerRank` stat bonuses multiply by the count), so an author stepping another feature checks both first. An archetype
   that falls back to the base class's row at a step level gets the step too: one that loses the feature (the
   Imitator's Studied Target) needs its own row at that level without it. Likewise a selection sharing an option
   that skips the row of a feature's first grant skips the rows of its steps too, or it gains a step of a feature it
@@ -127,13 +126,14 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   ten grants, read from the guide's table and the overview's 10/-, since the guide has no sentence for it. Its
   rows at 10 and 16 are its own: with none, those levels fall back to the base rows and grant the barbarian's
   Damage Reduction (ticket 193).
-- A feature the game grants once and scales by a level carries `steps: (on: Classes(["bloodrager"]), at: [8])`
-  (or `on: CharacterLevel`) and is granted on one row only (ticket 254): the levels where its numbers rise, on the
-  level the game reads (its rank on a class level, `ContextRankConfig`; a class-level getter; `AddFeatureOnClassLevel`).
-  Its step is its grants plus the step levels that level has reached while it is held, so a row traded away after the
-  grant takes no step with it, and a grant traded away gives none. A row grants a feature again only where the game
-  does (a feature rank). The bullets above and below grant steps as repeated rows; the class tickets move them to
-  `steps` (`notes/254-a-features-steps-follow-the-class-level.md`).
+- A feature the game grants once and scales by a level carries a `Scales` component (ticket 254; a component since
+  ticket 297), the rank its numbers follow on the level the game reads (its rank on a class level, `ContextRankConfig`;
+  a class-level getter; `AddFeatureOnClassLevel`): `Scales((base: ClassLevel(classes: ["bloodrager"]), progression:
+  Custom([(7, 0), (100, 1)])))` rises one step at bloodrager 8. It is granted on one row only. Its step is its grants
+  plus the rank's value while it is held, so a row traded away after the grant takes no step with it, and a grant
+  traded away gives none. A row grants a feature again only where the game does (a feature rank). The bullets above
+  and below grant steps as repeated rows; the class tickets move them to `Scales`
+  (`notes/254-a-features-steps-follow-the-class-level.md`, `notes/297-numbers-as-components.md`).
 - Ticket 188 (the user, 2026-11-13, took the recommendation on every question): the base classes' stepped features
   are granted again at each step the guide's sentence names, as the archetypes' were: the barbarian's and the
   rogue's Danger Sense at 3, 6, 9, 12, 15 and 18; the fighter's Bravery at 2, 6, 10, 14 and 18, Armor Training at 3,
@@ -684,13 +684,14 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   path's own grants (its rows' features, the picks in its slots) of MR 1 to `path_kept_through_rank`; the
   `dropped_*` lists take named grants of the old path away whatever their rank; `features` are granted on
   switching (Legend's +4). `from` left out: open from any path.
-- A feature that changes the character's own ability scores lists `ability_bonuses`: `Fixed(ability: Strength,
-  amount: 4)`, `Every(amount: 4)` (Legend), `Highest(amount: 4)` (the highest score) and `AtLeast(score: 14)`
-  (every score at least). They count toward ability-score prerequisites while the feature is held, after the
-  bonuses of the gear the Build holds (ticket 166); of the gear's, prerequisites count only an item's enhancement
-  (ticket 252). A feature can also raise the BAB itself to a number plus the Mythic rank while it's held,
-  `bab_at_least_mythic_rank_plus: Some(15)`, and make each skill's total count at least the Mythic rank for its
-  ranks, `skill_ranks_at_least_mythic_rank: true` (Perfect Mind; skill-rank prerequisites still read the ranks). An option that sets the BAB by a skill's ranks while held
+- A feature that changes the character's own ability scores holds components (ticket 297; `ability_bonuses`
+  before): a `StatBonus(stat: Ability(Strength), value: PerRank(4), descriptor: Racial)` for each score it raises (one
+  per grant), `HighestAbilityBonus(4)` (the highest score) and `AbilityAtLeast(14)` (every score at least, after the
+  stat bonuses and before the highest-score bonus). Every source's stat bonuses to a score stack by type; prerequisites
+  count the permanent ones (a racial one, an item's enhancement: ticket 252). A feature can also raise the BAB itself to
+  a number plus the Mythic rank while it's held, `BaseAttackAtLeast(15)`, and make every skill a class skill with each
+  total counting at least the Mythic rank for its ranks, `GoldenDragonSkills` (Perfect Mind; skill-rank prerequisites
+  still read the ranks). An option that sets the BAB by a skill's ranks while held
   lists `bab_from_ranks: Some((skill: "athletics", extra_at_full_bab: 5))` (Athletics III, ticket 212): the BAB itself
   rises, so the sheet and the attack line read it too.
 - Mythic abilities and feats name their group as the guide heads it: `group: Melee`, `ArmourAndShield`,
@@ -756,47 +757,36 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   Stigmatized Witch, Ley Line Guardian and Eldritch Scion Charisma, Living Grimoire Intelligence). Prestige classes
   have none: they advance another class's spells. The check refuses a class or archetype whose rows give spell levels
   with no ability, and an ability on a class that casts nothing of its own.
-- `bonuses.ron` lists the flat bonuses (`rules::ItemBonus`): `(item: Feat("spell-focus"), target: SpellDc(Value),
-  amount: Flat(1))`. The item is a `Race`, `Subrace`, `Feat`, `MythicFeat`, `Feature` or `SelectionOption`; a
-  race's bonus counts without a subrace and a subrace's in place of its race's (the guide lists a subrace's traits in
-  full: Gnome +1 illusion, Gnome (Pyromaniac) +1 fire only). The target is `SpellDc(scope)` (`All`, `School(…)`,
-  `Subschool(…)`, `Energy(…)`, `Metamagic`: with a metamagic feat other than Heighten Spell, or `Value`: the school or
-  energy a parameterised feat or mythic feat is held for), `SpellPenetration` or `Concentration`. The amount is
-  `Flat(n)`, `HalfMythicRank`, `MythicRank` or `SpellFocusOfAnotherSchool` (Expanded Arsenal); `requires:` a
-  prerequisite the character must also meet (Spell Penetration (Mythic): half the rank without Greater Spell
-  Penetration, the full rank with it). Only what the guide states without a condition: gear, buffs, abilities
-  switched on in a fight (the Aeon's gaze, Demonic Rage) and bonuses that grow with class level (Combat Casting
-  Adept, Horn Call, Cold Specialization) stay out, in the caster line's `leaves_out`. Expanded Arsenal copies all the
-  Spell Focus feats of one school (the guide: "any bonuses from Spell Focus feats for another school … only the
-  bonuses from one school"): Spell Focus, Greater and Mythic, from the school where they add up to most, and nothing
-  in a school with Spell Focus feats of its own ("this has no effect"). The real-data test `caster_line` holds the
-  Max DC run's Build and its numbers.
-- The totals' bonuses (ticket 120), in `bonuses.ron` beside the caster line's. The item may also be a `Background`
-  (the user's list: Pickpocket +2 initiative; Farmhand, Lumberjack, Miner and Smith +1 Fortitude, though the guide's
-  table shows it for the Farmhand only; Varisian Explorer +1 Reflex; Nexian Scholar and Osirian Historian +2 to their
-  Knowledge) or a `MythicAbility`. The target may be `Initiative`, `Save(Fortitude)`, `AllSaves`,
-  `Skill("perception")`, `AllSkills`, or `Held`: the skill or stat a parameterised feat is held for (Skill Focus
-  (Persuasion), Stat Focus (Initiative); Stat Focus's other stats count nowhere). The amount may also be
-  `TenRanks(amount: 3, with_ten_ranks: 6)` (Skill Focus, Alertness, Persuasive and their kin: the higher number with
-  10 or more ranks in the skill, on skill targets only) or `AbilityModifier(Charisma)` (Divine Grace; Cunning
-  Initiative's Wisdom beside the Dexterity every initiative counts). Every race and subrace has its skill bonuses
-  from the guide's racial traits (a subrace's in place of its race's): Keen Senses, Elven Magic, Obsessive,
-  Sure-Footed, the heritages' pairs. Bonuses for one use of a skill ("Persuasion when used for diplomacy", for bluff
-  or to intimidate, the Andoran Diplomat's diplomacy), against one kind of effect or foe, in one place (underground,
-  a favoured terrain), with one weapon, that grow with class level, and the mythic Iron Will, Great Fortitude and
-  Lightning Reflexes (rerolls) stay out, in the totals' `leaves_out`. Steps at a class level use `requires`: the
-  Duelist's Improved Reaction (+2, +4 at Duelist 8), Powerless Prophecy (+4 from oracle 5). The real-data test
-  `totals` holds the Max DC run's initiative, Will and Persuasion, a halfling paladin's saves and Skill Focus at 10
-  ranks.
+- The caster line's and the totals' bonuses (tickets 119 and 120) are components of the entries that give them (ticket
+  297; `bonuses.ron` before): a race's (a subrace's in place of its race's: the guide lists a subrace's traits in full),
+  a background's, a feat's, a mythic feat's or ability's, a feature's or an option's. A spell DC bonus is `SpellDc(scope:
+  …, value: …)` (`All`, `School(…)`, `Subschool(…)`, `Energy(…)`, `Metamagic`: with a metamagic feat other than Heighten
+  Spell, or `Value`: the school or energy a parameterised feat or mythic feat is held for); Spell Focus and its greater
+  feat are `SpellFocus(bonus: 1, mythic_focus: MythicFeat("spell-focus-mythic"))`, doubled while Spell Focus (Mythic)
+  is held for the school, and Expanded Arsenal is `ExpandedArsenal(focuses: [...])` (ticket 258's rules, built in
+  297); `SpellPenetration(value: …, while: …)`, the condition a held fact (Spell Penetration (Mythic): half the rank
+  without Greater Spell Penetration, the full rank with it), and `Concentration(…)`. A bonus to initiative, a save or a
+  skill is a `StatBonus`, its stat `Initiative`, `Save(Fortitude)`, `Skill("perception")` or `Parameter` (the skill or
+  stat a parameterised feat is held for: Skill Focus (Persuasion), Stat Focus (Initiative); Stat Focus's other stats
+  count nowhere). Its value is `Flat(n)`, a rank on the Mythic rank (`MythicLevel`, `Div2` for half), on an ability's
+  modifier (`StatBonus(Charisma)`: Divine Grace), on a skill's ranks (`Custom([(9, 3), (100, 6)])`: Skill Focus and its
+  kin, the higher number with 10 or more ranks) or on a class level (the Duelist's Improved Reaction, +4 from Duelist
+  8). Only what the guide states without a condition: gear, buffs, abilities switched on in a fight (the Aeon's gaze,
+  Demonic Rage) and bonuses that grow with class level (Combat Casting Adept, Horn Call, Cold Specialization) stay
+  out, in the caster line's and the totals' `leaves_out`, as do bonuses for one use of a skill, against one kind of
+  effect or foe, in one place, and the mythic Iron Will, Great Fortitude and Lightning Reflexes (rerolls). The
+  real-data tests `caster_line` and `totals` hold the Max DC run's Build and its numbers, a halfling paladin's saves
+  and Skill Focus at 10 ranks.
 - `interactions.ron` (ticket 124) holds notes on how an item combines with others (`rules::ItemInteractions`):
-  `(item: MythicFeat("expanded-arsenal"), interactions: "…")`, the item named as in `bonuses.ron`, at most one note
+  `(item: MythicFeat("expanded-arsenal"), interactions: "…")`, the item named by its kind and key, at most one note
   per item, in our own words from the saved guide pages, saying "the guide doesn't say" where it doesn't. Only the
   items an agent run showed two summaries weren't enough for (ticket 124's five: Favorable Magic, Persistent Spell,
   Expanded Arsenal, Second Bloodline, Bloodline Ascendance, and the Fey and Infernal bloodlines' arcana against School
   Power); new notes as later runs find them, no sweep. `describe` shows the note. The real-data test `totals` checks
   they're present.
 - `gear.ron` (ticket 165; ticket 122's file of that name was removed by ticket 148) holds the gear items
-  (`rules::GearItem`, `rules::GearBonus`, `rules::GearTarget`, `rules::BonusType`), one block each, grouped by slot.
+  (`rules::GearItem`, its `GearStat` components since ticket 297, `rules::GearTarget`, `rules::Descriptor`), one block
+  each, grouped by slot.
   **Which items:** every item on the saved pages `items`, `items-inevitable-excess` and `items-lord-of-nothing` whose
   properties give an always-on bonus to an ability score (70 distinct items: 73 rows, 3 of them repeated on a DLC
   page), plus 22 the user added by hand with no `guide` (the plain stat belts and headbands at +2, +4 and +6, and
@@ -813,8 +803,9 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   how many of a slot a Build holds, and that a robe and an armour share one body place, is the engine's.
   **Guide:** `page#section`, e.g. `items#belts`, `items#unique-armour`, `items#weapon-properties`,
   `items-lord-of-nothing#weapons`; a row repeated on a DLC page keeps the main page's. **Bonuses:** one per number
-  changed, with its type as the guide words it (`kind` left out for none or "untyped"; a penalty is always
-  untyped). The targets are an ability score, all saves or one, initiative, one skill, spell DC, caster level, spell
+  changed, `GearStat(stat: Ability(Dexterity), value: 4, descriptor: Enhancement)`, with its type as the guide words
+  it (`descriptor` left out for none or "untyped"; a penalty is always untyped). Its bonuses stack with every other
+  source's by the game's rule (ticket 297). The targets are an ability score, all saves or one, initiative, one skill, spell DC, caster level, spell
   penetration and concentration. A bonus for one use of a skill ("Persuasion (Bluff)"), against one kind of foe, in
   some circumstance, per day or after an event is an other effect. **Always-on and other effects**
   (ticket 176): what an item does while worn that no bonus counts (damage reduction, an immunity, an AC, CMD,
@@ -884,10 +875,17 @@ components: [
   prerequisite reads; `NoSelectionIf` (on a selection) takes its pick away. A granted selection is held and offers
   no pick (as the game's `AddFacts`): only a row's selection does.
 - Defaults are left out (`group: All`, `descriptor: Untyped`, `multiplier: 1`, no `at_least` minimum, no `if`).
+- The numbers (ticket 297): `StatBonus` to an ability, the BAB, a save, initiative or a skill; the caster line's
+  `SpellDc`, `SpellFocus`, `ExpandedArsenal`, `SpellPenetration`, `Concentration` and `Metamagic(Heighten)`; the attack
+  line's `WeaponFocus`, `WeaponSpecialization`, `ImprovedCritical`, `CriticalEdge`, `CriticalMultiplier`,
+  `PowerAttack` and `Flag(WeaponFinesse)`, on the feats taken for a weapon; the Gold Dragon's `HighestAbilityBonus`,
+  `AbilityAtLeast`, `BaseAttackAtLeast` and `GoldenDragonSkills`; `Scales` on a feature; and `GearStat`, the one kind a
+  gear item holds. Every source's bonuses to one number stack together by type, the game's rule.
 - The check refuses an entry holding a hand field and the component kind that replaces it (`prerequisite` beside a
-  `Requires`, `ability_bonuses` beside an ability `StatBonus`, a `bonuses.ron` row beside a `StatBonus` to a save,
-  initiative or a skill, …), a component on an entry it means nothing on, a grant of a class, archetype, race or
-  deity, a rank progression's step of 0, and an `AtLeast` over deities only (the game's `IsDeity` rule).
+  `Requires`, …), a component on an entry it means nothing on (a `GearStat` off gear, `Scales` off a feature, an
+  attack-line kind on a feat not taken for a weapon), a component reading the value its entry is held for on one not
+  taken for one, a grant of a class, archetype, race or deity, a rank progression's step of 0, and an `AtLeast` over
+  deities only (the game's `IsDeity` rule).
 
 ## Checking against the game
 

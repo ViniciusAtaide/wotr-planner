@@ -12,16 +12,16 @@
 use std::collections::{BTreeSet, HashMap, HashSet};
 use std::fmt;
 
-use crate::bonus::{BonusAmount, BonusItem, BonusTarget, BonusType, SpellScope};
+use crate::bonus::{BonusItem, SpellScope};
 use crate::component::{
-    Component, Condition, Fact, Pool, RankBase, StatRef, StatRule, StatTarget, Value,
+    Component, Condition, Descriptor, Fact, Pool, RankBase, StatRef, StatRule, StatTarget, Value,
     compile_requires,
 };
 use crate::engine::{BASE_LEVEL_CAP, PATH_CHOICE_RANK, PATH_SWITCH_RANK};
 use crate::game_data::{
-    AbilityBonus, Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION,
-    Feat, FeatList, FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom,
-    MythicPath, Save, SelectionOption, SpellLevels, StepLevel, WeaponProficiency,
+    Advancement, Archetype, Class, ClassLevelRow, CountsToward, DOMAIN_SELECTION, Feat, FeatList,
+    FeatSlot, FeatValue, Feature, FeatureSelection, GameData, LevelFrom, MythicPath, Save,
+    SelectionOption, SpellLevels, WeaponProficiency,
 };
 use crate::gear::GearTarget;
 use crate::keys::{
@@ -308,16 +308,15 @@ pub enum DataIssue {
     /// A casting ability on a class that casts no spells of its own (none of its or its archetypes' rows give spell
     /// levels; a prestige class only advances another's).
     CastingAbilityWithoutSpells,
-    /// A bonus scoped to the value its item is held for ([`SpellScope::Value`](crate::SpellScope::Value), Expanded
-    /// Arsenal's amount) on an item that isn't a feat or mythic feat taken for a school (or, for a scope alone, an
-    /// energy type); or Expanded Arsenal's amount without that scope or on another target.
+    /// A component reading the school or energy its entry is held for on an entry not taken for one: a
+    /// [`SpellDc`](crate::Component::SpellDc) of scope [`Value`](crate::SpellScope::Value) off a feat or mythic feat
+    /// taken for a school or an energy type, a [`SpellFocus`](crate::Component::SpellFocus) or an
+    /// [`ExpandedArsenal`](crate::Component::ExpandedArsenal) off one taken for a school.
     BonusValueWithoutParameter,
-    /// A bonus for what its item is held for ([`BonusTarget::Held`](crate::BonusTarget::Held)) on an item that isn't
-    /// a feat or mythic feat taken for a skill or a stat.
+    /// A stat bonus to the stat its entry is held for ([`StatTarget::Parameter`](crate::StatTarget::Parameter)), or a
+    /// value or a prerequisite reading it ([`StatRef::Parameter`](crate::StatRef::Parameter)), where it has no meaning:
+    /// on an entry not taken for a skill or a stat (a value: a skill), or in a prerequisite.
     HeldBonusWithoutSkillOrStat,
-    /// A bonus that rises with 10 ranks ([`BonusAmount::TenRanks`](crate::BonusAmount::TenRanks)) on a target that
-    /// isn't one skill (every skill's included: the walk works out a bonus's amount once, for the skill it's for).
-    TenRanksWithoutSkill,
     /// A second `interactions.ron` note on the same item.
     InteractionsTwice,
     /// A gear item with no bonus.
@@ -342,14 +341,10 @@ pub enum DataIssue {
     /// A selection levelled by the Mythic ranks reached ([`LevelFrom::MythicRanks`]) that no path's rank row grants,
     /// directly or through the rows of an option it offers.
     MythicRanksOffAPath,
-    /// A feature with two ability bonuses of one kind (and, for a fixed one, one ability).
-    AbilityBonusTwice,
-    /// A feature's steps with no level to rise at, or on no class.
-    StepsWithoutLevels,
     /// A text that is there but empty: what it is (`slot label`, `interactions note`, `name`, `guide reference`).
     EmptyText(&'static str),
     /// An entry holding a hand field and the component kind that replaces it (ticket 295): the field. One fact has one
-    /// source (`prerequisite` beside a `Requires`, `ability_bonuses` beside an ability `StatBonus`, …).
+    /// source (`prerequisite` beside a `Requires`, a race's `ability_modifiers` beside an ability `StatBonus`, …).
     FieldAndComponent(&'static str),
     /// A component on an entry it has no meaning on: its kind (a `Requires` on a feature, which is never picked; a
     /// `NoSelectionIf` off a selection).
@@ -553,14 +548,11 @@ impl fmt::Display for DataProblem {
                 f.write_str("it has a casting ability but casts no spells of its own")
             }
             DataIssue::BonusValueWithoutParameter => f.write_str(
-                "a bonus for the value its item is held for needs a feat or mythic feat taken for a school or an energy type",
+                "a component for the school or energy its entry is held for needs a feat or mythic feat taken for one",
             ),
             DataIssue::HeldBonusWithoutSkillOrStat => f.write_str(
-                "a bonus for what its item is held for needs a feat or mythic feat taken for a skill or a stat",
+                "a component for the skill or stat its entry is held for needs an entry taken for one",
             ),
-            DataIssue::TenRanksWithoutSkill => {
-                f.write_str("a bonus that rises with 10 ranks needs one skill as its target")
-            }
             DataIssue::InteractionsTwice => f.write_str("it has two interactions notes"),
             DataIssue::GearWithoutBonus => f.write_str("the item has no bonus"),
             DataIssue::GearAmountInvalid => {
@@ -588,12 +580,6 @@ impl fmt::Display for DataProblem {
             DataIssue::MythicRanksOffAPath => f.write_str(
                 "levelled by the Mythic ranks reached, but the selection isn't a path's",
             ),
-            DataIssue::AbilityBonusTwice => {
-                f.write_str("two ability bonuses of one kind, for one ability")
-            }
-            DataIssue::StepsWithoutLevels => {
-                f.write_str("its steps name no level to rise at, or no class to read")
-            }
             DataIssue::EmptyText(what) => write!(f, "the {what} is empty"),
             DataIssue::SharesOwnOption(option) => {
                 write!(f, "shares {option}, which is one of its own options")
@@ -647,11 +633,6 @@ impl GameData {
                 .archetypes
                 .iter()
                 .map(|archetype| (archetype.key.clone(), archetype.class.clone()))
-                .collect(),
-            bonus_items: self
-                .bonuses
-                .iter()
-                .map(|bonus| item_at(&bonus.item))
                 .collect(),
             selection_at: (self.selections.iter().enumerate())
                 .map(|(i, selection)| (selection.key.clone(), i))
@@ -772,7 +753,6 @@ impl GameData {
                 check.problem(&DataAt::Spell(spell.key.clone()), DataIssue::SpellOnNoList);
             }
         }
-        check.bonuses(self);
         check.interactions(self);
         check.gear(self);
         check.deity_limits(self);
@@ -883,8 +863,6 @@ struct Checker {
     domains: HashSet<SelectionOptionKey>,
     /// Every archetype, with its class.
     archetype_classes: HashMap<ArchetypeKey, ClassKey>,
-    /// The entries a `bonuses.ron` row is on.
-    bonus_items: HashSet<DataAt>,
     /// Every selection's position in the data.
     selection_at: HashMap<FeatureSelectionKey, usize>,
     /// The options' old keys, which only the link decoder reads: checked once the walk has seen every key.
@@ -1067,7 +1045,7 @@ impl Checker {
         }
     }
 
-    /// A feature: the weapons and selection it names, its steps and its ability bonuses.
+    /// A feature: the weapons and selection it names.
     fn feature(&mut self, feature: &Feature) {
         let at = DataAt::Feature(feature.key.clone());
         self.key(&at);
@@ -1075,31 +1053,6 @@ impl Checker {
         if let Some(row) = &feature.option_row {
             self.level(&at, row.level);
             self.names(&at, DataAt::FeatureSelection(row.selection.clone()));
-        }
-        if let Some(steps) = &feature.steps {
-            let no_class = match &steps.on {
-                StepLevel::Classes(classes) => {
-                    self.names_each(&at, classes, DataAt::Class);
-                    classes.is_empty()
-                }
-                StepLevel::CharacterLevel => false,
-            };
-            if no_class || steps.at.is_empty() {
-                self.problem(&at, DataIssue::StepsWithoutLevels);
-            }
-            for &level in &steps.at {
-                self.level(&at, level);
-            }
-        }
-        let mut bonuses = HashSet::new();
-        for bonus in &feature.ability_bonuses {
-            let ability = match bonus {
-                AbilityBonus::Fixed { ability, .. } => Some(*ability),
-                _ => None,
-            };
-            if !bonuses.insert((std::mem::discriminant(bonus), ability)) {
-                self.problem(&at, DataIssue::AbilityBonusTwice);
-            }
         }
     }
 
@@ -1661,51 +1614,6 @@ impl Checker {
         }
     }
 
-    /// Each bonus's item exists, its condition is a sound prerequisite, and a bonus for the value its item is held
-    /// for is on an item taken for one.
-    fn bonuses(&mut self, data: &GameData) {
-        let mythic: HashMap<&MythicFeatKey, Option<ParameterKind>> = data
-            .mythic_feats
-            .iter()
-            .map(|feat| (&feat.key, feat.parameter))
-            .collect();
-        for bonus in &data.bonuses {
-            let at = item_at(&bonus.item);
-            let parameter = match &bonus.item {
-                BonusItem::Feat(key) => self.parameters.get(key).copied().flatten(),
-                BonusItem::MythicFeat(key) => mythic.get(key).copied().flatten(),
-                _ => None,
-            };
-            self.names(&at, at.clone());
-            self.prerequisite(&at, bonus.requires.as_ref(), None);
-            if let BonusTarget::Skill(skill) = &bonus.target {
-                self.names(&at, DataAt::Skill(skill.clone()));
-            }
-            let copies = bonus.amount == BonusAmount::SpellFocusOfAnotherSchool;
-            let by_value = bonus.target == BonusTarget::SpellDc(SpellScope::Value);
-            let fits = match parameter {
-                Some(ParameterKind::SpellSchool) => true,
-                Some(ParameterKind::Energy) => !copies,
-                _ => false,
-            };
-            if (by_value || copies) && !(fits && by_value) {
-                self.problem(&at, DataIssue::BonusValueWithoutParameter);
-            }
-            let held = bonus.target == BonusTarget::Held;
-            if held && !matches!(parameter, Some(ParameterKind::Skill | ParameterKind::Stat)) {
-                self.problem(&at, DataIssue::HeldBonusWithoutSkillOrStat);
-            }
-            let on_skill = match bonus.target {
-                BonusTarget::Skill(_) => true,
-                BonusTarget::Held => parameter == Some(ParameterKind::Skill),
-                _ => false,
-            };
-            if matches!(bonus.amount, BonusAmount::TenRanks { .. }) && !on_skill {
-                self.problem(&at, DataIssue::TenRanksWithoutSkill);
-            }
-        }
-    }
-
     /// Each interactions note's item exists, and no item has two.
     fn interactions(&mut self, data: &GameData) {
         let mut seen = HashSet::new();
@@ -1733,18 +1641,23 @@ impl Checker {
             if let Some(guide) = &item.guide {
                 self.not_empty(&at, &guide.0, "guide reference");
             }
-            if item.bonuses.is_empty() {
+            if item.stats().next().is_none() {
                 self.problem(&at, DataIssue::GearWithoutBonus);
             }
+            for component in &item.components {
+                if !matches!(component, Component::GearStat { .. }) {
+                    self.problem(&at, DataIssue::ComponentOnWrongEntry(component.kind()));
+                }
+            }
             let mut seen = HashSet::new();
-            for bonus in &item.bonuses {
-                if bonus.amount == 0 || (bonus.amount < 0 && bonus.kind != BonusType::Untyped) {
+            for (target, value, descriptor) in item.stats() {
+                if value == 0 || (value < 0 && descriptor != Descriptor::Untyped) {
                     self.problem(&at, DataIssue::GearAmountInvalid);
                 }
-                if !seen.insert((&bonus.target, bonus.kind)) {
+                if !seen.insert((target, descriptor)) {
                     self.problem(&at, DataIssue::GearBonusTwice);
                 }
-                match &bonus.target {
+                match target {
                     GearTarget::Skill(skill) => self.names(&at, DataAt::Skill(skill.clone())),
                     GearTarget::SpellDc(SpellScope::Value) => {
                         self.problem(&at, DataIssue::GearSpellDcOfValue);
@@ -2122,23 +2035,11 @@ impl Checker {
             }
         }
         for feature in &data.features {
-            let fields = [
-                (
-                    "ability_bonuses",
-                    !feature.ability_bonuses.is_empty(),
-                    is_ability_bonus as Replaces,
-                ),
-                (
-                    "weapons",
-                    !feature.weapons.is_empty(),
-                    is_weapon_proficiency,
-                ),
-                (
-                    "bab_at_least_mythic_rank_plus",
-                    feature.bab_at_least_mythic_rank_plus.is_some(),
-                    is_bab_bonus,
-                ),
-            ];
+            let fields = [(
+                "weapons",
+                !feature.weapons.is_empty(),
+                is_weapon_proficiency as Replaces,
+            )];
             let at = At::Feature(feature.key.clone());
             self.components(&at, &feature.components, false, None, &fields);
         }
@@ -2227,11 +2128,8 @@ impl Checker {
                 self.problem(at, DataIssue::FieldAndComponent(field));
             }
         }
-        if self.bonus_items.contains(at) && components.iter().any(is_numbers_bonus) {
-            self.problem(at, DataIssue::FieldAndComponent("bonuses"));
-        }
         for component in components {
-            self.component(at, component, picked);
+            self.component(at, component, picked, takes);
         }
         let classes = &self.archetype_classes;
         let compiled = compile_requires(components, |archetype| classes.get(archetype))?;
@@ -2240,12 +2138,24 @@ impl Checker {
     }
 
     /// One component: the keys it names, and whether it fits its entry.
-    fn component(&mut self, at: &DataAt, component: &Component, picked: bool) {
+    fn component(
+        &mut self,
+        at: &DataAt,
+        component: &Component,
+        picked: bool,
+        takes: Option<ParameterKind>,
+    ) {
         let wrong = |kind| DataIssue::ComponentOnWrongEntry(kind);
+        let reads_parameter = |stat: &StatRef| *stat == StatRef::Parameter;
         match component {
             Component::Requires { condition, .. } => {
                 if !picked {
                     self.problem(at, wrong(component.kind()));
+                }
+                if condition.any(&|condition| {
+                    matches!(condition, Condition::Stat { stat, .. } if reads_parameter(stat))
+                }) {
+                    self.problem(at, DataIssue::HeldBonusWithoutSkillOrStat);
                 }
                 if condition.any(&reads_full_skill) {
                     self.problem(at, DataIssue::FullSkillValue);
@@ -2268,6 +2178,9 @@ impl Checker {
             }
             Component::PrerequisiteStat { stat, rule } => {
                 self.stat_names(at, stat);
+                if reads_parameter(stat) {
+                    self.problem(at, DataIssue::HeldBonusWithoutSkillOrStat);
+                }
                 match rule {
                     StatRule::ClassLevel(class)
                     | StatRule::PlusClassLevel(class)
@@ -2323,6 +2236,11 @@ impl Checker {
                 if let StatTarget::Skill(skill) = stat {
                     self.names(at, DataAt::Skill(skill.clone()));
                 }
+                let for_stat = matches!(takes, Some(ParameterKind::Skill | ParameterKind::Stat));
+                if *stat == StatTarget::Parameter && !for_stat {
+                    self.problem(at, DataIssue::HeldBonusWithoutSkillOrStat);
+                }
+                self.parameter_value(at, value, takes);
                 self.value(at, value);
                 for fact in only_if.iter().flat_map(|only| &only.facts) {
                     self.fact_names(at, fact);
@@ -2342,7 +2260,91 @@ impl Checker {
                     self.names(at, DataAt::Feat(feat));
                 }
             }
-            Component::SkillPoints(_) | Component::Flag(_) => {}
+            Component::SpellDc { scope, value } => {
+                let fits = matches!(
+                    takes,
+                    Some(ParameterKind::SpellSchool | ParameterKind::Energy)
+                );
+                if *scope == SpellScope::Value && !fits {
+                    self.problem(at, DataIssue::BonusValueWithoutParameter);
+                }
+                self.parameter_value(at, value, takes);
+                self.value(at, value);
+            }
+            Component::SpellFocus { mythic_focus, .. } => {
+                self.fact_names(at, mythic_focus);
+                if takes != Some(ParameterKind::SpellSchool) {
+                    self.problem(at, DataIssue::BonusValueWithoutParameter);
+                }
+            }
+            Component::ExpandedArsenal { focuses } => {
+                for fact in focuses {
+                    self.fact_names(at, fact);
+                }
+                if takes != Some(ParameterKind::SpellSchool) {
+                    self.problem(at, DataIssue::BonusValueWithoutParameter);
+                }
+            }
+            Component::SpellPenetration { value, only_while } => {
+                self.parameter_value(at, value, takes);
+                self.value(at, value);
+                if let Some(condition) = only_while {
+                    let classes = &self.archetype_classes;
+                    let compiled = condition.compile(&|archetype| classes.get(archetype));
+                    self.prerequisite(at, Some(&compiled), None);
+                }
+            }
+            Component::Concentration(value) => {
+                self.parameter_value(at, value, takes);
+                self.value(at, value);
+            }
+            Component::WeaponFocus
+            | Component::WeaponSpecialization
+            | Component::ImprovedCritical
+            | Component::CriticalEdge
+            | Component::CriticalMultiplier => {
+                let weapon = matches!(
+                    takes,
+                    Some(ParameterKind::Weapon | ParameterKind::ExoticWeapon)
+                );
+                if !weapon || !matches!(at, DataAt::Feat(_)) {
+                    self.problem(at, wrong(component.kind()));
+                }
+            }
+            Component::PowerAttack | Component::Metamagic(_) => {
+                if !matches!(at, DataAt::Feat(_)) {
+                    self.problem(at, wrong(component.kind()));
+                }
+            }
+            // Only a gear item holds one ([`Checker::gear`]).
+            Component::GearStat { .. } => self.problem(at, wrong(component.kind())),
+            Component::Scales(config) => {
+                if !matches!(at, DataAt::Feature(_)) {
+                    self.problem(at, wrong(component.kind()));
+                }
+                self.value(at, &Value::Rank(config.clone()));
+            }
+            Component::SkillPoints(_)
+            | Component::Flag(_)
+            | Component::HighestAbilityBonus(_)
+            | Component::AbilityAtLeast(_)
+            | Component::BaseAttackAtLeast(_)
+            | Component::GoldenDragonSkills => {}
+        }
+    }
+
+    /// A value reading the skill its entry is held for ([`StatRef::Parameter`]) only on an entry taken for a skill.
+    fn parameter_value(&mut self, at: &DataAt, value: &Value, takes: Option<ParameterKind>) {
+        let reads = match value {
+            Value::Rank(config) => config.base == RankBase::BaseStat(StatRef::Parameter),
+            Value::Shared(shared) => [&shared.count, &shared.bonus]
+                .into_iter()
+                .flatten()
+                .any(|part| matches!(&**part, Value::Rank(config) if config.base == RankBase::BaseStat(StatRef::Parameter))),
+            Value::Flat(_) | Value::PerRank(_) => false,
+        };
+        if reads && takes != Some(ParameterKind::Skill) {
+            self.problem(at, DataIssue::HeldBonusWithoutSkillOrStat);
         }
     }
 
@@ -2498,33 +2500,12 @@ fn is_ability_bonus(component: &Component) -> bool {
     )
 }
 
-fn is_bab_bonus(component: &Component) -> bool {
-    matches!(
-        component,
-        Component::StatBonus {
-            stat: StatTarget::BaseAttack,
-            ..
-        }
-    )
-}
-
 fn is_weapon_proficiency(component: &Component) -> bool {
     matches!(component, Component::Proficiency { weapons, .. } if !weapons.is_empty())
 }
 
 fn is_skill_points(component: &Component) -> bool {
     matches!(component, Component::SkillPoints(_))
-}
-
-/// A stat bonus to a number a `bonuses.ron` row may also give: a save, initiative or a skill.
-fn is_numbers_bonus(component: &Component) -> bool {
-    matches!(
-        component,
-        Component::StatBonus {
-            stat: StatTarget::Save(_) | StatTarget::Initiative | StatTarget::Skill(_),
-            ..
-        }
-    )
 }
 
 fn is_feat_grant(component: &Component) -> bool {

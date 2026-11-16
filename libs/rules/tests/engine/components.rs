@@ -6,12 +6,12 @@ use std::collections::BTreeSet;
 
 use rules::agreement::judge_all;
 use rules::{
-    Ability, BonusAmount, BonusItem, BonusTarget, Build, ClassChoice, Component, Condition, DataAt,
-    DataIssue, DeityKey, Descriptor, Engine, Fact, Feat, FeatCategory, FeatKey, Feature,
-    FeatureKey, FeatureSelectionKey, GameData, Group, IfHeld, Issue, ItemBonus, Pick, Pool,
-    Prerequisite, RankBase, RankConfig, RankProgression, Repeat, Save, SelectionOptionKey, Share,
-    SharedValue, SlotId, SpellType, StatRef, StatRule, StatTarget, Value, WeaponProficiency,
-    compile_requires, game_stacked, game_stacking,
+    Ability, BonusTarget, Build, ClassChoice, Component, Condition, DataAt, DataIssue, DeityKey,
+    Descriptor, Engine, Fact, Feat, FeatCategory, FeatKey, Feature, FeatureKey,
+    FeatureSelectionKey, GameData, Group, IfHeld, Issue, Pick, Pool, Prerequisite, RankBase,
+    RankConfig, RankProgression, Repeat, Save, SelectionOptionKey, Share, SharedValue, SlotId,
+    SpellType, StatRef, StatRule, StatTarget, Value, WeaponProficiency, compile_requires,
+    game_stacked, game_stacking,
 };
 
 use crate::agreement::{SAMPLE, corpus};
@@ -45,14 +45,10 @@ fn component_feature(key: &str, components: Vec<Component>) -> Feature {
         name: key.into(),
         summary: String::new(),
         guide: None,
-        ability_bonuses: Vec::new(),
         option_row: None,
         daily_choice: false,
-        bab_at_least_mythic_rank_plus: None,
-        skill_ranks_at_least_mythic_rank: false,
         favoured_weapon_proficiency: false,
         weapons: BTreeSet::new(),
-        steps: None,
         components,
     }
 }
@@ -1245,26 +1241,6 @@ fn check_refuses_an_unknown_key_in_a_component_and_a_field_beside_its_component(
         "picked-never",
         vec![requires(Condition::CharacterLevel(3))],
     ));
-    let mut abilities = component_feature(
-        "strong",
-        vec![stat_bonus(
-            StatTarget::Ability(Ability::Strength),
-            Value::Flat(2),
-        )],
-    );
-    abilities.ability_bonuses = vec![rules::AbilityBonus::Every { amount: 2 }];
-    data.features.push(abilities);
-    // A `bonuses.ron` row and a `StatBonus` to a number on one entry.
-    data.feats.push(component_feat(
-        "doubled",
-        vec![stat_bonus(StatTarget::Save(Save::Will), Value::Flat(1))],
-    ));
-    data.bonuses.push(ItemBonus {
-        item: BonusItem::Feat(feat("doubled")),
-        target: BonusTarget::Save(Save::Will),
-        amount: BonusAmount::Flat(1),
-        requires: None,
-    });
     // `PrerequisiteFeaturesFromList` over deities only: its `IsDeity` rule isn't modelled.
     data.feats.push(component_feat(
         "devout",
@@ -1298,11 +1274,6 @@ fn check_refuses_an_unknown_key_in_a_component_and_a_field_beside_its_component(
             at_feature("picked-never"),
             DataIssue::ComponentOnWrongEntry("Requires"),
         ),
-        (
-            at_feature("strong"),
-            DataIssue::FieldAndComponent("ability_bonuses"),
-        ),
-        (at_feat("doubled"), DataIssue::FieldAndComponent("bonuses")),
         (at_feat("devout"), DataIssue::DeityList),
     ] {
         assert!(
@@ -1310,7 +1281,7 @@ fn check_refuses_an_unknown_key_in_a_component_and_a_field_beside_its_component(
             "{expected:?} in {problems:#?}"
         );
     }
-    assert_eq!(problems.len(), 8, "{problems:#?}");
+    assert_eq!(problems.len(), 6, "{problems:#?}");
 }
 
 // ---- Agreement --------------------------------------------------------------------------------------------------

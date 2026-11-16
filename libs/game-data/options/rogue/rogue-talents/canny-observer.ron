@@ -1,1 +1,1 @@
-(key: "rogue/rogue-talents/canny-observer", blueprint: "68a23a419b330de45b4c3789649b5b41", name: "Canny Observer", summary: "+4 to Perception checks.", guide: "rogue#canny-observer")
+(key: "rogue/rogue-talents/canny-observer", blueprint: "68a23a419b330de45b4c3789649b5b41", name: "Canny Observer", summary: "+4 to Perception checks.", guide: "rogue#canny-observer", components: [StatBonus(stat: Skill("perception"), value: Flat(4))])

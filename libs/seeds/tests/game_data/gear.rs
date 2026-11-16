@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use rules::{Ability, BonusType, GearItem, GearSlot, GearTarget};
+use rules::{Ability, Descriptor as BonusType, GearItem, GearSlot, GearTarget};
 
 use crate::support::*;
 
@@ -15,6 +15,24 @@ fn item(key: &str) -> &'static GearItem {
         .unwrap_or_else(|| panic!("no gear item {key}"))
 }
 
+/// One always-on bonus of an item: its `GearStat` component (ticket 297).
+struct Bonus {
+    target: GearTarget,
+    amount: i8,
+    kind: BonusType,
+}
+
+/// An item's always-on bonuses.
+fn bonuses(item: &GearItem) -> Vec<Bonus> {
+    item.stats()
+        .map(|(target, amount, kind)| Bonus {
+            target: target.clone(),
+            amount,
+            kind,
+        })
+        .collect()
+}
+
 fn summary(key: &str) -> String {
     item(key).summary(&DATA.skills)
 }
@@ -23,7 +41,7 @@ fn summary(key: &str) -> String {
 fn every_item_has_a_positive_ability_score_bonus() {
     for item in &DATA.gear {
         assert!(
-            item.bonuses.iter().any(|bonus| {
+            bonuses(item).iter().any(|bonus| {
                 matches!(bonus.target, GearTarget::Ability(_)) && bonus.amount > 0
             }),
             "{} gives no ability score bonus",
@@ -47,7 +65,7 @@ fn every_bonus_type_is_one_of_the_first_stages_ten() {
         BonusType::Untyped,
     ];
     for item in &DATA.gear {
-        for bonus in &item.bonuses {
+        for bonus in &bonuses(item) {
             assert!(
                 allowed.contains(&bonus.kind),
                 "{}: {:?}",
@@ -130,7 +148,7 @@ fn exactly_the_users_twenty_two_generic_items_have_no_guide_reference() {
         assert!(item.other_effects.is_empty(), "{}", item.name);
         assert!(item.always_on.is_empty(), "{}", item.name);
         assert!(
-            item.bonuses
+            bonuses(item)
                 .iter()
                 .all(|bonus| bonus.kind == BonusType::Enhancement && bonus.amount % 2 == 0),
             "{}",
@@ -162,8 +180,7 @@ fn the_game_has_a_headband_of_mental_perfection_8() {
         })
         .expect("an item for HeadbandOfPerfection8");
     assert_eq!(headband.slot, GearSlot::Headwear);
-    let mut abilities: Vec<Ability> = headband
-        .bonuses
+    let mut abilities: Vec<Ability> = bonuses(headband)
         .iter()
         .map(|bonus| {
             assert_eq!((bonus.amount, bonus.kind), (8, BonusType::Enhancement));
@@ -226,14 +243,14 @@ fn the_manuals_tomes_and_all_score_consumables_are_usable_inherent_bonuses() {
         // `the_elixir_of_inconceivable_transmutations_gives_alchemical_bonuses`.
         if item.key.as_str() != ELIXIR {
             assert!(
-                item.bonuses
+                bonuses(item)
                     .iter()
                     .all(|bonus| bonus.kind == BonusType::Inherent),
                 "{}",
                 item.name
             );
         }
-        match item.bonuses.as_slice() {
+        match bonuses(item).as_slice() {
             [bonus] => {
                 assert_eq!(bonus.amount, 2, "{}", item.name);
                 let GearTarget::Ability(ability) = bonus.target else {
@@ -282,8 +299,7 @@ fn the_manuals_tomes_and_all_score_consumables_are_usable_inherent_bonuses() {
 #[ignore = "waits on ticket 288: the game gives the Elixir of Inconceivable Transmutations Alchemical bonuses"]
 fn the_elixir_of_inconceivable_transmutations_gives_alchemical_bonuses() {
     assert!(
-        item(ELIXIR)
-            .bonuses
+        bonuses(item(ELIXIR))
             .iter()
             .all(|bonus| bonus.kind == BonusType::Alchemical)
     );
