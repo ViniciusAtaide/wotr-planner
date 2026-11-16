@@ -233,10 +233,10 @@ fn fields(value: &ron::Value) -> Option<BTreeMap<String, &ron::Value>> {
 
 /// The written text parsed, against the text before: the written fields hold the written values (or are gone) and
 /// every other field is as it was.
-fn read_back(
+pub fn read_back(
     file: &Path,
-    before: &str,
-    after: &str,
+    before_text: &str,
+    after_text: &str,
     changes: &[&Change],
 ) -> Result<(), WriteError> {
     let wrong = |field| WriteError::ReadBack {
@@ -244,12 +244,13 @@ fn read_back(
         field,
     };
     let first = changes.first().map_or("", |change| change.field);
-    let (Some(before), Some(after)) = (parse(before), parse(after)) else {
+    let (Some(before), Some(after)) = (parse(before_text), parse(after_text)) else {
         return Err(wrong(first));
     };
     let (Some(mut expected), Some(after)) = (fields(&before), fields(&after)) else {
         return Err(wrong(first));
     };
+    let expected_names: Vec<String> = expected.keys().cloned().collect();
     // The last change to a field decides what it holds.
     let mut owned: BTreeMap<&'static str, Option<ron::Value>> = BTreeMap::new();
     for change in changes {
@@ -284,6 +285,28 @@ fn read_back(
             return Err(wrong(field));
         }
     }
+    // `ron::Value` reads every unit variant alike, so the texts are compared too: an untouched field's span is
+    // the same bytes, a written one is the text the change meant, up to white space and trailing commas.
+    for name in expected_names {
+        if owned.contains_key(name.as_str()) {
+            continue;
+        }
+        let same = span::field_span(before_text, &name).map(|s| &before_text[s])
+            == span::field_span(after_text, &name).map(|s| &after_text[s]);
+        if !same {
+            return Err(wrong(owned.keys().next().copied().unwrap_or(first)));
+        }
+    }
+    for change in changes {
+        let meant = change
+            .value
+            .as_ref()
+            .map(|value| render_one(change.field, value));
+        let held = span::field_span(after_text, change.field).map(|s| normal(&after_text[s]));
+        if held != meant.map(|text| normal(&text)) {
+            return Err(wrong(change.field));
+        }
+    }
     let extra = after
         .keys()
         .any(|name| !expected.contains_key(name) && !owned.contains_key(name.as_str()));
@@ -291,4 +314,40 @@ fn read_back(
         return Err(wrong(first));
     }
     Ok(())
+}
+
+/// A change's field as the text `name: value` the writer meant, on one line.
+fn render_one(field: &str, value: &Value) -> String {
+    match value {
+        Value::One(one) => format!("{field}: {one}"),
+        Value::List(items) => format!("{field}: [{}]", items.join(", ")),
+    }
+}
+
+/// A span without its white space outside strings and without a trailing comma before a closing bracket, so a
+/// list on one line and one element a line compare equal.
+fn normal(text: &str) -> String {
+    let mut out = String::new();
+    let mut in_string = false;
+    let mut escaped = false;
+    for c in text.chars() {
+        if in_string {
+            out.push(c);
+            match (escaped, c) {
+                (true, _) => escaped = false,
+                (false, '\\') => escaped = true,
+                (false, '"') => in_string = false,
+                _ => {}
+            }
+        } else if c == '"' {
+            in_string = true;
+            out.push(c);
+        } else if matches!(c, ']' | ')') && out.ends_with(',') {
+            out.pop();
+            out.push(c);
+        } else if !c.is_whitespace() {
+            out.push(c);
+        }
+    }
+    out
 }

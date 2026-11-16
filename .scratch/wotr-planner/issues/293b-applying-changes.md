@@ -23,3 +23,5 @@ Built as written in [research/293/slices.md](../research/293/slices.md) §293b.
 - **The tree:** `tests/fixture/data/` (progression, skills, warden, sentinel, two archetypes, six gear files mixing pretty and one-line, `planner/gear/test-trinket.ron`); `support::data_copy()`.
 - **Tests** (`tests/fixture/write.rs`; no game data, so no game citation): `the_write_fixture_reads_as_game_data`, `applying_a_change_writes_only_its_field`, `a_planner_file_is_refused_and_nothing_is_written`, `a_failed_validation_restores_every_file`.
 - **Proof:** the game check's stdout is byte-identical before and after (`cmp`).
+
+**Read-back, second commit:** `ron::Value` reads every unit variant alike (a `bab: Half` file read back as `bab: Full`), so `read_back` (now public) also compares text: each field not written has the same span bytes before and after, and each written field's span equals the change's text up to white space and trailing commas. `read_back_tells_unit_variants_apart` plants a wrong variant, a change in another field, and the value in an unrelated field; all are refused.

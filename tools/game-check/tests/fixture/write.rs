@@ -4,7 +4,7 @@
 use std::path::{Path, PathBuf};
 
 use game_check::write::span::Value;
-use game_check::write::{Change, WriteError, apply, entry_file};
+use game_check::write::{Change, WriteError, apply, entry_file, read_back};
 use rules::DataAt;
 
 use crate::support::data_copy;
@@ -142,4 +142,61 @@ fn a_failed_validation_restores_every_file() {
     for (file, text) in files.iter().zip(before) {
         assert_eq!(read(dir.path(), file), text, "{file}");
     }
+}
+
+fn bab_change(value: &str) -> Change {
+    Change {
+        at: DataAt::Class(rules::ClassKey::new("warden")),
+        file: PathBuf::from("classes/warden.ron"),
+        field: "bab",
+        kind: "bab",
+        value: Some(Value::One(value.to_owned())),
+        old: String::new(),
+        new: String::new(),
+    }
+}
+
+#[test]
+fn read_back_tells_unit_variants_apart() {
+    let before = "(key: \"w\", bab: Poor, fort: Good)";
+    let change = bab_change("Full");
+    let file = Path::new("classes/warden.ron");
+    // As written.
+    read_back(
+        file,
+        before,
+        "(key: \"w\", bab: Full, fort: Good)",
+        &[&change],
+    )
+    .unwrap();
+    // A buggy writer's text: another variant of the field.
+    let error = read_back(
+        file,
+        before,
+        "(key: \"w\", bab: Half, fort: Good)",
+        &[&change],
+    )
+    .unwrap_err();
+    assert!(
+        matches!(error, WriteError::ReadBack { field: "bab", .. }),
+        "{error}"
+    );
+    // Another field changed instead of the one meant: the field written is still the old one.
+    let error = read_back(
+        file,
+        before,
+        "(key: \"w\", bab: Poor, fort: Full)",
+        &[&change],
+    )
+    .unwrap_err();
+    assert!(matches!(error, WriteError::ReadBack { .. }), "{error}");
+    // A value that parses but sits in an unrelated field, the meant one gone.
+    let error = read_back(
+        file,
+        before,
+        "(key: \"w\", fort: Good, will: Full)",
+        &[&change],
+    )
+    .unwrap_err();
+    assert!(matches!(error, WriteError::ReadBack { .. }), "{error}");
 }
