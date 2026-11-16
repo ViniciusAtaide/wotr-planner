@@ -7,4 +7,5 @@ mod known;
 mod lookup;
 mod pins;
 mod refusal;
+mod span;
 mod support;
