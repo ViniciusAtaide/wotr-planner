@@ -149,6 +149,25 @@ pub fn skill_stat(skill: &SkillKey) -> String {
     .to_owned()
 }
 
+/// The planner's skill for a game stat: the inverse of [`skill_stat`].
+pub fn game_skill(stat: &str) -> Option<SkillKey> {
+    let key = match stat {
+        "SkillAthletics" => "athletics",
+        "SkillKnowledgeArcana" => "knowledge-arcana",
+        "SkillKnowledgeWorld" => "knowledge-world",
+        "SkillLoreNature" => "lore-nature",
+        "SkillLoreReligion" => "lore-religion",
+        "SkillMobility" => "mobility",
+        "SkillPerception" => "perception",
+        "SkillPersuasion" => "persuasion",
+        "SkillStealth" => "stealth",
+        "SkillThievery" => "trickery",
+        "SkillUseMagicDevice" => "use-magic-device",
+        _ => return None,
+    };
+    Some(SkillKey::new(key))
+}
+
 /// Whether a game stat is an ability score.
 pub fn is_ability_stat(stat: &str) -> bool {
     matches!(

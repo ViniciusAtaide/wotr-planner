@@ -2,9 +2,12 @@
 //! finds its planted difference, a shuffled run gives the same bytes, and a dump that isn't the pinned one is refused.
 
 mod areas;
+mod command;
 mod determinism;
 mod known;
 mod lookup;
 mod pins;
 mod refusal;
+mod span;
 mod support;
+mod write;

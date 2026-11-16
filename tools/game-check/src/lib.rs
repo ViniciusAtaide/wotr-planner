@@ -17,6 +17,7 @@ pub mod lookup;
 mod pins;
 mod planner;
 mod report;
+pub mod write;
 
 pub use dump::Dump;
 pub use known::Known;

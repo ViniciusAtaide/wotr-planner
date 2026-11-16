@@ -1,0 +1,9 @@
+(
+    key: "belt-of-test-strength",
+    blueprint: "00000000000000000000000000000101",
+    name: "Belt of Test Strength",
+    slot: Belt,
+    components: [
+        GearStat(stat: Ability(Strength), value: 2, descriptor: Enhancement),
+    ],
+)

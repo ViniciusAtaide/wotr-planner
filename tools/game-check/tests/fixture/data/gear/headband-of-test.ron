@@ -1,0 +1,1 @@
+(key: "headband-of-test", blueprint: "00000000000000000000000000000103", name: "Headband of Test", slot: Belt, components: [GearStat(stat: Ability(Intelligence), value: 2, descriptor: Enhancement), GearStat(stat: Skill("perception"), value: 1, descriptor: Competence)])

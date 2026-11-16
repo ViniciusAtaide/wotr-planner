@@ -1,0 +1,22 @@
+// Warden: the fixture's base class (the game check's fixture). Comments here must survive a write.
+Class(
+    key: "warden",
+    blueprint: "000000000000000000000000000000c1",
+    name: "Warden",
+    guide: "warden",
+    // Planted: 3 in the game.
+    skill_points: 4,
+    bab: Full,
+    fort: Good,
+    // Planted: good in the game.
+    reflex: Poor,
+    will: Poor,
+    // Planted: Stealth in the game, not Perception.
+    class_skills: ["athletics", "perception"],
+    levels: [
+        (level: 1, features: ["warden/guard"]),
+        // The second level.
+        (level: 2, features: ["warden/sense"]),
+        (level: 3, features: ["warden/ghost", "warden/guard"]),
+    ],
+)
