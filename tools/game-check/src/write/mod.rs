@@ -12,6 +12,7 @@
 //! field the importer doesn't own, and a refused span before it writes anything; then it writes each file, reads it
 //! back, runs the caller's check of the whole folder, and on any failure puts every written file's bytes back.
 
+pub mod items;
 pub mod span;
 
 use std::collections::BTreeMap;
@@ -37,6 +38,13 @@ pub struct Change {
     /// The field's old and new values in normal form, for the log.
     pub old: String,
     pub new: String,
+}
+
+/// An item the importer left unwritten because the game gives a bonus the planner has no word for.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Unexpressed {
+    pub at: DataAt,
+    pub what: String,
 }
 
 /// What [`apply`] wrote: the files whose text changed, in path order.
@@ -514,4 +522,51 @@ fn normal(text: &str) -> String {
         }
     }
     out
+}
+
+/// What `run` brings to the game's values. Each slice that gives the writer a target adds a variant.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WriteArea {
+    /// A gear item's always-on bonuses (`GearStat` components).
+    Items,
+}
+
+/// What `run` planned and wrote.
+#[derive(Debug)]
+pub struct Outcome {
+    pub changes: Vec<Change>,
+    pub unexpressed: Vec<Unexpressed>,
+    pub applied: Applied,
+}
+
+/// Plans the changes of `areas` from the data under `dir` and the dump, and [`apply`]s them. The data is read with
+/// `seeds::read_game_data_files`, the model as the files hold it, not compiled.
+pub fn run(
+    dump: &crate::Dump,
+    dir: &Path,
+    areas: &[WriteArea],
+    validate: impl Fn(&Path) -> Result<(), String>,
+) -> Result<Outcome, WriteError> {
+    let data =
+        seeds::read_game_data_files(dir).map_err(|error| WriteError::Invalid(error.to_string()))?;
+    let planner = crate::planner::Planner::new(&data);
+    let ctx = crate::areas::Ctx {
+        dump,
+        planner: &planner,
+    };
+    let mut changes = Vec::new();
+    let mut unexpressed = Vec::new();
+    for area in areas {
+        let (more, left) = match area {
+            WriteArea::Items => items::changes(&ctx),
+        };
+        changes.extend(more);
+        unexpressed.extend(left);
+    }
+    let applied = apply(dir, &changes, validate)?;
+    Ok(Outcome {
+        changes,
+        unexpressed,
+        applied,
+    })
 }

@@ -17,7 +17,7 @@ use crate::report::{Area, Out};
 const AREA: Area = Area::Items;
 
 /// One bonus: what it adds to, its type, its amount, in the game's names.
-type Bonus = (String, String, i64);
+pub(crate) type Bonus = (String, String, i64);
 
 pub fn compare(ctx: &Ctx, out: &mut Out) {
     for item in &ctx.planner.data.gear {
@@ -45,30 +45,7 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
             );
         }
 
-        let mut game = Vec::new();
-        for part in components(json) {
-            wearer_fact(ctx, out, part, &mut game);
-        }
-        for enchantment in references(json.get("m_Enchantments")) {
-            let Some(enchantment) = ctx.dump.json(&enchantment) else {
-                out.skip(AREA, "an enchantment not in the dump");
-                continue;
-            };
-            for part in components(enchantment) {
-                match component_kind(part) {
-                    "AddStatBonusEquipment" => {
-                        stat_bonus(out, part, int(&part["Value"]), &mut game)
-                    }
-                    "AllSavesBonusEquipment" => {
-                        game.push(("AllSaves".to_owned(), descriptor(part), int(&part["Value"])));
-                    }
-                    "AddUnitFeatureEquipment" | "AddUnitFactEquipment" => {
-                        wearer_fact(ctx, out, part, &mut game)
-                    }
-                    other => out.skip(AREA, format!("an enchantment's {other}, not compared")),
-                }
-            }
-        }
+        let game = game_bonuses(ctx, out, json);
         let planner: Vec<Bonus> = item
             .stats()
             .map(|(stat, value, descriptor)| {
@@ -78,6 +55,34 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
         bonuses(out, &at, guid, &name, game, planner);
         out.compared(AREA, mark);
     }
+}
+
+/// The game's flat always-on bonuses of an item blueprint, before the stacking rule: its own components' and its
+/// enchantments', and the features they give the wearer. What the check leaves out it counts in `out`.
+pub(crate) fn game_bonuses(ctx: &Ctx, out: &mut Out, json: &Value) -> Vec<Bonus> {
+    let mut game = Vec::new();
+    for part in components(json) {
+        wearer_fact(ctx, out, part, &mut game);
+    }
+    for enchantment in references(json.get("m_Enchantments")) {
+        let Some(enchantment) = ctx.dump.json(&enchantment) else {
+            out.skip(AREA, "an enchantment not in the dump");
+            continue;
+        };
+        for part in components(enchantment) {
+            match component_kind(part) {
+                "AddStatBonusEquipment" => stat_bonus(out, part, int(&part["Value"]), &mut game),
+                "AllSavesBonusEquipment" => {
+                    game.push(("AllSaves".to_owned(), descriptor(part), int(&part["Value"])));
+                }
+                "AddUnitFeatureEquipment" | "AddUnitFactEquipment" => {
+                    wearer_fact(ctx, out, part, &mut game)
+                }
+                other => out.skip(AREA, format!("an enchantment's {other}, not compared")),
+            }
+        }
+    }
+    game
 }
 
 /// A feature given to the wearer (`m_Feature`, `m_Blueprint`, `m_Fact`): its flat bonuses.
@@ -184,14 +189,14 @@ fn descriptor(part: &Value) -> String {
 }
 
 /// A gear stat's type in the planner's words, as `descriptor` gives the game's.
-fn bonus_type(descriptor: Descriptor) -> String {
+pub(crate) fn bonus_type(descriptor: Descriptor) -> String {
     match descriptor {
         Descriptor::UntypedStackable => "Untyped".to_owned(),
         descriptor => format!("{descriptor:?}"),
     }
 }
 
-fn target(target: &GearTarget) -> String {
+pub(crate) fn target(target: &GearTarget) -> String {
     match target {
         GearTarget::Ability(ability) => ability_stat(*ability).to_owned(),
         GearTarget::AllSaves => "AllSaves".to_owned(),
@@ -227,7 +232,7 @@ const STACKING: [&str; 10] = [
 
 /// The game's bonuses as they count: of a type that doesn't stack, only the largest to each target
 /// (`ModifiableValue.ApplyModifiersFiltered` adds the largest of each such type, and every stacking one).
-fn stacked(mut game: Vec<Bonus>) -> Vec<Bonus> {
+pub(crate) fn stacked(mut game: Vec<Bonus>) -> Vec<Bonus> {
     game.sort();
     let mut counted: Vec<Bonus> = Vec::new();
     for bonus in game {

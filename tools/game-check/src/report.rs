@@ -103,6 +103,14 @@ impl Out {
         }
     }
 
+    /// The reasons `area` has left something out so far, each once.
+    pub(crate) fn skip_reasons(&self, area: Area) -> Vec<&str> {
+        self.tallies
+            .get(&area)
+            .map(|tally| tally.skipped.keys().map(String::as_str).collect())
+            .unwrap_or_default()
+    }
+
     /// Something `area` left out, and why.
     pub fn skip(&mut self, area: Area, reason: impl Into<String>) {
         *self

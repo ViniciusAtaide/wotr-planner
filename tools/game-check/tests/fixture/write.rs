@@ -3,8 +3,11 @@
 
 use std::path::{Path, PathBuf};
 
+use game_check::write::items::gear_stat;
 use game_check::write::span::Value;
-use game_check::write::{Change, WriteError, apply, apply_with, entry_file, read_back};
+use game_check::write::{
+    Change, WriteArea, WriteError, apply, apply_with, entry_file, read_back, run,
+};
 use rules::DataAt;
 
 use crate::support::data_copy;
@@ -398,4 +401,293 @@ fn a_write_that_parses_but_breaks_a_data_rule_is_rejected_by_the_real_check() {
         "{error}"
     );
     assert_eq!(all_files(dir.path()), before);
+}
+
+/// The check over a data folder, with the fixture's dump.
+fn report_of(dir: &Path) -> game_check::Report {
+    let (pins, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
+    let data = seeds::read_game_data_files(dir).unwrap();
+    game_check::check(&pins, &dump, &data, &game_check::Known::parse("").unwrap()).unwrap()
+}
+
+fn write_items(dir: &Path) -> game_check::write::Outcome {
+    let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
+    run(&dump, dir, &[WriteArea::Items], |_| Ok(())).unwrap()
+}
+
+#[test]
+fn writing_items_leaves_only_the_slot_finding() {
+    let dir = data_copy();
+    let circlet = read(dir.path(), "gear/circlet-of-test.ron");
+    let tome = read(dir.path(), "gear/tome-of-test.ron");
+    let belt = read(dir.path(), "gear/belt-of-test-strength.ron");
+    let outcome = write_items(dir.path());
+    assert!(outcome.unexpressed.is_empty(), "{:?}", outcome.unexpressed);
+    let files: Vec<_> = outcome
+        .applied
+        .files
+        .iter()
+        .map(|file| file.display().to_string())
+        .collect();
+    assert_eq!(
+        files,
+        [
+            "gear/cloak-of-test.ron",
+            "gear/headband-of-test.ron",
+            "gear/ring-of-nothing.ron"
+        ]
+    );
+    // The items the game agrees with, and the tome, are the same bytes.
+    assert_eq!(read(dir.path(), "gear/circlet-of-test.ron"), circlet);
+    assert_eq!(read(dir.path(), "gear/tome-of-test.ron"), tome);
+    assert_eq!(read(dir.path(), "gear/belt-of-test-strength.ron"), belt);
+    let cloak = read(dir.path(), "gear/cloak-of-test.ron");
+    assert!(cloak.contains("GearStat(stat: AllSaves, value: 3, descriptor: Resistance)"));
+    assert!(cloak.starts_with("// Planted: +3 in the game.\n"));
+    assert!(cloak.contains("always_on"), "the other fields stay");
+    let headband = read(dir.path(), "gear/headband-of-test.ron");
+    assert!(
+        headband.contains("GearStat(stat: Skill(\"perception\"), value: 1, descriptor: Insight)")
+    );
+    assert!(headband.contains("GearStat(stat: Initiative, value: 1, descriptor: Morale)"));
+    assert!(
+        headband
+            .contains("GearStat(stat: Ability(Intelligence), value: 2, descriptor: Enhancement)")
+    );
+    assert!(
+        !headband.trim_end().contains('\n'),
+        "a one-line file stays one line"
+    );
+    assert!(read(dir.path(), "gear/ring-of-nothing.ron").contains("components: []"));
+
+    // What is left of the items' findings is the slot, which no bonus fixes.
+    let report = report_of(dir.path());
+    let text = report.text();
+    let mut in_items = false;
+    let mut lines = Vec::new();
+    for line in text.lines() {
+        if !line.starts_with("  ") {
+            in_items = line.starts_with("items / ");
+            if in_items {
+                lines.push(line.to_owned());
+            }
+            continue;
+        }
+        if in_items {
+            lines.push(line.to_owned());
+        }
+    }
+    assert_eq!(lines.len(), 2, "{lines:?}");
+    assert!(lines[0].starts_with("items / slot differs"), "{lines:?}");
+    assert!(
+        lines[1].starts_with("  gear item headband-of-test |"),
+        "{lines:?}"
+    );
+}
+
+#[test]
+fn a_second_items_run_writes_nothing() {
+    let dir = data_copy();
+    write_items(dir.path());
+    let after = all_files(dir.path());
+    let again = write_items(dir.path());
+    assert!(again.changes.is_empty(), "{:?}", again.changes);
+    assert!(again.applied.files.is_empty());
+    assert_eq!(all_files(dir.path()), after);
+}
+
+fn guid(n: u32) -> String {
+    format!("{:032x}", 0xfa00_0000u32 + n)
+}
+
+fn record(n: u32, name: &str, type_name: &str, raw: &str) -> crate::support::Record {
+    crate::support::Record {
+        guid: guid(n),
+        name: name.to_owned(),
+        type_name: type_name.to_owned(),
+        raw: raw.to_owned(),
+    }
+}
+
+/// A ring blueprint with one enchantment holding `components`, and the planner's file for it.
+fn ring(
+    dir: &Path,
+    records: &mut Vec<crate::support::Record>,
+    n: u32,
+    key: &str,
+    components: &str,
+    feature: Option<&str>,
+) {
+    let enchantment = format!("!bp_{}", guid(n + 1));
+    records.push(record(
+        n,
+        key,
+        "Kingmaker.Blueprints.Items.Equipment.BlueprintItemEquipmentRing",
+        &format!("{{\"m_Enchantments\": [\"{enchantment}\"]}}"),
+    ));
+    records.push(record(
+        n + 1,
+        &format!("{key}-enchantment"),
+        "Kingmaker.Blueprints.Items.Ecnchantments.BlueprintEquipmentEnchantment",
+        &format!("{{\"Components\": [{components}]}}"),
+    ));
+    if let Some(feature) = feature {
+        records.push(record(
+            n + 2,
+            &format!("{key}-feature"),
+            "Kingmaker.Blueprints.Classes.BlueprintFeature",
+            &format!("{{\"$type\": \"0, BlueprintFeature\", \"Components\": [{feature}]}}"),
+        ));
+    }
+    let file = format!(
+        "(key: \"{key}\", blueprint: \"{}\", name: \"{key}\", slot: Ring, components: [GearStat(stat: Ability(Dexterity), value: 2, descriptor: Enhancement)])\n",
+        guid(n)
+    );
+    std::fs::write(dir.join(format!("gear/{key}.ron")), file).unwrap();
+}
+
+#[test]
+fn an_item_with_a_bonus_the_importer_cannot_read_or_name_stays_unwritten_and_listed() {
+    let dir = data_copy();
+    let mut records = crate::support::records();
+    // A bonus whose value the game works out in play: the check skips it, so the target is partial.
+    ring(
+        dir.path(),
+        &mut records,
+        1,
+        "ring-of-unreadable",
+        &format!(
+            "{{\"$type\": \"0, AddUnitFeatureEquipment\", \"m_Feature\": \"!bp_{}\"}}",
+            guid(3)
+        ),
+        Some(
+            "{\"$type\": \"0, AddContextStatBonus\", \"Descriptor\": \"Insight\", \"Stat\": \"SkillPerception\", \"Value\": {\"ValueType\": \"Rank\"}, \"Multiplier\": 1}",
+        ),
+    );
+    // A type and a second one the planner has no word for: both are listed.
+    ring(
+        dir.path(),
+        &mut records,
+        10,
+        "ring-of-unnamed",
+        "{\"$type\": \"0, AddStatBonusEquipment\", \"Descriptor\": \"Fumbling\", \"Stat\": \"Strength\", \"Value\": 1}, {\"$type\": \"0, AddStatBonusEquipment\", \"Descriptor\": \"Mystery\", \"Stat\": \"Wisdom\", \"Value\": 1}",
+        None,
+    );
+    let before = all_files(dir.path());
+    let (_, dump) = crate::support::dump(&crate::support::binz(&records, 2));
+    let outcome = run(&dump, dir.path(), &[WriteArea::Items], |_| Ok(())).unwrap();
+    let left: Vec<_> = outcome
+        .unexpressed
+        .iter()
+        .map(|item| (item.at.to_string(), item.what.clone()))
+        .collect();
+    assert_eq!(left.len(), 2, "{left:?}");
+    assert_eq!(left[0].0, "gear item ring-of-unnamed");
+    assert!(left[0].1.contains("Strength +1 Fumbling"), "{left:?}");
+    assert!(
+        left[0].1.contains("Wisdom +1 Mystery"),
+        "every missing bonus is listed: {left:?}"
+    );
+    assert_eq!(left[1].0, "gear item ring-of-unreadable");
+    assert!(left[1].1.contains("worked out in play"), "{left:?}");
+    // Neither item's bytes changed; the others were written as before.
+    for key in ["ring-of-unreadable", "ring-of-unnamed"] {
+        let file = format!("gear/{key}.ron");
+        let kept = before
+            .iter()
+            .find(|(path, _)| path.ends_with(&file))
+            .unwrap();
+        assert_eq!(read(dir.path(), &file), kept.1, "{key}");
+    }
+    assert!(
+        outcome
+            .applied
+            .files
+            .iter()
+            .all(|file| !file.to_string_lossy().contains("ring-of-un"))
+    );
+}
+
+#[test]
+fn the_inverse_of_the_check_s_targets_names_each_stat_the_planner_counts() {
+    use rules::{
+        Ability, Component, Descriptor, GearTarget, Save, SkillKey, SpellSchool, SpellScope,
+    };
+    let stat = |name: &str, kind: &str| gear_stat(&(name.to_owned(), kind.to_owned(), 2));
+    let gear = |stat, descriptor| {
+        Some(Component::GearStat {
+            stat,
+            value: 2,
+            descriptor,
+        })
+    };
+    for (name, ability) in [
+        ("Strength", Ability::Strength),
+        ("Dexterity", Ability::Dexterity),
+        ("Constitution", Ability::Constitution),
+        ("Intelligence", Ability::Intelligence),
+        ("Wisdom", Ability::Wisdom),
+        ("Charisma", Ability::Charisma),
+    ] {
+        assert_eq!(
+            stat(name, "Enhancement"),
+            gear(GearTarget::Ability(ability), Descriptor::Enhancement),
+            "{name}"
+        );
+    }
+    for (name, target) in [
+        ("AllSaves", GearTarget::AllSaves),
+        ("SaveFortitude", GearTarget::Save(Save::Fortitude)),
+        ("SaveReflex", GearTarget::Save(Save::Reflex)),
+        ("SaveWill", GearTarget::Save(Save::Will)),
+        ("Initiative", GearTarget::Initiative),
+        ("SpellDC", GearTarget::SpellDc(SpellScope::All)),
+        (
+            "SpellDC Enchantment",
+            GearTarget::SpellDc(SpellScope::School(SpellSchool::Enchantment)),
+        ),
+        ("CasterLevel", GearTarget::CasterLevel),
+        ("SpellPenetration", GearTarget::SpellPenetration),
+        ("Concentration", GearTarget::Concentration),
+    ] {
+        assert_eq!(
+            stat(name, "Resistance"),
+            gear(target, Descriptor::Resistance),
+            "{name}"
+        );
+    }
+    for (name, key) in [
+        ("SkillAthletics", "athletics"),
+        ("SkillKnowledgeArcana", "knowledge-arcana"),
+        ("SkillKnowledgeWorld", "knowledge-world"),
+        ("SkillLoreNature", "lore-nature"),
+        ("SkillLoreReligion", "lore-religion"),
+        ("SkillMobility", "mobility"),
+        ("SkillPerception", "perception"),
+        ("SkillPersuasion", "persuasion"),
+        ("SkillStealth", "stealth"),
+        ("SkillThievery", "trickery"),
+        ("SkillUseMagicDevice", "use-magic-device"),
+    ] {
+        assert_eq!(
+            stat(name, "Competence"),
+            gear(
+                GearTarget::Skill(SkillKey::new(key)),
+                Descriptor::Competence
+            ),
+            "{name}"
+        );
+    }
+    // The game's `None` is the planner's untyped; a name with no word stays unwritten.
+    assert_eq!(
+        stat("Initiative", "Untyped"),
+        gear(GearTarget::Initiative, Descriptor::Untyped)
+    );
+    assert_eq!(stat("Strength", "Fumbling"), None);
+    assert_eq!(stat("SkillNothing", "Insight"), None);
+    assert_eq!(stat("SpellDC Nothing", "Insight"), None);
+    assert_eq!(
+        gear_stat(&("Strength".to_owned(), "Insight".to_owned(), 1000)),
+        None
+    );
 }
