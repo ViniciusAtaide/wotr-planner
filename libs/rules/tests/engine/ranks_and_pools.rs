@@ -3,7 +3,7 @@
 //! and a filtered pool (one selection whose options its `filtered_by` selection's held option admits); with the
 //! option level that counts half the other classes (an oracle's curse) and an option's old keys in a link.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
     Build, ClassChoice, DataAt, DataIssue, FeatureKey, FeatureSelectionKey, GameData, Issue,
@@ -223,7 +223,8 @@ fn curse_world() -> GameData {
         .clone();
     curse.key = FeatureSelectionKey::new(CURSE);
     curse.option_levels = BTreeSet::from([class("cleric"), class("witch")]);
-    curse.option_level_archetypes = BTreeSet::from([rules::ArchetypeKey::new("witch/false-god")]);
+    curse.option_level_archetypes =
+        BTreeMap::from([(rules::ArchetypeKey::new("witch/false-god"), 0)]);
     curse.half_other_classes = true;
     let mut lame = curse.options[0].clone();
     lame.key = SelectionOptionKey::new(LAME);

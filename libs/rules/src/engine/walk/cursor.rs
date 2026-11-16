@@ -18,10 +18,10 @@
 use std::cell::{OnceCell, RefCell};
 use std::collections::{BTreeMap, BTreeSet, HashSet};
 
-use super::judge::{check_pick, check_pick_with, class_entry};
+use super::judge::{check_pick, check_pick_with, class_entry, deferrable};
 use super::level::{advancements, first_taken_at};
 use super::{Checkpoint, Probe, RecheckWalk, Walker};
-use crate::build::{Build, ClassChoice, Edit, Pick, SlotId};
+use crate::build::{Build, BuildStart, ClassChoice, Edit, Pick, SlotId};
 use crate::choice::{Choice, Issue, LaterPick, Unmet};
 use crate::engine::{
     AdvancesOption, Engine, FIRST_ASCENSION_RANK, PATH_CHOICE_RANK, PATH_SWITCH_RANK, SkillPoints,
@@ -342,6 +342,20 @@ impl<'a> Cursor<'a> {
         status(self.keeps(edit, edit.choices()))
     }
 
+    /// The verdict of a pick its own check refuses at its turn for `issue`, which its band's later picks at its level
+    /// may answer: the walk of the Build with it tries it again after them. `Ok` when it holds there and breaks
+    /// nothing, [`Issue::BreaksLater`] when another choice fails, and `issue` when the pick itself still fails.
+    fn later_held(&self, edit: &Edit, issue: Issue) -> Result<(), Issue> {
+        let walked = self.recheck(edit, &self.edited(edit), edit.choices());
+        if walked.broken.is_some() {
+            Err(Issue::BreaksLater)
+        } else if walked.excused {
+            Err(issue)
+        } else {
+            Ok(())
+        }
+    }
+
     /// [`later`](Self::later) for an edit's walk even when the edit changes nothing (the walk of the Build itself,
     /// which fails a choice only when the Build isn't possible): what an option gets when its walk is the same as
     /// that one.
@@ -433,27 +447,61 @@ impl<'a> Cursor<'a> {
     }
 }
 
-/// The state just before a slot is filled and what the slot accepts, in a Build: `None` when the Build has no such
-/// slot. What tells a pick open only because of gear: the same slot, asked of the Build without it.
-pub(crate) fn before_slot(
-    engine: &Engine,
-    build: &Build,
-    slot: &SlotId,
-) -> Option<(CharacterState, SlotKind)> {
-    let cursor = Cursor::new(engine, build);
-    let at = cursor.until_slot(slot)?;
-    Some((at.state, at.kind))
+/// A slot of a Build at its turn in the walk: what the slot accepts and the state just before it is filled, which
+/// tell whether it takes a pick ([`fits`](Self::fits)). What tells a pick open only because of gear: the same slot,
+/// asked of the Build without it.
+pub(crate) struct SlotTurn {
+    build: Build,
+    slot: SlotId,
+    kind: SlotKind,
+    state: CharacterState,
+    /// The states the walk tries a pick refused at its turn again at ([`AtSlot::band_states`]), once asked.
+    band_states: OnceCell<Vec<CharacterState>>,
 }
 
-/// Whether a slot takes a pick at a state, by the walk's own check alone ([`check_pick`]), whatever the pick would
-/// break later.
+impl SlotTurn {
+    /// Whether the slot takes `pick` by the walk's own check alone, at its turn or tried again after its band's later
+    /// picks at its level, whatever the pick would break later.
+    ///
+    /// Costs no walk for a pick its turn takes, and otherwise, once, the walk to the slot and the slot's level.
+    pub(crate) fn fits(&self, engine: &Engine, pick: &Pick) -> bool {
+        let start = &self.build.start;
+        pick_fits(engine, start, &self.state, &self.kind, pick)
+            || (self.band_states.get_or_init(|| {
+                Cursor::new(engine, &self.build)
+                    .until_slot(&self.slot)
+                    .map(AtSlot::into_band_states)
+                    .unwrap_or_default()
+            }))
+            .iter()
+            .any(|state| pick_fits(engine, start, state, &self.kind, pick))
+    }
+}
+
+/// A slot of a Build at its turn in the walk ([`SlotTurn`]): `None` when the Build has no such slot.
+pub(crate) fn before_slot(engine: &Engine, build: Build, slot: &SlotId) -> Option<SlotTurn> {
+    let cursor = Cursor::new(engine, &build);
+    let at = cursor.until_slot(slot)?;
+    let (kind, state) = (at.kind, at.state);
+    Some(SlotTurn {
+        build,
+        slot: slot.clone(),
+        kind,
+        state,
+        band_states: OnceCell::new(),
+    })
+}
+
+/// Whether a slot takes a pick at a state of a Build starting with `start`, by the walk's own check alone
+/// ([`check_pick`]), whatever the pick would break later.
 pub(crate) fn pick_fits(
     engine: &Engine,
+    start: &BuildStart,
     state: &CharacterState,
     kind: &SlotKind,
     pick: &Pick,
 ) -> bool {
-    check_pick(&engine.catalog, state, kind, pick).is_ok()
+    check_pick(&engine.catalog, start, state, kind, pick).is_ok()
 }
 
 /// The walk paused just before a slot is filled ([`Cursor::until_slot`]): the character's state there and what the
@@ -471,7 +519,18 @@ pub(crate) struct AtSlot<'c, 'a> {
     /// The verdict for the slot left empty, which every feat no later check names shares.
     left_empty: OnceCell<Result<(), Issue>>,
     /// The picks after the slot at its character level, once a pick's prerequisite is unmet.
-    later_picks: OnceCell<Vec<Checkpoint>>,
+    later_picks: OnceCell<LaterPicks>,
+}
+
+/// The picks after a slot at its character level, in the Build without the slot's own pick ([`AtSlot::later_picks`]).
+#[derive(Default)]
+struct LaterPicks {
+    /// Each pick held after the slot, in walk order, with the state either side of it.
+    checkpoints: Vec<Checkpoint>,
+    /// How many of `checkpoints`, from the first, are of the slot's band at its level; 0 for a Mythic rank's slot.
+    band: usize,
+    /// The state once the slot's band at its level is done; `None` for a Mythic rank's slot.
+    closure: Option<CharacterState>,
 }
 
 impl<'a> AtSlot<'_, 'a> {
@@ -492,16 +551,26 @@ impl<'a> AtSlot<'_, 'a> {
 
     /// A pick's verdict in the slot (`try(edit)` for [`Edit::Pick`]): the walk's own check of the pick against the
     /// character here ([`check_pick`]: a known key the slot accepts, a value that fits, not held already,
-    /// prerequisites met in the mode the slot needs), with an unmet prerequisite that a later pick at the same level
-    /// meets saying so ([`Unmet::MetLater`], ticket 126); then whether it breaks a later choice
-    /// ([`Issue::BreaksLater`]).
+    /// prerequisites met in the mode the slot needs); then whether it breaks a later choice ([`Issue::BreaksLater`]).
+    /// A pick refused for an unmet prerequisite that its band's later picks at its level may meet is the walk's
+    /// verdict of the Build with it, which tries it again after them (ticket 248: [`Cursor::later_held`]); one that a
+    /// later band's or a Mythic rank's pick meets says so ([`Unmet::MetLater`], ticket 126).
     ///
     /// The first open feat costs a walk from the slot's level for the slot left empty, which every feat no later
     /// check can see shares ([`Cursor::named_feats`]); every other open pick costs a walk of its own from there.
     pub(crate) fn try_pick(&self, pick: &Pick) -> Result<(), Issue> {
-        let catalog = &self.cursor.engine.catalog;
-        check_pick_with(catalog, &self.state, &self.kind, &self.lists, pick)
-            .map_err(|issue| self.met_later(pick, issue))?;
+        let edit = Edit::Pick {
+            slot: self.slot.clone(),
+            pick: pick.clone(),
+        };
+        if let Err(issue) = self.check(&self.state, pick) {
+            return if deferrable(&issue) && self.band_states().any(|state| self.opens(state, pick))
+            {
+                self.cursor.later_held(&edit, issue)
+            } else {
+                Err(self.met_later(pick, issue))
+            };
+        }
         match pick {
             // A feat no check names breaks later just what the slot left empty would.
             Pick::Feat { feat, .. }
@@ -514,15 +583,23 @@ impl<'a> AtSlot<'_, 'a> {
                     .get_or_init(|| self.cursor.later_walked(&Edit::Clear(self.slot.clone())))
                     .clone()
             }
-            _ => self.cursor.later(&Edit::Pick {
-                slot: self.slot.clone(),
-                pick: pick.clone(),
-            }),
+            _ => self.cursor.later(&edit),
         }
     }
 
-    /// An unmet prerequisite of `pick` that a later pick at the same level meets: [`Unmet::MetLater`], naming the
-    /// first such pick ([`met_later`](Self::met_later)). Any other issue as it is.
+    /// The walk's own check of `pick` in the slot for a character in `state`.
+    fn check(&self, state: &CharacterState, pick: &Pick) -> Result<(), Issue> {
+        let catalog = &self.cursor.engine.catalog;
+        let start = &self.cursor.build.start;
+        check_pick_with(catalog, start, state, &self.kind, &self.lists, pick)
+    }
+
+    fn opens(&self, state: &CharacterState, pick: &Pick) -> bool {
+        self.check(state, pick).is_ok()
+    }
+
+    /// An unmet prerequisite of `pick` that a later band's or a Mythic rank's pick at the same level meets:
+    /// [`Unmet::MetLater`], naming the first such pick ([`later_pick`](Self::later_pick)). Any other issue as it is.
     fn met_later(&self, pick: &Pick, issue: Issue) -> Issue {
         let Issue::Unmet(unmet) = issue else {
             return issue;
@@ -536,28 +613,48 @@ impl<'a> AtSlot<'_, 'a> {
         }
     }
 
-    /// The first of the slot's later picks ([`later_picks`](Self::later_picks)) whose own slot makes `pick` open
-    /// here: it fails just before that slot and holds just after it. `None` when none does, or when what comes
-    /// between picks does (a Mythic rank's row).
+    /// The states the walk tries the slot's pick again at when its turn refuses it, in the Build without it: just
+    /// before and after each later pick of its band at its level, and once the band is done. None for a Mythic rank's
+    /// slot, whose picks keep their order.
+    fn band_states(&self) -> impl Iterator<Item = &CharacterState> {
+        let later = self.later_picks.get_or_init(|| self.later_picks());
+        (later.checkpoints[..later.band].iter())
+            .flat_map(|checkpoint| [&checkpoint.before, &checkpoint.after])
+            .chain(&later.closure)
+    }
+
+    /// [`band_states`](Self::band_states), taken out of the paused slot.
+    fn into_band_states(self) -> Vec<CharacterState> {
+        self.later_picks.get_or_init(|| self.later_picks());
+        let later = self.later_picks.into_inner().unwrap_or_default();
+        let mut checkpoints = later.checkpoints;
+        checkpoints.truncate(later.band);
+        (checkpoints.into_iter())
+            .flat_map(|checkpoint| [checkpoint.before, checkpoint.after])
+            .chain(later.closure)
+            .collect()
+    }
+
+    /// The first of the slot's later picks of a later band or a Mythic rank ([`later_picks`](Self::later_picks))
+    /// whose own slot makes `pick` open here: it fails just before that slot and holds just after it. `None` when
+    /// none does, or when what comes between picks does (a Mythic rank's row).
     fn later_pick(&self, pick: &Pick) -> Option<LaterPick> {
-        let catalog = &self.cursor.engine.catalog;
-        let (state, kind, lists) = (&self.state, &self.kind, self.lists.as_slice());
-        let open =
-            |state: &CharacterState| check_pick_with(catalog, state, kind, lists, pick).is_ok();
-        let checkpoints = self.later_picks.get_or_init(|| self.later_picks());
-        for checkpoint in checkpoints {
-            if open(&checkpoint.before) {
+        let (catalog, start) = (&self.cursor.engine.catalog, &self.cursor.build.start);
+        let later = self.later_picks.get_or_init(|| self.later_picks());
+        for checkpoint in &later.checkpoints[later.band..] {
+            if self.opens(&checkpoint.before, pick) {
                 return None;
             }
-            if open(&checkpoint.after) {
+            if self.opens(&checkpoint.after, pick) {
                 // Each slot takes the other's pick: the later one here now, this one there after it.
-                let swap = check_pick_with(catalog, state, kind, lists, &checkpoint.pick).is_ok()
-                    && check_pick(catalog, &checkpoint.after, &checkpoint.kind, pick).is_ok();
+                let swap = self.opens(&self.state, &checkpoint.pick)
+                    && check_pick(catalog, start, &checkpoint.after, &checkpoint.kind, pick)
+                        .is_ok();
                 return Some(LaterPick {
                     slot: checkpoint.slot.clone(),
                     kind: checkpoint.kind.clone(),
                     pick: checkpoint.pick.clone(),
-                    level: state.character_level,
+                    level: self.state.character_level,
                     swap,
                 });
             }
@@ -565,32 +662,38 @@ impl<'a> AtSlot<'_, 'a> {
         None
     }
 
-    /// The picks after the slot at its character level, in walk order, each with the state either side of it, in the
-    /// Build without the slot's own pick. Empty when no other pick is at that level, without a walk.
-    fn later_picks(&self) -> Vec<Checkpoint> {
+    /// The picks after the slot at its character level, in walk order, each with the state either side of it, and
+    /// the state once the slot's band is done, in the Build without the slot's own pick. Empty when no other pick is
+    /// at that level, without a walk.
+    fn later_picks(&self) -> LaterPicks {
         let cursor = self.cursor;
         let (build, slot) = (cursor.build, &self.slot);
         let Some(level) = cursor.level_of(slot) else {
-            return Vec::new();
+            return LaterPicks::default();
         };
         if !build
             .picks
             .keys()
             .any(|other| other != slot && cursor.level_of(other) == Some(level))
         {
-            return Vec::new();
+            return LaterPicks::default();
         }
         let mut without = build.clone();
         without.picks.remove(slot);
         let index = usize::from(level) - 1;
         // The levels before the slot's are the Build's own: only the slot's pick differs.
         let Some(mut walker) = cursor.paused(index) else {
-            return Vec::new();
+            return LaterPicks::default();
         };
         walker.on(&without);
         walker.probe = Some(Probe::Later(slot));
         walker.level(level, &without.levels[index]);
-        walker.probed.later.unwrap_or_default()
+        let (band, closure) = walker.probed.closure.unzip();
+        LaterPicks {
+            checkpoints: walker.probed.later.unwrap_or_default(),
+            band: band.unwrap_or(0),
+            closure,
+        }
     }
 }
 

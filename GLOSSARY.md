@@ -222,8 +222,12 @@ A Selection option that one Feature selection offers from another's list, such a
 _Avoid_: Copied option, alias
 
 **Slot**:
-One place in a Build where something is picked: a Feat slot, a Feature selection slot, or a Mythic ascension's mythic ability, mythic feat or path pick. Each has a stable id naming its level or rank. Within a level, slots are checked in this order: the class's Feature selections, the class's feat slots, the race's, the general slot, then the slots of options' rows and feats' Extra picks, then each Mythic rank that comes at that level; so a race or general pick sees what the class gives at that level (a human warpriest's Dazzling Display on the class's Weapon Focus). A prerequisite that a later slot's pick at the same level would meet is refused all the same, and the reason names that slot (and says to swap the two picks when each slot takes the other's).
+One place in a Build where something is picked: a Feat slot, a Feature selection slot, or a Mythic ascension's mythic ability, mythic feat or path pick. Each has a stable id naming its level or rank. Within a level, slots are checked in this order: the class's Feature selections, the class's feat slots, the race's, the general slot, then the slots of options' rows and feats' Extra picks, then each Mythic rank that comes at that level. The walk checks a level's picks Band by Band, and a pick may lean on another pick of its Band at that level whichever slot comes first (Greater Spell Focus in a sorcerer's bonus slot on Spell Focus in the general slot); a prerequisite that a later Band's pick or a Mythic rank's would meet is refused, and the reason names that slot.
 _Avoid_: Choice point, cell
+
+**Band**:
+Where a pick comes among one level-up's picks, as the game applies them: a prestige class's spellbook, then mythic abilities and feats, then the Path band (domains, bloodlines, mysteries, curses, spirits, blessings, schools), then the Features band (feats, talents, every other Feature selection). The game takes the picks of one Band in the order the player makes them, each checked with the ones made before it, so the planner holds a pick whose prerequisite or weapon proficiency another pick of its Band at that level gives, whichever slot comes first; an earlier Band's pick never leans on a later Band's.
+_Avoid_: Priority, phase, tier
 
 **Pick**:
 What fills a slot: a feat, a selection option, a mythic ability or a mythic feat. A pick of a Parameterised feat, mythic feat or mythic ability, or of an option that takes a value, also names its Parameter (Weapon Focus (Longsword); Favorite Metamagic (Persistent Spell)).

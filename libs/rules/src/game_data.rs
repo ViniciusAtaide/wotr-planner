@@ -582,6 +582,10 @@ impl BackgroundGroup {
 pub const DOMAIN_SELECTION: &str = "cleric/domain";
 /// The feat a follower holds for an exotic favoured weapon, taken for that weapon (Achaekek: Sawtooth Saber).
 pub const EXOTIC_WEAPON_PROFICIENCY: &str = "exotic-weapon-proficiency";
+/// The feat that makes a character proficient with every simple weapon.
+pub const SIMPLE_WEAPON_PROFICIENCY: &str = "simple-weapon-proficiency";
+/// The feat that makes a character proficient with every martial weapon.
+pub const MARTIAL_WEAPONS_PROFICIENCY: &str = "martial-weapons-proficiency";
 /// The feat a follower holds for the unarmed strike as favoured weapon (Irori).
 pub const IMPROVED_UNARMED_STRIKE: &str = "improved-unarmed-strike";
 /// The weapon that is the unarmed strike.
@@ -727,6 +731,11 @@ pub struct Feat {
     /// Channel).
     #[serde(default)]
     pub extra_pick_of: BTreeSet<FeatureSelectionKey>,
+    /// The weapon it is taken for must be one the character is proficient with, in every slot, whatever the slot's
+    /// list ignores: the game's `RequireProficiency`, which `BlueprintParametrizedFeature.CanSelect` checks on the
+    /// feature's own flag, not the selection's (WrathDecompiled 6ce4a6b). Read only for a weapon value.
+    #[serde(default)]
+    pub requires_proficiency: bool,
     /// `None`: the guide lists no prerequisites, so there are none.
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
@@ -793,6 +802,14 @@ pub struct FeatList {
     /// counts as held afterwards. Unset, the prerequisites are checked.
     #[serde(default)]
     pub ignores_prerequisites: bool,
+    /// Set where the game's pick through the list is a feature of its own that grants the feat and proficiency with
+    /// its weapon, so a feat that requires proficiency ([`Feat::requires_proficiency`]) skips that check and is taken
+    /// for any weapon, and the pick makes the character proficient with that weapon
+    /// ([`CharacterState::weapon_proficiencies`](crate::CharacterState::weapon_proficiencies)). The Sword Saint's
+    /// chosen weapon: `SwordSaintChosenWeaponFeature` c0b4ec0175e3ff940a45fc21f318a39a has no `RequireProficiency`,
+    /// and its `KensaiChosenWeapon.OnActivate` adds the weapon to the unit's proficiencies and gives Weapon Focus.
+    #[serde(default)]
+    pub skips_proficiency: bool,
     /// Set on a list of every feat in the data (Gold Dragon's Dragon Feats: "any three feats"), which then names
     /// no feats of its own: the members would only copy the feat catalog.
     #[serde(default)]
@@ -1277,10 +1294,12 @@ pub struct FeatureSelection {
     /// (`BlueprintProgression.CalcLevel`).
     #[serde(default)]
     pub option_levels: BTreeSet<ClassKey>,
-    /// Archetypes whose class levels add to the option level, where the class itself counts only taken with one
-    /// of them (an oracle's curse: a witch's levels as a Stigmatized Witch, not a plain witch's).
+    /// Archetypes whose class levels add to the option level, each with the levels it adds to them (the game's
+    /// `ArchetypeWithLevel.AdditionalLevel`; a sum below 0 adds 0), where the class itself counts only taken with one
+    /// of them (an oracle's curse: a witch's levels as a Stigmatized Witch, not a plain witch's; a Divine Hunter's
+    /// domain: the hunter's levels less 2).
     #[serde(default)]
-    pub option_level_archetypes: BTreeSet<ArchetypeKey>,
+    pub option_level_archetypes: BTreeMap<ArchetypeKey, i8>,
     /// Set when half the levels of every other class add to the option level, rounded down: the classes neither in
     /// `option_levels` nor taken with one of `option_level_archetypes`, and the Mythic rank, which the game counts as
     /// the mythic classes' levels (an oracle's curse: `BlueprintProgression.CalcLevel` with `ForAllOtherClasses`).
@@ -1310,10 +1329,13 @@ pub struct FeatureSelection {
     /// another way in, among them). The game lists the rest greyed out; leaving them out is the planner's choice.
     #[serde(default)]
     pub filtered_by: Option<FeatureSelectionKey>,
-    /// How many option levels an option held through it lags behind the levels of its classes (the Separatist's
-    /// second domain: "Higher level abilities are delayed by two class levels").
+    /// How many option levels an option held through it lags behind the levels of its classes from its second row on:
+    /// its first row comes with the first level, as the Separatist's second domain's does, whose own progressions
+    /// (`LuckDomainProgressionSeparatist` 1f26551e7e61436c8ee188064038a896 and the others) grant the 1st-level power
+    /// at 1 and every later row two levels after the domain's ("Higher level abilities are delayed by two class
+    /// levels"). The option level is then the classes' levels less this, but at least 1.
     #[serde(default)]
-    pub levels_behind: u8,
+    pub later_rows_behind: u8,
     /// Where an option held through it gets its option level when the selection names no classes.
     #[serde(default)]
     pub level_from: Option<LevelFrom>,
@@ -1331,6 +1353,39 @@ pub struct FeatureSelection {
     /// doesn't matter (a druid's domains, Impossible Domain).
     #[serde(default)]
     pub deity_domains: Option<DeityDomains>,
+    /// Where its picks come among a level-up's ([`Band`]): the game's band for the selection's group.
+    #[serde(default)]
+    pub band: Band,
+}
+
+/// Where a selection's pick comes among a level-up's picks. The game applies a level-up's picks band by band, in this
+/// order, and the picks of one band in the order the player makes them, each checked with the earlier ones applied
+/// (`LevelUpActionPriority`, which `SelectFeature.CalculatePriority` gives a selection by its group, and
+/// `LevelUpController.AddAction`, WrathDecompiled 6ce4a6b). A feat slot's picks are the Features band, as are those
+/// of most selections (talents, rage powers, a bonus feat list).
+#[derive(
+    Clone, Copy, Debug, Default, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize,
+)]
+pub enum Band {
+    /// A prestige class's spellbook (`ReplaceSpellbook`: the Arcane Trickster's, the Loremaster's, …).
+    Spellbook,
+    /// Mythic abilities and mythic feats (`MythicAbility`: Extra Mythic Ability's).
+    MythicAbility,
+    /// A domain, bloodline, mystery, curse, spirit, blessing, bond, school or channel energy (`Path`).
+    Path,
+    /// Everything else (`Features`).
+    #[default]
+    Features,
+}
+
+impl Band {
+    /// The bands in the order the game applies them.
+    pub const ALL: [Self; 4] = [
+        Self::Spellbook,
+        Self::MythicAbility,
+        Self::Path,
+        Self::Features,
+    ];
 }
 
 /// Where an option held through a selection naming no classes gets its option level.
@@ -1647,6 +1702,9 @@ pub struct MythicFeat {
     /// feat"). `None`: it gives none.
     #[serde(default)]
     pub extra_pick: Option<MythicExtraPick>,
+    /// As [`Feat::requires_proficiency`] (Improved Critical (Mythic)).
+    #[serde(default)]
+    pub requires_proficiency: bool,
     #[serde(default)]
     pub prerequisite: Option<Prerequisite>,
 }

@@ -12,9 +12,7 @@ use std::collections::BTreeSet;
 
 use super::LeftOut;
 use crate::build::BuildStart;
-use crate::game_data::{
-    Ability, Dice, EXOTIC_WEAPON_PROFICIENCY, Handedness, Ranged, Weapon, WeaponProficiency,
-};
+use crate::game_data::{Ability, Dice, Handedness, Ranged, Weapon};
 use crate::keys::{FeatKey, WeaponKey};
 use crate::parameter::Parameter;
 use crate::state::CharacterState;
@@ -144,56 +142,17 @@ impl Engine {
         weapons
     }
 
-    /// The weapons a character is proficient with, of all the data has (ticket 198): one on no proficiency list (the
-    /// unarmed strike, rays, natural attacks) always; a simple or martial one while holding that list's feat; an
-    /// exotic one while holding Exotic Weapon Proficiency for it, or Martial Weapons Proficiency when the race treats
-    /// it as martial; and any a held feature, the race's weapon familiarity (the subrace's in its place) or the
-    /// background names, with the deity's favoured weapons while a held feature grants them. `start` is the Build's
-    /// and `state` a point of it.
+    /// The weapons a character is proficient with, of all the data has ([`Catalog::proficient`]). `start` is the
+    /// Build's and `state` a point of it.
+    ///
+    /// [`Catalog::proficient`]: super::catalog::Catalog
     pub fn proficient_weapons(
         &self,
         start: &BuildStart,
         state: &CharacterState,
     ) -> BTreeSet<WeaponKey> {
-        let catalog = &self.catalog;
-        let mut listed: BTreeSet<&WeaponKey> = state
-            .features
-            .keys()
-            .filter_map(|feature| catalog.feature_weapons(feature))
-            .flatten()
-            .collect();
-        let racial = catalog.racial_weapons(start);
-        if let Some((weapons, _)) = racial {
-            listed.extend(weapons);
-        }
-        if let Some(background) =
-            (start.background.as_ref()).and_then(|key| catalog.background(key))
-        {
-            listed.extend(&background.weapons);
-        }
-        if let Some(deity) = state.deity().and_then(|key| catalog.deity(key))
-            && (state.features.keys()).any(|feature| catalog.grants_favoured_weapons(feature))
-        {
-            listed.extend(&deity.favoured_weapons);
-        }
-        let simple = state.feat_count(&FeatKey::new(SIMPLE_WEAPON_PROFICIENCY)) > 0;
-        let martial = state.feat_count(&FeatKey::new(MARTIAL_WEAPONS_PROFICIENCY)) > 0;
-        let exotic = FeatKey::new(EXOTIC_WEAPON_PROFICIENCY);
-        let as_martial =
-            |key: &WeaponKey| racial.is_some_and(|(_, as_martial)| as_martial.contains(key));
-        (catalog.data().weapons.iter())
-            .filter(|weapon| {
-                listed.contains(&weapon.key)
-                    || match weapon.proficiency {
-                        None => true,
-                        Some(WeaponProficiency::Simple) => simple,
-                        Some(WeaponProficiency::Martial) => martial,
-                        Some(WeaponProficiency::Exotic) => {
-                            state.has_feat_for(&exotic, &Parameter::Weapon(weapon.key.clone()))
-                                || (martial && as_martial(&weapon.key))
-                        }
-                    }
-            })
+        (self.catalog.data().weapons.iter())
+            .filter(|weapon| self.catalog.proficient(start, state, weapon))
             .map(|weapon| weapon.key.clone())
             .collect()
     }
@@ -306,8 +265,6 @@ impl Engine {
 }
 
 const WEAPON_FOCUS: &str = "weapon-focus";
-const SIMPLE_WEAPON_PROFICIENCY: &str = "simple-weapon-proficiency";
-const MARTIAL_WEAPONS_PROFICIENCY: &str = "martial-weapons-proficiency";
 const POWER_ATTACK: &str = "power-attack";
 const IMPROVED_CRITICAL: &str = "improved-critical";
 const WEAPON_FINESSE: &str = "weapon-finesse";

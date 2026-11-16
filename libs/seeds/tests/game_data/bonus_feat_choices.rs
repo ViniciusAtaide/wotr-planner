@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use rules::{Build, FeatSlot, Issue};
+use rules::{Build, FeatSlot, Issue, WeaponKey, WeaponProficiency};
 
 use crate::support::*;
 
@@ -510,14 +510,35 @@ fn the_hunters_and_the_stormwalkers_choices_offer_their_lists_ignoring_prerequis
                 list_feats(list),
                 "{list} at {level}"
             );
-            for option in engine().options(&build, &class_slot(*level)).unwrap() {
-                assert_eq!(
-                    option.status,
-                    Ok(()),
-                    "{list} at {level}: {:?}",
-                    option.pick
-                );
-            }
+            // Every option is open but Improved Critical in an exotic weapon in the Stormwalker's list from 10: a
+            // feat that requires proficiency is taken only for a weapon the character is proficient with, whatever
+            // the list ignores (ticket 251). Game: ImprovedCritical f4201c85a991369408740c6888362e20 sets
+            // RequireProficiency, which BlueprintParametrizedFeature.CanSelect checks whatever the selection ignores
+            // (WrathDecompiled 6ce4a6b); RangerStyleArcherySelection10 7ef950ca681955d47bc4efbe77073e2c offers it;
+            // RangerProficiencies c5e479367d07d62428f2fe92f39c0341 gives simple and martial weapons, and
+            // StormwalkerArchetype a330c05e484d98748a462acd43654a3a keeps it. The Hunter's and the Urban Hunter's
+            // lists hold no feat that requires proficiency.
+            let refused: BTreeSet<(String, WeaponKey)> = engine()
+                .options(&build, &class_slot(*level))
+                .unwrap()
+                .into_iter()
+                .filter_map(|option| match option.status {
+                    Ok(()) => None,
+                    Err(Issue::NotProficient { weapon }) => {
+                        Some((option.pick.key().to_string(), weapon))
+                    }
+                    Err(issue) => panic!("{list} at {level}: {:?} {issue:?}", option.pick),
+                })
+                .collect();
+            let expected = if *list == STORMWALKER_ARCHERY[2] {
+                (DATA.weapons.iter())
+                    .filter(|weapon| weapon.proficiency == Some(WeaponProficiency::Exotic))
+                    .map(|weapon| ("improved-critical".to_string(), weapon.key.clone()))
+                    .collect()
+            } else {
+                BTreeSet::new()
+            };
+            assert_eq!(refused, expected, "{list} at {level}");
         }
     }
     let forester = archetype_build("hunter", "hunter/forester", 2);

@@ -106,10 +106,12 @@ Class(
                     key: "hunter/divine-hunter/domain",
                     blueprint: "72909a37a1ed5344f88ec9d1d31f5c5b",
                     name: "Domain (Divine Hunter)",
-                    summary: "You choose a domain of your deity; its domain spells join your spellbook.",
+                    band: Path,
+                    summary: "You choose a domain of your deity; its domain spells join your spellbook, and its powers come at your hunter level less 2.",
                     deity_domains: Offered,
                     guide: "hunter#domain",
                     option_levels: ["hunter"],
+                    option_level_archetypes: {"hunter/divine-hunter": -2},
                     options: [],
                     shared_options: [
                         "cleric/domain/air",

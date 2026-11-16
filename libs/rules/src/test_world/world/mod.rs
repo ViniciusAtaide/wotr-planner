@@ -125,6 +125,7 @@ fn list(key: &str, ignores_prerequisites: bool, feats: &[&str]) -> FeatList {
         guide: guide(key),
         ignores_prerequisites,
         every_feat: false,
+        skips_proficiency: false,
         feats: feats.iter().map(|key| feat(key)).collect(),
     }
 }

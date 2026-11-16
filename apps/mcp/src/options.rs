@@ -265,6 +265,7 @@ pub(crate) fn issue_code(issue: &Issue) -> &'static str {
         Issue::DeityAlignment { .. } => "deity_alignment",
         Issue::NeedsFaith => "needs_faith",
         Issue::DeityDomain { .. } => "deity_domain",
+        Issue::NotProficient { .. } => "not_proficient",
         Issue::BreaksLater => "breaks_later",
     }
 }

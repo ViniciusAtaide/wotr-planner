@@ -213,14 +213,15 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   the row (Divine Herbalist) or a lists-only holding (Crossblooded's second bloodline) gives none. Its selection says
   which classes' levels make the option level, `option_levels: ["dragon-disciple", "sorcerer"]` (an option taken
   late gets every row up to its level at once), with the game's two more terms where the option is its own
-  progression (the game's `BlueprintProgression`, as an oracle's curse is; ticket 243): `option_level_archetypes`
-  (a class that has one of them counts only taken with it, as a Stigmatized Witch's levels count for an oracle's
-  curse and a plain witch's don't) and `half_other_classes: true` (half the other classes' levels, the Mythic rank's
+  progression (the game's `BlueprintProgression`, as an oracle's curse is; ticket 243): `option_level_archetypes`, each
+  archetype with the levels it adds (`{"witch/stigmatized-witch": 0}`; a class that has one of them counts only taken
+  with it, as a Stigmatized Witch's levels count for an oracle's curse and a plain witch's don't; a Divine Hunter's
+  domain is `{"hunter/divine-hunter": -2}`, ticket 253) and `half_other_classes: true` (half the other classes' levels, the Mythic rank's
   among them, rounded down: `BlueprintProgression.CalcLevel`); an archetype that changes the grant has its own selection
   that shares the options it allows: `skipped_levels: [3, 9, 15]` (Seeker; its own rows replace them),
   `feat_lists_only: true` (Crossblooded's second bloodline: its lists and its `arcana`, the option's named
-  first-row feature, `arcana: "sorcerer/bloodline/abyssal/demonic-arcana"`), `levels_behind: 2` (the Separatist's
-  second domain, `cleric/separatist/domain`), only some options (Hag-Riven), or one option, which
+  first-row feature, `arcana: "sorcerer/bloodline/abyssal/demonic-arcana"`), `later_rows_behind: 2` (the Separatist's
+  second domain, `cleric/separatist/domain`: its first row at once, the later ones two levels late; ticket 253), only some options (Hag-Riven), or one option, which
   is then granted with no pick (a Sage Sorcerer's Arcane bloodline). `only_without_option: true` grants the
   selection only to a character holding none of its options (Dragon Disciple's Blood of Dragons). A bonus slot
   that picks from the held option's list is `OptionList(selection: "sorcerer/bloodline")`. The option features
@@ -254,6 +255,13 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
     pick: the Azata's superpowers).
   - `once_per_option: true`: an option the selection gave once can't be picked through it again
     (`kineticist/expanded-element`: the 15th-level element isn't the 7th-level one).
+  - `band`: where the selection's picks come among a level-up's (ticket 248), the game's band for its blueprint's
+    group (`SelectFeature.CalculatePriority`): `Spellbook`, `MythicAbility`, `Path`, `Features`, in the order the
+    game applies them. `Features`, the default, is left out (talents, rage powers, bonus feat lists, and every feat
+    slot); `band: Path` is on the domains, bloodlines, mysteries, curses, spirits, blessings, schools, the druid's
+    Nature Bond and the Lich's skeletal upgrade, `band: Spellbook` on the Thassilonian school. A level's picks are
+    checked band by band, and a pick of one band refused for a prerequisite or a weapon proficiency is tried again
+    after its band's other picks (`notes/248-no-order-among-one-levels-picks.md`).
   - `PickedThrough("warpriest/champion-of-the-faith/chosen-alignment")` in an option's prerequisite holds when the
     pick fills that selection's slot: the four alignment blessings are `Any([Not(PickedThrough(...)),
     Alignment(...), ...])`, the Champion's own alignment only when he picks them as his chosen alignment.
@@ -690,7 +698,11 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   it's every feat, or its one feat takes a value) and one no slot names. A bonus feat of the player's choosing
   (the warpriest's "Weapon Focus as a bonus feat in a weapon of his choosing", the Master of All's Skill Focus at
   3, 9 and 15, the Sword Saint's Chosen Weapon) is a bonus list of that one parameterised feat: the pick names the
-  value. A race may own lists too, in a `feat_lists` block before its subraces, and its slots may name only its
+  value. A list whose game pick is a feature of its own that gives the feat and proficiency with the weapon sets
+  `skips_proficiency: true` (ticket 251; the Sword Saint's Chosen Weapon, `SwordSaintChosenWeaponFeature`, whose
+  `KensaiChosenWeapon` adds the weapon to the unit's proficiencies): its feat is taken for any weapon the list
+  offers, `requires_proficiency` unchecked, and the pick makes the character proficient with that weapon. A race
+  may own lists too, in a `feat_lists` block before its subraces, and its slots may name only its
   own (the half-elf's Adaptability: Skill Focus as a bonus feat).
 - A feat the class gives outright is a granted feat, not a slot: `feats: ["scribe-scrolls"]` on the level row
   (class or archetype). It's held with no pick, whatever its prerequisites, and it's in no Build or link. A
@@ -703,8 +715,12 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
 - A feat the guide says to take for something names what: `parameter: Weapon` (also `ExoticWeapon`, `Skill`,
   `SpellSchool`, `Energy`, `ArmourType`), and each pick of it names a value. How often a feat can be taken is
   `repeat:`, left out for once: `PerValue` (once per value: every parameterised feat, by the user's decision),
-  `Times(3)` ("up to 3 times"), `Unlimited` ("may be taken multiple times"). A mythic feat takes `parameter` and
-  `repeat` the same way (Improved Critical (Mythic): a weapon, once per weapon), and `removes_racial_penalty: true`
+  `Times(3)` ("up to 3 times"), `Unlimited` ("may be taken multiple times"). A feat whose blueprint sets
+  `RequireProficiency` says `requires_proficiency: true` (ticket 251: Weapon Focus, Weapon Specialization, Improved
+  Critical, their greater and the Trickster's forms): it's taken only for a weapon the character is proficient with,
+  in every slot, whatever the slot's list ignores (`BlueprintParametrizedFeature.CanSelect`). A mythic feat takes
+  `parameter`, `repeat` and `requires_proficiency` the same way (Improved Critical (Mythic): a weapon the character
+  is proficient with, once per weapon), and `removes_racial_penalty: true`
   (Destiny Beyond Birth) gives back the race's ability penalties while it's held. A selection option may repeat too
   (`repeat: Times(3)`; `PerValue` only when it takes a value, of its chosen feat or its own), and one that is a
   parameterised feat of the player's choosing names it as `chosen_feat: "weapon-focus"` (its pick names the

@@ -401,6 +401,7 @@ fn with_expanded_arsenal() -> Engine {
         repeat: Repeat::PerValue,
         prerequisite: None,
         extra_pick: None,
+        requires_proficiency: false,
         removes_racial_penalty: false,
         ..template
     });

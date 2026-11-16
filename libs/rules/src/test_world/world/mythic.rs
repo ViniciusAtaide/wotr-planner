@@ -84,6 +84,7 @@ pub(super) fn mythic_feats() -> Vec<MythicFeat> {
         repeat: Repeat::Once,
         removes_racial_penalty: false,
         extra_pick: None,
+        requires_proficiency: false,
         prerequisite,
     };
     vec![

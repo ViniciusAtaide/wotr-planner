@@ -10,6 +10,7 @@ use crate::game_data::{Alignment, OptionGroup, SpellType};
 use crate::keys::{
     ArchetypeKey, ClassKey, DeityKey, FeatKey, FeatListKey, FeatureKey, FeatureSelectionKey,
     MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
+    WeaponKey,
 };
 use crate::parameter::Parameter;
 use crate::prerequisite::Prerequisite;
@@ -79,6 +80,10 @@ pub struct CharacterState {
     /// holds), with the values and how many picks hold each (Finesse Training: Dagger 1, Light Shield Bash 1;
     /// ticket 172).
     pub option_values: BTreeMap<SelectionOptionKey, BTreeMap<Parameter, u8>>,
+    /// The weapons a pick makes the character proficient with, with how many picks hold each: the weapon of a pick
+    /// from a list that skips the proficiency check (the Sword Saint's chosen weapon,
+    /// [`FeatList::skips_proficiency`](crate::FeatList::skips_proficiency); ticket 251).
+    pub weapon_proficiencies: BTreeMap<WeaponKey, u8>,
     /// The group of each option held that belongs to one (a Draconic bloodline).
     pub option_groups: BTreeMap<SelectionOptionKey, OptionGroup>,
     /// The option level of each option held through a selection with option levels (a sorcerer 5 / Dragon

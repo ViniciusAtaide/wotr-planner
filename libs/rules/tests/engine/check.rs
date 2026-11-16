@@ -708,13 +708,6 @@ fn a_switch_is_open_from_paths_chosen_at_mr_3_only() {
     );
 }
 
-fn feat_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::Feat {
-    data.feats
-        .iter_mut()
-        .find(|f| f.key.as_str() == key)
-        .unwrap()
-}
-
 fn rogue_talent_mut<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::SelectionOption {
     class_mut(data, "rogue").selections[0]
         .options
@@ -931,21 +924,6 @@ fn a_story_condition_is_required_not_one_of_several() {
 
 // ---- options with rows by option level ------------------------------------------------------------------------
 
-fn sorcerer_selection<'a>(data: &'a mut GameData, key: &str) -> &'a mut rules::FeatureSelection {
-    let sorcerer = class_mut(data, "sorcerer");
-    sorcerer
-        .selections
-        .iter_mut()
-        .chain(
-            sorcerer
-                .archetypes
-                .iter_mut()
-                .flat_map(|archetype| &mut archetype.selections),
-        )
-        .find(|selection| selection.key.as_str() == key)
-        .unwrap()
-}
-
 #[test]
 fn an_option_has_one_row_per_option_level() {
     let mut data = world();
@@ -1144,6 +1122,7 @@ fn an_option_rows_bonus_slot_names_its_list() {
             guide: Some(rules::GuideRef::new("cleric")),
             ignores_prerequisites: false,
             every_feat: false,
+            skips_proficiency: false,
             feats: BTreeSet::from([FeatKey::new("toughness"), FeatKey::new("dodge")]),
         });
     assert_eq!(

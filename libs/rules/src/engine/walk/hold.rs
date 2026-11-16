@@ -2,8 +2,8 @@
 //! follow from it.
 
 use super::gear::WornGear;
-use super::judge::check_pick;
-use super::{Checkpoint, GrantSource, Held, Pending, Probe, RankGrant, Walker};
+use super::judge::{check_pick, deferrable, skips_proficiency};
+use super::{Checkpoint, Deferred, GrantSource, Held, Pending, Probe, RankGrant, Walker};
 use crate::build::{AbilityScores, Pick, SlotId};
 use crate::choice::{Choice, Issue};
 use crate::engine::{Slot, SlotKind, with_bonuses};
@@ -12,7 +12,7 @@ use crate::parameter::Parameter;
 use crate::state::CharacterState;
 
 impl<'a> Walker<'a> {
-    /// Fills a Level-up's or Mythic ascension's slots in order.
+    /// Fills a Mythic ascension's slots in order.
     pub(super) fn fill_all(
         &mut self,
         slots: Vec<(SlotKind, SlotId)>,
@@ -24,7 +24,10 @@ impl<'a> Walker<'a> {
             .collect()
     }
 
-    /// Checks the slot's pick against the state just before it and, when it holds, adds it to the state.
+    /// Checks the slot's pick against the state just before it and, when it holds, adds it to the state. While a
+    /// level's band is filled ([`fill_bands`](Self::fill_bands)), a pick refused for what the band's other picks may
+    /// give ([`deferrable`]) is deferred, to be tried again after them ([`retry`](Self::retry)), rather than failing
+    /// now.
     pub(super) fn fill(&mut self, id: SlotId, kind: SlotKind, rank: Option<u8>) -> Slot {
         let source = rank.map(|rank| GrantSource {
             rank,
@@ -51,28 +54,19 @@ impl<'a> Walker<'a> {
             self.selections_had.push(selection.clone());
         }
         let pick = self.build.picks.get(&id).cloned();
-        // A later probe keeps each pick after its slot, with the state either side.
-        let before = match (self.probe, &self.probed.later, &pick) {
-            (Some(Probe::Later(probed)), Some(_), Some(_)) if probed != &id => {
-                Some(self.state.clone())
-            }
-            _ => None,
-        };
         if let Some(pick) = &pick {
             match self.check_pick(&kind, pick) {
-                Ok(()) => self.hold_pick(&kind, pick, source.as_ref()),
-                Err(issue) => self.fail(Choice::Slot(id.clone()), issue),
+                Ok(()) => self.hold_noted(&id, &kind, pick, source.as_ref()),
+                Err(issue) => match self.deferred.as_mut() {
+                    Some(deferred) if deferrable(&issue) => deferred.push(Deferred {
+                        id: id.clone(),
+                        kind: kind.clone(),
+                        pick: pick.clone(),
+                        issue,
+                    }),
+                    _ => self.fail(Choice::Slot(id.clone()), issue),
+                },
             }
-        }
-        if let (Some(before), Some(later), Some(pick)) = (before, self.probed.later.as_mut(), &pick)
-        {
-            later.push(Checkpoint {
-                slot: id.clone(),
-                kind: kind.clone(),
-                pick: pick.clone(),
-                before,
-                after: self.state.clone(),
-            });
         }
         if let Some(Probe::Later(probed)) = self.probe
             && probed == &id
@@ -82,8 +76,56 @@ impl<'a> Walker<'a> {
         Slot { id, kind, pick }
     }
 
+    /// Tries each deferred pick again, in order, against the state now, holding those that pass: whether any did.
+    /// Those still refused stay, with why.
+    pub(super) fn retry(&mut self, deferred: &mut Vec<Deferred>) -> bool {
+        let before = deferred.len();
+        deferred.retain_mut(|entry| match self.check_pick(&entry.kind, &entry.pick) {
+            Ok(()) => {
+                self.hold_noted(&entry.id, &entry.kind, &entry.pick, None);
+                false
+            }
+            Err(issue) => {
+                entry.issue = issue;
+                true
+            }
+        });
+        deferred.len() < before
+    }
+
+    /// Holds a pick that passed its check, and keeps it with the state either side of it when a later probe has
+    /// passed its slot ([`Probed::later`](super::Probed::later)).
+    fn hold_noted(
+        &mut self,
+        id: &SlotId,
+        kind: &SlotKind,
+        pick: &Pick,
+        source: Option<&GrantSource>,
+    ) {
+        let before = match (self.probe, &self.probed.later) {
+            (Some(Probe::Later(probed)), Some(_)) if probed != id => Some(self.state.clone()),
+            _ => None,
+        };
+        self.hold_pick(kind, pick, source);
+        if let (Some(before), Some(later)) = (before, self.probed.later.as_mut()) {
+            later.push(Checkpoint {
+                slot: id.clone(),
+                kind: kind.clone(),
+                pick: pick.clone(),
+                before,
+                after: self.state.clone(),
+            });
+        }
+    }
+
     fn check_pick(&self, kind: &SlotKind, pick: &Pick) -> Result<(), Issue> {
-        check_pick(&self.engine.catalog, &self.state, kind, pick)
+        check_pick(
+            &self.engine.catalog,
+            &self.build.start,
+            &self.state,
+            kind,
+            pick,
+        )
     }
 
     fn hold_pick(&mut self, kind: &SlotKind, pick: &Pick, source: Option<&GrantSource>) {
@@ -92,6 +134,17 @@ impl<'a> Walker<'a> {
                 feat: key,
                 parameter,
             } => {
+                // A list whose pick skips the proficiency check makes the character proficient with its weapon
+                // (the Sword Saint's chosen weapon). Only a feat that requires proficiency can skip it.
+                let catalog = &self.engine.catalog;
+                if let (SlotKind::Feat(slot), Some(Parameter::Weapon(weapon))) = (kind, parameter)
+                    && catalog
+                        .feat(key)
+                        .is_some_and(|feat| feat.requires_proficiency)
+                    && skips_proficiency(&catalog.slot_lists(slot, &self.state), key)
+                {
+                    self.hold(Held::Proficiency(weapon.clone()), source.cloned());
+                }
                 self.hold(
                     Held::Feat(key.clone(), parameter.iter().cloned().collect()),
                     source.cloned(),
@@ -229,6 +282,10 @@ impl<'a> Walker<'a> {
             }
             Held::Selection(key) => {
                 let holds = state.selections.entry(key.clone()).or_default();
+                *holds = holds.saturating_add(1);
+            }
+            Held::Proficiency(key) => {
+                let holds = state.weapon_proficiencies.entry(key.clone()).or_default();
                 *holds = holds.saturating_add(1);
             }
         }
@@ -383,6 +440,14 @@ impl<'a> Walker<'a> {
                     *holds = holds.saturating_sub(1);
                     if *holds == 0 {
                         state.selections.remove(key);
+                    }
+                }
+            }
+            Held::Proficiency(key) => {
+                if let Some(holds) = state.weapon_proficiencies.get_mut(key) {
+                    *holds = holds.saturating_sub(1);
+                    if *holds == 0 {
+                        state.weapon_proficiencies.remove(key);
                     }
                 }
             }
