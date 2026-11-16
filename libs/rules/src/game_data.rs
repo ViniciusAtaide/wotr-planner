@@ -761,7 +761,7 @@ pub struct Class {
     #[serde(default)]
     pub guide: Option<GuideRef>,
     pub skill_points: u8,
-    /// How the base attack bonus grows with class level. Archetypes never change it.
+    /// How the base attack bonus grows with class level (an archetype may replace it: [`Archetype::bab`]).
     pub bab: BabProgression,
     pub fort: SaveProgression,
     pub reflex: SaveProgression,
@@ -864,6 +864,9 @@ pub struct Archetype {
     /// `None`: casts with the base class's ability. `Some`: replaces it (Sage Sorcerer: Intelligence).
     #[serde(default)]
     pub casting_ability: Option<Ability>,
+    /// `None`: the base class's BAB progression. `Some`: replaces it (Feyspeaker: half).
+    #[serde(default)]
+    pub bab: Option<BabProgression>,
     /// `None`: the base class's Fortitude progression. `Some`: replaces it (Arcane Enforcer: poor), and with it
     /// the class's [`save_exceptions`](Class::save_exceptions) for that save, which are cells of the class's own.
     #[serde(default)]
@@ -997,9 +1000,13 @@ impl Class {
         }
     }
 
-    /// The base attack bonus at a class level.
-    pub fn base_attack_bonus(&self, class_level: u8) -> u8 {
-        self.bab.bab(class_level)
+    /// The base attack bonus at a class level, taken with `archetype` (one of the class's, or none): the
+    /// archetype's progression when it replaces the class's.
+    pub fn base_attack_bonus(&self, class_level: u8, archetype: Option<&Archetype>) -> u8 {
+        archetype
+            .and_then(|archetype| archetype.bab)
+            .unwrap_or(self.bab)
+            .bab(class_level)
     }
 
     /// One save at a class level, taken with `archetype` (one of the class's, or none): the archetype's

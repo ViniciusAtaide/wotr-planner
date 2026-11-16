@@ -233,6 +233,17 @@ fn an_archetype_save_progression_differs_from_its_classs() {
 }
 
 #[test]
+fn an_archetype_bab_equal_to_its_classs_is_refused() {
+    let mut data = world();
+    // Fighter: full BAB.
+    first_archetype_mut(&mut data, "fighter").bab = Some(rules::BabProgression::Full);
+    assert_eq!(
+        issues(&data),
+        [(at_armiger(), DataIssue::BabProgressionSameAsClass)]
+    );
+}
+
+#[test]
 fn only_base_classes_have_archetypes() {
     let mut data = world();
     let armiger = first_archetype_mut(&mut data, "fighter").clone();

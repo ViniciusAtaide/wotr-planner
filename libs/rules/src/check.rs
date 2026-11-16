@@ -183,6 +183,8 @@ pub enum DataIssue {
     SpellOverrideSameAsBase(u8),
     /// An archetype's save progression that is its class's anyway. Leave it out instead.
     SaveProgressionSameAsClass(Save),
+    /// An archetype's BAB progression that is its class's anyway. Leave it out instead.
+    BabProgressionSameAsClass,
     /// A save exception at a level the class doesn't have.
     SaveExceptionOutsideClass {
         level: u8,
@@ -424,6 +426,9 @@ impl fmt::Display for DataProblem {
                 f,
                 "the {save:?} progression is the base class's; leave it out"
             ),
+            DataIssue::BabProgressionSameAsClass => {
+                write!(f, "the BAB progression is the base class's; leave it out")
+            }
             DataIssue::SaveExceptionOutsideClass { level, save } => write!(
                 f,
                 "a {save:?} exception at level {level}, which the class doesn't have"
@@ -1769,6 +1774,9 @@ impl Checker {
             return;
         };
         self.archetype_rows(data, &at, class, archetype);
+        if archetype.bab == Some(class.bab) {
+            self.problem(&at, DataIssue::BabProgressionSameAsClass);
+        }
         for save in Save::ALL {
             if archetype.save_progression(save) == Some(class.save_progression(save)) {
                 self.problem(&at, DataIssue::SaveProgressionSameAsClass(save));

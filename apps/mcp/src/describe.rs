@@ -323,7 +323,7 @@ fn class_rows(
             let spells = row.spell_levels;
             LevelRow {
                 level,
-                bab: Some(class.base_attack_bonus(level)),
+                bab: Some(class.base_attack_bonus(level, archetype)),
                 fort: save(Save::Fortitude),
                 reflex: save(Save::Reflex),
                 will: save(Save::Will),

@@ -46,7 +46,7 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
         let levels = class.levels.len() as u8;
         let bab = row.progression(json, "m_BaseAttackBonus");
         row.table(out, "BAB differs", bab.as_deref(), levels, |level| {
-            class.base_attack_bonus(level)
+            class.base_attack_bonus(level, None)
         });
         for (save, field, kind) in SAVES {
             let game = row.progression(json, field);
@@ -119,12 +119,15 @@ fn archetype_tables(
             .iter(),
     );
     row.skills(out, &game_skills, &planner);
-    if reference(&json["m_BaseAttackBonus"]).is_some() {
-        let bab = row.progression(json, "m_BaseAttackBonus");
-        row.table(out, "BAB differs", bab.as_deref(), levels, |level| {
-            class.base_attack_bonus(level)
-        });
-    }
+    let bab_table = if reference(&json["m_BaseAttackBonus"]).is_some() {
+        json
+    } else {
+        class_json
+    };
+    let bab = row.progression(bab_table, "m_BaseAttackBonus");
+    row.table(out, "BAB differs", bab.as_deref(), levels, |level| {
+        class.base_attack_bonus(level, Some(archetype))
+    });
     for (save, field, kind) in SAVES {
         let table = if reference(&json[field]).is_some() {
             json
