@@ -26,6 +26,12 @@ The game is the source of truth for rules (map Notes, ticket 234), at patch 2.7.
 - **Reading a blueprint:** `cargo run -p game-check -- show <name|guid>…` prints one, references resolved and no game text; `grep <regex>` lists the blueprints whose name or JSON match; `refs <name|guid>` lists those that reference one. They find the dump from a worktree on their own.
 - **Never in the repo:** the game's text strings, the dump and its code, not even quoted in a ticket.
 
+## One-off tools
+
+A tool written for a ticket or a check (a data rewrite, a dump comparison, a census classifier, a lookup) is a Rust crate written with the `rust-skills` skill, never a Python script (user, 2026-11-16).
+- **Lean:** std-only where it can be, and streaming any large input a record or a Build at a time rather than loading it whole (the machine has 24 GB; a Python diff of two 5 GB dumps took tens of GB, its Rust replacement 17 MB and 20 s).
+- **Where:** the session's scratchpad, with its own `target/`, unless it's committed under `tools/`. The shell scripts in `scripts/` stay shell.
+
 ## Parallel agents
 
 The machine has 8 cores and 24 GB of RAM. Builds, tests, the long self-check runs and benchmarks are all CPU-bound and compete for them: three agents building at once drove the load to 85–250 and made each one slower. Reading, writing and reviewing cost almost no local CPU, so those run side by side for free.
