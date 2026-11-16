@@ -13,12 +13,14 @@ mod areas;
 pub mod binz;
 mod dump;
 pub mod known;
+pub mod lookup;
 mod pins;
 mod planner;
 mod report;
 
 pub use dump::Dump;
 pub use known::Known;
+pub use lookup::Library;
 pub use pins::Pins;
 pub use report::{Area, Report};
 
@@ -56,6 +58,32 @@ pub fn check(pins: &Pins, dump: &Dump, data: &GameData, known: &Known) -> Result
         out,
         known,
     ))
+}
+
+/// Where the pinned dump is when no `--binz` names it: `blueprints/<asset>` in `checkout` (the workspace the tool was
+/// compiled in) when that has one, else in the main checkout. A worktree has no `blueprints/`; the main checkout
+/// is found through `git rev-parse --git-common-dir`, which every worktree shares.
+pub fn default_dump(checkout: &std::path::Path, asset: &str) -> std::path::PathBuf {
+    let own = checkout.join("blueprints").join(asset);
+    if own.exists() {
+        return own;
+    }
+    let common = std::process::Command::new("git")
+        .arg("-C")
+        .arg(checkout)
+        .args(["rev-parse", "--git-common-dir"])
+        .output()
+        .ok()
+        .filter(|output| output.status.success())
+        .and_then(|output| String::from_utf8(output.stdout).ok());
+    match common {
+        Some(common) => {
+            let common = checkout.join(common.trim());
+            let main = common.parent().unwrap_or(checkout);
+            main.join("blueprints").join(asset)
+        }
+        None => own,
+    }
 }
 
 #[derive(Debug)]

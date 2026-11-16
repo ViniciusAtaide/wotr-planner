@@ -4,6 +4,7 @@
 mod areas;
 mod determinism;
 mod known;
+mod lookup;
 mod pins;
 mod refusal;
 mod support;

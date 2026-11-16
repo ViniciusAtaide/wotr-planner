@@ -1,7 +1,7 @@
 # Blueprint lookups in the game check
 
 Type: build (tools)
-Status: open
+Status: resolved
 Blocked by: none
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)
@@ -28,6 +28,22 @@ Every brief also had to pass `--binz /Users/…/blueprints/…`, because the def
 - **`game-check refs <name|guid>`** lists the blueprints that reference it, such as the progressions and selections that grant a feature.
 - **The default dump path:** when `--binz` is absent and the compile checkout has no `blueprints/`, the tool uses the main checkout's. It finds it through `git rev-parse --git-common-dir`, which is shared by every worktree.
 - **`CLAUDE.md` "Game sources"** gains one line pointing to these commands as the way to read a blueprint.
+
+## Answer
+
+Built `game-check show`, `grep` and `refs` and the default dump path from a worktree.
+
+- **`tools/game-check/src/lookup.rs`:** `Library` holds every blueprint of the pinned dump with its JSON (the check's `Dump` keeps JSON only for the kinds it compares). `binz::scan` is the record walk `parse` now shares; `binz::pinned_bytes` is the size and SHA-256 check `read` shares.
+  - `show <name|guid>…`: header line `name guid type`, then pretty JSON with each `!bp_<guid>` as `<name> <guid>` (`(not in the dump) <guid>` for one the dump lacks). A name that several blueprints share prints each. A GUID is accepted with or without `bp_`/`!bp_`.
+  - Text left out: a value under `m_DisplayName`, `m_Description`, `m_DescriptionShort`, `m_Flavor` or `m_ShortDescription`, and any object with an `m_Key`, `Shared` or `stringkey` key (the shape of every localized string in the dump: about 40 field names such as `Text`, `Description`, `m_DescriptionText`, `LocalizedName`), becomes `<localized text>`.
+  - `grep <regex>`: `guid name type`, in name order, for each blueprint whose name matches or whose JSON matches, with the text left out, on one line, references as GUIDs (`"Stat":"Strength"`). The first match runs on the whole JSON and is confirmed on the stripped one.
+  - `refs <name|guid>`: `guid name type` of each blueprint whose JSON holds `!bp_<guid>` for it.
+  - Exit 0; 2 for a refused dump, an unknown name or a bad pattern. A wrong command or count is refused before the dump is read.
+- **`game_check::default_dump`:** `blueprints/<asset>` in the compile checkout when it exists, else in the main checkout from `git rev-parse --git-common-dir`.
+- **`CLAUDE.md` "Game sources"** gains the one line. The workspace `Cargo.toml` gains `[profile.dev.package.game-check]` and `regex-automata` at `opt-level = 3`, so a debug `grep` takes about 5 s instead of 16 s; `regex` is a new dependency of the crate.
+- **Decisions:** all mine (tooling). The brief's "left out" became a placeholder so a field's presence still shows.
+
+Tests (`tools/game-check/tests/fixture/lookup.rs`, invented blueprints): `show_resolves_a_reference_and_prints_no_localized_text`, `show_of_an_unknown_name_says_so`, `grep_finds_by_name_and_by_a_component_type`, `grep_does_not_match_the_text`, `refs_finds_the_blueprints_that_grant_or_refer_to_one`, `the_default_dump_is_the_main_checkouts_from_a_worktree` (a temporary repo and its worktree). No game fact changes, so no game citation; the real dump was run by hand: `cargo run -p game-check -- show PowerAttackFeature` from this worktree, no `--binz`, prints `PowerAttackFeature 9972f33f977fc724c838e59641b2fca5 BlueprintFeature`. The check's report is byte-identical before and after (`cmp`).
 
 ## Done when
 

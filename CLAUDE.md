@@ -23,6 +23,7 @@ The game is the source of truth for rules (map Notes, ticket 234), at patch 2.7.
 - **`decompiled/`:** xADDBx/WrathDecompiled, shallow, at the pinned commit: the game's code.
 - **Citing:** a fact or a rule cites a blueprint by name and GUID, or the code by file and method with the WrathDecompiled commit.
 - **Worktrees:** both folders live only in the main checkout; an agent in a worktree reads them there by absolute path and does not run the script.
+- **Reading a blueprint:** `cargo run -p game-check -- show <name|guid>…` prints one, references resolved and no game text; `grep <regex>` lists the blueprints whose name or JSON match; `refs <name|guid>` lists those that reference one. They find the dump from a worktree on their own.
 - **Never in the repo:** the game's text strings, the dump and its code, not even quoted in a ticket.
 
 ## Parallel agents
