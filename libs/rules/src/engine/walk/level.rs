@@ -498,8 +498,7 @@ impl<'a> Walker<'a> {
             (self.pending.iter()).position(|pending| self.pending_band(pending) <= band)
         {
             let (kind, granting) = match self.pending.remove(at) {
-                Pending::Row(kind, granting) => (kind, Some(granting)),
-                Pending::Granted(selection) => (SlotKind::Selection(selection), None),
+                Pending::Row(kind, granting) => (kind, granting),
                 Pending::Feat(feat) => {
                     if let Some(selection) = self.extra_pick_selection(&feat)
                         && !self.grant_without_slot(&selection, None)
@@ -514,7 +513,7 @@ impl<'a> Walker<'a> {
                     continue;
                 }
             };
-            self.granting = granting;
+            self.granting = Some(granting);
             let id = match &kind {
                 SlotKind::Selection(selection) => {
                     if self.grant_without_slot(selection, None) {
@@ -543,7 +542,6 @@ impl<'a> Walker<'a> {
         let catalog = &self.engine.catalog;
         match pending {
             Pending::Row(kind, _) => catalog.band(kind),
-            Pending::Granted(selection) => catalog.selection_band(selection),
             Pending::Feat(feat) => self
                 .extra_pick_of(feat)
                 .map_or(Band::Features, |selection| {
@@ -619,8 +617,10 @@ impl<'a> Walker<'a> {
             }
             if let Some(row) = catalog.row(class, archetype, effective.min(class_level_cap(class)))
             {
-                let own = row.spell_levels.arcane.max(row.spell_levels.divine);
-                if spellbooks && own > 0 {
+                // A class with a spellbook (it casts at some level) is there from its first level, at 0 before its
+                // first spell level: `Spellbook.GetMaxSpellLevel` of a row listing level 0 (ticket 295).
+                if spellbooks && (casts_arcane || casts_divine) {
+                    let own = row.spell_levels.arcane.max(row.spell_levels.divine);
                     class_spell_levels.insert(entry.class.clone(), own);
                 }
                 arcane = arcane.max(row.spell_levels.arcane);

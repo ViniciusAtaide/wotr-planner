@@ -41,6 +41,10 @@ pub struct CharacterState {
     /// gear's bonuses only the [`counts_toward_prerequisites`](crate::BonusType::counts_toward_prerequisites) ones, an
     /// item's Enhancement: the game's permanent value.
     pub permanent_ability_scores: AbilityScores,
+    /// The scores a full ability prerequisite reads (ticket 295): the [`permanent`](Self::permanent_ability_scores)
+    /// ones plus the components' bonuses of descriptor `Feat` (`PrerequisiteFullStatValue.GetFullStatValue`). The
+    /// permanent ones for data without components.
+    pub full_ability_scores: AbilityScores,
     /// Point buy, racial modifiers and the level increases so far, before any feature's bonus.
     pub base_ability_scores: AbilityScores,
     /// Spell-level access: the highest arcane spell level castable; 0 when none.
@@ -113,8 +117,9 @@ pub struct CharacterState {
     /// Set while a feature makes every skill's total count at least the Mythic rank for its ranks (Perfect Mind).
     /// Prerequisites still read the ranks spent.
     pub skill_ranks_at_least_mythic_rank: bool,
-    /// The highest spell level castable from each class that casts (with the prestige levels that advance it): what a
-    /// [`Prerequisite::ClassSpellLevel`] reads. Classes that cast none yet are left out.
+    /// The highest spell level castable from each class taken that has a spellbook (with the prestige levels that
+    /// advance it), 0 before its first: what a [`Prerequisite::ClassSpellLevel`] reads. Classes without one are left
+    /// out.
     pub class_spell_levels: BTreeMap<ClassKey, u8>,
     /// The spell types of the classes taken that cast spells, whatever level they reach yet: what a
     /// [`Prerequisite::CasterType`] reads.
@@ -288,8 +293,14 @@ impl CharacterState {
     }
 
     /// The value a prerequisite reads of a stat whose own value is `has`: changed by each fact held that replaces it
-    /// for prerequisites, in the order held (`PrerequisiteStatValue.GetStatValue`, `ReplaceStatForPrerequisites.ResultStat`).
-    fn prerequisite_stat(&self, is_stat: impl Fn(&StatRef) -> bool, has: u8) -> u8 {
+    /// for prerequisites, in the order held, a replacing ability read in `scores` (`PrerequisiteStatValue.GetStatValue`,
+    /// `PrerequisiteFullStatValue.GetFullStatValue`, `ReplaceStatForPrerequisites.ResultStat`).
+    fn prerequisite_stat(
+        &self,
+        is_stat: impl Fn(&StatRef) -> bool,
+        has: u8,
+        scores: &AbilityScores,
+    ) -> u8 {
         if self.prerequisite_stats.is_empty() {
             return has;
         }
@@ -297,7 +308,9 @@ impl CharacterState {
             .prerequisite_stats
             .iter()
             .filter(|(of, _)| is_stat(of))
-            .fold(i16::from(has), |value, (_, rule)| rule.apply(value, self));
+            .fold(i16::from(has), |value, (_, rule)| {
+                rule.apply(value, self, scores)
+            });
         u8::try_from(value.max(0)).unwrap_or(u8::MAX)
     }
 
@@ -460,6 +473,7 @@ impl CharacterState {
                 self.prerequisite_stat(
                     |stat| matches!(stat, StatRef::Skill(of) if of == skill),
                     self.skill_ranks(skill),
+                    &self.ability_scores,
                 ),
                 *ranks,
             ),
@@ -467,20 +481,31 @@ impl CharacterState {
                 self.prerequisite_stat(
                     |stat| *stat == StatRef::Ability(*ability),
                     self.permanent_ability_scores.get(*ability),
+                    &self.ability_scores,
                 ),
                 *score,
             ),
-            P::FullAbilityScore { ability, score } => {
-                numeric(self.ability_scores.get(*ability), *score)
-            }
+            P::FullAbilityScore { ability, score } => numeric(
+                self.prerequisite_stat(
+                    |stat| *stat == StatRef::Ability(*ability),
+                    self.full_ability_scores.get(*ability),
+                    &self.permanent_ability_scores,
+                ),
+                *score,
+            ),
             P::BaseAttackBonus(bab) => numeric(
-                self.prerequisite_stat(|stat| *stat == StatRef::BaseAttack, self.bab),
+                self.prerequisite_stat(
+                    |stat| *stat == StatRef::BaseAttack,
+                    self.bab,
+                    &self.ability_scores,
+                ),
                 *bab,
             ),
-            P::ClassSpellLevel { class, level } => numeric(
-                self.class_spell_levels.get(class).copied().unwrap_or(0),
-                *level,
-            ),
+            // `GetClassSpellLevel` is `null` for a class not taken or without a spellbook, which meets no level.
+            P::ClassSpellLevel { class, level } => match self.class_spell_levels.get(class) {
+                Some(has) => numeric(*has, *level),
+                None => (false, None),
+            },
             P::CasterType(spell_type) => flag(self.caster_types.contains(spell_type)),
             P::SpellLevel { spell_type, level } => numeric(self.spell_level(*spell_type), *level),
             P::SpontaneousSpellLevel { spell_type, level } => {

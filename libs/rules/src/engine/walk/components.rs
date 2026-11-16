@@ -1,19 +1,20 @@
 //! The components the walk evaluates while their entry is held (ticket 295): the grants hold their facts through the
-//! walk's own holds, as a level row's do; the conditional grants are looked at again at every level; and the numbers
-//! (stat bonuses, skill points, the prerequisite modifiers) are worked out from the state whenever what's held or the
-//! level changes. The catalog says which entries have any ([`Catalog::has_components`]): for data without, none of
-//! this runs.
+//! walk's own holds, as a level row's do; the conditional grants are looked at again at every level; the conditional
+//! stat bonuses on the events the game's component handles; and the numbers (stat bonuses, skill points, the
+//! prerequisite modifiers) are worked out from the state whenever anything is held or released, or the level changes,
+//! since a rank or a fact a value reads may have changed. The catalog says which entries have any
+//! ([`Catalog::has_components`]): for data without, none of this runs.
 //!
 //! [`Catalog::has_components`]: crate::engine::catalog::Catalog
 
 use std::collections::BTreeMap;
 
-use super::{Held, Pending, Walker};
+use super::{Held, Walker};
 use crate::bonus::{BonusInForce, BonusSource, BonusTarget, InForceTarget};
 use crate::build::AbilityScores;
 use crate::component::{
-    Component, Descriptor, Fact, Holder, MechanicsFlag, StatTarget, ValueContext, game_stacked,
-    grant_level, grants_at,
+    Component, Descriptor, Fact, Holder, IfHeld, MechanicsFlag, StatTarget, ValueContext,
+    game_stacked, grant_level, grants_at,
 };
 use crate::engine::catalog::HolderKind;
 use crate::state::PrerequisiteClassLevels;
@@ -23,11 +24,24 @@ use crate::state::PrerequisiteClassLevels;
 #[derive(Clone, Debug, Default)]
 pub(super) struct HeldComponents(BTreeMap<Holder, Vec<(usize, Applied)>>);
 
+/// What the stat bonuses held add to each ability score ([`Walker::component_ability_amounts`]).
+#[derive(Clone, Copy, Debug, Default)]
+pub(super) struct AbilityAmounts {
+    /// All of them: what every number reads.
+    pub every: [i16; 6],
+    /// The permanent ones an ability prerequisite reads (`Modifier.IsPermanent`).
+    pub permanent: [i16; 6],
+    /// The `Feat` ones a full ability prerequisite adds to the permanent value.
+    pub feat: [i16; 6],
+}
+
 /// One thing a component holds.
 #[derive(Clone, Debug)]
 enum Applied {
     Held(Held),
     Flag(MechanicsFlag),
+    /// A conditional stat bonus that is on ([`IfHeld`](crate::IfHeld)).
+    On,
 }
 
 /// The kind and key of an item the walk holds, as a holder of components: a fact. A class skill, a proficiency or an
@@ -57,6 +71,25 @@ fn held_fact(item: &Held) -> Option<Fact> {
     })
 }
 
+/// The conditional stat bonuses of an entry's components, by position.
+fn conditional_bonuses(components: &[Component]) -> impl Iterator<Item = (usize, &IfHeld)> {
+    components
+        .iter()
+        .enumerate()
+        .filter_map(|(at, component)| match component {
+            Component::StatBonus {
+                only_if: Some(only_if),
+                ..
+            } => Some((at, only_if)),
+            _ => None,
+        })
+}
+
+/// Whether a holder's applied entry at `of` is the conditional stat bonus at `at` turned on.
+fn is_on(of: usize, applied: &Applied, at: usize) -> bool {
+    of == at && matches!(applied, Applied::On)
+}
+
 /// Whether a component is a number the walk works out from what's held (rather than something it holds).
 fn is_number(component: &Component) -> bool {
     matches!(
@@ -75,43 +108,64 @@ impl<'a> Walker<'a> {
         self.engine.catalog.held_components(kind, key)
     }
 
-    /// The fact a held item is, when it has components.
-    fn component_holder(&self, item: &Held) -> Option<Fact> {
-        let (kind, key) = held_kind(item)?;
-        if self.engine.catalog.held_components(kind, key).is_empty() {
-            return None;
-        }
-        held_fact(item)
+    /// Whether a held item has components of its own.
+    fn has_own_components(&self, item: &Held) -> bool {
+        held_kind(item)
+            .is_some_and(|(kind, key)| !self.engine.catalog.held_components(kind, key).is_empty())
     }
 
-    /// After the walk holds an item: its components apply, the first time it's held.
+    /// After the walk holds an item: its components apply, the first time it's held; the conditional bonuses that
+    /// look again when a checked fact is gained do; and the numbers are worked out again (a second rank doubles a
+    /// [`PerRank`](crate::Value::PerRank) value as it comes, `AddStatBonus.OnTurnOn`'s `Value × GetRank()`).
     pub(super) fn hold_components(&mut self, item: &Held) {
-        if let Some(fact) = self.component_holder(item) {
-            self.apply_components(|| Holder::Fact(fact));
+        let Some(fact) = held_fact(item) else {
+            return;
+        };
+        if self.has_own_components(item) {
+            self.activate(Holder::Fact(fact.clone()));
         }
+        if fact.rank(&self.state) == 1 {
+            self.recheck_if_held(&fact, true);
+        }
+        self.refresh_if_numbers();
     }
 
-    /// After the walk releases an item: once it's no longer held at all, what its components hold is released.
+    /// After the walk releases an item: once it's no longer held at all, what its components hold is released and the
+    /// conditional bonuses that look again when a checked fact is lost do; the numbers are worked out again.
     pub(super) fn release_components(&mut self, item: &Held) {
-        if let Some(fact) = self.component_holder(item)
-            && fact.rank(&self.state) == 0
-        {
-            self.drop_components(&Holder::Fact(fact));
+        let Some(fact) = held_fact(item) else {
+            return;
+        };
+        let mut dropped_numbers = false;
+        if fact.rank(&self.state) == 0 {
+            if self.has_own_components(item) {
+                dropped_numbers = self.drop_components(&Holder::Fact(fact.clone()));
+            }
+            self.recheck_if_held(&fact, false);
+        }
+        if dropped_numbers {
+            self.refresh_component_numbers();
+        } else {
+            self.refresh_if_numbers();
         }
     }
 
-    /// An entry's components apply: its grants hold their facts, its conditional grants are looked at, and the
-    /// numbers are worked out again. Nothing when they apply already (the entry held twice holds its grants once:
-    /// `AddFacts.OnActivate` runs once per fact).
+    /// An entry's components apply, and the numbers are worked out again: the race's, the background's, the deity's, a
+    /// class's and its archetype's.
     pub(super) fn apply_components(&mut self, holder: impl FnOnce() -> Holder) {
         // Data without components builds no holder (a copy of a key).
-        if !self.engine.catalog.has_components() {
-            return;
+        if self.engine.catalog.has_components() && self.activate(holder()) {
+            self.refresh_if_numbers();
         }
-        let holder = holder();
+    }
+
+    /// An entry's components apply: its grants hold their facts, its conditional grants are looked at, and its
+    /// conditional stat bonuses are decided (`OnTurnOn`). Nothing when they apply already (the entry held twice holds
+    /// its grants once: `AddFacts.OnActivate` runs once per fact). Whether they applied now.
+    fn activate(&mut self, holder: Holder) -> bool {
         let components = self.components_of(&holder);
         if components.is_empty() || self.components.0.contains_key(&holder) {
-            return;
+            return false;
         }
         self.components.0.insert(holder.clone(), Vec::new());
         let catalog = &self.engine.catalog;
@@ -170,29 +224,65 @@ impl<'a> Walker<'a> {
             }
         }
         self.update_conditionals(&holder);
-        if components.iter().any(is_number) {
+        for (at, only_if) in conditional_bonuses(components) {
+            let on = only_if.holds(&self.state);
+            self.switch(&holder, at, on);
+        }
+        true
+    }
+
+    /// `AddStatBonusIfHasFact`'s two events: a checked fact gained (`HandleUnitGainFact`, looked at only while
+    /// inverted) or lost (`HandleUnitLostFact`, only while not); each bonus listening for it is decided again
+    /// (`Update`).
+    fn recheck_if_held(&mut self, fact: &Fact, gained: bool) {
+        let mut decided = Vec::new();
+        for holder in self.components.0.keys() {
+            for (at, only_if) in conditional_bonuses(self.components_of(holder)) {
+                if only_if.not == gained && only_if.facts.contains(fact) {
+                    decided.push((holder.clone(), at, only_if.holds(&self.state)));
+                }
+            }
+        }
+        for (holder, at, on) in decided {
+            self.switch(&holder, at, on);
+        }
+    }
+
+    /// Turns a holder's conditional stat bonus at `at` on or off.
+    fn switch(&mut self, holder: &Holder, at: usize, on: bool) {
+        if let Some(list) = self.components.0.get_mut(holder) {
+            list.retain(|(of, applied)| !is_on(*of, applied, at));
+            if on {
+                list.push((at, Applied::On));
+            }
+        }
+    }
+
+    /// The numbers worked out again, when an entry held has any.
+    fn refresh_if_numbers(&mut self) {
+        if (self.components.0.keys()).any(|holder| self.components_of(holder).iter().any(is_number))
+        {
             self.refresh_component_numbers();
         }
     }
 
-    /// An entry's components stop applying: what they hold is released, in the reverse order, and the numbers are
-    /// worked out again (`OnDeactivate`, `OnTurnOff`).
-    pub(super) fn drop_components(&mut self, holder: &Holder) {
+    /// An entry's components stop applying: what they hold is released, in the reverse order (`OnDeactivate`,
+    /// `OnTurnOff`). Whether it had numbers, which the caller then works out again.
+    fn drop_components(&mut self, holder: &Holder) -> bool {
         let Some(applied) = self.components.0.remove(holder) else {
-            return;
+            return false;
         };
         for (_, applied) in applied.into_iter().rev() {
             self.take_back(applied);
         }
-        if self.components_of(holder).iter().any(is_number) {
-            self.refresh_component_numbers();
-        }
+        self.components_of(holder).iter().any(is_number)
     }
 
     /// Releases one thing a component held.
     fn take_back(&mut self, applied: Applied) {
         match applied {
             Applied::Held(item) => self.release(&item),
+            Applied::On => {}
             Applied::Flag(flag) => {
                 if let Some(holds) = self.state.flags.get_mut(&flag) {
                     *holds = holds.saturating_sub(1);
@@ -204,15 +294,11 @@ impl<'a> Walker<'a> {
         }
     }
 
-    /// Holds what a `Grant` names: the fact, and for a selection, a slot of it at this level (as a level row's).
+    /// Holds what a `Grant` names; a selection is held and offers no pick (`AddFacts`).
     fn grant(&mut self, holder: &Holder, at: usize, fact: &Fact) {
-        let Some(item) = self.held_of(fact) else {
-            return;
-        };
-        if let Fact::Selection(selection) = fact {
-            self.pending.push(Pending::Granted(selection.clone()));
+        if let Some(item) = self.held_of(fact) {
+            self.hold_for(holder, at, item);
         }
-        self.hold_for(holder, at, item);
     }
 
     /// Holds an item for a holder's component, noted so it's released with it.
@@ -252,12 +338,7 @@ impl<'a> Walker<'a> {
         for holder in &holders {
             self.update_conditionals(holder);
         }
-        if holders
-            .iter()
-            .any(|holder| self.components_of(holder).iter().any(is_number))
-        {
-            self.refresh_component_numbers();
-        }
+        self.refresh_if_numbers();
     }
 
     /// A holder's conditional grants: a `GrantAtClassLevel` holds its fact while its level is reached (or, `before`,
@@ -343,12 +424,13 @@ impl<'a> Walker<'a> {
     }
 
     /// Every stat bonus of the entries held that is in force, with the stat, its type and its amount: the value worked
-    /// out now, times its multiplier, at least zero when it says so, for the entries whose condition holds.
+    /// out now, times its multiplier, at least its minimum when it has one, for a conditional one only while it's on.
     fn stat_bonuses(&self) -> Vec<(&'a StatTarget, Descriptor, i16, &Holder)> {
         let engine = self.engine;
         let class_of = |archetype: &_| engine.catalog.archetype_class(archetype);
+        let base_scores = self.without_racial(|_| true);
         let mut bonuses = Vec::new();
-        for holder in self.components.0.keys() {
+        for (holder, applied) in &self.components.0 {
             let own_rank = match holder {
                 Holder::Fact(fact) => fact.rank(&self.state),
                 Holder::Subrace(_) | Holder::Background(_) => 1,
@@ -356,29 +438,28 @@ impl<'a> Walker<'a> {
             let context = ValueContext {
                 state: &self.state,
                 own_rank,
+                base_scores,
                 archetype_class: &class_of,
             };
-            for component in self.components_of(holder) {
+            for (at, component) in self.components_of(holder).iter().enumerate() {
                 let Component::StatBonus {
                     stat,
                     value,
                     descriptor,
                     multiplier,
-                    at_least_zero,
+                    at_least,
                     only_if,
                 } = component
                 else {
                     continue;
                 };
-                if only_if
-                    .as_ref()
-                    .is_some_and(|only| !only.holds(&self.state))
+                if only_if.is_some() && !applied.iter().any(|(of, applied)| is_on(*of, applied, at))
                 {
                     continue;
                 }
                 let mut amount = value.at(&context) * i32::from(*multiplier);
-                if *at_least_zero {
-                    amount = amount.max(0);
+                if let Some(minimum) = at_least {
+                    amount = amount.max(i32::from(*minimum));
                 }
                 let amount =
                     i16::try_from(amount).unwrap_or(if amount < 0 { i16::MIN } else { i16::MAX });
@@ -388,26 +469,31 @@ impl<'a> Walker<'a> {
         bonuses
     }
 
-    /// What the stat bonuses held add to each ability score, stacked by type (`ApplyModifiersFiltered`): all of them,
-    /// and the permanent ones an ability prerequisite reads (`Modifier.IsPermanent`).
-    pub(super) fn component_ability_amounts(&self) -> ([i16; 6], [i16; 6]) {
-        let (mut every, mut permanent) = ([0; 6], [0; 6]);
+    /// What the stat bonuses held add to each ability score, stacked by type (`ApplyModifiersFiltered`): all of them;
+    /// the permanent ones an ability prerequisite reads (`Modifier.IsPermanent`); and the `Feat` ones a full ability
+    /// prerequisite adds to those (`PrerequisiteFullStatValue.GetFullStatValue`, every one).
+    pub(super) fn component_ability_amounts(&self) -> AbilityAmounts {
+        let mut amounts = AbilityAmounts::default();
         if !self.engine.catalog.has_components() {
-            return (every, permanent);
+            return amounts;
         }
         let bonuses = self.stat_bonuses();
         for (at, ability) in AbilityScores::ABILITIES.into_iter().enumerate() {
-            let amounts: Vec<(Descriptor, i16)> = (bonuses.iter())
+            let of_ability: Vec<(Descriptor, i16)> = (bonuses.iter())
                 .filter(|(stat, ..)| **stat == StatTarget::Ability(ability))
                 .map(|(_, descriptor, amount, _)| (*descriptor, *amount))
                 .collect();
-            every[at] = game_stacked(&amounts);
-            let lasting: Vec<(Descriptor, i16)> = (amounts.into_iter())
+            amounts.every[at] = game_stacked(&of_ability);
+            amounts.feat[at] = (of_ability.iter())
+                .filter(|(descriptor, _)| descriptor.counts_in_full_value())
+                .map(|(_, amount)| amount)
+                .sum();
+            let lasting: Vec<(Descriptor, i16)> = (of_ability.into_iter())
                 .filter(|(descriptor, _)| descriptor.is_permanent())
                 .collect();
-            permanent[at] = game_stacked(&lasting);
+            amounts.permanent[at] = game_stacked(&lasting);
         }
-        (every, permanent)
+        amounts
     }
 
     /// What the stat bonuses held add to the base attack bonus, stacked by type.

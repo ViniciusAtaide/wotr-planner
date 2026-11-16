@@ -1096,9 +1096,10 @@ impl Engine {
             Prerequisite::SpontaneousSpellLevel { spell_type, level } => {
                 spell_need(*spell_type, *level, true, has)
             }
-            Prerequisite::FullAbilityScore { ability, score } => {
-                have(format!("{} {score} with every bonus", ability.short_name()))
-            }
+            Prerequisite::FullAbilityScore { ability, score } => have(format!(
+                "{} {score} with its feat-type bonuses",
+                ability.short_name()
+            )),
             Prerequisite::ClassSpellLevel { class, level } => format!(
                 "to cast {}-level {} spells{}",
                 ordinal(*level),

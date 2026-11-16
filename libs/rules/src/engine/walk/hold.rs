@@ -560,17 +560,21 @@ impl<'a> Walker<'a> {
         };
         // The components' stat bonuses after the gear's and the features', each score's stacked by type; an ability
         // prerequisite counts only the permanent ones (ticket 295).
+        // A full ability prerequisite reads the permanent scores and the `Feat` ones.
         (
             self.state.ability_scores,
             self.state.permanent_ability_scores,
+            self.state.full_ability_scores,
         ) = if self.engine.catalog.has_components() {
-            let (every, lasting) = self.component_ability_amounts();
+            let amounts = self.component_ability_amounts();
+            let permanent = WornGear::onto(amounts.permanent, permanent);
             (
-                WornGear::onto(every, scores),
-                WornGear::onto(lasting, permanent),
+                WornGear::onto(amounts.every, scores),
+                permanent,
+                WornGear::onto(amounts.feat, permanent),
             )
         } else {
-            (scores, permanent)
+            (scores, permanent, permanent)
         };
     }
 
@@ -581,7 +585,7 @@ impl<'a> Walker<'a> {
     pub(super) fn own_scores(&self) -> AbilityScores {
         let scores = self.with_feature_bonuses(self.own_base());
         if self.engine.catalog.has_components() {
-            WornGear::onto(self.component_ability_amounts().0, scores)
+            WornGear::onto(self.component_ability_amounts().every, scores)
         } else {
             scores
         }
@@ -589,16 +593,26 @@ impl<'a> Walker<'a> {
 
     /// The base scores, without the race's penalties while a mythic feat removes them (Destiny Beyond Birth).
     fn own_base(&self) -> AbilityScores {
-        let mut base = self.state.base_ability_scores;
         if self
             .state
             .mythic_feats
             .iter()
             .any(|key| self.removes_penalty(key))
         {
-            for (ability, penalty) in &self.racial_penalties {
-                let score = base.get_mut(*ability);
-                *score = score.saturating_add(*penalty);
+            self.without_racial(|amount| amount < 0)
+        } else {
+            self.state.base_ability_scores
+        }
+    }
+
+    /// The base scores without the race's modifiers that `undo` picks by amount: its penalties (Destiny Beyond Birth),
+    /// or all of them (a component's base value of a score, the game's `BaseValue`).
+    pub(super) fn without_racial(&self, undo: impl Fn(i8) -> bool) -> AbilityScores {
+        let mut base = self.state.base_ability_scores;
+        for &(ability, amount) in &self.racial_modifiers {
+            if undo(amount) {
+                let score = base.get_mut(ability);
+                *score = score.saturating_add_signed(amount.saturating_neg());
             }
         }
         base

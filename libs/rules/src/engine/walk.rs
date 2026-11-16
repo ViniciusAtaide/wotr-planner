@@ -196,8 +196,9 @@ struct Walker<'a> {
     level_cap: u8,
     /// Set by a switch to a path without further ascensions.
     ascensions_over: bool,
-    /// The race's ability penalties applied at Build start, which Destiny Beyond Birth gives back.
-    racial_penalties: Vec<(Ability, u8)>,
+    /// The race's ability modifiers applied at Build start: Destiny Beyond Birth gives the penalties back, and a
+    /// component's base value of a score leaves them all out (ticket 295).
+    racial_modifiers: Vec<(Ability, i8)>,
     /// For each class and feature another class's levels count toward (Frost Power: witch, Major Hexes), how many
     /// grants of it those levels hold now: the class's rows past its own level that they reach.
     counted_features: BTreeMap<(ClassKey, FeatureKey), u8>,
@@ -273,8 +274,6 @@ enum Pending {
     Row(SlotKind, SelectionOptionKey),
     /// A Feature selection slot a feat pick gives (Extra Rage Power), of the selection its extra pick is of.
     Feat(FeatKey),
-    /// A Feature selection slot a held entry's [`Grant`](crate::Component::Grant) gives (ticket 295).
-    Granted(FeatureSelectionKey),
 }
 
 /// What a walk that only answers whether a choice fails keeps instead of the failed choices.
@@ -344,7 +343,7 @@ impl<'a> Walker<'a> {
             ranks,
             level_cap: BASE_LEVEL_CAP,
             ascensions_over: false,
-            racial_penalties: Vec::new(),
+            racial_modifiers: Vec::new(),
             counted_features: BTreeMap::new(),
             class_skill_holds: BTreeMap::new(),
             holdings: Vec::new(),
@@ -602,9 +601,7 @@ impl<'a> Walker<'a> {
         for (ability, amount) in racial_amounts(catalog.racial_modifiers(start), start) {
             let score = scores.get_mut(ability);
             *score = score.saturating_add_signed(amount);
-            if amount < 0 {
-                self.racial_penalties.push((ability, amount.unsigned_abs()));
-            }
+            self.racial_modifiers.push((ability, amount));
         }
         self.state.base_ability_scores = scores;
         self.wear_gear();

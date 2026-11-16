@@ -6,11 +6,12 @@ use std::collections::BTreeSet;
 
 use rules::agreement::judge_all;
 use rules::{
-    Ability, Build, ClassChoice, Component, Condition, DataAt, DataIssue, Descriptor, Engine, Fact,
-    Feat, FeatCategory, FeatKey, Feature, FeatureKey, FeatureSelectionKey, GameData, Group, IfHeld,
-    Issue, Pick, Pool, Prerequisite, RankBase, RankConfig, RankProgression, Repeat, Save,
-    SelectionOptionKey, Share, SharedValue, SlotId, SlotKind, SpellType, StatRef, StatTarget,
-    Value, WeaponProficiency, compile_requires, game_stacked, game_stacking,
+    Ability, BonusAmount, BonusItem, BonusTarget, Build, ClassChoice, Component, Condition, DataAt,
+    DataIssue, DeityKey, Descriptor, Engine, Fact, Feat, FeatCategory, FeatKey, Feature,
+    FeatureKey, FeatureSelectionKey, GameData, Group, IfHeld, Issue, ItemBonus, Pick, Pool,
+    Prerequisite, RankBase, RankConfig, RankProgression, Repeat, Save, SelectionOptionKey, Share,
+    SharedValue, SlotId, SpellType, StatRef, StatRule, StatTarget, Value, WeaponProficiency,
+    compile_requires, game_stacked, game_stacking,
 };
 
 use crate::agreement::{SAMPLE, corpus};
@@ -125,9 +126,21 @@ fn typed_bonus(stat: StatTarget, value: Value, descriptor: Descriptor) -> Compon
         value,
         descriptor,
         multiplier: 1,
-        at_least_zero: false,
+        at_least: None,
         only_if: None,
     }
+}
+
+/// The amount of the bonuses in force of one holder, by its name, to one number at a level.
+fn bonus_of(sheet: &rules::Sheet, level: u8, name: &str, target: &BonusTarget) -> i16 {
+    sheet.levels[usize::from(level) - 1]
+        .state
+        .bonuses_in_force
+        .iter()
+        .filter(|bonus| bonus.target.number() == Some(target))
+        .filter(|bonus| bonus.name == name)
+        .map(|bonus| bonus.amount)
+        .sum()
 }
 
 fn rank(base: RankBase, progression: RankProgression) -> Value {
@@ -187,6 +200,19 @@ fn requires_all_and_any_compile_into_the_prerequisite_tree_with_its_reasons() {
         Some(class_level("fighter", 4))
     );
     assert_eq!(compile_requires(&[], |_| None), None);
+    // `PrerequisiteFeaturesFromList.CheckInternal` returns on the first fact held with `num >= Amount`, and with none
+    // held fails: an `Amount` of 0 needs one, as 1 does.
+    let either = BTreeSet::from([Fact::Feat(feat("dodge")), Fact::Feat(feat("power-attack"))]);
+    assert_eq!(
+        compile_requires(&[requires(Condition::AtLeast(0, either))], |_| None),
+        Some(Prerequisite::AtLeast(
+            1,
+            vec![
+                Prerequisite::Feat(feat("dodge")),
+                Prerequisite::Feat(feat("power-attack"))
+            ]
+        ))
+    );
 
     let engine = engine_with(vec![component_feat("trained-cleaver", components)], vec![]);
     let pick = pick_feat("trained-cleaver");
@@ -262,10 +288,11 @@ fn a_class_level_prerequisite_counts_the_classes_a_held_fact_adds() {
 
 // ---- Grants -----------------------------------------------------------------------------------------------------
 
-/// `UnitLogic/FactLogic/AddFacts.cs` `OnActivate` (`UpdateFacts`): the facts are held while their source is; a selection
-/// held so opens its pick at the level, as a progression's selection does (`LevelUpHelper.AddFeaturesFromProgression`).
+/// `UnitLogic/FactLogic/AddFacts.cs` `OnActivate` (`UpdateFacts`): the facts are held while their source is, and only
+/// held: a selection is offered as a pick only by a progression's row (`LevelUpHelper.AddFeaturesFromProgression`,
+/// `LevelUpState.AddSelection`) or as a selection's own option (`SelectFeature.Apply`), never by `AddFacts`.
 #[test]
-fn a_grant_holds_its_facts_and_a_granted_selection_opens_its_slot() {
+fn a_grant_holds_its_facts_and_a_granted_selection_opens_no_slot() {
     let talents = FeatureSelectionKey::new("rogue/rogue-talents");
     let granting = component_feat(
         "granting",
@@ -276,25 +303,30 @@ fn a_grant_holds_its_facts_and_a_granted_selection_opens_its_slot() {
         ]))],
     );
     let engine = engine_with(vec![granting], vec![component_feature("granted", vec![])]);
-    let mut build = holding("granting", &["fighter"]);
+    let build = holding("granting", &["fighter"]);
     let sheet = walked(&engine, &build);
     let state = sheet.at(1).unwrap();
     assert_eq!(state.feature_count(&feature("granted")), 1);
     assert_eq!(state.feat_count(&feat("dodge")), 1);
     assert_eq!(state.selections.get(&talents), Some(&1));
-    let slot = SlotId::OptionSelection { level: 1, index: 0 };
-    assert_eq!(
-        sheet.slot(&slot).map(|slot| &slot.kind),
-        Some(&SlotKind::Selection(talents.clone()))
+    // The selection is held and offers no pick: the fighter 1's slots are those of a fighter 1 without the grant.
+    let plain = walked(&engine, &holding("dodge", &["fighter"]));
+    let ids = |sheet: &rules::Sheet| -> Vec<SlotId> {
+        sheet.levels[0]
+            .slots
+            .iter()
+            .map(|slot| slot.id.clone())
+            .collect()
+    };
+    assert_eq!(ids(&sheet), ids(&plain));
+    assert!(
+        sheet
+            .slot(&SlotId::OptionSelection { level: 1, index: 0 })
+            .is_none()
     );
-    // The slot takes a talent like any rogue talent slot.
-    build
-        .picks
-        .insert(slot, pick_option("rogue/rogue-talents/fast-stealth"));
-    let state = walked(&engine, &build).at(1).unwrap().clone();
     assert_eq!(
         state.option_count(&SelectionOptionKey::new("rogue/rogue-talents/fast-stealth")),
-        1
+        0
     );
 }
 
@@ -461,7 +493,9 @@ fn a_stat_bonus_of_one_type_counts_the_largest_and_untyped_ones_stack() {
 
 /// `ModifiableValue.Modifier.IsPermanent`: a racial modifier, or an enhancement from an item; an ability's permanent
 /// value counts only those (`ModifiableValueAttributeStat.CalculatePermanentValue`, `FilterIsPermanent`), and an ability
-/// prerequisite reads it (`PrerequisiteStatValue.GetStatValue`). Every number reads the full value.
+/// prerequisite reads it (`PrerequisiteStatValue.GetStatValue`). Every number reads the sheet's value. A full one
+/// (`Designers/Mechanics/Prerequisites/PrerequisiteFullStatValue.cs` `GetFullStatValue`) reads the permanent value plus
+/// the modifiers of descriptor `Feat`, and no other.
 #[test]
 fn an_untyped_ability_bonus_counts_on_the_sheet_and_not_for_prerequisites() {
     let strength = |descriptor| {
@@ -491,47 +525,87 @@ fn an_untyped_ability_bonus_counts_on_the_sheet_and_not_for_prerequisites() {
         vec![
             component_feat("legendary", vec![strength(Descriptor::Untyped)]),
             component_feat("ancestral", vec![strength(Descriptor::Racial)]),
+            component_feat("trained", vec![strength(Descriptor::Feat)]),
             needs,
             full,
         ],
         vec![],
     );
-    // Strength 16 + 4 untyped: 20 on the sheet, 16 for a prerequisite; `PrerequisiteFullStatValue` reads the 20.
+    let meets = |build: &Build, feat: &str| {
+        status(&engine, build, &general_slot(1), &pick_feat(feat)).is_ok()
+    };
+    // Strength 16 + 4 untyped: 20 on the sheet, 16 for either prerequisite.
     let legendary = holding("legendary", &["fighter"]);
     let state = walked(&engine, &legendary).at(1).unwrap().clone();
     assert_eq!(state.ability_scores.get(Ability::Strength), 20);
     assert_eq!(state.permanent_ability_scores.get(Ability::Strength), 16);
-    assert!(
-        status(
-            &engine,
-            &legendary,
-            &general_slot(1),
-            &pick_feat("needs-strength-20")
-        )
-        .is_err()
-    );
-    assert_eq!(
-        status(
-            &engine,
-            &legendary,
-            &general_slot(1),
-            &pick_feat("needs-full-strength-20")
-        ),
-        Ok(())
-    );
+    assert!(!meets(&legendary, "needs-strength-20"));
+    assert!(!meets(&legendary, "needs-full-strength-20"));
     // A racial one counts for both.
     let ancestral = holding("ancestral", &["fighter"]);
     let state = walked(&engine, &ancestral).at(1).unwrap().clone();
     assert_eq!(state.permanent_ability_scores.get(Ability::Strength), 20);
-    assert_eq!(
-        status(
-            &engine,
-            &ancestral,
-            &general_slot(1),
-            &pick_feat("needs-strength-20")
-        ),
-        Ok(())
+    assert!(meets(&ancestral, "needs-strength-20"));
+    assert!(meets(&ancestral, "needs-full-strength-20"));
+    // A `Feat` one counts for the full value only.
+    let trained = holding("trained", &["fighter"]);
+    assert!(!meets(&trained, "needs-strength-20"));
+    assert!(meets(&trained, "needs-full-strength-20"));
+}
+
+/// `Designers/Mechanics/Facts/ReplaceStatForPrerequisites.cs` `ResultStat` with `NewStat`: for a prerequisite the higher
+/// of the stat and the other stat's value as a number reads it (`GetStat(NewStat)`, its `ModifiedValue` by
+/// `ModifiableValue`'s `implicit operator int`), and for a full one (`fullValue`, from
+/// `PrerequisiteFullStatValue.GetFullStatValue`) the other stat's `PermanentValue`.
+#[test]
+fn a_stat_replacement_reads_the_other_stat_on_the_sheet_and_for_a_full_prerequisite_its_permanent_value()
+ {
+    let dexterity_for_strength = |key: &str, descriptor| {
+        component_feat(
+            key,
+            vec![
+                Component::PrerequisiteStat {
+                    stat: StatRef::Ability(Ability::Strength),
+                    rule: StatRule::Ability(Ability::Dexterity),
+                },
+                typed_bonus(
+                    StatTarget::Ability(Ability::Dexterity),
+                    Value::Flat(8),
+                    descriptor,
+                ),
+            ],
+        )
+    };
+    let needs = |key: &str, full| {
+        component_feat(
+            key,
+            vec![requires(Condition::Stat {
+                stat: StatRef::Ability(Ability::Strength),
+                value: 20,
+                full,
+            })],
+        )
+    };
+    let engine = engine_with(
+        vec![
+            dexterity_for_strength("nimble", Descriptor::Untyped),
+            dexterity_for_strength("born-nimble", Descriptor::Racial),
+            needs("needs-strength-20", false),
+            needs("needs-full-strength-20", true),
+        ],
+        vec![],
     );
+    let meets = |build: &Build, feat: &str| {
+        status(&engine, build, &general_slot(1), &pick_feat(feat)).is_ok()
+    };
+    // Strength 16, Dexterity 14 + 8 untyped: 22 on the sheet, 14 permanent.
+    let nimble = holding("nimble", &["fighter"]);
+    assert!(meets(&nimble, "needs-strength-20"));
+    assert!(!meets(&nimble, "needs-full-strength-20"));
+    // Dexterity 14 + 8 racial: 22 permanent too.
+    let born = holding("born-nimble", &["fighter"]);
+    assert!(meets(&born, "needs-strength-20"));
+    assert!(meets(&born, "needs-full-strength-20"));
 }
 
 /// `UnitLogic/Mechanics/Components/ContextRankConfig.cs` `GetValue`: `ApplyMinMax(ApplyProgression(GetBaseValue))`.
@@ -665,6 +739,120 @@ fn a_rank_config_reads_each_base_and_applies_each_progression() {
     assert_eq!(in_force(&rules::BonusTarget::Initiative), 3);
 }
 
+/// `ContextRankConfig.GetBaseValue`'s `BaseStat`: the stat's `BaseValue`, which a race's ability modifiers don't change:
+/// they are modifiers of descriptor `Racial` (`ElfRace` 25a5878d125338244896ebd3238226c8: `AddStatBonus` Dexterity +2
+/// `Racial`; `SelectRaceStat.Apply`: the chosen +2 as `AddModifier(2, …, Racial)`).
+#[test]
+fn a_base_stat_rank_reads_the_score_without_its_racial_modifiers() {
+    let reader = component_feat(
+        "nimble-reader",
+        vec![stat_bonus(
+            StatTarget::Save(Save::Will),
+            rank(
+                RankBase::BaseStat(StatRef::Ability(Ability::Dexterity)),
+                RankProgression::AsIs,
+            ),
+        )],
+    );
+    let engine = engine_with(vec![reader], vec![]);
+    // An elf of Dexterity 14 bought, 16 with the race's +2: the base value is 14.
+    let mut elf = build("elf", &["fighter"]);
+    elf.picks
+        .insert(general_slot(1), pick_feat("nimble-reader"));
+    let sheet = walked(&engine, &elf);
+    assert_eq!(
+        sheet.at(1).unwrap().ability_scores.get(Ability::Dexterity),
+        16
+    );
+    assert_eq!(
+        bonus_of(&sheet, 1, "nimble-reader", &BonusTarget::Save(Save::Will)),
+        14
+    );
+}
+
+/// `ContextRankConfig.GetBaseValue`: `SummClassLevelWithArchetype` adds the ranks of `m_FeatureList` to the classes'
+/// levels; `MaxClassLevelWithArchetype` is the highest class's level alone (`CheckAndSetMaxValue`), no feature read.
+#[test]
+fn a_max_class_level_with_archetype_adds_no_feature_ranks() {
+    let base = |max| RankBase::ClassLevelWithArchetype {
+        classes: BTreeSet::from([class("fighter"), class("rogue")]),
+        except: false,
+        archetypes: BTreeSet::new(),
+        features: BTreeSet::from([Fact::Feat(feat("dodge"))]),
+        max,
+    };
+    let counted = component_feat(
+        "counted",
+        vec![
+            stat_bonus(
+                StatTarget::Save(Save::Will),
+                rank(base(false), RankProgression::AsIs),
+            ),
+            stat_bonus(
+                StatTarget::Save(Save::Reflex),
+                rank(base(true), RankProgression::AsIs),
+            ),
+        ],
+    );
+    let engine = engine_with(vec![counted], vec![]);
+    let mut build = holding("counted", &["fighter", "rogue", "fighter"]);
+    build.picks.insert(general_slot(1), pick_feat("dodge"));
+    let sheet = walked(&engine, &build);
+    // Fighter 2 + rogue 1 + Dodge 1 = 4; the highest class, fighter 2.
+    assert_eq!(
+        bonus_of(&sheet, 3, "counted", &BonusTarget::Save(Save::Will)),
+        4
+    );
+    assert_eq!(
+        bonus_of(&sheet, 3, "counted", &BonusTarget::Save(Save::Reflex)),
+        2
+    );
+}
+
+/// `AddStatBonus.OnTurnOn`: `Value × Fact.GetRank()`, so a second rank of the feature doubles its bonus as it comes; and
+/// a value read off the character (`ContextRankConfig`'s `FeatureRank`) follows the pick that changes it.
+#[test]
+fn a_per_rank_value_and_a_value_another_pick_changes_follow_at_once() {
+    let grant = |key: &str, extra: Vec<Component>| {
+        let mut components = vec![Component::Grant(BTreeSet::from([fact_feature("mighty")]))];
+        components.extend(extra);
+        component_feat(key, components)
+    };
+    let dodge_reader = stat_bonus(
+        StatTarget::Ability(Ability::Dexterity),
+        rank(
+            RankBase::FeatureRank(Fact::Feat(feat("dodge"))),
+            RankProgression::AsIs,
+        ),
+    );
+    let engine = engine_with(
+        vec![
+            grant("first-grant", vec![dodge_reader]),
+            grant("second-grant", vec![]),
+        ],
+        vec![component_feature(
+            "mighty",
+            vec![stat_bonus(
+                StatTarget::Ability(Ability::Strength),
+                Value::PerRank(2),
+            )],
+        )],
+    );
+    let mut build = holding("first-grant", &times("fighter", 3));
+    build
+        .picks
+        .insert(general_slot(1), pick_feat("second-grant"));
+    build.picks.insert(general_slot(3), pick_feat("dodge"));
+    let sheet = walked(&engine, &build);
+    let level = |at: u8| sheet.at(at).unwrap();
+    // Strength 16, Mighty twice at 1: +4.
+    assert_eq!(level(1).feature_count(&feature("mighty")), 2);
+    assert_eq!(level(1).ability_scores.get(Ability::Strength), 20);
+    // Dexterity 14, Dodge picked at 3: +1 at 3.
+    assert_eq!(level(2).ability_scores.get(Ability::Dexterity), 14);
+    assert_eq!(level(3).ability_scores.get(Ability::Dexterity), 15);
+}
+
 /// `ContextRankConfig.ApplyProgression`'s `Custom`: the first item whose `BaseValue` is at or above the value gives its
 /// `ProgressionValue`, the last item's past them all. Skill Focus (Mobility)'s shape (`SkillFocusAcrobatics`
 /// 52dd89af385466c499338b7297896ded: +3, +6 from 10 ranks): its base is the skill's ranks.
@@ -723,7 +911,7 @@ fn a_shared_value_below_zero_with_at_least_zero_adds_nothing() {
             }),
             descriptor: Descriptor::UntypedStackable,
             multiplier: -1,
-            at_least_zero: true,
+            at_least: Some(0),
             only_if: None,
         }],
     );
@@ -747,41 +935,86 @@ fn a_shared_value_below_zero_with_at_least_zero_adds_nothing() {
     );
 }
 
-/// `AddStatBonusIfHasFact.ShouldApplyBonus`: with one checked fact (or `RequireAllFacts`), the bonus holds while the fact
-/// is held (or, inverted, isn't).
+/// `AddContextStatBonus.OnTurnOn` with `HasMinimal`: `Math.Max(value, Minimal)`, whatever the minimum. (Every blueprint
+/// of the dump with `HasMinimal` set has `Minimal` 0; the eleven with another `Minimal` leave `HasMinimal` unset.)
 #[test]
-fn a_stat_bonus_if_held_follows_its_fact() {
-    let only_if = |not| IfHeld {
-        facts: BTreeSet::from([Fact::Feat(feat("power-attack"))]),
-        all: false,
-        not,
-    };
-    let will = |amount, not| Component::StatBonus {
+fn a_stat_bonus_with_a_minimum_adds_at_least_it() {
+    let will = |amount| Component::StatBonus {
         stat: StatTarget::Save(Save::Will),
         value: Value::Flat(amount),
         descriptor: Descriptor::Untyped,
         multiplier: 1,
-        at_least_zero: false,
-        only_if: Some(only_if(not)),
+        at_least: Some(3),
+        only_if: None,
     };
     let engine = engine_with(
-        vec![component_feat("wary", vec![will(2, false), will(5, true)])],
+        vec![
+            component_feat("small", vec![will(1)]),
+            component_feat("large", vec![will(5)]),
+        ],
         vec![],
     );
-    let plain = build("human", &times("fighter", 3));
-    let mut build = holding("wary", &times("fighter", 3));
-    // Without Power Attack, the inverted 5 holds; with it from 3, the 2.
+    let plain = will_total(&engine, &build("human", &["fighter"]), 1);
     assert_eq!(
-        will_total(&engine, &build, 1),
-        will_total(&engine, &plain, 1) + 5
+        will_total(&engine, &holding("small", &["fighter"]), 1),
+        plain + 3
     );
+    assert_eq!(
+        will_total(&engine, &holding("large", &["fighter"]), 1),
+        plain + 5
+    );
+}
+
+/// `Designers/Mechanics/Buffs/AddStatBonusIfHasFact.cs`: `OnTurnOn` applies the bonus when `ShouldApplyBonus` holds
+/// (`Update`); afterwards only two events look again: `HandleUnitGainFact` of a checked fact with `InvertCondition`,
+/// and `HandleUnitLostFact` of one without. So a bonus held when its fact is lost goes, an inverted one goes when its
+/// fact is gained, and a bonus whose fact is gained later stays off.
+#[test]
+fn a_stat_bonus_if_held_is_decided_when_turned_on_and_looked_at_again_on_the_events_it_handles() {
+    let will = |amount, fact: Fact, not| Component::StatBonus {
+        stat: StatTarget::Save(Save::Will),
+        value: Value::Flat(amount),
+        descriptor: Descriptor::Untyped,
+        multiplier: 1,
+        at_least: None,
+        only_if: Some(IfHeld {
+            facts: BTreeSet::from([fact]),
+            all: false,
+            not,
+        }),
+    };
+    let power_attack = || Fact::Feat(feat("power-attack"));
+    let engine = engine_with(
+        vec![component_feat(
+            "wary",
+            vec![
+                // Early is held below fighter 3, and lost at 3.
+                Component::GrantAtClassLevel {
+                    fact: fact_feature("early"),
+                    classes: BTreeSet::from([class("fighter")]),
+                    archetypes: BTreeSet::new(),
+                    level: 3,
+                    before: true,
+                },
+                will(2, fact_feature("early"), false),
+                will(5, power_attack(), true),
+                will(20, power_attack(), false),
+            ],
+        )],
+        vec![component_feature("early", vec![])],
+    );
+    let plain = build("human", &times("fighter", 4));
+    let mut build = holding("wary", &times("fighter", 4));
     build
         .picks
         .insert(general_slot(3), pick_feat("power-attack"));
-    assert_eq!(
-        will_total(&engine, &build, 3),
-        will_total(&engine, &plain, 3) + 2
-    );
+    let added = |level| will_total(&engine, &build, level) - will_total(&engine, &plain, level);
+    // Turned on at 1 with Early and without Power Attack: 2 and 5.
+    assert_eq!(added(1), 7);
+    // At 3 Early is lost (the 2 goes) and Power Attack gained (the inverted 5 goes; the 20, not inverted, isn't looked
+    // at): nothing, and nothing at 4.
+    assert_eq!(added(3), 0);
+    assert_eq!(added(4), 0);
 }
 
 // ---- Class skills, skill points, proficiencies ------------------------------------------------------------------
@@ -842,6 +1075,31 @@ fn class_skills_skill_points_and_proficiencies_from_components_join_the_state() 
     );
 }
 
+/// `AddSkillPointPerCharacterLevel.HandleUnitCalculateSkillPointsOnLevelup` is raised by `ApplySkillPoints.Apply`, whose
+/// priority (`LevelUpActionPriority.ApplySkillPoints`) comes after `ApplyClass`: `ApplyClassMechanics.ApplyProgressions`
+/// adds a level's row features (`LevelUpHelper.UpdateProgression`, `AddFeaturesFromProgression`) first. So a feature a
+/// row grants counts at its own level, the character level at once; one picked (`Features`, after) from the next.
+#[test]
+fn a_row_granted_features_skill_points_count_at_its_own_level() {
+    let mut data = world();
+    (data.features.iter_mut())
+        .find(|entry| entry.key == feature("rogue/sneak-attack"))
+        .expect("the rogue's Sneak Attack")
+        .components = vec![Component::SkillPoints(1)];
+    let with = engine_on(data);
+    let without = engine_on(world());
+    // Sneak Attack comes with rogue 1, at character level 2.
+    let build = build("human", &["fighter", "rogue", "fighter"]);
+    let (with, without) = (walked(&with, &build), walked(&without, &build));
+    let added = |level: usize| {
+        i16::from(with.levels[level - 1].skill_points.available)
+            - i16::from(without.levels[level - 1].skill_points.available)
+    };
+    assert_eq!(added(1), 0);
+    assert_eq!(added(2), 2);
+    assert_eq!(added(3), 1);
+}
+
 /// `PrerequisiteClassSpellLevel.GetClassSpellLevel` (the class's spellbook's highest level) and
 /// `PrerequisiteCasterType.CheckInternal` (a class with a spellbook of the type, whatever it casts yet), compiled into
 /// the planner's leaves.
@@ -873,6 +1131,48 @@ fn a_class_spell_level_and_a_caster_type_read_the_classes_spellbooks() {
     assert!(!check(&wizard, "divine-caster"));
     let early = build("human", &["wizard", "fighter", "fighter"]);
     assert!(!check(&early, "wizard-second"));
+}
+
+/// `PrerequisiteClassSpellLevel.GetClassSpellLevel` is an `int?`: the class's spellbook's `MaxSpellLevel`, or `null`
+/// for a class not taken or without a spellbook, which no level meets (C#'s lifted `>=` with `null` is false), 0
+/// included. `Spellbook.GetMaxSpellLevel` is the highest spell level whose count in the table's row is 0 or more, so a
+/// spellbook whose row lists level 0 (`BloodragerSpellPerDayTable` caf7018942861664ebe87687893ad05d: `[0]` at caster
+/// levels 0 to 3) meets a level 0 before its first spell level. (No blueprint of the dump requires level 0.)
+#[test]
+fn a_class_spell_level_of_zero_needs_the_classs_spellbook() {
+    let mut data = world();
+    // A ranger with divine spells from 4: a spellbook from level 1.
+    let ranger = (data.all_classes_mut())
+        .find(|entry| entry.key == class("ranger"))
+        .expect("the test world's ranger");
+    ranger.casting_ability = Some(Ability::Wisdom);
+    for row in &mut ranger.levels {
+        if row.level >= 4 {
+            row.divine_spell_level = 1;
+        }
+    }
+    let needs = |key: &str, of: &str| {
+        component_feat(
+            key,
+            vec![requires(Condition::ClassSpellLevel(class(of), 0))],
+        )
+    };
+    data.feats.extend([
+        needs("ranger-zero", "ranger"),
+        needs("fighter-zero", "fighter"),
+        needs("wizard-zero", "wizard"),
+    ]);
+    let engine = engine_on(data);
+    let check = |build: &Build, feat: &str| {
+        status(&engine, build, &general_slot(1), &pick_feat(feat)).is_ok()
+    };
+    let ranger = build("human", &["ranger"]);
+    assert!(check(&ranger, "ranger-zero"));
+    // The fighter has no spellbook, and the wizard isn't taken.
+    assert!(!check(&ranger, "fighter-zero"));
+    let fighter = build("human", &["fighter"]);
+    assert!(!check(&fighter, "fighter-zero"));
+    assert!(!check(&fighter, "wizard-zero"));
 }
 
 // ---- The check --------------------------------------------------------------------------------------------------
@@ -918,6 +1218,28 @@ fn check_refuses_an_unknown_key_in_a_component_and_a_field_beside_its_component(
     );
     abilities.ability_bonuses = vec![rules::AbilityBonus::Every { amount: 2 }];
     data.features.push(abilities);
+    // A `bonuses.ron` row and a `StatBonus` to a number on one entry.
+    data.feats.push(component_feat(
+        "doubled",
+        vec![stat_bonus(StatTarget::Save(Save::Will), Value::Flat(1))],
+    ));
+    data.bonuses.push(ItemBonus {
+        item: BonusItem::Feat(feat("doubled")),
+        target: BonusTarget::Save(Save::Will),
+        amount: BonusAmount::Flat(1),
+        requires: None,
+    });
+    // `PrerequisiteFeaturesFromList` over deities only: its `IsDeity` rule isn't modelled.
+    data.feats.push(component_feat(
+        "devout",
+        vec![requires(Condition::AtLeast(
+            1,
+            BTreeSet::from([
+                Fact::Deity(DeityKey::new("lawgiver")),
+                Fact::Deity(DeityKey::new("balance")),
+            ]),
+        ))],
+    ));
     let problems: Vec<(DataAt, DataIssue)> = data
         .check()
         .into_iter()
@@ -944,13 +1266,15 @@ fn check_refuses_an_unknown_key_in_a_component_and_a_field_beside_its_component(
             at_feature("strong"),
             DataIssue::FieldAndComponent("ability_bonuses"),
         ),
+        (at_feat("doubled"), DataIssue::FieldAndComponent("bonuses")),
+        (at_feat("devout"), DataIssue::DeityList),
     ] {
         assert!(
             problems.contains(&expected),
             "{expected:?} in {problems:#?}"
         );
     }
-    assert_eq!(problems.len(), 6, "{problems:#?}");
+    assert_eq!(problems.len(), 8, "{problems:#?}");
 }
 
 // ---- Agreement --------------------------------------------------------------------------------------------------

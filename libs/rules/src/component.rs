@@ -19,6 +19,7 @@ use std::collections::BTreeSet;
 
 use serde::{Deserialize, Serialize};
 
+use crate::build::AbilityScores;
 use crate::game_data::{Ability, Alignment, Save, SpellType, WeaponProficiency};
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey,
@@ -69,7 +70,9 @@ pub enum Component {
         any_option: bool,
     },
     /// While held, these facts are held too: the game's `AddFacts` (`UnitLogic/FactLogic/AddFacts.cs` `OnActivate`,
-    /// `UpdateFacts`; `OnDeactivate` clears them). A granted selection is held and opens its slot.
+    /// `UpdateFacts`; `OnDeactivate` clears them). A granted selection is held and offers no pick: the game offers one
+    /// only for a progression's row (`LevelUpHelper.AddFeaturesFromProgression`) or a selection picked as another's
+    /// option (`SelectFeature.Apply`), never for `AddFacts`.
     Grant(BTreeSet<Fact>),
     /// While held, `fact` is held from `level` of the classes on (or, `before`, only below it): the game's
     /// `AddFeatureOnClassLevel` (`Designers/Mechanics/Facts/AddFeatureOnClassLevel.cs` `Apply`,
@@ -108,8 +111,8 @@ pub enum Component {
     GrantWithValue { feat: FeatKey, value: Parameter },
     /// While held, a bonus to a stat: the game's `AddStatBonus`, `AddContextStatBonus` and `AddStatBonusIfHasFact`
     /// (`UnitLogic/FactLogic/AddStatBonus.cs` `OnTurnOn`: `Value × rank`; `AddContextStatBonus.cs` `OnTurnOn`,
-    /// `CalculateBaseValue`: `Value × Multiplier`, at least `Minimal` with `HasMinimal`;
-    /// `Designers/Mechanics/Buffs/AddStatBonusIfHasFact.cs` `ShouldApplyBonus`). Bonuses of one descriptor to one stat
+    /// `CalculateBaseValue`: `Value × Multiplier`, at least `Minimal` with `HasMinimal`, `at_least` here;
+    /// `Designers/Mechanics/Buffs/AddStatBonusIfHasFact.cs`, `if` here: [`IfHeld`]). Bonuses of one descriptor to one stat
     /// stack as `EntitySystem/Stats/ModifiableValue.cs` `ApplyModifiersFiltered` stacks them ([`Descriptor::stacks`]),
     /// and an ability prerequisite counts only the permanent ones ([`Descriptor::is_permanent`]).
     StatBonus {
@@ -119,8 +122,8 @@ pub enum Component {
         descriptor: Descriptor,
         #[serde(default = "one", skip_serializing_if = "is_one")]
         multiplier: i8,
-        #[serde(default, skip_serializing_if = "is_false")]
-        at_least_zero: bool,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        at_least: Option<i16>,
         #[serde(default, rename = "if", skip_serializing_if = "Option::is_none")]
         only_if: Option<IfHeld>,
     },
@@ -248,13 +251,19 @@ pub enum Holder {
 /// [`Prerequisite`] ([`compile_requires`]).
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub enum Condition {
-    /// The fact is held: `PrerequisiteFeature`, `ContextConditionHasFact`.
+    /// The fact is held: `PrerequisiteFeature`, `ContextConditionHasFact`. (`PrerequisiteFeature.CheckInternal` also
+    /// fails while the fact is being picked in the same selection's children, `IsSelectedInChildren`: a nested
+    /// selection's rule, 298's.)
     Has(Fact),
     /// The fact isn't held: `PrerequisiteNoFeature` (`CheckInternal`: `!unit.HasFact`).
     HasNot(Fact),
     /// The feature is held at least this many times: `ContextConditionHasFact`'s rank, `Features.GetRank`.
     FactRank(FeatureKey, u8),
-    /// At least `n` of the facts are held: `PrerequisiteFeaturesFromList` (`CheckInternal`: `Amount`).
+    /// At least `n` of the facts are held: `PrerequisiteFeaturesFromList` (`CheckInternal` returns on the first fact
+    /// held that brings the count to `Amount`, so an `Amount` of 0 needs one, as 1 does). Its `m_RestrictIfNot`
+    /// (fewer than `Amount` held) is `Not` of this. Over deities only (`IsDeity`: one is enough, and at the first
+    /// character level none held counts as met, `ConsiderFulfilled`) the check refuses it
+    /// ([`DataIssue::DeityList`](crate::DataIssue::DeityList)).
     AtLeast(u8, BTreeSet<Fact>),
     /// A class level at least this: `PrerequisiteClassLevel` (`GetClassLevel`, with the levels a held
     /// [`PrerequisiteClassLevels`](Component::PrerequisiteClassLevels) adds), `ContextConditionCharacterClass`.
@@ -269,7 +278,10 @@ pub enum Condition {
     /// The Mythic rank: `PrerequisiteMythicLevel`.
     MythicLevel(u8),
     /// A stat at least `value`: `PrerequisiteStatValue` (`GetStatValue`: a skill's base value, its ranks; another
-    /// stat's permanent value) or, `full`, `PrerequisiteFullStatValue` (the value with every bonus).
+    /// stat's permanent value) or, `full`, `PrerequisiteFullStatValue` (`GetFullStatValue`: the permanent value plus
+    /// the modifiers of descriptor `Feat`). Either then goes through each held
+    /// [`PrerequisiteStat`](Component::PrerequisiteStat) of the stat (`ReplaceStatForPrerequisites.ResultStat`, with
+    /// `fullValue` for the full one).
     Stat {
         stat: StatRef,
         value: u8,
@@ -494,6 +506,12 @@ impl Descriptor {
         self == Self::Racial
     }
 
+    /// Whether a full ability prerequisite counts a bonus of the type beside the permanent ones: a `Feat` one
+    /// (`PrerequisiteFullStatValue.GetFullStatValue`).
+    pub fn counts_in_full_value(self) -> bool {
+        self == Self::Feat
+    }
+
     /// The planner's [`BonusType`](crate::BonusType) a bonus in force shows: the same type, or untyped for the game's
     /// own ones (`UntypedStackable`, `Feat`, `Focus`, `Mythic`, `Penalty`, `Trait`).
     pub fn bonus_type(self) -> crate::BonusType {
@@ -557,6 +575,9 @@ pub fn game_stacked(amounts: &[(Descriptor, i16)]) -> i16 {
 }
 
 /// The condition of an `AddStatBonusIfHasFact`: its checked facts, whether all are needed, and whether it's inverted.
+/// The bonus is decided when its entry is first held (`OnTurnOn` → `Update`) and looked at again only on two events:
+/// a checked fact gained while inverted (`HandleUnitGainFact`) and a checked fact lost while not
+/// (`HandleUnitLostFact`). So a bonus whose fact comes later stays off, and one turned off stays off.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 pub struct IfHeld {
     pub facts: BTreeSet<Fact>,
@@ -621,8 +642,8 @@ pub enum RankBase {
         except: bool,
     },
     /// As `ClassLevel`, a class counting only taken with one of `archetypes` when they are its own, plus the ranks of
-    /// `features`; with `max`, the highest such class's level instead of the sum (`SummClassLevelWithArchetype`,
-    /// `MaxClassLevelWithArchetype`).
+    /// `features` (`SummClassLevelWithArchetype`); with `max`, the highest such class's level alone, `features` unread
+    /// (`MaxClassLevelWithArchetype`: `CheckAndSetMaxValue` over the classes, no `m_FeatureList`).
     ClassLevelWithArchetype {
         classes: BTreeSet<ClassKey>,
         #[serde(default, skip_serializing_if = "is_false")]
@@ -644,7 +665,8 @@ pub enum RankBase {
     FeatureListRanks(BTreeSet<Fact>),
     /// An ability's modifier, with every bonus (`StatBonus`: `ModifiableValueAttributeStat.Bonus`).
     StatBonus(Ability),
-    /// A stat's base value: an ability's score before bonuses, a skill's ranks (`BaseStat`: `BaseValue`).
+    /// A stat's base value: an ability's score before any modifier, the race's included (they are `Racial` modifiers:
+    /// `ElfRace`'s `AddStatBonus`, `SelectRaceStat.Apply`), a skill's ranks (`BaseStat`: `ModifiableValue.BaseValue`).
     BaseStat(StatRef),
     /// The base attack bonus (`BaseAttack`).
     BaseAttack,
@@ -749,11 +771,14 @@ pub struct SharedValue {
     pub modifier: i8,
 }
 
-/// What a value reads besides the state: the rank of the entry holding it, and the class of an archetype.
+/// What a value reads besides the state: the rank of the entry holding it, the ability scores' base values, and the
+/// class of an archetype.
 pub(crate) struct ValueContext<'a> {
     pub state: &'a CharacterState,
     /// The rank of the entry whose component it is ([`Value::PerRank`]).
     pub own_rank: u8,
+    /// The scores bought and raised at levels, without the race's modifiers ([`RankBase::BaseStat`]).
+    pub base_scores: AbilityScores,
     pub archetype_class: &'a dyn Fn(&ArchetypeKey) -> Option<&'a ClassKey>,
 }
 
@@ -822,16 +847,15 @@ impl RankBase {
                             .is_some_and(|taken| archetypes.contains(taken))
                     })
                     .map(|entry| i32::from(entry.level));
-                let levels = if *max {
+                if *max {
                     levels.max().unwrap_or(0)
                 } else {
-                    levels.sum()
-                };
-                levels
-                    + features
-                        .iter()
-                        .map(|fact| i32::from(fact.rank(state)))
-                        .sum::<i32>()
+                    levels.sum::<i32>()
+                        + features
+                            .iter()
+                            .map(|fact| i32::from(fact.rank(state)))
+                            .sum::<i32>()
+                }
             }
             Self::CharacterLevel => i32::from(state.character_level),
             Self::MythicLevel => i32::from(state.mythic_rank),
@@ -847,7 +871,7 @@ impl RankBase {
             }
             Self::StatBonus(ability) => i32::from(state.ability_scores.modifier(*ability)),
             Self::BaseStat(StatRef::Ability(ability)) => {
-                i32::from(state.base_ability_scores.get(*ability))
+                i32::from(context.base_scores.get(*ability))
             }
             Self::BaseStat(StatRef::Skill(skill)) => i32::from(state.skill_ranks(skill)),
             Self::BaseStat(StatRef::BaseAttack) | Self::BaseAttack => i32::from(state.bab),
@@ -940,7 +964,9 @@ impl Condition {
                 feature: feature.clone(),
                 count: (*rank).max(1),
             },
-            Self::AtLeast(n, facts) => P::AtLeast(*n, facts.iter().map(Fact::leaf).collect()),
+            Self::AtLeast(n, facts) => {
+                P::AtLeast((*n).max(1), facts.iter().map(Fact::leaf).collect())
+            }
             Self::ClassLevel(class, level) => P::ClassLevel {
                 class: class.clone(),
                 level: *level,
@@ -1027,6 +1053,18 @@ impl Condition {
         }
     }
 
+    /// Whether `test` holds of the condition or of one inside it.
+    pub fn any(&self, test: &impl Fn(&Condition) -> bool) -> bool {
+        test(self)
+            || match self {
+                Self::All(conditions) | Self::Any(conditions) => {
+                    conditions.iter().any(|condition| condition.any(test))
+                }
+                Self::Not(condition) => condition.any(test),
+                _ => false,
+            }
+    }
+
     /// The facts the condition names, anywhere in it.
     pub fn facts(&self) -> Vec<&Fact> {
         match self {
@@ -1095,11 +1133,12 @@ pub(crate) fn grants_at(level: u8, at: u8, before: bool) -> bool {
 }
 
 impl StatRule {
-    /// `ReplaceStatForPrerequisites.ResultStat` for a stat whose value is `old`.
-    pub(crate) fn apply(&self, old: i16, state: &CharacterState) -> i16 {
+    /// `ReplaceStatForPrerequisites.ResultStat` for a stat whose value is `old`; `NewStat` reads the other ability in
+    /// `scores`: the sheet's (`ModifiedValue`) for a prerequisite, the permanent ones for a full one (`fullValue`).
+    pub(crate) fn apply(&self, old: i16, state: &CharacterState, scores: &AbilityScores) -> i16 {
         let level = |class: &ClassKey| i16::from(state.class_level(class));
         match self {
-            Self::Ability(ability) => old.max(i16::from(state.ability_scores.get(*ability))),
+            Self::Ability(ability) => old.max(i16::from(scores.get(*ability))),
             Self::ClassLevel(class) => old.max(level(class)),
             Self::PlusClassLevel(class) => old + level(class),
             Self::AtLeast(number) => old.max(i16::from(*number)),

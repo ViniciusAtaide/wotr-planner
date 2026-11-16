@@ -84,8 +84,9 @@ pub enum Prerequisite {
         ability: Ability,
         score: u8,
     },
-    /// An ability score with every bonus counted, not only the permanent ones (the game's `PrerequisiteFullStatValue`:
-    /// `Designers/Mechanics/Prerequisites/PrerequisiteFullStatValue.cs`, WrathDecompiled 6ce4a6b). Only a
+    /// An ability score as the permanent one plus the bonuses of type `Feat` (the game's `PrerequisiteFullStatValue`:
+    /// `Designers/Mechanics/Prerequisites/PrerequisiteFullStatValue.cs` `GetFullStatValue`, WrathDecompiled 6ce4a6b):
+    /// [`CharacterState::full_ability_scores`](crate::CharacterState::full_ability_scores). Only a
     /// [`Requires`](crate::Component::Requires) component compiles into it.
     FullAbilityScore {
         ability: Ability,

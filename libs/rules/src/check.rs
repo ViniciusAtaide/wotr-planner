@@ -358,6 +358,10 @@ pub enum DataIssue {
     NotGrantable,
     /// A rank progression dividing by a step of 0.
     ZeroStep,
+    /// A `Requires` counting facts from a list of deities only (ticket 295): the game's `PrerequisiteFeaturesFromList`
+    /// with `IsDeity`, which needs one of them whatever its `Amount` and counts as met at the first character level
+    /// while no deity is held (`ConsiderFulfilled`), a rule the planner doesn't model.
+    DeityList,
     /// A `Stat` condition on a skill's full value, which no prerequisite of the planner reads: a skill's prerequisite
     /// reads its ranks.
     FullSkillValue,
@@ -600,6 +604,9 @@ impl fmt::Display for DataProblem {
             DataIssue::ComponentOnWrongEntry(kind) => {
                 write!(f, "holds a `{kind}` component, which means nothing on it")
             }
+            DataIssue::DeityList => f.write_str(
+                "a `Requires` counts deities from a list, whose first-level rule the planner doesn't model",
+            ),
             DataIssue::NotGrantable => f.write_str(
                 "a component grants or removes a class, archetype, race or deity, which are chosen",
             ),
@@ -640,6 +647,11 @@ impl GameData {
                 .archetypes
                 .iter()
                 .map(|archetype| (archetype.key.clone(), archetype.class.clone()))
+                .collect(),
+            bonus_items: self
+                .bonuses
+                .iter()
+                .map(|bonus| item_at(&bonus.item))
                 .collect(),
             selection_at: (self.selections.iter().enumerate())
                 .map(|(i, selection)| (selection.key.clone(), i))
@@ -867,6 +879,8 @@ struct Checker {
     domains: HashSet<SelectionOptionKey>,
     /// Every archetype, with its class.
     archetype_classes: HashMap<ArchetypeKey, ClassKey>,
+    /// The entries a `bonuses.ron` row is on.
+    bonus_items: HashSet<DataAt>,
     /// Every selection's position in the data.
     selection_at: HashMap<FeatureSelectionKey, usize>,
     /// The options' old keys, which only the link decoder reads: checked once the walk has seen every key.
@@ -2209,6 +2223,9 @@ impl Checker {
                 self.problem(at, DataIssue::FieldAndComponent(field));
             }
         }
+        if self.bonus_items.contains(at) && components.iter().any(is_numbers_bonus) {
+            self.problem(at, DataIssue::FieldAndComponent("bonuses"));
+        }
         for component in components {
             self.component(at, component, picked);
         }
@@ -2226,8 +2243,11 @@ impl Checker {
                 if !picked {
                     self.problem(at, wrong(component.kind()));
                 }
-                if condition_reads_full_skill(condition) {
+                if condition.any(&reads_full_skill) {
                     self.problem(at, DataIssue::FullSkillValue);
+                }
+                if condition.any(&counts_deities) {
+                    self.problem(at, DataIssue::DeityList);
                 }
             }
             Component::PrerequisiteClassLevels {
@@ -2496,6 +2516,17 @@ fn is_skill_points(component: &Component) -> bool {
     matches!(component, Component::SkillPoints(_))
 }
 
+/// A stat bonus to a number a `bonuses.ron` row may also give: a save, initiative or a skill.
+fn is_numbers_bonus(component: &Component) -> bool {
+    matches!(
+        component,
+        Component::StatBonus {
+            stat: StatTarget::Save(_) | StatTarget::Initiative | StatTarget::Skill(_),
+            ..
+        }
+    )
+}
+
 fn is_feat_grant(component: &Component) -> bool {
     match component {
         Component::Grant(facts) => facts.iter().any(|fact| matches!(fact, Fact::Feat(_))),
@@ -2514,18 +2545,20 @@ fn is_own_options_rule(component: &Component) -> bool {
     )
 }
 
-/// Whether a condition reads a skill's full value anywhere in it ([`DataIssue::FullSkillValue`]).
-fn condition_reads_full_skill(condition: &Condition) -> bool {
-    match condition {
+/// Whether a condition counts facts from a list of deities only ([`DataIssue::DeityList`]).
+fn counts_deities(condition: &Condition) -> bool {
+    matches!(condition, Condition::AtLeast(_, facts)
+        if !facts.is_empty() && facts.iter().all(|fact| matches!(fact, Fact::Deity(_))))
+}
+
+/// Whether a condition reads a skill's full value ([`DataIssue::FullSkillValue`]).
+fn reads_full_skill(condition: &Condition) -> bool {
+    matches!(
+        condition,
         Condition::Stat {
             stat: StatRef::Skill(_),
             full: true,
             ..
-        } => true,
-        Condition::All(conditions) | Condition::Any(conditions) => {
-            conditions.iter().any(condition_reads_full_skill)
         }
-        Condition::Not(condition) => condition_reads_full_skill(condition),
-        _ => false,
-    }
+    )
 }

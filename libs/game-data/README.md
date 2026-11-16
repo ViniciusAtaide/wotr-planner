@@ -870,11 +870,13 @@ components: [
 - The grants (`Grant`, `GrantAtClassLevel`, `GrantIf`, `GrantOnApply`, `RemoveOnApply`, `GrantWithValue`), the
   stat bonuses with their values (`Flat`, `PerRank`, `Rank`, `Shared`), `ClassSkill`, `SkillPoints`, `Proficiency`
   and `Flag` apply while the entry is held; `PrerequisiteClassLevels` and `PrerequisiteStat` change what a
-  prerequisite reads; `NoSelectionIf` (on a selection) takes its pick away.
-- Defaults are left out (`group: All`, `descriptor: Untyped`, `multiplier: 1`).
+  prerequisite reads; `NoSelectionIf` (on a selection) takes its pick away. A granted selection is held and offers
+  no pick (as the game's `AddFacts`): only a row's selection does.
+- Defaults are left out (`group: All`, `descriptor: Untyped`, `multiplier: 1`, no `at_least` minimum, no `if`).
 - The check refuses an entry holding a hand field and the component kind that replaces it (`prerequisite` beside a
-  `Requires`, `ability_bonuses` beside an ability `StatBonus`, …), a component on an entry it means nothing on, a
-  grant of a class, archetype, race or deity, and a rank progression's step of 0.
+  `Requires`, `ability_bonuses` beside an ability `StatBonus`, a `bonuses.ron` row beside a `StatBonus` to a save,
+  initiative or a skill, …), a component on an entry it means nothing on, a grant of a class, archetype, race or
+  deity, a rank progression's step of 0, and an `AtLeast` over deities only (the game's `IsDeity` rule).
 
 ## Checking against the game
 
