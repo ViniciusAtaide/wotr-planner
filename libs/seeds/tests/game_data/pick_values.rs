@@ -151,7 +151,6 @@ fn an_older_link_with_favorite_metamagic_opens_with_its_metamagic_left_open() {
 /// The game takes Favorite Metamagic again for another metamagic: the mythic ability is a selection, which skips the
 /// rank check, and only each metamagic's feature is held once.
 #[test]
-#[ignore = "waits on ticket 249: the game gives a second Favorite Metamagic for another metamagic"]
 fn favorite_metamagic_is_taken_again_for_another_metamagic() {
     // Game: MythicAbilitySelection ba0e5a900b775be4a99702f1ed08914d offers FavoriteMetamagicSelection
     // 503fb196aa222b24cb6cfdc9a284e838 (no prerequisite of its own); Blueprints/Classes/Selection/
@@ -174,6 +173,33 @@ fn favorite_metamagic_is_taken_again_for_another_metamagic() {
         favorite(Some("metamagic-quicken-spell")),
     );
     assert!(possible(&twice));
+}
+
+/// The game takes Ascendant Element again for another element, never twice for one (ticket 249).
+#[test]
+fn ascendant_element_is_taken_again_for_another_element_but_not_the_same() {
+    // Game: MythicAbilitySelection ba0e5a900b775be4a99702f1ed08914d offers AscendantElementSelection
+    // 535d4e5d8a5664f4797560c280941782, whose six features (AscendantElementAcid d808baf783a063e4d84a1aaadbdd1cb7, …)
+    // have Ranks 1; Blueprints/Classes/Selection/BlueprintFeatureSelection.CanSelect (WrathDecompiled 6ce4a6b) skips
+    // the rank check for a selection and refuses a held one-rank feature.
+    let element = |value: Element| {
+        Pick::mythic_ability_for(
+            MythicAbilityKey::new("ascendant-element"),
+            Parameter::Element(value),
+        )
+    };
+    for key in ["ascendant-element", FAVORITE_METAMAGIC] {
+        assert_eq!(mythic_ability(key).repeat, rules::Repeat::PerValue, "{key}");
+    }
+    let mr_3 = SlotId::Mythic { rank: 3 };
+    let mut build = mythic("trickster", 20);
+    build.picks.insert(MR_1, element(Element::Fire));
+    let mut two = build.clone();
+    two.picks.insert(mr_3.clone(), element(Element::Cold));
+    assert!(possible(&two));
+    let mut same = build;
+    same.picks.insert(mr_3.clone(), element(Element::Fire));
+    assert_eq!(why_not(&same, &mr_3), Some(rules::Issue::AlreadyHeld));
 }
 
 #[test]

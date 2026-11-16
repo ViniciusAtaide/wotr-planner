@@ -115,8 +115,14 @@ impl<'a> Walker<'a> {
                     self.take_option(selection, key, parameter.as_ref(), source);
                 }
             }
-            Pick::MythicAbility { ability: key, .. } => {
-                self.hold(Held::MythicAbility(key.clone()), source.cloned());
+            Pick::MythicAbility {
+                ability: key,
+                parameter,
+            } => {
+                self.hold(
+                    Held::MythicAbility(key.clone(), parameter.clone()),
+                    source.cloned(),
+                );
                 if let Some(ability) = self.engine.catalog.mythic_ability(key) {
                     for feature in &ability.features {
                         self.hold(Held::Feature(feature.clone()), source.cloned());
@@ -190,8 +196,15 @@ impl<'a> Walker<'a> {
                     .or_default();
                 *holds = holds.saturating_add(1);
             }
-            Held::MythicAbility(key) => {
+            Held::MythicAbility(key, value) => {
                 state.mythic_abilities.insert(key.clone());
+                if let Some(value) = value {
+                    state
+                        .mythic_ability_values
+                        .entry(key.clone())
+                        .or_default()
+                        .insert(value.clone());
+                }
             }
             Held::MythicFeat(key, value) => {
                 state.mythic_feats.insert(key.clone());
@@ -309,8 +322,20 @@ impl<'a> Walker<'a> {
                     }
                 }
             }
-            Held::MythicAbility(key) => {
-                state.mythic_abilities.remove(key);
+            Held::MythicAbility(key, value) => {
+                // One that takes a value stays held while it's held for another.
+                let values = state.mythic_ability_values.get_mut(key);
+                let left = match (values, value) {
+                    (Some(values), Some(value)) => {
+                        values.remove(value);
+                        !values.is_empty()
+                    }
+                    _ => false,
+                };
+                if !left {
+                    state.mythic_ability_values.remove(key);
+                    state.mythic_abilities.remove(key);
+                }
             }
             Held::MythicFeat(key, value) => {
                 // A parameterised one stays held while it's held for another value.

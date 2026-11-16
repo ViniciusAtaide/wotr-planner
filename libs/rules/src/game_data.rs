@@ -1610,10 +1610,13 @@ pub struct MythicAbility {
     #[serde(default)]
     pub selections: Vec<FeatureSelectionKey>,
     /// What the ability is taken for, when the guide says to choose one (Favorite Metamagic: a metamagic). Each pick
-    /// of it then names a value of this kind, or none yet ([`ParameterKind::may_stay_open`]). An ability is held
-    /// once, whatever its value.
+    /// of it then names a value of this kind, or none yet ([`ParameterKind::may_stay_open`]).
     #[serde(default)]
     pub parameter: Option<ParameterKind>,
+    /// How many times it can be taken: once, or once per value (Favorite Metamagic, whose game blueprint is a
+    /// selection of one-rank features, one per metamagic; ticket 249).
+    #[serde(default)]
+    pub repeat: Repeat,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

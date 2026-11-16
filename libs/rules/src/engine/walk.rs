@@ -100,7 +100,8 @@ enum Held {
     SelectionOption(SelectionOptionKey, FeatureSelectionKey),
     /// The value an option's pick names when it's the option's own (Finesse Training's weapon), not a chosen feat's.
     OptionValue(SelectionOptionKey, Parameter),
-    MythicAbility(MythicAbilityKey),
+    /// A mythic ability, for its value when it takes one.
+    MythicAbility(MythicAbilityKey, Option<Parameter>),
     /// A mythic feat, for its value when it's parameterised.
     MythicFeat(MythicFeatKey, Option<Parameter>),
     /// A class skill, from a class, the background or an option row.

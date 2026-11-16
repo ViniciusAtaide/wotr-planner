@@ -89,6 +89,9 @@ pub struct CharacterState {
     /// [`FeatSlot::OptionList`]: crate::FeatSlot::OptionList
     pub option_feat_lists: BTreeMap<SelectionOptionKey, FeatListKey>,
     pub mythic_abilities: BTreeSet<MythicAbilityKey>,
+    /// Each mythic ability that takes a value, with the values it's held for (Favorite Metamagic: Persistent Spell
+    /// and Quicken Spell; ticket 249).
+    pub mythic_ability_values: BTreeMap<MythicAbilityKey, BTreeSet<Parameter>>,
     pub mythic_feats: BTreeSet<MythicFeatKey>,
     /// Each parameterised mythic feat held, with the values it's held for (Improved Critical (Mythic): Longsword).
     pub mythic_feat_values: BTreeMap<MythicFeatKey, BTreeSet<Parameter>>,
@@ -150,6 +153,13 @@ impl CharacterState {
             0
         };
         self.skill_ranks(skill).max(floor)
+    }
+
+    /// Whether a mythic ability that takes a value is held for this one.
+    pub fn has_mythic_ability_for(&self, ability: &MythicAbilityKey, value: &Parameter) -> bool {
+        self.mythic_ability_values
+            .get(ability)
+            .is_some_and(|values| values.contains(value))
     }
 
     /// Whether a parameterised mythic feat is held for a value.

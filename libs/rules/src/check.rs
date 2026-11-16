@@ -672,6 +672,7 @@ impl GameData {
                 &BTreeSet::new(),
                 &ability.selections,
             );
+            check.repeat(&at, ability.repeat, ability.parameter.is_some());
             check.prerequisite(&at, ability.prerequisite.as_ref(), ability.parameter);
         }
         for feat in &self.mythic_feats {

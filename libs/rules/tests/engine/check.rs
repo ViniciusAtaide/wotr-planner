@@ -1226,6 +1226,15 @@ fn a_mythic_feat_repeats_per_value_only_with_a_value() {
     );
 }
 
+/// Ticket 249: a mythic ability repeats per value only when it takes one, as a mythic feat.
+#[test]
+fn a_mythic_ability_repeats_per_value_only_with_a_value() {
+    let mut data = world();
+    data.mythic_abilities[0].repeat = Repeat::PerValue;
+    let at = DataAt::MythicAbility(data.mythic_abilities[0].key.clone());
+    assert_eq!(issues(&data), [(at, DataIssue::PerValueWithoutParameter)]);
+}
+
 #[test]
 fn a_feat_granted_for_a_value_takes_a_value_of_that_kind() {
     let mut data = world();

@@ -59,6 +59,7 @@ fn world_with_pick_values() -> GameData {
         features: vec![],
         selections: vec![],
         parameter: Some(parameter),
+        repeat: Repeat::PerValue,
     };
     data.mythic_abilities.push(ability(
         FAVORITE_METAMAGIC,
@@ -163,18 +164,50 @@ fn favorite_metamagic_takes_no_feat_but_a_metamagic_and_no_other_kind() {
     }
 }
 
+/// Ticket 249: a mythic ability that takes a value is taken again for another value, never twice for one; the game's
+/// is a selection, which `BlueprintFeatureSelection.CanSelect` lets repeat, of one-rank features (WrathDecompiled
+/// 6ce4a6b).
 #[test]
-fn favorite_metamagic_is_held_once_whatever_its_metamagic() {
+fn favorite_metamagic_is_taken_again_for_another_metamagic_but_not_the_same() {
     let engine = pick_engine();
     let mut build = mythic_fighter();
-    build.picks.insert(
-        MR_1,
-        favorite(Some(metamagic("metamagic-persistent-spell"))),
+    let persistent = favorite(Some(metamagic("metamagic-persistent-spell")));
+    let empower = favorite(Some(metamagic("metamagic-empower-spell")));
+    build.picks.insert(MR_1, persistent.clone());
+    // The picker offers the other metamagic and refuses the held one.
+    let options = options_at(&engine, &build, &MR_3);
+    let status = |pick: &Pick| {
+        options
+            .iter()
+            .find(|option| &option.pick == pick)
+            .unwrap()
+            .status
+            .clone()
+    };
+    assert_eq!(status(&empower), Ok(()));
+    assert_eq!(status(&persistent), Err(Issue::AlreadyHeld));
+
+    let mut twice = build.clone();
+    twice.picks.insert(MR_3, empower);
+    assert!(engine.is_possible(&twice));
+    let state = engine.evaluate(&twice).at(20).unwrap().clone();
+    let held = |value: &str| {
+        state.has_mythic_ability_for(
+            &MythicAbilityKey::new(FAVORITE_METAMAGIC),
+            &metamagic(value),
+        )
+    };
+    assert!(held("metamagic-persistent-spell") && held("metamagic-empower-spell"));
+    let agreement = rules::agreement::judge(&engine, &twice);
+    assert!(
+        agreement.disagreements.is_empty(),
+        "{:?}",
+        agreement.lines("twice")
     );
-    build
-        .picks
-        .insert(MR_3, favorite(Some(metamagic("metamagic-empower-spell"))));
-    assert_eq!(why_not_in(&engine, &build, &MR_3), Some(Issue::AlreadyHeld));
+
+    let mut same = build;
+    same.picks.insert(MR_3, persistent);
+    assert_eq!(why_not_in(&engine, &same, &MR_3), Some(Issue::AlreadyHeld));
 }
 
 #[test]
