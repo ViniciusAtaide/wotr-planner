@@ -1,7 +1,7 @@
 # Importer S2, 306u: kineticist wild-talent bonus feats
 
 Type: build (the importer, stage S2)
-Status: open
+Status: deferred to a later queue (user, 2026-11-17: research/queue-scope-2026-11-17.md)
 Blocked by: 306t
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)

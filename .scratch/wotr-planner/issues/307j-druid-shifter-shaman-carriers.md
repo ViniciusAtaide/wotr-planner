@@ -1,7 +1,7 @@
 # Importer S3, 307j: druid, shifter and shaman carriers
 
 Type: build (the importer, stage S3)
-Status: open
+Status: deferred to a later queue (user, 2026-11-17: research/queue-scope-2026-11-17.md)
 Blocked by: 307i
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)

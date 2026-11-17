@@ -1,7 +1,7 @@
 # Importer S2, 306o: bonus feat lists IV: prestige and the rest
 
 Type: build (the importer, stage S2)
-Status: open
+Status: deferred to a later queue (user, 2026-11-17: research/queue-scope-2026-11-17.md)
 Blocked by: 306n
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)
