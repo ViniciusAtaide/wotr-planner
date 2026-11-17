@@ -125,10 +125,10 @@ fn feats_repeat_and_take_values_as_the_guide_says() {
         .collect();
     // The 16 parameterised feats once per value (ticket 32; Stat Focus since ticket 125), Magical Tail and the 18
     // Extra feats that repeat (not Extra Bane Weapon).
-    // Game: each of the 35 is a BlueprintParametrizedFeature, a selection (BlueprintFeatureSelection.CanSelect skips
+    // Game (36 since ticket 306j's Extra Hex (Shaman), ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6): each of the 36 is a BlueprintParametrizedFeature, a selection (BlueprintFeatureSelection.CanSelect skips
     // the rank check for one, WrathDecompiled 6ce4a6b) or a feature with Ranks above 1; every other feat's blueprint
     // has Ranks 1.
-    assert_eq!(repeating.len(), 35, "{repeating:?}");
+    assert_eq!(repeating.len(), 36, "{repeating:?}");
 }
 
 /// The game caps the Extra feats that are plain features at their blueprint's ranks: Extra Ki and Extra Reservoir
@@ -590,6 +590,9 @@ fn rage_powers_discoveries_incense_and_mutations_repeat_as_the_guide_says() {
     // Ticket 303: New Strain stops at four. Game: PlagueHexIncreaseDamageStepFeature 505648df95f5489fa13ddbd1af9473fd,
     // offered by PlagueHexSelection 68db664d2b5046eab2e6fd267f5d017d, Ranks 4 (BlueprintFeatureSelection.CanSelect).
     expected.insert(NEW_STRAIN.into(), Repeat::Times(4));
+    // Ticket 306j: the Hex Channeler's channel repeats to its ranks. Game: HexChannelerChannelFeature
+    // b40316f05d4772e4894688e6743602bd, Ranks 20.
+    expected.insert("witch/hex/channel".into(), Repeat::Times(20));
     // "She can select a second weapon at 11th level and a third at 19th level" (ticket 172): once per weapon.
     // Game: FinesseTrainingSelection b78d146cea711a84598f0acef69462ea, one feature per weapon (equivalent model).
     expected.insert("rogue/finesse-training/weapon".into(), Repeat::PerValue);

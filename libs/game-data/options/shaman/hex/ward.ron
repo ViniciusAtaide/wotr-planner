@@ -1,0 +1,1 @@
+(key: "shaman/hex/ward", blueprint: "41f4d078eb70c7b4e9dc54ad0e3630fb", name: "Ward", summary: "Another creature gets +2 deflection AC and +2 resistance to saves until hit or failing a save; +1 at 8th and 16th.", guide: "witch#ward", aliases: ["witch/hex/ward"])

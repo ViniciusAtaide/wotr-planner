@@ -12,7 +12,7 @@ use crate::support::*;
 /// The "Extra …" feats that give one more pick of a class selection ("You gain one additional hex"), with the
 /// selections that pick may be of, as the game gives them. Extra Mercy's since ticket 54 made the paladin's mercies a
 /// selection; the Vivisectionist's Medical Discovery since ticket 64. The rows of `WAITING` differ from the data.
-const EXTRA_PICKS: [(&str, &[&str]); 9] = [
+const EXTRA_PICKS: [(&str, &[&str]); 10] = [
     ("extra-arcana", &["magus/magus-arcana"]), // Game: ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8 (its own list of the 15 magus arcana; met by MagusArcanaSelection, HexcrafterMagusHexArcanaSelection or EldritchMagusArcanaSelection)
     (
         "extra-arcanist-exploit",
@@ -26,6 +26,7 @@ const EXTRA_PICKS: [(&str, &[&str]); 9] = [
         ],
     ), // Game: ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 and ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae (equivalent model: two feats, one key); UndergroundChemistSelection c3d08fdb481aa2e4a9f71c4349141826 meets neither
     ("extra-hex", &["witch/hex"]), // Game: ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35; the shaman's is another feat, ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6
+    ("extra-hex-shaman", &["shaman/hex"]), // Game: ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6 (ShamanHexSelection 4223fe18c75d4d14787af196a04e14e7)
     ("extra-mercy", &["paladin/mercy"]), // Game: ExtraMercySelection 8a49abed5be9473da1e1fd1e2457562e (SelectionMercy 02b187038a8dce545bb34bbfb346428d)
     (
         "extra-rage-power",
@@ -233,7 +234,7 @@ fn a_witchs_extra_hex_gives_a_hex_slot() {
     assert!(possible(&build));
     assert_eq!(
         kind_at(&build, &extra_slot(1, 0)),
-        Some(selection_kind("witch/hex"))
+        Some(selection_kind(slot_selection("extra-hex", "witch/hex")))
     );
     let filled = with_selections_filled(build);
     assert!(filled.picks.contains_key(&extra_slot(1, 0)));
@@ -253,7 +254,7 @@ fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
         // at 2), ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6 (equivalent model: the shaman's Extra Hex)
         (
             classes_build(&times("shaman", 3)),
-            "extra-hex",
+            "extra-hex-shaman",
             3,
             "shaman/hex",
         ),

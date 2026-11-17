@@ -26,7 +26,7 @@ fn selection_keys(keys: &[&str]) -> BTreeSet<FeatureSelectionKey> {
 /// `BlueprintFeatureSelection`, so one GUID names both entries.
 #[test]
 fn each_extra_feat_grants_a_selection_with_its_blueprint() {
-    let extra: [(&str, &str, &str); 9] = [
+    let extra: [(&str, &str, &str); 10] = [
         // Game: ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8 (BlueprintFeatureSelection)
         (
             "extra-arcana",
@@ -50,6 +50,12 @@ fn each_extra_feat_grants_a_selection_with_its_blueprint() {
             "extra-hex",
             "witch/extra-hex",
             "b6054088b4ab4be286724127cbf48b35",
+        ),
+        // Game: ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6 (ticket 306j)
+        (
+            "extra-hex-shaman",
+            "shaman/extra-hex",
+            "d0b4c8245d504b8c9c6d3fccc1f8c5b6",
         ),
         // Game: ExtraMercySelection 8a49abed5be9473da1e1fd1e2457562e
         (
@@ -169,11 +175,7 @@ fn the_first_had_extra_feats_name_the_selections_they_reach() {
                 "alchemist/discovery",
                 "alchemist/vivisectionist/medical-discovery",
                 "rogue/underground-chemist/discovery",
-            ],
-        ),
-        (
-            "witch/extra-hex",
-            &["shaman/hex", "witch/hex", "witch/wandering-hex"],
+            ][..],
         ),
         (
             "rogue/extra-rogue-talent",
@@ -192,6 +194,13 @@ fn the_first_had_extra_feats_name_the_selections_they_reach() {
         );
         assert!(selection.feats.is_empty(), "{extra}");
     }
+    // The witch's has the game's 27 of its own since 306j (ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35).
+    let witch = any_selection("witch/extra-hex");
+    assert_eq!(
+        witch.needs_slot_of,
+        selection_keys(&["witch/hex", "witch/wandering-hex"])
+    );
+    assert_eq!(witch.offered().len(), 27);
 }
 
 /// The mythic abilities that grant a pick each grant one selection with the ability's blueprint (the game's ability

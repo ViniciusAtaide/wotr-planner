@@ -1,0 +1,1 @@
+(key: "shaman/hex/fortune", blueprint: "64ed6d1a539434c469c69011e8df7163", name: "Fortune", summary: "For 1 round a creature rolls ability checks, attacks, saves and skill checks twice and keeps the better; +1 round at 8th and 16th.", guide: "witch#fortune", aliases: ["witch/hex/fortune"])

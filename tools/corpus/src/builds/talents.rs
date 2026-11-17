@@ -800,8 +800,6 @@ pub(super) fn borrowed_talents(engine: &Engine) -> Vec<Named> {
                 human(&[("magus", hexcrafter, 18)]),
                 vec![
                     (selection(4, 0), hex("slumber")),
-                    (general(5), feat("extra-hex")),
-                    (feat_selection(5), hex("cackle")),
                     (
                         selection(6, 0),
                         option("magus/magus-arcana/arcane-accuracy"),

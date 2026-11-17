@@ -160,7 +160,7 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
         .collect();
     // Game: DragonLevel2FeatSelection a21acdafc0169f5488a9bd3256e2e65b (IgnorePrerequisites; its list, which the data
     // holds as every feat, is the game check's)
-    assert_eq!(every, [("gold-dragon/dragon-feats", true, 261)]);
+    assert_eq!(every, [("gold-dragon/dragon-feats", true, 262)]);
     let one_choice: Vec<_> = feat_lists()
         .filter(|list| list.feats.len() < 2)
         .map(|list| {
@@ -215,6 +215,8 @@ fn no_selection_option_is_a_copy_of_another() {
         // Primalist's two choices are described under their selection's heading.
         for option in DATA.options_of(selection).filter(|o| {
             o.guide.as_ref().unwrap().0.contains('#')
+                // The shaman's eleven copies of witch hexes keep the witch's anchor (306j, design decision 6).
+                && !(o.key.as_str().starts_with("shaman/hex/") && !o.aliases.is_empty())
                 && !o.name.ends_with(')')
                 && o.guide != selection.guide
         }) {
@@ -279,21 +281,16 @@ fn a_slayers_talent_list_at_10_is_the_games_39() {
 }
 
 #[test]
-fn a_shaman_shares_eleven_witch_hexes() {
+fn a_shaman_has_its_own_eleven_copies_of_witch_hexes() {
     let shaman = build("shaman", 2);
     let hexes = offered(&shaman, 2);
-    let shared: BTreeSet<_> = hexes
-        .keys()
-        .filter(|key| key.starts_with("witch/hex/"))
-        .cloned()
-        .collect();
     // Game: ShamanHexSelection 4223fe18c75d4d14787af196a04e14e7 (the shaman's own hex blueprints, 11 sharing a witch
     // hex's name: Healing among them); ShamanHexEvilEyeFeature 890cd9309dc515c4199d811c36760d17 (no prerequisite).
-    // That the data shares the witch's keys is its shape (equivalent model, but for a shaman-witch who could hold
-    // both copies in the game).
-    assert_eq!(shared.len(), 11);
-    assert!(shared.contains("witch/hex/healing-hex"));
-    assert_eq!(hexes["witch/hex/evil-eye"], Ok(()));
+    // Ticket 306j: each is the shaman's own entry (`shaman/hex/<name>`), the witch's key an alias; no `witch/hex/` key
+    // is offered.
+    assert!(!hexes.keys().any(|key| key.starts_with("witch/hex/")));
+    assert_eq!(hexes["shaman/hex/healing-hex"], Ok(()));
+    assert_eq!(hexes["shaman/hex/evil-eye"], Ok(()));
 }
 
 #[test]
@@ -318,7 +315,6 @@ fn a_sylvan_trickster_picks_a_rogue_talent_or_a_witch_hex() {
 /// (the witch's 26 and the Hex Channeler's channel).
 // Game: SylvanTricksterTalentSelection 290bbcc3c3bb92144b853fd8fb8ff452
 #[test]
-#[ignore = "waits on ticket 306j: the game lists the Hex Channeler's channel, which 306j makes, and one more rogue talent than the planner"]
 fn a_sylvan_tricksters_fey_tricks_are_the_games_64() {
     let trickster = archetype_build("rogue", "rogue/sylvan-trickster", 2);
     assert_eq!(offered(&trickster, 2).len(), 64);

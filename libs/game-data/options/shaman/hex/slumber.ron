@@ -1,0 +1,1 @@
+(key: "shaman/hex/slumber", blueprint: "894ef7374b805dd43b97603371b7ef10", name: "Slumber", summary: "Will save or asleep for 1 round per class level or until damaged.", guide: "witch#slumber", aliases: ["witch/hex/slumber"])

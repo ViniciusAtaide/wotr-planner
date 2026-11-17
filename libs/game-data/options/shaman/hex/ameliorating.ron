@@ -1,0 +1,1 @@
+(key: "shaman/hex/ameliorating", blueprint: "8e19da021854b9b4e805f0e919663894", name: "Ameliorating", summary: "Touch suppresses dazzled, fatigued, shaken or sickened for minutes equal to level and gives +4 to saves against it.", guide: "witch#ameliorating", aliases: ["witch/hex/ameliorating"])

@@ -691,7 +691,6 @@ fn witch_wandering_hex_is_locked_without_a_hex() {
 /// A shaman, with hexes of her own, can't take Witch Wandering Hex: it needs witch 1, a Sylvan Trickster rogue 2 or a
 /// Hexcrafter magus 4.
 #[test]
-#[ignore = "waits on ticket 259: the game gives Witch Wandering Hex to witch 1, Sylvan Trickster 2, Hexcrafter 4"]
 fn a_shamans_hex_doesnt_open_witch_wandering_hex() {
     let shaman = with_selections_filled(build("shaman", 6));
     assert!(

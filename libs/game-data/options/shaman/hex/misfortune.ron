@@ -1,0 +1,1 @@
+(key: "shaman/hex/misfortune", blueprint: "e7fe4ed2a56a4454396d5dfda9e58a18", name: "Misfortune", summary: "On a failed Will save, for 1 round a creature rolls checks, attacks and saves twice and keeps the worse; +1 round at 8th and 16th.", guide: "witch#misfortune", aliases: ["witch/hex/misfortune"])

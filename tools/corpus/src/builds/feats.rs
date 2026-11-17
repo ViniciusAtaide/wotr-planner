@@ -46,7 +46,7 @@ pub(super) fn extra_feats(engine: &Engine) -> Vec<Named> {
         (
             "shaman hex",
             human(&only("shaman", None, 3)),
-            "extra-hex",
+            "extra-hex-shaman",
             &[3],
         ),
         (
