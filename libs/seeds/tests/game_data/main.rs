@@ -9,6 +9,7 @@ mod archetype_losses;
 mod archetype_saves;
 mod athletics_iii;
 mod backgrounds;
+mod barbarian_witch_shaman_prerequisites;
 mod bloodline_ascendance;
 mod blueprints;
 mod bonus_feat_choices;

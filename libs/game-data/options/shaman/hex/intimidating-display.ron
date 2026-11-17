@@ -1,1 +1,1 @@
-(key: "shaman/hex/intimidating-display", blueprint: "2eacbef4be7c6434e9cfaa9632fdc429", name: "Intimidating Display", summary: "Gives Dazzling Display, usable without a weapon.", guide: "shaman#intimidating-display")
+(key: "shaman/hex/intimidating-display", blueprint: "2eacbef4be7c6434e9cfaa9632fdc429", name: "Intimidating Display", summary: "Gives Dazzling Display, usable without a weapon.", guide: "shaman#intimidating-display", components: [Requires(condition: HasNot(Feat("dazzling-display")))])

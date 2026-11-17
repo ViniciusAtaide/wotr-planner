@@ -451,8 +451,10 @@ pub(super) fn negated_prerequisites(engine: &Engine) -> Vec<Named> {
                         selection(2, 0),
                         option("barbarian/rage-power/celestial-totem-lesser"),
                     ),
+                    // CelestialTotemFeature 5156331dc888e9347ae6fc81ad3f3cec needs barbarian 6 (308f), so it is
+                    // taken at 6, once at 4.
                     (
-                        selection(4, 0),
+                        selection(6, 0),
                         option("barbarian/rage-power/celestial-totem"),
                     ),
                 ],

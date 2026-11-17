@@ -152,9 +152,13 @@ fn a_blueprint_entry_holds_its_prerequisite_as_requires_components() {
     // Seeker, Survivalist, the ten nocturnal abilities, Clear Mind), and four hold none, as their blueprints
     // (MercyFatigued e5aa306af9b91974a9b2f2cbe702f562, MercyShaken c4732ca5b0af7214a98f9b4dafe87da9, MercySickened
     // 7ee2ef06226a4884f80b7647a2aa2dee, KiSuddenSpeedFeature 96d96f5b6f71004418e7a7e42a81c94d).
+    // Ticket 308f: four options that held none hold the game's (ComeAndGetMeFeature 032402bde3fb47e39e6ebb6724ae9c22,
+    // both Iceplant hexes, Intimidating Display), and eleven hold none, as their blueprints (nine aeon gazes, AeonAreaEffectsGazeFeature 39d8ae51c0034adbb8394210c51901e2 among them;
+    // SkillFocusSelection c9629ef9eebb88b479b2fbc5e836656a; SkilledKineticistFeature fd13e9efee08db448974fe0263eb96c8,
+    // its own NoFeature only).
     // A count pin: when two branches each move it, a merge resolves it by sum, the base plus each side's change
     // (`.claude/skills/ticket-queue/SKILL.md`, "Hazards met before"), keeping both sides' comments above.
-    assert_eq!((moved, fields), (684, 62));
+    assert_eq!((moved, fields), (677, 62));
 
     // The planner-made entries keep what they hold: their fields, and no `Requires`.
     let planner_requires = (files.feats.iter())

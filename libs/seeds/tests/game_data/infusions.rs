@@ -146,18 +146,31 @@ const INFUSIONS: [(&str, u8, &[&str], &[&str], Sharpshooter); 32] = [
     ("chain-arrows", 16, &[], &[], Sharpshooter::Only),
 ];
 
-/// The infusions whose kineticist level the data still holds as twice the guide's infusion level (2, and 2 for
-/// Exploding Arrows, 10 for Rending Arrows), where the game's blueprint asks for none, 3 or 11. No slot shows it today:
-/// the base class's first slot is at 3 and the Sharpshooter's at odd levels.
-const LEVEL_DIFFERS: [&str; 8] = [
+/// The infusions whose kineticist level the data still holds as twice the guide's infusion level (2), where the game's
+/// blueprint asks for none. No slot shows it today: the base class's first slot is at 3. Their blueprints name blasts
+/// no entry maps, so 308f's writer left them whole (307).
+const LEVEL_DIFFERS: [&str; 4] = [
     "burning-infusion",
     "dazzling-infusion",
+    "fan-of-flames",
+    "pushing-infusion",
+];
+
+/// The infusions whose prerequisite 308f wrote from the game, in shapes this table's columns don't express: the
+/// element selection (ElementalFocusSelection 1f3a15a3ae8a5524ab8b97f469bf4e3d), a list of which one is needed, the
+/// Sharpshooter's level beside the class's, and no level for the level-1 ones.
+/// `barbarian_witch_shaman_prerequisites::the_infusions_take_the_levels_and_the_element_selection_their_blueprints_name`
+/// holds each exactly.
+const WRITTEN: [&str; 9] = [
+    "chain-arrows",
     "exploding-arrows",
     "extended-range",
-    "fan-of-flames",
+    "grappling-infusion",
+    "honed-infusion",
     "kinetic-blade",
-    "pushing-infusion",
     "rending-arrows",
+    "spindle",
+    "wall",
 ];
 
 /// The infusions whose game prerequisite is a list of blasts that no set of the planner's elements matches: the game's
@@ -273,9 +286,10 @@ fn infusions_are_a_selection_of_32_with_their_level_and_elements() {
     let keys: BTreeSet<String> = selection.options.iter().map(|o| o.to_string()).collect();
     let expected: BTreeSet<String> = INFUSIONS.iter().map(|(name, ..)| infusion(name)).collect();
     assert_eq!(keys, expected);
-    // Game: each row's blueprint, cited beside it in INFUSIONS (the rows of LEVEL_DIFFERS and BLASTS wait on the data).
+    // Game: each row's blueprint, cited beside it in INFUSIONS (the rows of LEVEL_DIFFERS and BLASTS wait on the data;
+    // WRITTEN's are held exactly elsewhere).
     for (name, level, elements, needs, sharpshooter) in INFUSIONS {
-        if LEVEL_DIFFERS.contains(&name) || BLASTS.contains(&name) {
+        if LEVEL_DIFFERS.contains(&name) || BLASTS.contains(&name) || WRITTEN.contains(&name) {
             continue;
         }
         assert_eq!(
@@ -354,10 +368,11 @@ fn the_kineticist_picks_an_infusion_at_1_and_at_each_later_infusion_level() {
 }
 
 /// The game's infusions ask for the kineticist level their blueprint names, not twice the guide's infusion level: none
-/// for the level-1 infusions, 3 for Exploding Arrows and 11 for Rending Arrows.
+/// for the level-1 infusions. 308f wrote the rest (Exploding Arrows' 3, Rending Arrows' 11, Kinetic Blade's and
+/// Extended Range's none).
 #[test]
-#[ignore = "waits on ticket 270: the game gives no kineticist level for a level-1 infusion, 3 for \
-            Exploding Arrows and 11 for Rending Arrows"]
+#[ignore = "waits on ticket 307: the game gives Burning, Dazzling, Fan of Flames and Pushing no kineticist \
+            level, beside blasts no entry maps"]
 fn each_infusion_needs_the_kineticist_level_its_blueprint_names() {
     // Game: each row's blueprint in INFUSIONS (its PrerequisiteClassLevel on KineticistClass, or none).
     for (name, level, ..) in INFUSIONS {
@@ -405,8 +420,6 @@ fn infusions_need_a_blast_not_an_element() {
 /// The game's Kinetic Knight trades the Elemental Focus selection for its own, so it never holds that selection, which
 /// 13 infusions need: Spindle among them.
 #[test]
-#[ignore = "waits on ticket 270: the game gives the Kinetic Knight no infusion that needs the Elemental \
-            Focus selection"]
 fn a_kinetic_knight_is_refused_the_infusions_that_need_the_elemental_focus_selection() {
     // Game: SpindleInfusion c4f4a62a325f7c14dbcace3ce34782b5 (PrerequisiteFeature ElementalFocusSelection);
     // KineticKnightArchetype 7d61d9b2250260a45b18c5634524a8fb removes ElementalFocusSelection at 1.

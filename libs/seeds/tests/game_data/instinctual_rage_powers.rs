@@ -17,7 +17,7 @@ const INSTINCTUAL_RAGE_POWER: &str = "barbarian/instinctual-warrior/rage-power";
 /// The guide's monk abilities and ki powers an Instinctual Warrior may take as rage powers
 /// (`barbarian#rage-power-instinctual-warrior`): each one's key in the rage power selection, its name, and the
 /// Instinctual Warrior level its blueprint's `PrerequisiteArchetypeLevel` names (`None`: Deflect Arrows, whose level 4
-/// is the archetype's first rage power, and which needs Improved Unarmed Strike and Dex 13 instead).
+/// is the archetype's first rage power, and which needs Improved Unarmed Strike and Dex 13 too).
 const MONK_RAGE_POWERS: [(&str, &str, Option<u8>); 5] = [
     // Game: RageDeflectArrowsFeature d971bbb15f354621ac37fd51d0ab9044
     (
@@ -51,26 +51,20 @@ const MONK_RAGE_POWERS: [(&str, &str, Option<u8>); 5] = [
     ),
 ];
 
-/// The monk powers whose prerequisite in the data isn't yet the game's: Deflect Arrows lacks Dex 13, Purity of Body
-/// asks barbarian 8 (the game 5) and Diamond Soul 16 (the game 14).
-const WAITING: [&str; 3] = [
-    "barbarian/rage-power/deflect-arrows-instinctual-warrior",
-    "barbarian/rage-power/purity-of-body-instinctual-warrior",
-    "barbarian/rage-power/diamond-soul-instinctual-warrior",
-];
-
 /// What a monk power needs: the archetype and the level (equivalent model: the game's `PrerequisiteArchetypeLevel` is
-/// the archetype taken and the barbarian level), or for Deflect Arrows the archetype, Improved Unarmed Strike and Dex
-/// 13 (the game's Int 3 always holds: no score goes below 3).
+/// the archetype taken and the barbarian level), or for Deflect Arrows the archetype at barbarian 4, Improved Unarmed
+/// Strike and Dex 13 (the game's Int 3 always holds: no score goes below 3).
 fn monk_power_prerequisite(level: Option<u8>) -> Prerequisite {
     let archetype = Prerequisite::Archetype(ArchetypeKey::new(INSTINCTUAL_WARRIOR));
-    let mut all = vec![archetype];
+    let barbarian = |level| Prerequisite::ClassLevel {
+        class: ClassKey::new("barbarian"),
+        level,
+    };
+    let mut all = Vec::new();
     match level {
-        Some(level) => all.push(Prerequisite::ClassLevel {
-            class: ClassKey::new("barbarian"),
-            level,
-        }),
+        Some(level) => all.extend([archetype, barbarian(level)]),
         None => {
+            all.push(Prerequisite::All(vec![barbarian(4), archetype]));
             all.push(Prerequisite::Feat(FeatKey::new("improved-unarmed-strike")));
             all.push(Prerequisite::AbilityScore {
                 ability: Ability::Dexterity,
@@ -123,11 +117,7 @@ fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
         );
         // Game: each row's blueprint in MONK_RAGE_POWERS: Ranks 1.
         assert_eq!(option.repeat(), Repeat::Once, "{name}");
-        // Game: each row's blueprint (the rows of WAITING are
-        // `the_instinctual_warriors_monk_powers_need_the_levels_and_dex_their_blueprints_name`'s).
-        if WAITING.contains(&key) {
-            continue;
-        }
+        // Game: each row's blueprint.
         assert_eq!(
             option.prerequisite,
             Some(monk_power_prerequisite(level)),
@@ -146,16 +136,11 @@ fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
 /// The game's Purity of Body needs Instinctual Warrior level 5 and Diamond Soul 14, and Deflect Arrows Dex 13 as well
 /// as Improved Unarmed Strike: Purity of Body opens in an Extra Rage Power slot at 5, and the reasons name 5 and 14.
 #[test]
-#[ignore = "waits on ticket 269: the game gives Purity of Body level 5, Diamond Soul 14, Deflect Arrows \
-            Dex 13"]
 fn the_instinctual_warriors_monk_powers_need_the_levels_and_dex_their_blueprints_name() {
     // Game: RageDeflectArrowsFeature d971bbb15f354621ac37fd51d0ab9044 (ImprovedUnarmedStrike
-    // 7812ad3672a4b9a4fb894ea402095167, Dex 13); RagePurityOfBodyFeature a4418aa778cb4ebd965d78af19becced (level 5);
-    // RageDiamondSoulFeature d4c929bffb80464bbe6daf1471088bf8 (level 14).
+    // 7812ad3672a4b9a4fb894ea402095167, Dex 13, PrerequisiteArchetypeLevel 4); RagePurityOfBodyFeature
+    // a4418aa778cb4ebd965d78af19becced (level 5); RageDiamondSoulFeature d4c929bffb80464bbe6daf1471088bf8 (level 14).
     for (key, name, level) in MONK_RAGE_POWERS {
-        if !WAITING.contains(&key) {
-            continue;
-        }
         assert_eq!(
             selection_option(key).prerequisite,
             Some(monk_power_prerequisite(level)),
