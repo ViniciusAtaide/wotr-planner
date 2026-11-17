@@ -5,9 +5,10 @@
     slot: Belt,
     guide: "items#belts",
     other_effects: [
-        "Against evil creatures: +2 on Fortitude saves and +1 insight to AC.",
+        "Against evil creatures: +1 insight bonus to AC.",
     ],
     components: [
         GearStat(stat: Ability(Constitution), value: 6, descriptor: Enhancement),
+        GearStat(stat: Save(Fortitude), value: 2),
     ],
 )

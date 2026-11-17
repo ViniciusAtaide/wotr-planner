@@ -1183,10 +1183,7 @@ progression rows / * / class student-of-war -> 287
 progression rows / * / class winter-witch -> 287
 
 # 288, items.
-items / * / gear item belt-of-the-venerated-champion -> 288
 items / * / gear item broken-trickster -> 288
-items / * / gear item dirge-for-sarkoris -> 288
-items / * / gear item half-plate-of-vigor -> 288
 items / * / gear item razmirs-mask -> 288
 items / * / gear item trusted-friend -> 288
 

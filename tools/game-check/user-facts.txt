@@ -58,3 +58,6 @@ items / * / gear item headband-of-vast-intelligence-6 -> held
 # The Belt of Perfection +8 is one of the user's generic items (ticket 288, line 15: "added to the user's 22 generic
 # items, without asking again"), applied. The Headband of Perfection +8's line comes with 293k, whose file it is.
 items / * / gear item belt-of-physical-perfection-8 -> applied 288
+
+# The Headband of Perfection +8 is the other +8 of the same line of ticket 288 (line 15), applied.
+items / * / gear item headband-of-mental-perfection-8 -> applied 288

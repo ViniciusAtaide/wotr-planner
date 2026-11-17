@@ -6,9 +6,7 @@
     guide: "items#equipable-and-consumable",
     other_effects: [
         "Only the Knight Commander can equip it.",
+        "While its toggle is on: +2 circumstance bonus to Charisma and +5 circumstance bonus to Persuasion.",
     ],
-    components: [
-        GearStat(stat: Ability(Charisma), value: 2, descriptor: Circumstance),
-        GearStat(stat: Skill("persuasion"), value: 5, descriptor: Circumstance),
-    ],
+    components: [],
 )
