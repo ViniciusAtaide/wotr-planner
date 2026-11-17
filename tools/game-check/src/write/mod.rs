@@ -12,6 +12,7 @@
 //! field the importer doesn't own, and a refused span before it writes anything; then it writes each file, reads it
 //! back, runs the caller's check of the whole folder, and on any failure puts every written file's bytes back.
 
+mod carrier_guard;
 pub mod carriers;
 pub mod facts;
 pub mod items;

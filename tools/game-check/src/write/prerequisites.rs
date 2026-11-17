@@ -16,10 +16,15 @@
 //!   when [`owner`] names none), unless `prerequisite-narrowing.txt` names it with the reason it moves toward the
 //!   game ([`Narrowings`]). The check compares GUIDs, so it can't see a GUID turned into the wrong entry; this guard
 //!   does. A line of that file no rewrite makes fails the check ([`stale`], 308g).
+//! - **A rewrite never refuses through a carrier** (308h): a fact the new tree requires that a game blueprint grants
+//!   through a component, where the planner's entry of that blueprint doesn't grant it, leaves the entry whole,
+//!   listed `<fact> granted by <grantor> <GUID>, which <entry> doesn't grant -> 307` ([`carrier_guard`]), whatever
+//!   the allowlist says. [`audit`] runs the guard over every entry.
 //!
 //! The written components are the `Requires` in the blueprint's component order, then the entry's other components in
 //! theirs.
 
+use std::cell::OnceCell;
 use std::collections::{BTreeMap, BTreeSet};
 
 use rules::{
@@ -29,6 +34,7 @@ use rules::{
 };
 use serde_json::Value;
 
+use super::carrier_guard::{self, Grants};
 use super::carriers::{fact_at, facts_of, words};
 use super::span::{Value as Field, ron_text};
 use super::{Change, Unexpressed};
@@ -256,7 +262,7 @@ pub fn stale(dump: &crate::Dump, data: &GameData, narrowings: &Narrowings) -> Ve
         dump,
         planner: &planner,
     };
-    let (_, _, made) = plan(&ctx, None, narrowings);
+    let Plan { made, .. } = plan(&ctx, None, narrowings);
     let mut stale: Vec<&(usize, String)> = narrowings
         .allowed
         .iter()
@@ -270,35 +276,86 @@ pub fn stale(dump: &crate::Dump, data: &GameData, narrowings: &Narrowings) -> Ve
         .collect()
 }
 
+/// The carrier guard over every entry ([`carrier_guard`], 308h), in entry order: `<entry> | holds: <gap>` for the tree
+/// the data holds (its hand prerequisite, or its `Requires` compiled), and `<entry> | left whole: <gap>` for the game's
+/// tree where the writer has a form for each component and the tree differs from the data's (a narrowing may hold the
+/// entry too). `data` is read as the files hold it, as for [`stale`].
+pub fn audit(dump: &crate::Dump, data: &GameData) -> Vec<String> {
+    let planner = crate::planner::Planner::new(data);
+    let ctx = Ctx {
+        dump,
+        planner: &planner,
+    };
+    let Plan {
+        grants, carried, ..
+    } = plan(&ctx, None, &Narrowings::default());
+    let compiled = compiler(data);
+    let mut out = Vec::new();
+    for entry in entries(data) {
+        let held = entry
+            .prerequisite
+            .cloned()
+            .or_else(|| compiled(entry.components));
+        for gap in carrier_guard::gaps(
+            &ctx,
+            grants.get_or_init(|| Grants::of(&ctx)),
+            &entry.at,
+            held.as_ref(),
+        ) {
+            out.push(format!("{} | holds: {gap}", entry.at));
+        }
+        for item in carried.iter().filter(|item| item.at == entry.at) {
+            out.push(format!("{} | left whole: {}", item.at, item.what));
+        }
+    }
+    out
+}
+
 /// The changes, in entry order, and the entries left whole with each gap that holds them.
 pub(crate) fn changes(
     ctx: &Ctx,
     only: Option<&BTreeSet<String>>,
     narrowings: &Narrowings,
 ) -> (Vec<Change>, Vec<Unexpressed>) {
-    let (changes, left, _) = plan(ctx, only, narrowings);
+    let Plan { changes, left, .. } = plan(ctx, only, narrowings);
     (changes, left)
 }
 
-/// [`changes`], and every narrowing a rewrite makes, by entry, allowed or not.
-fn plan(
-    ctx: &Ctx,
-    only: Option<&BTreeSet<String>>,
-    narrowings: &Narrowings,
-) -> (Vec<Change>, Vec<Unexpressed>, BTreeSet<(String, String)>) {
-    let data = ctx.planner.data;
+/// What [`plan`] finds.
+struct Plan {
+    changes: Vec<Change>,
+    /// The entries left whole, with each gap, narrowing or carrier that holds them.
+    left: Vec<Unexpressed>,
+    /// Every narrowing a rewrite makes, by entry, allowed or not.
+    made: BTreeSet<(String, String)>,
+    /// The carrier gaps of the rewrites (each in `left` too).
+    carried: Vec<Unexpressed>,
+    /// The game's and the planner's grants, once a rewrite needed them.
+    grants: OnceCell<Grants>,
+}
+
+/// An entry's `Requires` compiled and canonical, as [`rules::compile_requires`] reads an archetype's class.
+fn compiler(data: &GameData) -> impl Fn(&[Component]) -> Option<Prerequisite> + '_ {
     let classes: BTreeMap<&ArchetypeKey, &ClassKey> = data
         .archetypes
         .iter()
         .map(|archetype| (&archetype.key, &archetype.class))
         .collect();
-    let compiled = |components: &[Component]| {
+    move |components: &[Component]| {
         compile_requires(components, |archetype| classes.get(archetype).copied()).map(|mut tree| {
             tree.canonicalize();
             tree
         })
-    };
-    let (mut out, mut left, mut made) = (Vec::new(), Vec::new(), BTreeSet::new());
+    }
+}
+
+/// [`changes`], every narrowing a rewrite makes, and the carrier gaps.
+fn plan(ctx: &Ctx, only: Option<&BTreeSet<String>>, narrowings: &Narrowings) -> Plan {
+    let data = ctx.planner.data;
+    let compiled = compiler(data);
+    let grants = OnceCell::new();
+    let (mut out, mut left, mut made, mut carried) =
+        (Vec::new(), Vec::new(), BTreeSet::new(), Vec::new());
     for entry in entries(data) {
         let name = entry.at.to_string();
         if only.is_some_and(|only| !only.iter().any(|each| takes(each, &name))) {
@@ -345,6 +402,19 @@ fn plan(
                 .iter()
                 .map(|narrowing| (name.clone(), narrowing.said.clone())),
         );
+        let gaps = carrier_guard::gaps(
+            ctx,
+            grants.get_or_init(|| Grants::of(ctx)),
+            &entry.at,
+            after.as_ref(),
+        );
+        let carriers: Vec<Unexpressed> = gaps
+            .into_iter()
+            .map(|what| Unexpressed {
+                at: entry.at.clone(),
+                what,
+            })
+            .collect();
         let blocked: Vec<Unexpressed> = found
             .into_iter()
             .filter(|narrowing| !narrowings.allows(&name, &narrowing.said))
@@ -356,8 +426,9 @@ fn plan(
                 ),
             })
             .collect();
-        if !blocked.is_empty() {
-            left.extend(blocked);
+        if !blocked.is_empty() || !carriers.is_empty() {
+            left.extend(carriers.iter().cloned().chain(blocked));
+            carried.extend(carriers);
             continue;
         }
         let tree =
@@ -372,7 +443,13 @@ fn plan(
             new: tree(after),
         });
     }
-    (out, left, made)
+    Plan {
+        changes: out,
+        left,
+        made,
+        carried,
+        grants,
+    }
 }
 
 /// The facts a compiled tree names, by the report's name (`feat power-attack`), each with its entry: those it accepts
@@ -425,7 +502,7 @@ impl Named {
 
 /// The entry a fact leaf names, whatever its count, rank or value: a feat for `Weapon Focus (Longsword)`, a class for
 /// a class level.
-fn leaf_at(leaf: &Prerequisite) -> Option<DataAt> {
+pub(super) fn leaf_at(leaf: &Prerequisite) -> Option<DataAt> {
     Some(match leaf {
         Prerequisite::Feat(feat)
         | Prerequisite::FeatFor { feat, .. }

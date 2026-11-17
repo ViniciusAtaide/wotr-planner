@@ -199,7 +199,7 @@ fn candidates(ctx: &Ctx) -> BTreeSet<BlueprintGuid> {
     let planner = ctx.planner;
     let wanted =
         |guid: &BlueprintGuid| !planner.maps(guid) && dump.kind(guid).is_some_and(is_feature_kind);
-    let mut parents: BTreeMap<BlueprintGuid, Vec<BlueprintGuid>> = BTreeMap::new();
+    let parents = granters(dump);
     // Each selection's list, and every blueprint a progression's or an archetype's rows grant.
     let mut lists: Vec<(BlueprintGuid, Vec<BlueprintGuid>)> = Vec::new();
     let mut in_rows: BTreeSet<BlueprintGuid> = BTreeSet::new();
@@ -224,9 +224,6 @@ fn candidates(ctx: &Ctx) -> BTreeSet<BlueprintGuid> {
         }
         for rows in [&json["LevelEntries"], &json["AddFeatures"]] {
             in_rows.extend(level_entries(rows).into_values().flatten());
-        }
-        for child in grants(json) {
-            parents.entry(child).or_default().push(guid.clone());
         }
     }
     // A pick is the selections' stage's: a member of the list of a selection that has an entry or that the rows
@@ -290,6 +287,28 @@ fn candidates(ctx: &Ctx) -> BTreeSet<BlueprintGuid> {
         }
     }
     out
+}
+
+/// Each blueprint's granters: the features, archetypes and classes whose [`grants`] name it, in GUID order (a granter
+/// naming it twice is listed twice).
+pub(super) fn granters(dump: &crate::Dump) -> BTreeMap<BlueprintGuid, Vec<BlueprintGuid>> {
+    let mut parents: BTreeMap<BlueprintGuid, Vec<BlueprintGuid>> = BTreeMap::new();
+    for (guid, blueprint) in dump.iter() {
+        let kind = blueprint.kind.as_str();
+        if !is_feature_kind(kind)
+            && kind != "BlueprintArchetype"
+            && kind != "BlueprintCharacterClass"
+        {
+            continue;
+        }
+        let Some(json) = dump.json(guid) else {
+            continue;
+        };
+        for child in grants(json) {
+            parents.entry(child).or_default().push(guid.clone());
+        }
+    }
+    parents
 }
 
 /// What a blueprint grants through the vocabulary's components and rows.
@@ -519,7 +538,7 @@ fn is_carrier(feature: &rules::Feature) -> bool {
 }
 
 /// The facts a component grants or names in a grant.
-fn named(component: &Component) -> Vec<&Fact> {
+pub(super) fn named(component: &Component) -> Vec<&Fact> {
     match component {
         Component::Grant(facts) => facts.iter().collect(),
         Component::GrantAtClassLevel { fact, .. } | Component::GrantOnApply(fact) => vec![fact],
