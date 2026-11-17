@@ -331,8 +331,8 @@ pub(super) fn mercies_and_exploits(engine: &Engine) -> Vec<Named> {
 /// Greater exploits: an Arcane Enforcer 12 and 13 and an Exploiter Wizard 13 and 20, each empty and with its
 /// selections filled; an Exploiter's Extra Arcanist Exploit at 1 and 5, its extra slots filled; fixed greater
 /// exploits (an Enforcer's Burning Flame, an Exploiter's Hellfire Ray); an Enforcer who becomes an Exploiter Wizard;
-/// and Builds no sheet holds (Icy Tomb without Ice Missile, one exploit twice, the feat with no exploit, a greater
-/// exploit at 9). Chaotic neutral humans.
+/// and Builds no sheet holds (Icy Tomb without Ice Missile, one exploit twice, the feat on a wizard with no exploit
+/// selection, a greater exploit at 9). Chaotic neutral humans.
 pub(super) fn greater_exploits(engine: &Engine) -> Vec<Named> {
     let enforcer_key = Some("slayer/arcane-enforcer");
     let exploiter_key = Some("wizard/exploiter-wizard");
@@ -413,10 +413,13 @@ pub(super) fn greater_exploits(engine: &Engine) -> Vec<Named> {
             ],
         ),
     ));
+    // The game's Extra Arcanist Exploit needs the arcanist's or the Exploiter's exploit selection, held from its level
+    // whatever is picked in it (ExtraArcanistExploitSelection 0a7065e13f4449fa81bfb33199bf7f6a; 308c), so an Exploiter
+    // with no exploit picked takes it; a plain wizard, who holds neither, doesn't.
     out.push((
-        "t57 exploiter extra exploit with no exploit".into(),
+        "t57 wizard extra exploit with no exploit selection".into(),
         with(
-            exploiter(3),
+            human(&[("wizard", None, 3)]),
             vec![(general(1), feat("extra-arcanist-exploit"))],
         ),
     ));

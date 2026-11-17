@@ -12,21 +12,27 @@ use crate::support::{DATA, feat, mythic_feat, picks_of};
 /// option key prefix (a full key names one option; a prefix ending in `/` names every option under it), and why
 /// that is no gap. An entry that covers nothing, or covers an option the prerequisite names, fails
 /// [`every_exception_covers_an_option_the_prerequisite_leaves_out`].
-const EXCEPTIONS: [(&str, &str, &str); 1] = [(
-    "extra-arcanist-exploit",
-    "arcanist/greater-exploits/",
-    "the six greater exploits are in the game's list (306i), and the feat's prerequisite still names the sixteen \
-     exploits only: the importer's prerequisite stage (293) writes the game's selections",
-)];
+/// None since 308c: Extra Arcanist Exploit's greater exploits went with its options.
+const EXCEPTIONS: [(&str, &str, &str); 0] = [];
 
-/// The extra feats whose prerequisite names no option, so the rule doesn't apply: a class level is their guide's
-/// "Slayer Talents or Talented Slayer" and "Wild Talents"; the game's own names the class's selection (Extra
-/// Discovery's DiscoverySelection, Extra Hex's WitchHexSelection, Extra Rogue Talent's RogueTalentSelection and its two
-/// others, 306aa). A new extra feat of that shape needs a decision.
-const NO_OPTIONS_NAMED: [&str; 6] = [
+/// The extra feats whose prerequisite names no option, so the rule doesn't apply: a class level is Extra Slayer
+/// Talent's guide's "Slayer Talents or Talented Slayer"; the game's own name the class's selection, held whatever is
+/// picked in it (Extra Discovery, Extra Hex and Extra Rogue Talent since 306aa; Extra Arcana, Extra Arcanist Exploit,
+/// Extra Hex (Shaman), Extra Mercy, Extra Rage Power, Extra Discovery (Vivisectionist) and Extra Wild Talent since
+/// 308c: ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8, ExtraArcanistExploitSelection
+/// 0a7065e13f4449fa81bfb33199bf7f6a, ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6, ExtraMercySelection
+/// 8a49abed5be9473da1e1fd1e2457562e, ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a,
+/// ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae, ExtraWildTalentSelection
+/// 0f73730cf1b44ee882671e55d5f6e471). A new extra feat of another shape needs a decision.
+const NO_OPTIONS_NAMED: [&str; 11] = [
+    "extra-arcana",
+    "extra-arcanist-exploit",
     "extra-discovery",
     "extra-discovery-vivisectionist",
     "extra-hex",
+    "extra-hex-shaman",
+    "extra-mercy",
+    "extra-rage-power",
     "extra-rogue-talent",
     "extra-slayer-talent",
     "extra-wild-talent",

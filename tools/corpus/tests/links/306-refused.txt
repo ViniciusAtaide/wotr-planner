@@ -243,3 +243,80 @@ full t91 fighter 20 trickster legend / first aeon / legend
 full t91 fighter 20 aeon devil / first angel
 full t91 fighter 20 aeon devil / first angel / devil
 full t91 fighter 20 aeon devil / first angel / legend
+
+full barbarian barbarian/armored-hulk
+full barbarian barbarian/armored-hulk / legend
+full barbarian barbarian/pack-rager
+full barbarian barbarian/pack-rager / legend
+full bg healer
+full bg varisian-explorer
+full cleanup sorcerer/overwhelming-mage sorcerer/bloodline/elemental-earth
+full decision nine-tailed-heir fey
+full gap bloodrager primalist
+full hunter 
+full hunter  / legend
+full hunter hunter/divine-hound
+full hunter hunter/divine-hound / legend
+full hunter hunter/forester
+full hunter hunter/forester / legend
+full hunter hunter/tandem-executioner
+full hunter hunter/tandem-executioner / legend
+full hunter hunter/urban-hunter
+full hunter hunter/urban-hunter / legend
+full option sorcerer sorcerer/bloodline/draconic-silver
+full oracle oracle/enlightened-philosopher
+full oracle oracle/enlightened-philosopher / legend
+full oracle oracle/lone-strider
+full oracle oracle/lone-strider / legend
+full t49 arcanist exploit / before
+full t54 divine-guardian / filled
+full t54 divine-guardian / filled / legend
+full t54 divine-hunter-paladin / empty
+full t54 divine-hunter-paladin / empty / legend
+full t59 kineticist 20 / filled
+full t59 kineticist 20 / filled / legend
+full t60 shifter/feyform-shifter 20 / filled
+full t60 shifter/feyform-shifter 20 / filled / legend
+full t60 skald/battle-singer 20 / empty
+full t60 skald/battle-singer 20 / empty / legend
+full t60 skald/court-poet 20 / filled
+full t60 skald/court-poet 20 / filled / legend
+full t60 vivisectionist 10
+full t60 witch 1 hexcrafter 6 / empty
+full t61 hunter 20 / empty
+full t61 hunter 20 / empty / legend
+full t61 hunter 20 / filled
+full t61 hunter 20 / filled / legend
+full t61 hunter/colluding-scoundrel 20 / empty
+full t61 hunter/colluding-scoundrel 20 / empty / legend
+full t61 hunter/colluding-scoundrel 20 / filled
+full t61 hunter/colluding-scoundrel 20 / filled / legend
+full t61 hunter/divine-hound 20 / empty
+full t61 hunter/divine-hound 20 / empty / legend
+full t61 hunter/divine-hound 20 / filled
+full t61 hunter/divine-hound 20 / filled / legend
+full t61 hunter/forester 20 / empty
+full t61 hunter/forester 20 / empty / legend
+full t61 hunter/forester 20 / filled
+full t61 hunter/forester 20 / filled / legend
+full t61 hunter/tandem-executioner 20 / filled
+full t61 hunter/tandem-executioner 20 / filled / legend
+full t61 ranger 20 / empty
+full t61 ranger 20 / empty / legend
+full t62 oracle 20 / empty
+full t62 oracle 20 / empty / legend
+full t62 witch 6 wandering hex empty
+full t64 hexcrafter arcana / filled
+full t66 barbarian 20 unarmed
+full t66 barbarian 20 unarmed / legend
+full t86 cleric asmodeus / filled
+full t86 cleric lamashtu / filled
+full t86 cleric norgorber / empty
+full talent knight earth
+full targeted hellknight-pentamic-impossible
+full warpriest warpriest/cult-leader
+full warpriest warpriest/cult-leader / legend
+full warpriest warpriest/shieldbearer
+full warpriest warpriest/shieldbearer / legend
+
+full t61 urban hunter 12 captor

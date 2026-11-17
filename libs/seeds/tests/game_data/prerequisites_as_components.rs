@@ -138,7 +138,11 @@ fn a_blueprint_entry_holds_its_prerequisite_as_requires_components() {
     // Tickets 306q and 306r: the 13 feats and the mythic ability they add hold one each (Advanced Weapon Training 2 to 4,
     // the five Extra Channels, Extra Rage and the two Extra Performances, Bleeding Critical, Spell Bane, Abundant Smite).
     // Ticket 306aa: Evasion holds one, its own `PrerequisiteNoFeature`.
-    assert_eq!((moved, fields), (650, 62));
+    // Ticket 308c: Light Armor Proficiency and Shield Proficiency hold one, their own `PrerequisiteNotProficient`
+    // (LightArmorProficiency 6d3728d4e9c9898458fe5e9532951132, ShieldsProficiency cb8686e7357a68c42bdd9d4e65334633),
+    // and Spell Chain its PrerequisiteFeature SpellPenetration ee7dc126939e4d9438357fbd5980d459; Rapid Shot holds none,
+    // RapidShotFeature 9c928dc570bb9e54a9649b3ebfe47a41's one prerequisite being Intelligence 3, which no Build fails.
+    assert_eq!((moved, fields), (652, 62));
 
     // The planner-made entries keep what they hold: their fields, and no `Requires`.
     let planner_requires = (files.feats.iter())

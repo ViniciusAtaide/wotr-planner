@@ -1,1 +1,1 @@
-(key: "shield-proficiency", blueprint: "cb8686e7357a68c42bdd9d4e65334633", name: "Shield Proficiency", summary: "Heavy shields, light shields and bucklers can be used proficiently.", category: ArmourAndShield, guide: "feats#shield-proficiency")
+(key: "shield-proficiency", blueprint: "cb8686e7357a68c42bdd9d4e65334633", name: "Shield Proficiency", summary: "Heavy shields, light shields and bucklers can be used proficiently.", category: ArmourAndShield, guide: "feats#shield-proficiency", components: [Requires(condition: NotProficient([Shield]))])

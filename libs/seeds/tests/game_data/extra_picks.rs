@@ -588,7 +588,8 @@ fn extra_discovery_and_extra_arcana_reach_a_vivisectionist_and_a_hexcrafter_what
 // e9dc4dfc73eaaf94aae27e0ed6cc9ada at 6 to 18 only); ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8;
 // LevelUpHelper.AddFeaturesFromProgression, WrathDecompiled 6ce4a6b
 #[test]
-#[ignore = "waits on ticket 264: the game gives the Hexcrafter its magus arcana at 3, so a Hexcrafter 5 meets Extra Arcana"]
+#[ignore = "waits on ticket 283: the game gives the Hexcrafter its magus arcana at 3 (Extra Arcana's prerequisite is \
+            the game's since 308c, so the row is what's left)"]
 fn a_hexcrafter_5_meets_extra_arcana() {
     let hexcrafter_5 = with_selections_filled(with_picks(
         borrower("magus", Some(HEXCRAFTER), 5),
@@ -601,23 +602,23 @@ fn a_hexcrafter_5_meets_extra_arcana() {
 }
 
 /// A plain alchemist and magus: their Extra feat gives a slot of the alchemist's Discovery or the magus's Magus Arcana,
-/// offering what their own slots offer. Extra Discovery needs the Discovery selection, held from alchemist 2 whatever
-/// is picked in it (306aa); Extra Arcana still needs an arcana picked (its prerequisite waits on 306o and 306q, S4).
+/// offering what their own slots offer. Each needs its class's selection, held from alchemist 2 or magus 3 whatever is
+/// picked in it (Extra Discovery since 306aa, Extra Arcana since 308c).
 // Game: ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 (needs DiscoverySelection
 // cd86c437488386f438dcc9ae727ea2a6, from alchemist 2; `LevelUpHelper.AddFeaturesFromProgression`, WrathDecompiled
 // 6ce4a6b, adds the selection itself as a fact, whatever was picked) and ExtraArcanaSelection
-// 00727883edf145e2a6bce9ad176ecfd8 (needs MagusArcanaSelection e9dc4dfc73eaaf94aae27e0ed6cc9ada, from magus 3; its 15
-// are the selection's). Not a game fact: Extra Arcana's refusal of a slot left empty (the game has no unfilled slot).
+// 00727883edf145e2a6bce9ad176ecfd8 (needs MagusArcanaSelection e9dc4dfc73eaaf94aae27e0ed6cc9ada, from magus 3, or
+// the Hexcrafter's or the Eldritch Scion's arcana selection).
 #[test]
 fn a_plain_alchemists_and_magus_extra_picks_are_unchanged() {
-    for (class, feat, own, held_empty, label) in [
-        ("alchemist", "extra-discovery", 2, true, "Extra Discovery"),
-        ("magus", "extra-arcana", 3, false, "Magus Arcana"),
+    for (class, feat, own, label) in [
+        ("alchemist", "extra-discovery", 2, "Extra Discovery"),
+        ("magus", "extra-arcana", 3, "Magus Arcana"),
     ] {
         let empty = borrower(class, None, 3);
         assert_eq!(
-            feat_status(&empty, &general_slot(3), feat).is_ok(),
-            held_empty,
+            feat_status(&empty, &general_slot(3), feat),
+            Ok(()),
             "{feat}: nothing picked"
         );
         // Before the Discovery selection is held (alchemist 1), the game refuses it.
