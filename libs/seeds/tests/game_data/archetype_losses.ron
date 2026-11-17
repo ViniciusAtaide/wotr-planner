@@ -1637,7 +1637,8 @@
             (item: Feature("improved-quarry")),
             (item: Feature("quarry")),
             (item: Feature("slayer/slayers-advance")),
-            (item: Selection("slayer/slayer-talents"), at: [4, 10, 16], why: "table has no Slayer Talents at these levels; its rows there show 4: Arcanist Exploit; 10: Arcanist Exploit, Advanced Talents; 16: Arcanist Exploit"),
+            (item: Selection("slayer/slayer-talents"), at: [4], why: "table has no Slayer Talents at these levels; its rows there show 4: Arcanist Exploit"),
+            (item: Selection("slayer/slayer-talents-10"), at: [10, 16], why: "table has no Slayer Talents at these levels; its rows there show 10: Arcanist Exploit, Advanced Talents; 16: Arcanist Exploit"),
         ],
     ),
     // Game: BloodseekerArchetype 11e473bfb29c42f580b9a801b6771788
@@ -1647,13 +1648,16 @@
             (item: Feature("advanced-talents")),
             (item: Feature("slayer/master-slayer")),
             (item: Selection("slayer/slayer-talents")),
+            (item: Selection("slayer/slayer-talents-10")),
+            (item: Selection("slayer/slayer-talents-6")),
         ],
     ),
     // Game: DelivererArchetype 738c5666f8ef46c45942df9100a0d254
     (
         archetype: "slayer/deliverer",
         loses: [
-            (item: Selection("slayer/slayer-talents"), at: [2, 10], why: "table has no Slayer Talents at these levels; its rows there show 2: Determined Zeal; 10: Divine Anathema, Advanced Talents"),
+            (item: Selection("slayer/slayer-talents"), at: [2], why: "table has no Slayer Talents at these levels; its rows there show 2: Determined Zeal"),
+            (item: Selection("slayer/slayer-talents-10"), at: [10], why: "table has no Slayer Talents at these levels; its rows there show 10: Divine Anathema, Advanced Talents"),
         ],
     ),
     // Game: ExecutionerArchetype 8040e66d2724c754f85dd3026a1f0cee
@@ -1673,7 +1677,8 @@
             (item: Feature("sneak-attack"), at: [6, 12, 18], why: "The archetype's rows grant this game feature at other levels than the class's (one entry since ticket 244)."),
             (item: Feature("studied-target")),
             (item: Feature("studied-target-swift")),
-            (item: Selection("slayer/slayer-talents"), at: [4, 10, 16], why: "table has no Slayer Talents at these levels; its rows there show 4: nothing; 10: Advanced Talents; 16: nothing"),
+            (item: Selection("slayer/slayer-talents"), at: [4], why: "table has no Slayer Talents at these levels; its rows there show 4: nothing"),
+            (item: Selection("slayer/slayer-talents-10"), at: [10, 16], why: "table has no Slayer Talents at these levels; its rows there show 10: Advanced Talents; 16: nothing"),
         ],
     ),
     // Game: SpawnSlayerArchetype f6e304de008939d46960a2ebb075e150
@@ -1690,7 +1695,8 @@
             (item: Feature("slayer/slayer-proficiencies")),
             (item: Feat("armor-proficiency-medium-armor")),
             (item: Feat("shield-proficiency")),
-            (item: Selection("slayer/slayer-talents"), at: [4, 10], why: "table has no Slayer Talents at these levels; its rows there show 4: Invisibiliy; 10: Shadowy Mist Form, Advanced Talents"),
+            (item: Selection("slayer/slayer-talents"), at: [4], why: "table has no Slayer Talents at these levels; its rows there show 4: Invisibiliy"),
+            (item: Selection("slayer/slayer-talents-10"), at: [10], why: "table has no Slayer Talents at these levels; its rows there show 10: Shadowy Mist Form, Advanced Talents"),
         ],
     ),
     // Game: VanguardArchetype 67bbc0dcd471ea0428a362f6e94f3a51

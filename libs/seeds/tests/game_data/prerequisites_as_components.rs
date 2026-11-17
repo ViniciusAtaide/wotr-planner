@@ -131,7 +131,9 @@ fn a_blueprint_entry_holds_its_prerequisite_as_requires_components() {
     // Ticket 304: the 19 nested lists of the bloodline feat and the ranger's 6th and 10th-level style feats hold one,
     // their `PrerequisiteFeature` (a bloodline's requisite feature, a style's first selection) written as the bloodline
     // or style held.
-    assert_eq!((moved, fields), (630, 62));
+    // Ticket 306g: the two slayer talent options that follow the game hold one each (the Vanguard's extra use, and
+    // Painful Strike's five archetypes).
+    assert_eq!((moved, fields), (632, 62));
 
     // The planner-made entries keep what they hold: their fields, and no `Requires`.
     let planner_requires = (files.feats.iter())

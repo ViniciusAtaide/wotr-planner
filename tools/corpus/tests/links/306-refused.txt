@@ -30,3 +30,42 @@ full t60 skald/court-poet 20 / empty / legend
 full t60 skald/herald-of-the-horn 20 / empty
 full t60 skald/herald-of-the-horn 20 / empty / legend
 t60 bard 3 extra rogue talent
+
+follow slayer sf two skills
+full inquisitor inquisitor/sanctified-slayer
+full inquisitor inquisitor/sanctified-slayer / legend
+full slayer 
+full slayer  / legend
+full slayer slayer/arcane-enforcer
+full slayer slayer/arcane-enforcer / legend
+full slayer slayer/deliverer
+full slayer slayer/deliverer / legend
+full slayer slayer/executioner
+full slayer slayer/executioner / legend
+full slayer slayer/imitator
+full slayer slayer/imitator / legend
+full slayer slayer/spawn-slayer
+full slayer slayer/spawn-slayer / legend
+full slayer slayer/stygian-slayer
+full slayer slayer/stygian-slayer / legend
+full slayer slayer/vanguard
+full slayer slayer/vanguard / legend
+full decision fighter1-slayer2
+full decision rogue1-slayer2
+full decision fighter1-slayer2 extra-slayer-talent
+full follow slayer sf two skills
+full follow slayer trick once
+full t49 slayer talent / feat
+full t54 arcane enforcer / empty
+full t54 arcane enforcer / empty / legend
+full t57 enforcer 12 / empty
+full t57 enforcer 13 / empty
+full t57 enforcer burning flame
+full t60 inquisitor/sanctified-slayer 20 / empty
+full t60 inquisitor/sanctified-slayer 20 / empty / legend
+full t60 inquisitor/sanctified-slayer 20 / filled
+full t60 inquisitor/sanctified-slayer 20 / filled / legend
+full t60 slayer 2 sanctified 8 / empty
+full t60 slayer 2 sanctified 8 / filled
+full t65 slayer 6
+full t65 slayer 12

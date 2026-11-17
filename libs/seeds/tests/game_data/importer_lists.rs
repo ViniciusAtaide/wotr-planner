@@ -185,3 +185,43 @@ fn the_dark_lurker_offers_its_own_list_with_evasion() {
 fn the_master_of_alls_skill_focus_checks_prerequisites() {
     assert!(!selection("rogue/master-of-all/skill-focus").ignores_prerequisites);
 }
+
+/// 306g: the slayer's talent lists at 2, 6 and 10 are the game's three, each with Uncanny Dodge and its improved form.
+// Game: the `m_AllFeatures` of SlayerTalentSelection2 04430ad24988baa4daa0bcd4f1c7d118 (37), SlayerTalentSelection6
+// 43d1b15873e926848be2abf0ea3ad9a8 (38) and SlayerTalentSelection10 913b9cf25c9536949b43a2651b7ffb66 (39); each lists
+// UncannyDodgeTalent ca5274d057152fa45b7527cad0927840 and ImprovedUncannyDodgeTalent e821c61b2711cea4cb993725b910e7e8
+// (the user's fact, ticket 276: apply the game's), ExecutionerPainfulStrike 052c82521039f7b4e978207eb533ead5 and
+// VanguardTacticianExtraUseTalent c67db0b6ede802b43a6cf00136b1a5e6
+#[test]
+fn the_slayers_three_lists_are_the_games() {
+    let lists = [
+        ("slayer/slayer-talents", 37),
+        ("slayer/slayer-talents-6", 38),
+        ("slayer/slayer-talents-10", 39),
+    ];
+    for (key, count) in lists {
+        let offers = keys(selection(key));
+        assert_eq!(offers.len(), count, "{key}");
+        for talent in [
+            "rogue/rogue-talents/uncanny-dodge",
+            "rogue/rogue-talents/improved-uncanny-dodge",
+            "slayer/slayer-talents/painful-strike",
+            "slayer/slayer-talents/vanguard-tactician",
+        ] {
+            assert!(offers.contains(talent), "{key}: {talent}");
+        }
+    }
+}
+
+/// 306g: Extra Slayer Talent's own list is the game's 41, and holds Uncanny Dodge and its improved form.
+// Game: the `m_AllFeatures` of ExtraSlayerTalentSelection 53f7237f5b1447bb851ba68045a00e41 (41, UncannyDodgeTalent
+// ca5274d057152fa45b7527cad0927840 and ImprovedUncannyDodgeTalent e821c61b2711cea4cb993725b910e7e8 among them; ticket
+// 276, applied)
+#[test]
+fn the_slayers_extra_talent_list_is_the_games_41() {
+    let offers = keys(selection("slayer/extra-slayer-talent"));
+    assert_eq!(offers.len(), 41);
+    for talent in ["uncanny-dodge", "improved-uncanny-dodge"] {
+        assert!(offers.contains(&format!("rogue/rogue-talents/{talent}")));
+    }
+}

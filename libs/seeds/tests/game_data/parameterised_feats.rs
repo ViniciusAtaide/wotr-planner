@@ -593,6 +593,12 @@ fn rage_powers_discoveries_incense_and_mutations_repeat_as_the_guide_says() {
     // "She can select a second weapon at 11th level and a third at 19th level" (ticket 172): once per weapon.
     // Game: FinesseTrainingSelection b78d146cea711a84598f0acef69462ea, one feature per weapon (equivalent model).
     expected.insert("rogue/finesse-training/weapon".into(), Repeat::PerValue);
+    // Ticket 306g: the Vanguard's extra-use talent repeats to its ranks. Game: VanguardTacticianExtraUseTalent
+    // c67db0b6ede802b43a6cf00136b1a5e6, Ranks 10.
+    expected.insert(
+        "slayer/slayer-talents/vanguard-tactician".into(),
+        Repeat::Times(10),
+    );
     let expected: HashMap<&str, Repeat> = expected
         .iter()
         .map(|(key, repeat)| (key.as_str(), *repeat))

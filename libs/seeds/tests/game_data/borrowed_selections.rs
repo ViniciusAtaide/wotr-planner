@@ -170,10 +170,17 @@ fn the_borrowed_selections_offer_the_guides_lists() {
     assert_eq!(classes(rogue), set(&["bard", "rogue", "skald"]));
     // Game: SanctifiedSlayerArchetype 19b4a243d9a4bd34887d03c3dea03ced adds the slayer's own SlayerTalentSelection6
     // 43d1b15873e926848be2abf0ea3ad9a8 and SlayerTalentSelection10 913b9cf25c9536949b43a2651b7ffb66 (equivalent model)
-    assert_eq!(
-        classes(any_selection(SLAYER_TALENTS)),
-        set(&["inquisitor", "slayer"])
-    );
+    for list in [
+        SLAYER_TALENTS,
+        "slayer/slayer-talents-10",
+        "slayer/slayer-talents-6",
+    ] {
+        assert_eq!(
+            classes(any_selection(list)),
+            set(&["inquisitor", "slayer"]),
+            "{list}"
+        );
+    }
 
     // The Feyform Shifter's list: the game's is the rogue's own (`a_feyform_shifters_rogue_talent_is_the_rogues_selection`).
     let feyform = any_selection(FEYFORM_TALENT);
@@ -329,8 +336,13 @@ fn each_borrowing_class_picks_at_its_tables_levels() {
         // Game: SanctifiedSlayerArchetype 19b4a243d9a4bd34887d03c3dea03ced
         (
             borrower("inquisitor", Some(SANCTIFIED), 20),
-            SLAYER_TALENTS,
-            vec![8, 16, 17, 20],
+            "slayer/slayer-talents-6",
+            vec![8],
+        ),
+        (
+            borrower("inquisitor", Some(SANCTIFIED), 20),
+            "slayer/slayer-talents-10",
+            vec![16, 17, 20],
         ),
         // Game: HexcrafterArchetype 79ccf7a306a5d5547bebd97299f6fc89 (HexcrafterMagusHexMagusSelection
         // a18b8c3d6251d8641a8094e5c2a7bc78 at 4, HexcrafterMagusHexArcanaSelection ad6b9cecb5286d841a66e23cea3ef7bf
@@ -393,6 +405,8 @@ fn each_borrowing_class_picks_at_its_tables_levels() {
     // ShifterProgression da560d3be3c943d8b1fa23e77dd7efa4, AlchemistProgression efd55ff9be2fda34981f5b9c83afe4f1
     for (class_key, selection) in [
         ("inquisitor", SLAYER_TALENTS),
+        ("inquisitor", "slayer/slayer-talents-6"),
+        ("inquisitor", "slayer/slayer-talents-10"),
         ("magus", WITCH_HEX),
         ("shifter", FEYFORM_TALENT),
         ("alchemist", MEDICAL_DISCOVERY),
@@ -566,7 +580,10 @@ fn a_sanctified_slayer_picks_slayer_talents_at_8_16_17_and_20() {
     // Game: SanctifiedSlayerArchetype 19b4a243d9a4bd34887d03c3dea03ced adds SlayerTalentSelection6
     // 43d1b15873e926848be2abf0ea3ad9a8 at 8; SlayerTrapfinding e3c12938c2f93544da89824fbe0933a5, CombatTrick
     // c5158a6622d0b694a99efb1d0025d2c1 and FastStealth 97a6aa2b64dd21a4fac67658a91067d7 have no prerequisite
-    assert_eq!(offered_8.len(), keys(any_selection(SLAYER_TALENTS)).len());
+    assert_eq!(
+        offered_8.len(),
+        keys(any_selection("slayer/slayer-talents-6")).len()
+    );
     for open in [
         "slayer/slayer-talents/trapfinding",
         "rogue/rogue-talents/combat-trick",
@@ -616,7 +633,7 @@ fn a_sanctified_slayer_picks_slayer_talents_at_8_16_17_and_20() {
 // SlayerTalentSelection6 43d1b15873e926848be2abf0ea3ad9a8, which SanctifiedSlayerArchetype
 // 19b4a243d9a4bd34887d03c3dea03ced adds at 8
 #[test]
-#[ignore = "waits on ticket 276: the game opens the first combat style feat to a Sanctified Slayer 8"]
+#[ignore = "waits on stage S4 (the prerequisites writer): the first combat style talent's option still needs slayer level 2 (known.txt, 276)"]
 fn a_sanctified_slayer_8_may_take_the_first_combat_style_feat() {
     let at_8 = borrower("inquisitor", Some(SANCTIFIED), 8);
     assert_eq!(
@@ -901,7 +918,7 @@ fn no_other_class_or_archetype_is_offered_the_scoundrels_talents() {
 // SlayerTalentSelection6 43d1b15873e926848be2abf0ea3ad9a8, SlayerTalentSelection10 913b9cf25c9536949b43a2651b7ffb66,
 // RogueTalentSelection c074a5d615200494b8f2a9c845799d93 (the Feyform's)
 #[test]
-#[ignore = "waits on ticket 276: the game offers Uncanny Dodge to a bard, a slayer and a Feyform Shifter from their level 4, Improved to a bard and a slayer from 12"]
+#[ignore = "waits on ticket 308: the lists hold the talents (276, applied), but their prerequisite is still the Eldritch Scoundrel alone"]
 fn the_bard_slayer_and_feyform_shifter_are_offered_the_uncanny_dodge_talents() {
     let [uncanny_dodge, improved] = SCOUNDRELS_TALENTS.map(rogue_talent);
     for bard in [

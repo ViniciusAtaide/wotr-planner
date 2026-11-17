@@ -87,13 +87,16 @@ fn a_kineticist_takes_the_skill_focus_talent_for_two_skills_but_not_one_twice() 
 }
 
 /// A rogue takes the Skill Focus talent for two different skills and is refused a second one for the same skill; a
-/// slayer, who shares the rogue talents, too.
+/// slayer is offered none (the game's slayer lists have no Skill Focus, 306g).
 #[test]
 fn a_rogue_and_a_slayer_take_the_skill_focus_talent_for_two_skills_but_not_one_twice() {
     // Game: RogueTalentSelection c074a5d615200494b8f2a9c845799d93 and SlayerTalentSelection2
-    // 04430ad24988baa4daa0bcd4f1c7d118 offer SkillFocusSelection c9629ef9eebb88b479b2fbc5e836656a (Ranks 1 per skill).
+    // 04430ad24988baa4daa0bcd4f1c7d118 (which lacks it) offer SkillFocusSelection c9629ef9eebb88b479b2fbc5e836656a (Ranks 1
+    // per skill).
     let focus = rogue_talent("skill-focus");
-    for class in ["rogue", "slayer"] {
+    assert!(!offered(&build("slayer", 2), 2).contains_key(&focus));
+    {
+        let class = "rogue";
         let build = with_picks(
             build(class, 6),
             &[
@@ -288,6 +291,8 @@ fn combat_trick_grants_its_slot_through_every_selection_offering_it() {
                 "skald/inciter/rogue-talents",
                 "rogue/skald-talents",
                 "slayer/slayer-talents",
+                "slayer/slayer-talents-10",
+                "slayer/slayer-talents-6",
             ]
             .map(String::from)
         )

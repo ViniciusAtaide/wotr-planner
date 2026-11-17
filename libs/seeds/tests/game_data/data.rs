@@ -274,7 +274,6 @@ fn a_slayer_takes_rogue_talents_and_advanced_ones_from_slayer_10() {
 // Weapon Snatcher, Skill Focus, Weapon Focus, Emboldening Strike or Petrifying Strike; ExecutionerPainfulStrike and
 // VanguardTacticianExtraUseTalent in)
 #[test]
-#[ignore = "waits on ticket 276: the game gives the slayer's talent list at 10 39 options"]
 fn a_slayers_talent_list_at_10_is_the_games_39() {
     assert_eq!(offered(&build("slayer", 10), 10).len(), 39);
 }

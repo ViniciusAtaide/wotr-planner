@@ -8,8 +8,8 @@
     levels: [
         (level: 5, features: ["studied-target", "slayer/spawn-slayer/studied-spawn"]),
         (level: 7, features: ["slayer/spawn-slayer/gain-leverage"]),
-        (level: 10, features: ["advanced-talents", "slayer/spawn-slayer/studied-spawn", "studied-target"], selections: ["slayer/slayer-talents"]),
+        (level: 10, features: ["advanced-talents", "slayer/spawn-slayer/studied-spawn", "studied-target"], selections: ["slayer/slayer-talents-10"]),
         (level: 15, features: ["sneak-attack", "slayer/spawn-slayer/studied-spawn", "studied-target"]),
-        (level: 20, features: ["slayer/master-slayer", "slayer/spawn-slayer/studied-spawn", "studied-target"], selections: ["slayer/slayer-talents"]),
+        (level: 20, features: ["slayer/master-slayer", "slayer/spawn-slayer/studied-spawn", "studied-target"], selections: ["slayer/slayer-talents-10"]),
     ],
 )
