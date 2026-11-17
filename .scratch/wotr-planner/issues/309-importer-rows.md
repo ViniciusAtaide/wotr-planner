@@ -1,7 +1,7 @@
 # The importer, stage 5: class, archetype and path rows
 
 Type: build (data, through the importer)
-Status: open
+Status: deferred to a later queue (user, 2026-11-17: research/queue-scope-2026-11-17.md)
 Blocked by: 306, 307, 308
 Model: Opus to build: one bug touches hundreds of entries.
 Map: [WotR Build Planner](../map.md)

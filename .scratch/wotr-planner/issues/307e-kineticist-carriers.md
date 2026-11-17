@@ -1,7 +1,7 @@
 # Importer S3, 307e: kineticist carriers and the registry lines
 
 Type: build (the importer, stage S3)
-Status: open
+Status: deferred to a later queue (user, 2026-11-17: research/queue-scope-2026-11-17.md)
 Blocked by: 307c, 307d recorded, 306 merged
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)
