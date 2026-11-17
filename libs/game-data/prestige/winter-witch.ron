@@ -11,10 +11,10 @@ Class(
     will: Good,
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "persuasion", "use-magic-device"],
     components: [
-        Requires(condition: Any([Has(Archetype("druid/winter-child")), Has(Option("shaman/spirit/frost")), Has(Option("witch/patron/winter"))])),
-        Requires(condition: Any([CasterTypeSpellLevel(caster: Arcane, level: 3), CasterTypeSpellLevel(caster: Divine, level: 3)])),
         Requires(condition: Stat(stat: Skill("knowledge-arcana"), value: 5)),
-        Requires(condition: CharacterLevel(6)),
+        Requires(condition: CasterTypeSpellLevel(caster: Divine, level: 3), group: Any),
+        Requires(condition: CasterTypeSpellLevel(caster: Arcane, level: 3), group: Any),
+        Requires(condition: AtLeast(1, [Feature("druid/winter-child/ice-in-the-blood"), Option("shaman/spirit/frost"), Option("witch/patron/winter"), Selection("druid/winter-child/domain")])),
     ],
     advances: Either,
     counts_as: [(class: "witch", toward: Feature("grand-hexes")), (class: "witch", toward: Feature("major-hexes"))],

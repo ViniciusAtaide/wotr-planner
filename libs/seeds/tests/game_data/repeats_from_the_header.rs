@@ -172,7 +172,9 @@ fn the_mythic_entries_repeat_as_their_headers_say() {
             // 503fb196aa222b24cb6cfdc9a284e838, selections of one-rank features (ticket 249), taken as a value.
             ("ascendant-element", Repeat::PerValue),
             ("favorite-metamagic", Repeat::PerValue),
-            // Game: ExtraDomain 213a8480d22206b45acbfa0619ca5aaf, a selection with no PrerequisiteNoFeature of itself.
+            // Game: ExtraDomain 213a8480d22206b45acbfa0619ca5aaf and BeneficialCurse 2dda67424ee8e0b4d83ef01a73ca6bff
+            // (308d), selections with no PrerequisiteNoFeature of themselves.
+            ("beneficial-curse", Repeat::WhileOptionLeft),
             ("impossible-domain", Repeat::WhileOptionLeft),
             // Not Witch Wandering Hex, whose selection is the planner's: `witch_wandering_hex_is_taken_once`.
         ])
@@ -222,17 +224,28 @@ fn the_selections_with_their_own_no_feature_are_taken_once() {
     assert_eq!(feat.repeat(), Repeat::Once);
     // Game: SecondBloodline 3cf2ab2c320b73347a7c21cf0d0995bd, SecondBloodragerBloodline
     // b7f62628915bdb14d8888c25da3fac56, SecondMystery 277b0164740b97945a3f8022bd572f48, SecondSpirit
-    // 2faa80662a56ab644aec2f875a68597f.
-    for key in [
-        "second-bloodline",
-        "second-bloodrager-bloodline",
-        "second-mystery",
-        "second-spirit",
+    // 2faa80662a56ab644aec2f875a68597f. The two 308d wrote share their blueprint with a selection of the planner's (the
+    // bloodrager's and the oracle's second one), so the NoFeature is a `Not` of an `Any` of both.
+    for (key, sharer) in [
+        ("second-bloodline", None),
+        (
+            "second-bloodrager-bloodline",
+            Some("bloodrager/second-bloodline"),
+        ),
+        ("second-mystery", Some("oracle/second-mystery")),
+        ("second-spirit", None),
     ] {
         let ability = (DATA.mythic_abilities.iter())
             .find(|ability| ability.key.as_str() == key)
             .unwrap();
-        let own = not(rules::Prerequisite::MythicAbility(ability.key.clone()));
+        let itself = rules::Prerequisite::MythicAbility(ability.key.clone());
+        let own = match sharer {
+            None => not(itself),
+            Some(selection) => not(rules::Prerequisite::Any(vec![
+                itself,
+                rules::Prerequisite::Selection(rules::FeatureSelectionKey::new(selection)),
+            ])),
+        };
         assert!(holds(ability.prerequisite.as_ref(), &own), "{key}");
         assert_eq!(ability.repeat(), Repeat::Once, "{key}");
     }

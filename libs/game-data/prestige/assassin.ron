@@ -13,7 +13,6 @@ Class(
     components: [
         Requires(condition: Alignment([TrueNeutral, LawfulEvil, NeutralEvil, ChaoticEvil])),
         Requires(condition: Stat(stat: Skill("stealth"), value: 5)),
-        Requires(condition: CharacterLevel(6)),
     ],
     levels: [
         (level: 1, features: ["assassin/mark-of-death", "sneak-attack", "assassin/target-assassination"]),

@@ -591,36 +591,18 @@ fn beneficial_curse_gives_a_slot_of_the_oracles_curses() {
         any_selection(own.as_str()).offered(),
         any_selection(CURSES).offered()
     );
-    // Taken once (ticket 303), the planner's: the game's selection repeats while a curse whose progression it lists is
-    // left, which the planner's list of the curses themselves can't say (293).
-    let once = Prerequisite::Not(Box::new(Prerequisite::MythicAbility(
-        rules::MythicAbilityKey::new(BENEFICIAL_CURSE),
-    )));
-    let any = match curse.prerequisite.as_ref() {
-        Some(Prerequisite::All(children)) if children.len() == 2 && children[1] == once => {
-            &children[0]
-        }
-        other => panic!("{other:?}"),
-    };
-    let held: BTreeSet<String> = match any {
-        Prerequisite::Any(children) => children
-            .iter()
-            .map(|child| match child {
-                Prerequisite::SelectionOption(option) => option.to_string(),
-                other => panic!("{other:?}"),
-            })
-            .collect(),
-        other => panic!("{other:?}"),
-    };
-    let curses: BTreeSet<String> = DATA
-        .selection(&rules::FeatureSelectionKey::new(CURSES))
-        .unwrap()
-        .options
-        .iter()
-        .map(|option| option.to_string())
-        .collect();
-    assert_eq!(held, curses);
-    assert_eq!(curses.len(), 9);
+    // Its prerequisite is the game's (308d): the curse selection, the oracle's or the Stigmatized Witch's (both
+    // OracleCurseSelection), with no PrerequisiteNoFeature of itself, so it repeats while a curse is left.
+    assert_eq!(
+        curse.prerequisite,
+        Some(Prerequisite::Any(vec![
+            Prerequisite::Selection(rules::FeatureSelectionKey::new(CURSES)),
+            Prerequisite::Selection(rules::FeatureSelectionKey::new(
+                "witch/stigmatized-witch/curse"
+            )),
+        ]))
+    );
+    assert_eq!(curse.repeat(), Repeat::WhileOptionLeft);
 }
 
 /// Witch Wandering Hex gives no slot: it is a feature granting a daily ability that applies one of twelve basic witch

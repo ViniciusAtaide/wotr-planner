@@ -11,12 +11,11 @@ Class(
     will: Poor,
     class_skills: ["knowledge-world", "perception", "persuasion"],
     components: [
-        Requires(condition: Alignment([LawfulGood, LawfulNeutral, LawfulEvil])),
-        Requires(condition: Has(Feat("armor-proficiency-heavy-armor"))),
-        Requires(condition: Stat(stat: Skill("knowledge-arcana"), value: 2)),
-        Requires(condition: Stat(stat: Skill("persuasion"), value: 5)),
         Requires(condition: Stat(stat: BaseAttack, value: 5)),
-        Requires(condition: CharacterLevel(6)),
+        Requires(condition: Stat(stat: Skill("persuasion"), value: 5)),
+        Requires(condition: Stat(stat: Skill("knowledge-arcana"), value: 2)),
+        Requires(condition: Proficient([Heavy])),
+        Requires(condition: Alignment([LawfulGood, LawfulNeutral, LawfulEvil])),
     ],
     levels: [
         (level: 1, features: ["hellknight/smite-chaos"], selections: ["hellknight/order"]),

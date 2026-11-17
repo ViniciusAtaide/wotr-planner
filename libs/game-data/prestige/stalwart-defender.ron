@@ -14,7 +14,8 @@ Class(
         Requires(condition: Has(Feat("dodge"))),
         Requires(condition: Has(Feat("toughness"))),
         Requires(condition: Stat(stat: BaseAttack, value: 7)),
-        Requires(condition: CharacterLevel(8)),
+        Requires(condition: Has(Feat("endurance"))),
+        Requires(condition: Proficient([Light, Medium])),
     ],
     levels: [
         (level: 1, features: ["stalwart-defender/ac-bonus", "stalwart-defender/defensive-stance"]),

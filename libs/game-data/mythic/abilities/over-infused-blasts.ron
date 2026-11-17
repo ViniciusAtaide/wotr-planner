@@ -1,1 +1,1 @@
-(key: "over-infused-blasts", blueprint: "7410cc35ae6aa9d4a82f1d23c081a1ac", name: "Over-Infused Blasts", summary: "Apply two substance infusions to a kinetic blast at once.", group: Class, guide: "mythic-paths#over-infused-blasts")
+(key: "over-infused-blasts", blueprint: "7410cc35ae6aa9d4a82f1d23c081a1ac", name: "Over-Infused Blasts", summary: "Apply two substance infusions to a kinetic blast at once.", group: Class, guide: "mythic-paths#over-infused-blasts", components: [Requires(condition: ClassLevel("kineticist", 1))])

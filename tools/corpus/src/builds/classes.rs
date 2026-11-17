@@ -20,8 +20,11 @@ pub(super) fn neutral_human() -> Build {
     })
 }
 
+/// The archetype a true neutral character can't take, which [`every_class`] makes neutral evil.
+pub(super) const DARK_ELEMENTALIST: &str = "kineticist/dark-elementalist";
+
 /// Every class at 20, plain and with each archetype (`<class> <archetype>`, the plain one with nothing after the
-/// space).
+/// space), true neutral but the Dark Elementalist.
 pub(super) fn every_class(data: &GameData) -> Vec<Named> {
     let mut out = Vec::new();
     for class in &data.classes {
@@ -29,6 +32,14 @@ pub(super) fn every_class(data: &GameData) -> Vec<Named> {
             .chain(data.archetypes_of(&class.key).map(|a| Some(a.key.clone())));
         for archetype in archetypes {
             let mut build = neutral_human();
+            // The Dark Elementalist is evil (DarkElementalistArchetype f12f18ae8842425489d29f302e69134c's
+            // PrerequisiteAlignment, ticket 308d).
+            if archetype
+                .as_ref()
+                .is_some_and(|a| a.as_str() == DARK_ELEMENTALIST)
+            {
+                build.start.alignment = Some(NeutralEvil);
+            }
             build.class_choices.insert(
                 class.key.clone(),
                 ClassChoice {

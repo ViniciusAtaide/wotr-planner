@@ -27,17 +27,15 @@ option lists / * / selection kineticist/element/water/wild-talent-feats -> 293
 # feat of its category), not the game's selection's; 293 writes the game's. (The general and category selections are the
 # game's lists since 306s.)
 option lists / * / selection gold-dragon/dragon-feats -> 293
-# From 303 (repeats from the header, decision Q3): entries holding several of the game's blueprints, whose `ranks`, or
-# Beneficial Curse's once, is the planner's: the Primalist's rage
-# powers at five levels (PrimalistTakeRagePowers4 and its copies), an element's two foci (ElementalFocusAir, offered
-# again by SecondatyElementalFocusSelection), and Beneficial Curse's one pick, over the oracle's curses rather than the
-# game's nine NoPenalty progressions.
+# From 303 (repeats from the header, decision Q3): entries holding several of the game's blueprints, whose `ranks` is the
+# planner's: the Primalist's rage powers at five levels (PrimalistTakeRagePowers4 and its copies) and an element's two
+# foci (ElementalFocusAir, offered again by SecondatyElementalFocusSelection). Beneficial Curse's once went with 308d,
+# which wrote its prerequisite as the game's.
 mapping / ranks differ / selection option bloodrager/primalist/primal-choices/rage-powers -> 293
 mapping / ranks differ / selection option kineticist/element/air -> 293
 mapping / ranks differ / selection option kineticist/element/earth -> 293
 mapping / ranks differ / selection option kineticist/element/fire -> 293
 mapping / ranks differ / selection option kineticist/element/water -> 293
-prerequisites / not in game / mythic ability beneficial-curse -> 293
 
 # From 302 (nested selections, decisions Q1, Q2 and Q4): the selections an Extra feat, a mythic ability and Extra
 # Mythic Ability grant list the planner's list of the selection each stands for (every mythic ability for Extra Mythic
@@ -220,9 +218,6 @@ progression rows / * / archetype oracle/enlightened-philosopher -> 255
 progression rows / in game only / archetype alchemist/chirurgeon / SkillFocusLoreReligion at level 5 -> 255
 progression rows / in planner only / archetype alchemist/chirurgeon -> 255
 
-# 259, Witch Wandering Hex is a daily-use ability, not a pick.
-prerequisites / * / mythic ability witch-wandering-hex -> 259
-
 # 260, Greater Exploits opens the greater exploits in the exploit picks.
 option lists / * / selection arcanist/greater-exploits -> 260
 
@@ -276,38 +271,34 @@ prerequisites / * / feat extra-ki -> 307
 prerequisites / * / feat extra-performance -> 307
 prerequisites / * / feat extra-slayer-talent -> 307
 
-# 265, mythic abilities' and mythic feats' prerequisites and lists.
+# 265, mythic abilities' and mythic feats' prerequisites and lists. The prerequisites are superseded by 293: 308d wrote
+# every mythic ability's and mythic feat's the writer can express from the game (`game-check --write prerequisites`),
+# and the lines left name their owner, by the blueprint the writer can't map: a carrier 307 makes, a pet 174, a second
+# or Seeker bloodline 306x, an opposition school 306p, a condition tree 308, a per-value feature 315, sneak attack as a
+# stat 314. Greater Enduring Spells stays 265's for ticket 208, another session's.
 option lists / * / pool mythic feats -> 265
 option lists / in game only / pool mythic abilities -> 265
-prerequisites / * / mythic ability abundant-bane -> 265
-prerequisites / * / mythic ability abundant-ki-pool -> 265
-prerequisites / * / mythic ability any-means-necessary -> 265
-prerequisites / * / mythic ability bloodline-ascendance -> 265
-prerequisites / * / mythic ability defensive-study -> 265
-prerequisites / * / mythic ability domain-zealot -> 265
-prerequisites / * / mythic ability everlasting-judgement -> 265
+prerequisites / * / mythic ability abundant-bane -> 307
+prerequisites / * / mythic ability abundant-ki-pool -> 307
+prerequisites / * / mythic ability bloodline-ascendance -> 306x
+prerequisites / * / mythic ability domain-zealot -> 307
+prerequisites / * / mythic ability everlasting-judgement -> 307
 prerequisites / * / mythic ability greater-enduring-spells -> 265
-prerequisites / * / mythic ability impossible-domain -> 265
-prerequisites / * / mythic ability kinetic-overcharge -> 265
-prerequisites / * / mythic ability limitless-rage -> 265
-prerequisites / * / mythic ability mythical-beast -> 265
-prerequisites / * / mythic ability over-infused-blasts -> 265
-prerequisites / * / mythic ability school-tolerance -> 265
-prerequisites / * / mythic ability second-bloodline -> 265
-prerequisites / * / mythic ability second-bloodrager-bloodline -> 265
-prerequisites / * / mythic ability second-mystery -> 265
-prerequisites / * / mythic ability second-spirit -> 265
-prerequisites / * / mythic feat destiny-beyond-birth -> 265
-prerequisites / * / mythic feat mythic-armor-focus-heavy-armor-assault -> 265
-prerequisites / * / mythic feat mythic-armor-focus-heavy-armor-avoidance -> 265
-prerequisites / * / mythic feat mythic-armor-focus-heavy-armor-endurance -> 265
-prerequisites / * / mythic feat mythic-armor-focus-light-armor-assault -> 265
-prerequisites / * / mythic feat mythic-armor-focus-light-armor-avoidance -> 265
-prerequisites / * / mythic feat mythic-armor-focus-light-armor-endurance -> 265
-prerequisites / * / mythic feat mythic-armor-focus-medium-armor-assault -> 265
-prerequisites / * / mythic feat mythic-armor-focus-medium-armor-avoidance -> 265
-prerequisites / * / mythic feat mythic-armor-focus-medium-armor-endurance -> 265
-prerequisites / * / mythic feat mythic-sneak-attack -> 265
+prerequisites / * / mythic ability mythical-beast -> 174
+prerequisites / * / mythic ability school-tolerance -> 306p
+prerequisites / * / mythic ability second-bloodline -> 306x
+prerequisites / * / mythic ability second-spirit -> 308
+prerequisites / * / mythic feat destiny-beyond-birth -> 307
+prerequisites / * / mythic feat mythic-armor-focus-heavy-armor-assault -> 315
+prerequisites / * / mythic feat mythic-armor-focus-heavy-armor-avoidance -> 315
+prerequisites / * / mythic feat mythic-armor-focus-heavy-armor-endurance -> 315
+prerequisites / * / mythic feat mythic-armor-focus-light-armor-assault -> 315
+prerequisites / * / mythic feat mythic-armor-focus-light-armor-avoidance -> 315
+prerequisites / * / mythic feat mythic-armor-focus-light-armor-endurance -> 315
+prerequisites / * / mythic feat mythic-armor-focus-medium-armor-assault -> 315
+prerequisites / * / mythic feat mythic-armor-focus-medium-armor-avoidance -> 315
+prerequisites / * / mythic feat mythic-armor-focus-medium-armor-endurance -> 315
+prerequisites / * / mythic feat mythic-sneak-attack -> 314
 
 # 266, the mythic paths' ranks and options.
 mythic ranks / * / mythic path angel -> 266
@@ -346,14 +337,11 @@ option lists / * / selection warpriest/champion-of-the-faith/chosen-alignment ->
 option lists / * / selection warpriest/feral-champion/blessing -> 267
 prerequisites / * / archetype cleric/angelfire-apostle -> 267
 prerequisites / * / archetype cleric/priest-of-balance -> 267
-prerequisites / * / archetype kineticist/dark-elementalist -> 267
-prerequisites / * / archetype shifter/rageshaper -> 267
 prerequisites / * / archetype warpriest/feral-champion -> 267
 prerequisites / * / archetype warpriest/mantis-zealot -> 267
 prerequisites / * / archetype witch/hag-of-gyronna -> 267
 prerequisites / * / class cleric -> 267
 prerequisites / * / class inquisitor -> 267
-prerequisites / * / class oracle -> 267
 prerequisites / * / class paladin -> 267
 prerequisites / * / class warpriest -> 267
 prerequisites / * / selection option warpriest/blessings/air-domain -> 267
@@ -889,7 +877,6 @@ option lists / * / selection wizard/cruromancer/blood-infusion -> 282
 option lists / * / selection wizard/cruromancer/school -> 282
 option lists / * / selection wizard/elemental-specialist/school -> 282
 option lists / * / selection wizard/thassilonian-specialist/school -> 282
-prerequisites / * / archetype arcanist/magic-deceiver -> 282
 prerequisites / * / selection option arcanist/arcanist-exploits/holy-water-jet -> 282
 prerequisites / * / selection option arcanist/arcanist-exploits/potent-magic -> 282
 prerequisites / * / selection option arcanist/arcanist-exploits/swift-consume -> 282
@@ -914,9 +901,10 @@ progression rows / * / archetype wizard/thassilonian-specialist -> 282
 progression rows / * / class wizard -> 282
 progression rows / in game only / archetype wizard/exploiter-wizard -> 282
 
-# 283, magus rows and arcana.
+# 283, magus rows and arcana. The magus class's prerequisite names EldritchScionClass f5b8c63b141b2f44cbb8c2d7579c34f5,
+# which no entry maps (306o, 308d).
 option lists / * / selection magus/sword-saint/chosen-weapon -> 283
-prerequisites / * / class magus -> 283
+prerequisites / * / class magus -> 306o
 prerequisites / * / selection option magus/magus-arcana/bane-blade-level-15 -> 283
 prerequisites / * / selection option magus/magus-arcana/devoted-blade-level-12 -> 283
 prerequisites / * / selection option magus/magus-arcana/dimension-strike-level-9 -> 283
@@ -997,23 +985,16 @@ progression rows / in planner only / archetype bard/beast-tamer -> 286
 progression rows / in planner only / archetype bard/flame-dancer -> 286
 progression rows / in planner only / archetype bard/thundercaller -> 286
 
-# 287, prestige classes.
+# 287, prestige classes. 308d wrote the classes' prerequisites the writer can express from the game; the class lines
+# left name their owner (a weapon proficiency 313, Skill Focus per skill 315), or stay 287's for a hand prerequisite.
 option lists / * / selection loremaster/secret -> 287
 option lists / * / selection stalwart-defender/defensive-powers -> 287
 option lists / * / selection student-of-war/know-your-enemy -> 287
-prerequisites / * / class aldori-swordlord -> 287
+prerequisites / * / class aldori-swordlord -> 313
 prerequisites / * / class arcane-trickster -> 287
-prerequisites / * / class assassin -> 287
 prerequisites / * / class dragon-disciple -> 287
-prerequisites / * / class duelist -> 287
-prerequisites / * / class eldritch-knight -> 287
-prerequisites / * / class hellknight -> 287
-prerequisites / * / class hellknight-signifer -> 287
-prerequisites / * / class loremaster -> 287
-prerequisites / * / class mystic-theurge -> 287
-prerequisites / * / class stalwart-defender -> 287
-prerequisites / * / class student-of-war -> 287
-prerequisites / * / class winter-witch -> 287
+prerequisites / * / class loremaster -> 315
+prerequisites / * / class student-of-war -> 315
 prerequisites / * / selection option loremaster/secret/combat-feat -> 287
 prerequisites / * / selection option stalwart-defender/defensive-powers/clear-mind -> 287
 prerequisites / * / selection option stalwart-defender/defensive-powers/fearless-defense -> 287
@@ -1066,3 +1047,7 @@ prerequisites / missing in planner / feat armor-focus -> 315
 # prints `-> 308` for these, as its `owner` names none of their facts' blueprints; the lines above name the owners.
 # 308g allowlisted Impossible Domain's narrowings (its line is 265's again, with the mythic abilities 308d writes), with
 # its evidence in prerequisite-narrowing.txt. 308g also allowlisted Extra Mercy's, which 308c wrote; its lines went then.
+# 308d wrote the mythic abilities and removed the Hag of Gyronna's allowlist lines unwritten: DarkSisterArchetype
+# 411fa458481e44f0855d47a19358874b names no deity, but every other deity's feature and AtheismFeature refuse it
+# (PrerequisiteNoArchetype; AsmodeusFeature a3a5ccc9c670e6f4ca4a686d23b89900), so its Gyronna stays until 267 writes
+# the deities' exclusions.

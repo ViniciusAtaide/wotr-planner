@@ -583,8 +583,11 @@ fn links_made_before_the_splits_open_with_the_same_picks() {
         );
         let build = rules::decode_build(link, &keys).unwrap_or_else(|_| panic!("{name}: decodes"));
         // It opens as the same Build, unless it holds weapon feats in weapons the character isn't proficient with,
-        // which fail since ticket 251: then it opens without them.
-        let kept = without_unproficient_picks(build.clone());
+        // which fail since ticket 251, or Impossible Domain without a domain selection, since 308d: then it opens
+        // without them.
+        let kept = without_unproficient_picks(
+            without_mythic_abilities_the_game_refuses_since_308d(build.clone()),
+        );
         match engine.open_link(link) {
             Ok(opened) => assert_eq!(opened, build, "{name}"),
             Err(_) => {
@@ -596,9 +599,11 @@ fn links_made_before_the_splits_open_with_the_same_picks() {
         assert_eq!(picks(&build), expected, "{name}");
         count += 1;
     }
-    // Four open unchanged; the Dual-Cursed and Possessed Oracles', the Stigmatized Witch's and the Feyspeaker's
-    // hold such feats.
-    assert_eq!((count, stripped), (8, 4));
+    // Three open unchanged; the Dual-Cursed and Possessed Oracles', the Stigmatized Witch's and the Feyspeaker's
+    // hold such feats, and `targeted living-deity-8` Impossible Domain at arcanist 6, before the Living Deity's
+    // FakeDivineSparkSelection e6d337e709b4478cb6e5389d3f85b601 at 20 (MagicDeceiverWayOfLivingGodProgression
+    // 464ffaf88140474a949618bec7955e78).
+    assert_eq!((count, stripped), (8, 5));
     // Combat Healer (Life)'s old key reads as Combat Healer.
     let life = LINKS
         .lines()

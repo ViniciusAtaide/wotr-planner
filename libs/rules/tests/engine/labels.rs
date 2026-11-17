@@ -512,6 +512,23 @@ fn a_negated_condition_says_what_rules_the_option_out() {
         ])),
         "Not with (dodge, toughness)"
     );
+    // An `Any` of what the character holds names each once (ticket 308d: the game's own NoFeature of a blueprint
+    // several entries share, as Second Mystery's mythic ability and the oracle's selection share SecondMystery
+    // 277b0164740b97945a3f8022bd572f48).
+    assert_eq!(
+        text(Prerequisite::Any(vec![
+            Prerequisite::Feat(feat("dodge")),
+            Prerequisite::Feat(feat("toughness"))
+        ])),
+        "Not with dodge or toughness"
+    );
+    assert_eq!(
+        text(Prerequisite::Any(vec![
+            Prerequisite::Feat(feat("dodge")),
+            Prerequisite::Feat(feat("dodge"))
+        ])),
+        "Not with dodge"
+    );
     // Two negations cancel.
     assert_eq!(
         text(not(Prerequisite::Feat(feat("power-attack")))),

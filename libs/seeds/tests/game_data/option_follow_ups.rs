@@ -252,7 +252,11 @@ fn a_living_deity_with_impossible_domain_holds_a_third_domain() {
         option_slot(1, 1),
         "oracle/revelations/battle/battlecry",
     );
-    let build = with_mythic_selection(build, "impossible-domain", "cleric/domain/nobility");
+    let mut build = with_mythic_selection(build, "impossible-domain", "cleric/domain/nobility");
+    // Game: ExtraDomain 213a8480d22206b45acbfa0619ca5aaf needs FakeDivineSparkSelection
+    // e6d337e709b4478cb6e5389d3f85b601, which MagicDeceiverWayOfLivingGodProgression 464ffaf88140474a949618bec7955e78
+    // grants at 20 (308d), so MR 1 comes at character level 20.
+    build.rank_levels.insert(1, 20);
     assert!(possible(&build));
     // Game: ExtraDomain 213a8480d22206b45acbfa0619ca5aaf offers the domain progressions, which list the Magic Deceiver
     // and the cleric (NobilityDomainProgression 8480f2d1ca764774895ee6fd610a568e; Blueprints/Classes/
@@ -560,19 +564,17 @@ fn living_deity_with_impossible_domain(levels: usize) -> Build {
     with_mythic_selection(build, "impossible-domain", "cleric/domain/nobility")
 }
 
+/// Before arcanist 20 a Living Deity holds no domain selection, so Impossible Domain is closed to it.
 #[test]
-fn a_living_deity_with_impossible_domain_holds_the_domains_level_1_power_before_arcanist_20() {
+fn a_living_deity_below_arcanist_20_cant_take_impossible_domain() {
     let build = living_deity_with_impossible_domain(8);
-    assert!(possible(&build));
-    // Arcanist levels from the pick: its 1st-level power at 6, its 8th-level one at 8.
-    // Game: NobilityDomainProgression 8480f2d1ca764774895ee6fd610a568e lists the Magic Deceiver
-    // (Blueprints/Classes/BlueprintProgression.CalcLevel, WrathDecompiled 6ce4a6b).
-    from_level(&build, 6, "cleric/domain/nobility/inspiring-word");
-    from_level(&build, 8, "cleric/domain/nobility/inspiring-command");
-    assert_eq!(
-        at(&build, 8).option_level(&SelectionOptionKey::new("cleric/domain/nobility")),
-        8
-    );
+    assert!(!possible(&build));
+    // Game: ExtraDomain 213a8480d22206b45acbfa0619ca5aaf needs (Any) DomainsSelection
+    // 48525e5da45c9c243a343fc6545dbdb9, DivineHunterDomainsSelection 72909a37a1ed5344f88ec9d1d31f5c5b or
+    // FakeDivineSparkSelection e6d337e709b4478cb6e5389d3f85b601; MagicDeceiverWayOfLivingGodProgression
+    // 464ffaf88140474a949618bec7955e78 grants the last only at 20 (308d).
+    let status = feat_status(&build, &SlotId::Mythic { rank: 1 }, "impossible-domain");
+    assert!(matches!(status, Err(Issue::Unmet(_))), "{status:?}");
 }
 
 /// Fighter 6, then Hellknight 3 (lawful neutral, with the entry's skill ranks): the Order of the Godclaw at
@@ -609,7 +611,6 @@ fn pentamic_hellknight() -> Build {
 
 /// Pentamic Faith's domain doesn't open Impossible Domain: a Hellknight 3 holding one can't take it.
 #[test]
-#[ignore = "waits on ticket 265: the game gives Impossible Domain no Pentamic Faith"]
 fn a_hellknight_3_with_pentamic_faiths_domain_cant_take_impossible_domain() {
     let build = pentamic_hellknight();
     assert!(possible(&build));

@@ -11,9 +11,8 @@ Class(
     will: Poor,
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "perception"],
     components: [
-        Requires(condition: Has(Feat("martial-weapons-proficiency"))),
         Requires(condition: CasterTypeSpellLevel(caster: Arcane, level: 3)),
-        Requires(condition: CharacterLevel(6)),
+        Requires(condition: Has(Feat("martial-weapons-proficiency"))),
     ],
     counts_as: [(class: "fighter", toward: FeatPrerequisites)],
     levels: [

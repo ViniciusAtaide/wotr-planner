@@ -155,6 +155,31 @@ fn a_selection_not_of_itself_is_taken_once() {
     refused_for(&engine, &build, &general(4), &Issue::AlreadyHeld);
 }
 
+/// A selection whose own `PrerequisiteNoFeature` names a blueprint it shares with another entry holds a `Not` of an
+/// `Any` naming both, and is taken once all the same (ticket 308d: Second Mystery and the oracle's second mystery
+/// selection share SecondMystery 277b0164740b97945a3f8022bd572f48).
+#[test]
+fn a_selection_not_of_an_any_naming_itself_is_taken_once() {
+    let engine = engine_with(|data| {
+        let feat = mythic_feat_mut(data, "extra-feat");
+        feat.prerequisite = Some(Prerequisite::Not(Box::new(Prerequisite::Any(vec![
+            Prerequisite::MythicFeat(feat.key.clone()),
+            Prerequisite::Feat(FeatKey::new("dodge")),
+        ]))));
+        assert_eq!(feat.repeat(), Repeat::Once);
+    });
+    let mut build = mythic_fighter();
+    build.picks.extend([
+        (general(2), pick_mythic_feat("extra-feat")),
+        (extra(2), pick_feat("toughness")),
+    ]);
+    agrees(&engine, &build);
+    build
+        .picks
+        .insert(general(4), pick_mythic_feat("extra-feat"));
+    refused_for(&engine, &build, &general(4), &Issue::AlreadyHeld);
+}
+
 /// A selection that caps its own rank stops there (the game's `Not` of `ContextConditionBuffRank` on itself: Extra
 /// Hex at 3).
 #[test]

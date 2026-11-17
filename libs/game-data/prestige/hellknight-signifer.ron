@@ -11,13 +11,13 @@ Class(
     will: Good,
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "perception", "persuasion"],
     components: [
-        Requires(condition: Any([Has(Feat("arcane-armor-training")), Has(Feat("warrior-priest"))])),
-        Requires(condition: Any([CasterTypeSpellLevel(caster: Arcane, level: 3), CasterTypeSpellLevel(caster: Divine, level: 3)])),
-        Requires(condition: Alignment([LawfulGood, LawfulNeutral, LawfulEvil])),
         Requires(condition: Stat(stat: Skill("knowledge-arcana"), value: 5)),
         Requires(condition: Stat(stat: Skill("knowledge-world"), value: 5)),
         Requires(condition: Stat(stat: Skill("persuasion"), value: 2)),
-        Requires(condition: CharacterLevel(6)),
+        Requires(condition: CasterTypeSpellLevel(caster: Arcane, level: 3), group: Any),
+        Requires(condition: CasterTypeSpellLevel(caster: Divine, level: 3), group: Any),
+        Requires(condition: AtLeast(1, [Feat("arcane-armor-training"), Feat("warrior-priest")])),
+        Requires(condition: Alignment([LawfulGood, LawfulNeutral, LawfulEvil])),
     ],
     advances: Either,
     levels: [

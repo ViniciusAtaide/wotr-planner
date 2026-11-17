@@ -506,13 +506,14 @@ fn extra_wild_talent_needs_the_wild_talent_selection() {
             own_rank("extra-wild-talent", 3)
         ))
     );
-    assert!(
-        feat_status(
-            &kineticist("fire", 1),
-            &general_slot(1),
-            "extra-wild-talent"
-        )
-        .is_err()
+    let status = feat_status(
+        &kineticist("fire", 1),
+        &general_slot(1),
+        "extra-wild-talent",
+    );
+    assert_eq!(
+        engine().issue_text(&status.unwrap_err()).as_deref(),
+        Some("Needs the Wild Talents selection")
     );
     assert_eq!(
         feat_status(
