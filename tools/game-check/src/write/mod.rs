@@ -44,6 +44,19 @@ pub struct Change {
     pub new: String,
 }
 
+/// One whole file to create: an entry the data doesn't have yet (ticket 307a). It is written after the field
+/// changes, never over a file that exists, and removed again if anything after it fails.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct NewFile {
+    pub at: DataAt,
+    /// The entry's file, relative to the data folder; [`creatable`] says which folders may take one.
+    pub file: PathBuf,
+    /// The file's whole text.
+    pub text: String,
+    /// The check's finding kind this file answers, for the registry.
+    pub kind: &'static str,
+}
+
 /// An item the importer left unwritten because the game gives a bonus the planner has no word for.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Unexpressed {
@@ -51,10 +64,11 @@ pub struct Unexpressed {
     pub what: String,
 }
 
-/// What [`apply`] wrote: the files whose text changed, in path order.
+/// What [`apply`] wrote: the files whose text changed, and the files it created, each in path order.
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct Applied {
     pub files: Vec<PathBuf>,
+    pub created: Vec<PathBuf>,
 }
 
 #[derive(Debug)]
@@ -62,6 +76,8 @@ pub enum WriteError {
     /// A change on a planner-made file, which the importer never writes.
     Planner(PathBuf),
     Missing(PathBuf),
+    /// A new file whose path is already taken: the writer never replaces a file it didn't read.
+    Exists(PathBuf),
     /// A request the writer can't take: an `--only` key that is no selection.
     Usage(String),
     /// A change to a field the importer doesn't own in that folder (design §1.2's table).
@@ -105,6 +121,11 @@ impl fmt::Display for WriteError {
                 )
             }
             WriteError::Missing(file) => write!(f, "{}: no such entry file", file.display()),
+            WriteError::Exists(file) => write!(
+                f,
+                "{}: a new file is never written over one that exists",
+                file.display()
+            ),
             WriteError::NotOwned { file, field } => write!(
                 f,
                 "{}: `{field}` is not a field the importer writes in this folder",
@@ -226,6 +247,19 @@ fn owned(file: &Path) -> &'static [&'static str] {
     }
 }
 
+/// Whether the importer may create this file: `features/<key>.ron`, and no other folder yet (a later slice gives
+/// a folder its place here).
+pub fn creatable(file: &Path) -> bool {
+    let mut parts = file.components();
+    let (Some(first), Some(name), None) = (parts.next(), parts.next(), parts.next()) else {
+        return false;
+    };
+    first.as_os_str() == "features"
+        && Path::new(name.as_os_str())
+            .extension()
+            .is_some_and(|e| e == "ron")
+}
+
 fn folder(file: &Path) -> Option<&str> {
     file.components()
         .next()
@@ -262,14 +296,20 @@ struct FilePlan<'a> {
 /// separators the writer adds or drops with it ([`read_back`]). Then `validate` runs on `dir`. A failure of either
 /// puts every written file's bytes back; one that can't be put back is named in [`WriteError::RestoreFailed`].
 ///
+/// `new_files` are created after the field changes: a path under `planner/`, one that exists, or one [`creatable`]
+/// refuses stops the run with nothing written. After writing, each is read back: the disk holds its text, which
+/// parses as the folder's type, with its key the path's stem and a blueprint set. A failure puts every field
+/// file back and removes every file and folder the run created.
+///
 /// The set of files is not atomic: a kill between two files leaves the folder half written, and git is the
 /// recovery. Each file is replaced atomically ([`atomic_write`]), so none is left truncated.
 pub fn apply(
     dir: &Path,
     changes: &[Change],
+    new_files: &[NewFile],
     validate: impl Fn(&Path) -> Result<(), String>,
 ) -> Result<Applied, WriteError> {
-    apply_with(dir, changes, validate, atomic_write)
+    apply_with(dir, changes, new_files, validate, atomic_write)
 }
 
 /// [`apply`] with the function that writes a file, so a test can make a write fail or land wrong. Restoring always
@@ -277,12 +317,15 @@ pub fn apply(
 pub fn apply_with(
     dir: &Path,
     changes: &[Change],
+    new_files: &[NewFile],
     validate: impl Fn(&Path) -> Result<(), String>,
     write: impl Fn(&Path, &str) -> io::Result<()>,
 ) -> Result<Applied, WriteError> {
     let plan = plan_files(dir, changes)?;
+    let creating = plan_new(dir, new_files)?;
 
     let mut written: Vec<usize> = Vec::new();
+    let mut made = Made::default();
     let result = (|| {
         for (at, file) in plan.iter().enumerate() {
             if file.before == file.after {
@@ -314,14 +357,19 @@ pub fn apply_with(
                 read_back(&file.file, before, after, change)?;
             }
         }
+        for new in &creating {
+            made.create(dir, new)?;
+            read_back_new(dir, new)?;
+        }
         validate(dir).map_err(WriteError::Invalid)
     })();
     if let Err(cause) = result {
-        let failed: Vec<PathBuf> = written
+        let mut failed: Vec<PathBuf> = written
             .into_iter()
             .filter(|at| atomic_write(&dir.join(&plan[*at].file), &plan[*at].before).is_err())
             .map(|at| plan[at].file.clone())
             .collect();
+        failed.extend(made.undo(dir));
         return Err(if failed.is_empty() {
             cause
         } else {
@@ -337,6 +385,7 @@ pub fn apply_with(
             .filter(|file| file.before != file.after)
             .map(|file| file.file)
             .collect(),
+        created: creating.iter().map(|new| new.file.clone()).collect(),
     })
 }
 
@@ -565,6 +614,8 @@ impl WriteArea {
 pub struct Outcome {
     /// The changes written, or planned with `dry_run`.
     pub changes: Vec<Change>,
+    /// The files created, or planned with `dry_run`.
+    pub created: Vec<NewFile>,
     /// The user's facts the registry holds: not written, and the findings stay.
     pub to_the_user: Vec<Change>,
     /// The ticket of each written change the registry has `applied`, by entry and field (the log's `fact` column).
@@ -608,6 +659,8 @@ pub fn run(
         dump,
         planner: &planner,
     };
+    // No area plans a file yet; the carriers target (307b) will.
+    let created: Vec<NewFile> = Vec::new();
     let mut changes = Vec::new();
     let mut unexpressed = Vec::new();
     let mut to_the_user = Vec::new();
@@ -632,12 +685,13 @@ pub fn run(
         unexpressed.extend(left);
     }
     let applied = if dry_run {
-        plan(dir, &changes)?
+        plan(dir, &changes, &created)?
     } else {
-        apply(dir, &changes, validate)?
+        apply(dir, &changes, &created, validate)?
     };
     Ok(Outcome {
         changes,
+        created,
         to_the_user,
         facts: applied_facts,
         unexpressed,
@@ -695,12 +749,128 @@ fn plan_files<'a>(dir: &Path, changes: &'a [Change]) -> Result<Vec<FilePlan<'a>>
 
 /// What [`apply`] would do: the guards and the span writer run on every change and the files whose text would change
 /// are listed, with nothing written.
-pub fn plan(dir: &Path, changes: &[Change]) -> Result<Applied, WriteError> {
+pub fn plan(dir: &Path, changes: &[Change], new_files: &[NewFile]) -> Result<Applied, WriteError> {
+    let creating = plan_new(dir, new_files)?;
     Ok(Applied {
+        created: creating.iter().map(|new| new.file.clone()).collect(),
         files: plan_files(dir, changes)?
             .into_iter()
             .filter(|file| file.before != file.after)
             .map(|file| file.file)
             .collect(),
     })
+}
+
+/// The new files' guards, run before any write: a file under `planner/`, one that exists (or a path two new files
+/// share) and one [`creatable`] refuses. In path order.
+fn plan_new<'a>(dir: &Path, new_files: &'a [NewFile]) -> Result<Vec<&'a NewFile>, WriteError> {
+    let mut sorted: Vec<&NewFile> = new_files.iter().collect();
+    sorted.sort_by_key(|new| (new.file.to_string_lossy().to_lowercase(), new.file.clone()));
+    for (at, new) in sorted.iter().enumerate() {
+        if new.file.starts_with("planner") {
+            return Err(WriteError::Planner(new.file.clone()));
+        }
+        if dir.join(&new.file).symlink_metadata().is_ok()
+            || at > 0 && same_path(&sorted[at - 1].file, &new.file)
+        {
+            return Err(WriteError::Exists(new.file.clone()));
+        }
+        if !creatable(&new.file) {
+            return Err(WriteError::NotOwned {
+                file: new.file.clone(),
+                field: "(new file)",
+            });
+        }
+    }
+    Ok(sorted)
+}
+
+/// Two paths a case-insensitive disk (macOS) would make one.
+fn same_path(a: &Path, b: &Path) -> bool {
+    a.to_string_lossy().to_lowercase() == b.to_string_lossy().to_lowercase()
+}
+
+/// What a run created, to take away again: the files in order, and the folders it made, outermost first.
+#[derive(Default)]
+struct Made {
+    files: Vec<PathBuf>,
+    folders: Vec<PathBuf>,
+}
+
+impl Made {
+    /// Creates the new file's folders and the file itself, whole; a folder is noted before it is made, so a failure
+    /// half way is undone too.
+    fn create(&mut self, dir: &Path, new: &NewFile) -> Result<(), WriteError> {
+        let io = |error| WriteError::Io {
+            file: new.file.clone(),
+            error,
+        };
+        let mut missing: Vec<PathBuf> = Vec::new();
+        let mut parent = new.file.parent();
+        while let Some(folder) = parent.filter(|p| !p.as_os_str().is_empty()) {
+            if dir.join(folder).exists() {
+                break;
+            }
+            missing.push(folder.to_owned());
+            parent = folder.parent();
+        }
+        for folder in missing.into_iter().rev() {
+            self.folders.push(folder.clone());
+            fs::create_dir(dir.join(folder)).map_err(io)?;
+        }
+        // `create_new` fails on a path taken since the plan, which a rename would have replaced; the file is
+        // noted only once it is ours, so an undo never removes one that was not.
+        let mut open = fs::OpenOptions::new();
+        let mut handle = match open.write(true).create_new(true).open(dir.join(&new.file)) {
+            Ok(handle) => handle,
+            Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {
+                return Err(WriteError::Exists(new.file.clone()));
+            }
+            Err(error) => return Err(io(error)),
+        };
+        self.files.push(new.file.clone());
+        io::Write::write_all(&mut handle, new.text.as_bytes()).map_err(io)
+    }
+
+    /// Removes what was created, files then folders (innermost first); the paths that couldn't be removed.
+    fn undo(self, dir: &Path) -> Vec<PathBuf> {
+        let gone = |result: io::Result<()>| {
+            result.is_ok() || result.is_err_and(|e| e.kind() == io::ErrorKind::NotFound)
+        };
+        let files = self
+            .files
+            .into_iter()
+            .filter(|file| !gone(fs::remove_file(dir.join(file))));
+        let folders = self
+            .folders
+            .into_iter()
+            .rev()
+            .filter(|folder| !gone(fs::remove_dir(dir.join(folder))));
+        files.chain(folders).collect()
+    }
+}
+
+/// A created file read back: the disk holds the text meant, it parses as the folder's type, its key is the path's
+/// stem and it names a blueprint.
+fn read_back_new(dir: &Path, new: &NewFile) -> Result<(), WriteError> {
+    let wrong = || WriteError::ReadBack {
+        file: new.file.clone(),
+        field: "(new file)",
+    };
+    let disk = fs::read_to_string(dir.join(&new.file)).map_err(|error| WriteError::Io {
+        file: new.file.clone(),
+        error,
+    })?;
+    if disk != new.text {
+        return Err(wrong());
+    }
+    let feature: rules::Feature = ron::Options::default()
+        .with_default_extension(ron::extensions::Extensions::IMPLICIT_SOME)
+        .from_str(&disk)
+        .map_err(|_| wrong())?;
+    let stem = new.file.file_stem().and_then(|stem| stem.to_str());
+    if Some(feature.key.as_str()) != stem || feature.blueprint.is_none() {
+        return Err(wrong());
+    }
+    Ok(())
 }

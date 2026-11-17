@@ -259,6 +259,21 @@ fn write_run(
                 change.at, change.field, change.old, change.new
             ));
         }
+        let created: Vec<_> = outcome
+            .created
+            .iter()
+            .filter(|new| kinds.contains(&new.kind))
+            .collect();
+        if !created.is_empty() {
+            text.push_str(&format!(
+                "{name}: {} files {}\n",
+                created.len(),
+                if dry_run { "to create" } else { "created" }
+            ));
+            for new in created {
+                text.push_str(&format!("  {}\n", new.file.display()));
+            }
+        }
     }
     if !outcome.unexpressed.is_empty() {
         text.push_str("left unwritten, no form the writer expresses:\n");
@@ -275,7 +290,7 @@ fn write_run(
             ));
         }
     }
-    if outcome.changes.is_empty() && outcome.to_the_user.is_empty() {
+    if outcome.changes.is_empty() && outcome.created.is_empty() && outcome.to_the_user.is_empty() {
         text.push_str("nothing to write\n");
     }
     if let Some(path) = log_path {
@@ -283,7 +298,13 @@ fn write_run(
         let after = check(pins, &dump, &data, known).map_err(|error| error.to_string())?;
         std::fs::write(
             path,
-            log::tsv(&outcome.changes, &outcome.facts, &before, &after),
+            log::tsv(
+                &outcome.changes,
+                &outcome.created,
+                &outcome.facts,
+                &before,
+                &after,
+            ),
         )
         .map_err(|error| format!("{}: {error}", path.display()))?;
     }
