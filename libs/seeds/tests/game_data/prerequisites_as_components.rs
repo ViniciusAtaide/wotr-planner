@@ -152,6 +152,8 @@ fn a_blueprint_entry_holds_its_prerequisite_as_requires_components() {
     // Seeker, Survivalist, the ten nocturnal abilities, Clear Mind), and four hold none, as their blueprints
     // (MercyFatigued e5aa306af9b91974a9b2f2cbe702f562, MercyShaken c4732ca5b0af7214a98f9b4dafe87da9, MercySickened
     // 7ee2ef06226a4884f80b7647a2aa2dee, KiSuddenSpeedFeature 96d96f5b6f71004418e7a7e42a81c94d).
+    // A count pin: when two branches each move it, a merge resolves it by sum, the base plus each side's change
+    // (`.claude/skills/ticket-queue/SKILL.md`, "Hazards met before"), keeping both sides' comments above.
     assert_eq!((moved, fields), (684, 62));
 
     // The planner-made entries keep what they hold: their fields, and no `Requires`.
