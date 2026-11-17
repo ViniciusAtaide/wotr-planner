@@ -150,7 +150,7 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
     // warpriest's bonus lists (three more). Ticket 306m: the cavalier's, its Tactician's and the Gendarme's (three more).
     assert_eq!(feat_lists().count(), 84);
     let every: Vec<_> = feat_lists()
-        .filter(|list| list.feats.len() == DATA.feats.len())
+        .filter(|list| list.feats.len() + 3 == DATA.feats.len())
         .map(|list| {
             (
                 list.key.as_str(),
@@ -160,8 +160,9 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
         })
         .collect();
     // Game: DragonLevel2FeatSelection a21acdafc0169f5488a9bd3256e2e65b (IgnorePrerequisites; its list, which the data
-    // holds as every feat, is the game check's)
-    assert_eq!(every, [("gold-dragon/dragon-feats", true, 263)]);
+    // holds as every feat, is the game check's). Tickets 306q and 306r: every feat but Advanced Weapon Training 2 to 4,
+    // which the game's list lacks (the 13 feats they added: the list holds the other 10).
+    assert_eq!(every, [("gold-dragon/dragon-feats", true, 273)]);
     let one_choice: Vec<_> = feat_lists()
         .filter(|list| list.feats.len() < 2)
         .map(|list| {

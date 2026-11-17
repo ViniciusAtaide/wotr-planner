@@ -1,0 +1,1 @@
+(key: "extra-performance-skald", blueprint: "15c78493a0ce471cb279e6363d702cc8", name: "Extra Performance (Skald)", ranks: 10, summary: "6 more rounds of raging song a day; up to 10 times.", category: Class, guide: "feats#extra-performance", aliases: ["extra-performance"], components: [Requires(condition: Has(Feature("skald/raging-song")))])

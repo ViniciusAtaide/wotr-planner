@@ -1,0 +1,25 @@
+# 306q and 306r: the feats that held several blueprints are one entry each
+
+## What the data says now
+
+- **Advanced Weapon Training** is four feats: `advanced-weapon-training` (`AdvancedWeaponTraining1` 3aa4cbdd4af5ba54888b0dc7f07f80c4, as before), and new `advanced-weapon-training-2/3/4` (70a139f0a4c6c534eaa34feea0d08622, ee9ab0117ca06b84f9c66469f4428c61, 0b55d725ded1ae549bb858fba1d84114). Each needs the one before it, fighter 10, 15 and 20, and not itself (the game's `PrerequisiteFeature`, `PrerequisiteClassLevel` and `PrerequisiteNoFeature`). `-2` names `advanced-weapon-training` as an alias, so a second pick of the old key opens as `-2`, the only heir that holds; `-3` and `-4` are no one's heir.
+- **Magical Tail** (`feats/magical-tail.ron`) takes the game's one feat `MagicalTail` febb8fe9a2d142fb80c1be6b0b539d9d, `ranks: 8` as the game's `Ranks` (the old blueprint was `MagicalTail1`, what the first rank grants). No split (the slice's decision 9).
+- **Abundant Smite:** `abundant-smite-smite-chaos` keeps its key and `AbundantSmite` 7e5b63faeca24474db0bfd019167dda4 (needs Smite Evil), as a mythic split keeps every old key's meaning; new `abundant-smite-chaos` (`AbundantSmiteChaos` 4cdc155e26204491ba4d193646cb4443, needs the Hellknight's Smite Chaos). Mythic abilities have no alias. Both are in `mythic/extra-mythic-ability`.
+- **Extra Channel** is six feats, one per channel: `extra-channel` keeps the cleric's `ChannelEnergyFeature` and the Priest of Balance's negative channel (`ExtraChannel` cd9f19775bd9d3343a31a065e93f0c47); new `extra-channel-oracle` (53da6bf487997e947960bd6c02be9adf), `-shaman` (4cc73e43ab814bc48ade2e291729b359), `-hospitaler` (8d4f82fdb4d09b247ae8cd1ae7ce02de), `-hex-channeler` (88f426f13de236642b9585efcb82f1d8) and `-empyreal-sorcerer` (347e8d794c9598e4abed70adda868ccd), each `ranks: 10`, each naming `extra-channel` as an alias, each needing its own channel. `extra-channel` lost the Hospitaler's and the Empyreal Sorcerer's channels from its prerequisite.
+- **Extra Rage and Extra Performance:** new `extra-rage-instinctual-warrior` (dcc338110bab48ddbdc22e82cef7a6db, needs Focused Rage), `extra-performance-skald` (15c78493a0ce471cb279e6363d702cc8, Raging Song) and `extra-performance-martyr` (639ce2b85a13404caa618f36748d7fa5, the Martyr's Inspire Courage), each `ranks: 10` and aliased to the old key.
+- **New feats:** `bleeding-critical` (`BleedingCriticalFeature` 42be7d465db94213baf0578c721803ff, Critical Focus and base attack 11) and `spell-bane` (`SpellBane` d2d1b1f27bdf4ddfa5bf8b7244786ff9, the inquisitor's bane or the Living Grimoire's Sacred Word). Names and summaries are in our own words. The summaries of the new Extra feats' effects, Bleeding Critical's and Spell Bane's rest on the blueprints (`IncreaseResourceAmount` values, `OwnerAbilityTargetSavingThrowBonus` -2 while the bane buff is up); the guide pages don't hold them, so those two feats carry no `guide` field.
+- **Lists:** `combat-feats` gained AWT 2 to 4 and Bleeding Critical by hand (the game's `FighterFeatSelection` holds them); the Dragon Feats list gained the 10 new feats `DragonLevel2FeatSelection` holds (not AWT 2 to 4). The writer's `option-lists` run (`--only feats` and the five bonus-feat lists) added the new feats to the general pool `feats` (13 feats) and the four missing members to `magus/bonus-feats`, `magus/arcane-rider/bonus-feats`, `warpriest/bonus-feats`, `cavalier/bonus-feats` and `cavalier/gendarme/bonus-feats`: those five lists are now the game's full member sets. `mythic/extra-mythic-ability` was edited by hand: the writer leaves it unwritten for a member without an entry (`SecondMysteryEnlightenedPhilosopher`).
+
+## Left in `known.txt`
+
+- `prerequisites` lines for `extra-channel-shaman` -> 307: the game's `ShamanLifeSpiritChannelEnergyFeature` b8ec9dcc… is granted only by `ShamanLifeSpiritBaseFeature` 9ae3ba76… (`game-check refs`), which the planner holds as `shaman/spirit/life/channel`; the prerequisite names it (or the witch doctor's channel) as `Any`, and the check compares by GUID.
+- The 306l and 306m lines for the four missing members, the `pool general feats` lines (293 and 263), the `magical-tail` ranks line, the `AbundantSmiteChaos` pool line and the stale `feats` and `abundant-smite-smite-chaos` prerequisite lines are removed.
+
+## What it does not model
+
+- The Extra feats' prerequisites that name a feature the planner has no entry for (264, 307).
+- The lists of the other selections that hold these feats (the fighter's, the wizard's, the dragon feats: 306s, 306n).
+
+## The tests
+
+`libs/seeds/tests/game_data/importer_lists.rs`: `advanced_weapon_training_is_four_feats_each_after_the_last`, `magical_tail_is_the_games_one_feat_of_eight_ranks`, `abundant_smite_is_two_mythic_abilities`, `extra_channel_is_six_feats_one_per_channel`, `extra_rage_and_extra_performance_have_the_games_class_variants`, `bleeding_critical_and_spell_bane_are_feats`; the 306l and 306m tests now pin the full member sets.

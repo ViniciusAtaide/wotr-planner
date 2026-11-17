@@ -4,6 +4,9 @@
     name: "Combat feat",
     feats: [
         "advanced-weapon-training",
+        "advanced-weapon-training-2",
+        "advanced-weapon-training-3",
+        "advanced-weapon-training-4",
         "agile-maneuvers",
         "aldori-dueling-mastery",
         "armor-focus",
@@ -14,6 +17,7 @@
         "armor-proficiency-medium-armor",
         "armor-proficiency-medium-barding",
         "bashing-finish",
+        "bleeding-critical",
         "blind-fight",
         "blinding-critical",
         "boar-ferocity",

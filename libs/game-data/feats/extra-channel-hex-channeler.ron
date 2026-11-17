@@ -1,0 +1,1 @@
+(key: "extra-channel-hex-channeler", blueprint: "88f426f13de236642b9585efcb82f1d8", name: "Extra Channel (Hex Channeler)", ranks: 10, summary: "2 more uses a day of the Hex Channeler's channel; up to 10 times.", category: Class, guide: "feats#extra-channel", aliases: ["extra-channel"], components: [Requires(condition: Has(Option("witch/hex/channel")))])

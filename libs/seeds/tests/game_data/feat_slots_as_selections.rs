@@ -181,8 +181,12 @@ fn dragon_feats_list_every_feat() {
     // The planner's list, unchanged: today's every feat (263, with ticket 306k's Extra Discovery (Vivisectionist)). The game's DragonLevel2FeatSelection
     // a21acdafc0169f5488a9bd3256e2e65b lists 268, which 293 writes.
     let dragon = any_selection("gold-dragon/dragon-feats");
-    let every: BTreeSet<FeatKey> = DATA.feats.iter().map(|feat| feat.key.clone()).collect();
-    assert_eq!(every.len(), 263);
+    // Tickets 306q and 306r: the 13 new feats are in it but Advanced Weapon Training 2 to 4, which the game's list lacks.
+    let every: BTreeSet<FeatKey> = (DATA.feats.iter())
+        .filter(|feat| !feat.key.as_str().starts_with("advanced-weapon-training-"))
+        .map(|feat| feat.key.clone())
+        .collect();
+    assert_eq!(every.len(), 273);
     assert_eq!(dragon.feats, every);
     assert!(dragon.ignores_prerequisites);
     let path = DATA

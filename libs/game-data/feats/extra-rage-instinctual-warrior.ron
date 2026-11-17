@@ -1,0 +1,1 @@
+(key: "extra-rage-instinctual-warrior", blueprint: "dcc338110bab48ddbdc22e82cef7a6db", name: "Extra Rage (Instinctual Warrior)", ranks: 10, summary: "6 more rounds of focused rage a day; up to 10 times.", category: Class, guide: "feats#extra-rage", aliases: ["extra-rage"], components: [Requires(condition: Has(Feature("barbarian/instinctual-warrior/focused-rage")))])
