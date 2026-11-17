@@ -1,0 +1,1 @@
+(key: "witch/hex/channel", blueprint: "b40316f05d4772e4894688e6743602bd", name: "Channel Energy (Hex)", ranks: 20, summary: "A Hex Channeler's hex taken to grow the channel by 1d6 instead of a new hex.", guide: "witch#channel-energy", components: [Requires(condition: Has(Archetype("witch/hex-channeler")))])

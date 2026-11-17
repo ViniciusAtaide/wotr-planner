@@ -178,11 +178,11 @@ fn monk_bonus_feats_keep_their_list() {
 /// Gold Dragon's Dragon Feats list every feat the planner has, by name now, and still ignore prerequisites.
 #[test]
 fn dragon_feats_list_every_feat() {
-    // The planner's list, unchanged: today's every feat (261). The game's DragonLevel2FeatSelection
+    // The planner's list, unchanged: today's every feat (262, with ticket 306j's Extra Hex (Shaman)). The game's DragonLevel2FeatSelection
     // a21acdafc0169f5488a9bd3256e2e65b lists 268, which 293 writes.
     let dragon = any_selection("gold-dragon/dragon-feats");
     let every: BTreeSet<FeatKey> = DATA.feats.iter().map(|feat| feat.key.clone()).collect();
-    assert_eq!(every.len(), 261);
+    assert_eq!(every.len(), 262);
     assert_eq!(dragon.feats, every);
     assert!(dragon.ignores_prerequisites);
     let path = DATA

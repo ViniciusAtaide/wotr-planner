@@ -78,3 +78,11 @@ full t64 hexcrafter arcana / feat
 full t64 hexcrafter arcana thrice / feat
 full t64 hexcrafter arcana thrice / feat / legend
 full t64 hexcrafter hexes only
+full gap shaman None
+full t49 shaman hex / feat
+full t49 shaman hex / filled
+full t60 hexcrafter 18 hexes
+full t60 hexcrafter 18 hexes / legend
+t49 shaman hex / feat
+t49 shaman hex / filled
+t60 hexcrafter 18 hexes

@@ -202,9 +202,9 @@ fn the_borrowed_selections_offer_the_guides_lists() {
         &keys(any_selection("magus/magus-arcana")) | &keys(any_selection(WITCH_HEX));
     // Game: HexcrafterMagusHexArcanaSelection ad6b9cecb5286d841a66e23cea3ef7bf lists MagusArcanaSelection
     // e9dc4dfc73eaaf94aae27e0ed6cc9ada's 15 and WitchHexSelection 9846043cf51251a4897728ed6e24e76f's 27, of which
-    // HexChannelerChannelFeature b40316f05d4772e4894688e6743602bd needs a Hex Channeler witch (equivalent model: 41 a
-    // magus can take)
-    assert_eq!(arcana_and_hexes.len(), 15 + 26);
+    // HexChannelerChannelFeature b40316f05d4772e4894688e6743602bd needs a Hex Channeler witch (locked, but listed: 42
+    // in all)
+    assert_eq!(arcana_and_hexes.len(), 15 + 27);
     assert_eq!(keys(hex_arcana), arcana_and_hexes);
     assert!(hex_arcana.option_levels.is_empty());
 
@@ -347,7 +347,11 @@ fn each_borrowing_class_picks_at_its_tables_levels() {
         // Game: HexcrafterArchetype 79ccf7a306a5d5547bebd97299f6fc89 (HexcrafterMagusHexMagusSelection
         // a18b8c3d6251d8641a8094e5c2a7bc78 at 4, HexcrafterMagusHexArcanaSelection ad6b9cecb5286d841a66e23cea3ef7bf
         // at 6 to 18)
-        (borrower("magus", Some(HEXCRAFTER), 20), WITCH_HEX, vec![4]),
+        (
+            borrower("magus", Some(HEXCRAFTER), 20),
+            "magus/hexcrafter/hex",
+            vec![4],
+        ),
         (
             borrower("magus", Some(HEXCRAFTER), 20),
             HEX_ARCANA,
@@ -649,17 +653,18 @@ fn a_hexcrafter_picks_a_witch_hex_at_4_and_an_arcana_or_hex_from_6() {
     let at_4 = borrower("magus", Some(HEXCRAFTER), 4);
     let hex_magus = offered(&at_4, 4);
     // Game: HexcrafterMagusHexMagusSelection a18b8c3d6251d8641a8094e5c2a7bc78 lists 27, HexChannelerChannelFeature
-    // b40316f05d4772e4894688e6743602bd needing a Hex Channeler witch (equivalent model: 26 a magus can take);
+    // b40316f05d4772e4894688e6743602bd needing the Hex Channeler archetype (306j: it is in the list, shown locked);
     // WitchHexCackleFeature 36f2467103d4635459d412fb418276f4 has no prerequisite, WitchHexAgonyFeature
     // de5f107ec5a340d4dbc333fd86a3cc06 needs WitchMajorHex 8ac781b33e380c84aa578f1b006dd6c5
-    assert_eq!(hex_magus.len(), 26);
+    assert_eq!(hex_magus.len(), 27);
+    assert!(hex_magus["witch/hex/channel"].is_err());
     assert_eq!(hex_magus["witch/hex/cackle"], Ok(()));
     assert!(hex_magus["witch/hex/agony"].is_err());
 
     let at_6 = borrower("magus", Some(HEXCRAFTER), 6);
     let hex_arcana = offered(&at_6, 6);
-    // Game: HexcrafterMagusHexArcanaSelection ad6b9cecb5286d841a66e23cea3ef7bf (equivalent model: 41 a magus can take)
-    assert_eq!(hex_arcana.len(), 41);
+    // Game: HexcrafterMagusHexArcanaSelection ad6b9cecb5286d841a66e23cea3ef7bf (42, with the channel; 306j)
+    assert_eq!(hex_arcana.len(), 42);
     for open in ["magus/magus-arcana/arcane-accuracy", "witch/hex/cackle"] {
         assert_eq!(hex_arcana[open], Ok(()), "{open}");
     }

@@ -5,7 +5,6 @@
     summary: "One more hex whose prerequisites you meet; up to 3 times.",
     guide: "feats#extra-hex",
     needs_slot_of: [
-        "shaman/hex",
         "witch/hex",
         "witch/wandering-hex",
     ],

@@ -54,7 +54,6 @@ option lists / in game only / pool general feats / ExtraChannelHexChanneler -> 2
 option lists / in game only / pool general feats / ExtraChannelHospitaler -> 293
 option lists / in game only / pool general feats / ExtraChannelOracle -> 293
 option lists / in game only / pool general feats / ExtraChannelShaman -> 293
-option lists / in game only / pool general feats / ExtraShamanHexSelection -> 293
 option lists / in game only / pool general feats / MagicalTail -> 293
 option lists / in planner only / pool general feats / magical-tail (MagicalTail1) -> 293
 option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> 293
@@ -101,7 +100,6 @@ progression headers / a progression header / selection option lich/skeleton-upgr
 # 293 (from 244 by way of 298): options the game keeps per selection, the mysteries' and domains' copies.
 option lists / * / selection oracle/divine-herbalist/mystery -> 293
 option lists / * / selection oracle/enlightened-philosopher/mystery -> 293
-option lists / * / selection shaman/hex -> 293
 prerequisites / * / selection option oracle/revelations/ancestor/blood-of-heroes -> 293
 prerequisites / * / selection option oracle/revelations/ancestor/phantom-touch -> 293
 prerequisites / * / selection option oracle/revelations/ancestor/sacred-council -> 293
@@ -343,6 +341,7 @@ prerequisites / * / feat extra-discovery -> 264
 prerequisites / * / feat extra-hex -> 264
 prerequisites / * / feat extra-ki -> 264
 prerequisites / * / feat extra-lay-on-hands -> 264
+prerequisites / * / feat extra-hex-shaman -> 264
 prerequisites / * / feat extra-performance -> 264
 prerequisites / * / feat extra-rage-power -> 264
 prerequisites / * / feat extra-rogue-talent -> 264
@@ -730,7 +729,6 @@ progression rows / * / archetype ranger/stormwalker -> 275
 progression rows / * / class ranger -> 275
 
 # 276, rogue and slayer talents and rows.
-option lists / * / selection rogue/sylvan-trickster/fey-tricks -> 276
 option lists / * / selection slayer/imitator/imitation -> 276
 prerequisites / * / selection option rogue/rogue-talents/blinding-strike -> 276
 prerequisites / * / selection option rogue/rogue-talents/confounding-blades -> 276
@@ -799,8 +797,7 @@ progression rows / * / archetype shifter/wild-effigy -> 277
 progression rows / * / class druid -> 277
 
 # 278, witch and shaman hexes and rows.
-option lists / * / selection shaman/wildland-shaman/spirit -> 278
-option lists / * / selection witch/hex -> 278
+option lists / * / selection shaman/wildland-shaman/spirit -> 316
 prerequisites / * / selection option shaman/hex/air-barrier -> 278
 prerequisites / * / selection option shaman/hex/battle-master -> 278
 prerequisites / * / selection option shaman/hex/battle-ward -> 278
@@ -814,6 +811,7 @@ prerequisites / * / selection option shaman/hex/flame-curse -> 278
 prerequisites / * / selection option shaman/hex/friend-to-animals -> 278
 prerequisites / * / selection option shaman/hex/hampering-hex -> 278
 prerequisites / * / selection option shaman/hex/hypothermia -> 278
+prerequisites / * / selection option shaman/hex/iceplant -> 278
 prerequisites / * / selection option shaman/hex/intimidating-display -> 278
 prerequisites / * / selection option shaman/hex/metal-curse -> 278
 prerequisites / * / selection option shaman/hex/stone-stability -> 278
@@ -991,7 +989,6 @@ progression rows / in game only / archetype wizard/exploiter-wizard -> 282
 
 # 283, magus rows and arcana.
 option lists / * / selection magus/sword-saint/chosen-weapon -> 283
-option lists / * / selection magus/hexcrafter/hex-arcana -> 283
 prerequisites / * / class magus -> 283
 prerequisites / * / selection option magus/magus-arcana/bane-blade-level-15 -> 283
 prerequisites / * / selection option magus/magus-arcana/devoted-blade-level-12 -> 283

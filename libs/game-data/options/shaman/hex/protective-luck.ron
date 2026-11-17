@@ -1,0 +1,1 @@
+(key: "shaman/hex/protective-luck", blueprint: "f0db7409313e50c41ab1bfe36584a4e1", name: "Protective Luck", summary: "Attackers against the target roll twice and keep the worse, for 1 round (2 at 8th level, 3 at 16th).", guide: "witch#protective-luck", aliases: ["witch/hex/protective-luck"])

@@ -1,0 +1,1 @@
+(key: "shaman/hex/healing-hex", blueprint: "3fb96b69065bcc643a696c6ba908d588", name: "Healing (Hex)", summary: "Heals as Cure Light Wounds at your class level, Cure Moderate Wounds from 5th level.", guide: "witch#healing-hex", aliases: ["witch/hex/healing-hex"])

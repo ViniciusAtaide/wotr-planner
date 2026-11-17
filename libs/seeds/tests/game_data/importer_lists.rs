@@ -310,3 +310,86 @@ fn the_exploiters_and_extra_arcanist_exploits_lists_are_the_games() {
         assert!(held, "{level}");
     }
 }
+
+/// 306j: the shaman's hexes are its own 34 (the eleven it shares with the witch are copies with the shaman's blueprints,
+/// each naming the witch's key as an alias so an old link opens), the witch's and Hexcrafter's lists are the game's 27
+/// with the Hex Channeler's channel, and the shaman's Extra Hex is its own feat.
+// Game: ShamanHexSelection 4223fe18c75d4d14787af196a04e14e7 (34; the shaman's copies ShamanHexAmelioratingFeature
+// 8e19da021854b9b4e805f0e919663894, AuraOfPurity 558e9265…, EvilEye 890cd930…, Fortune 64ed6d1a…, Healing 3fb96b69…,
+// Iceplant 999e367b…, Misfortune e7fe4ed2…, Nails e87b3db8…, ProtectiveLuck f0db7409…, Slumber 894ef737…, Ward
+// 41f4d078…); WitchHexSelection 9846043cf51251a4897728ed6e24e76f (27, with HexChannelerChannelFeature
+// b40316f05d4772e4894688e6743602bd); HexcrafterMagusHexMagusSelection a18b8c3d6251d8641a8094e5c2a7bc78 (27, Hexcrafter
+// at 4); ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35 (27); ExtraShamanHexSelection
+// d0b4c8245d504b8c9c6d3fccc1f8c5b6 (34); SylvanTricksterTalentSelection 290bbcc3c3bb92144b853fd8fb8ff452 (64).
+#[test]
+fn the_shamans_hexes_are_their_own_and_open_old_links_through_aliases() {
+    let shaman = selection("shaman/hex");
+    assert_eq!(keys(shaman).len(), 34);
+    assert!(shaman.shared_options.is_empty());
+    assert!(
+        keys(shaman)
+            .iter()
+            .all(|key| key.starts_with("shaman/hex/"))
+    );
+    for name in [
+        "ameliorating",
+        "aura-of-purity",
+        "evil-eye",
+        "fortune",
+        "healing-hex",
+        "iceplant",
+        "misfortune",
+        "nails",
+        "protective-luck",
+        "slumber",
+        "ward",
+    ] {
+        let copy = DATA
+            .options
+            .iter()
+            .find(|option| option.key.as_str() == format!("shaman/hex/{name}"))
+            .unwrap_or_else(|| panic!("no shaman/hex/{name}"));
+        let heir = rules::SelectionOptionKey::new(format!("witch/hex/{name}"));
+        assert!(copy.aliases.contains(&heir), "{name}");
+    }
+    let witch = keys(selection("witch/hex"));
+    assert_eq!(witch.len(), 27);
+    assert!(witch.contains("witch/hex/channel"));
+    assert_eq!(keys(selection("magus/hexcrafter/hex")), witch);
+    assert_eq!(keys(selection("shaman/extra-hex")), keys(shaman));
+    assert!(
+        !selection("witch/extra-hex")
+            .needs_slot_of
+            .iter()
+            .any(|key| key.as_str() == "shaman/hex")
+    );
+    let feat = DATA
+        .feats
+        .iter()
+        .find(|feat| feat.key.as_str() == "extra-hex-shaman")
+        .expect("extra-hex-shaman");
+    assert_eq!(
+        feat.selection.as_ref().map(|key| key.as_str()),
+        Some("shaman/extra-hex")
+    );
+    // A shaman is offered its own copy and not the witch's.
+    let offers = offered(&build("shaman", 2), 2);
+    assert_eq!(offers["shaman/hex/evil-eye"], Ok(()));
+    assert!(!offers.contains_key("witch/hex/evil-eye"));
+    // The Hexcrafter's row 4 names its own selection.
+    let hexcrafter = DATA
+        .archetypes
+        .iter()
+        .find(|archetype| archetype.key.as_str() == "magus/hexcrafter")
+        .expect("hexcrafter");
+    let row = hexcrafter
+        .levels
+        .iter()
+        .find(|row| row.level == 4)
+        .expect("row 4");
+    assert!(
+        row.selections
+            .iter()
+            .any(|key| key.as_str() == "magus/hexcrafter/hex")
+    );
+}
