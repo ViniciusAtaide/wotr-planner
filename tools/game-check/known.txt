@@ -740,9 +740,7 @@ progression rows / * / archetype ranger/stormwalker -> 275
 progression rows / * / class ranger -> 275
 
 # 276, rogue and slayer talents and rows.
-option lists / * / selection rogue/master-of-all/skill-focus -> 276
 option lists / * / selection rogue/sylvan-trickster/fey-tricks -> 276
-option lists / * / selection rogue/underground-chemist/discovery -> 276
 option lists / * / selection slayer/imitator/imitation -> 276
 option lists / * / selection slayer/slayer-talents -> 276
 prerequisites / * / selection option rogue/rogue-talents/blinding-strike -> 276
@@ -783,7 +781,6 @@ progression rows / * / archetype slayer/bloodseeker -> 276
 progression rows / a further rank in planner only / archetype slayer/executioner -> 276
 progression rows / a further rank in planner only / archetype slayer/spawn-slayer -> 276
 progression rows / a further rank in planner only / archetype slayer/stygian-slayer -> 276
-progression rows / in game only / archetype rogue/dark-lurker -> 276
 progression rows / in game only / archetype slayer/deliverer -> 276
 progression rows / in game only / archetype slayer/executioner -> 276
 progression rows / in game only / archetype slayer/imitator -> 276
@@ -797,7 +794,6 @@ progression rows / in planner only / archetype slayer/imitator -> 276
 # 277, druid and shifter rows and options.
 option lists / * / selection druid/winter-child/domain -> 277
 option lists / * / selection shifter/dragonblood-shifter/greater-wyrmshifter -> 277
-option lists / * / selection shifter/feyform-shifter/rogue-talent -> 277
 progression rows / * / archetype druid/blight-druid -> 277
 progression rows / * / archetype druid/defender-of-the-true-world -> 277
 progression rows / * / archetype druid/drovier -> 277

@@ -1304,12 +1304,12 @@
             (item: Selection("ranger/combat-style-feat")),
         ],
     ),
-    // Game: DarkLurkerArchetype 33eb002078e5437b8c25db4b80b4a4fe: the game swaps in its own talent selection (equivalent model; its option list is the game check's); the entries waiting on a ticket are the game's
+    // Game: DarkLurkerArchetype 33eb002078e5437b8c25db4b80b4a4fe removes RogueTalentSelection at every even level and adds DarkLurkerRogueTalentSelection 1edbb68422c046f98a86f4726f6721b2 at 4, 6, 10, 12, 16, 18 and 20
     (
         archetype: "rogue/dark-lurker",
         loses: [
             (item: Feature("evasion")),
-            (item: Selection("rogue/rogue-talents"), at: [2, 8, 14], waits_on: "ticket 276", why: "the game removes the talent at every even level and gives its own talent selection at the others, 20 included (equivalent model)"),
+            (item: Selection("rogue/rogue-talents"), replaced_by: [Selection("rogue/dark-lurker/rogue-talents")]),
         ],
     ),
     // Game: EldritchScoundrelArchetype 57f93dd8423c97c49989501281296c4a: own copies stand for the base features the game keeps (equivalent model)
@@ -1370,7 +1370,7 @@
         why: "The Underground Chemist loses Evasion and the base rogue-talent picks: it has none at 4 (the table shows Precise Splash Weapons there) and takes its picks from 10 on through its own Discovery selection, which offers the rogue talents as well as the alchemist discoveries, so no pick is lost; the table prints Rogue Talent at 12 to 20 and Discovery at 10.",
         loses: [
             (item: Feature("evasion")),
-            (item: Selection("rogue/rogue-talents"), at: [4, 10], waits_on: "ticket 276", why: "the game removes the talent at 4 and 10 only and keeps the rogue's talents from 12"),
+            (item: Selection("rogue/rogue-talents"), at: [4, 10], why: "the game removes the talent at 4 and 10 only and keeps the rogue's talents from 12"),
         ],
     ),
     // Game: PossessedShamanArchetype 7939ff57cc2ce104693ea2f5afa595b6: own copies stand for the base features the game keeps (equivalent model)

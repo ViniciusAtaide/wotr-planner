@@ -189,10 +189,10 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
                 BTreeSet::from([FeatKey::new("weapon-focus")])
             ),
             // Game: MasterOfAllSkillFocus f2d2c1702d8a4cc6adfcbd4ebff8eee4 (SkillFocusSelection
-            // c9629ef9eebb88b479b2fbc5e836656a)
+            // c9629ef9eebb88b479b2fbc5e836656a; `IgnorePrerequisites` false, as for Adaptability)
             (
                 "rogue/master-of-all/skill-focus",
-                true,
+                false,
                 BTreeSet::from([FeatKey::new("skill-focus")])
             ),
             // Game: WarpriestWeaponFocusSelection ac384183dbfbbd7499410a21d749bef1 (Weapon Focus, IgnorePrerequisites)
@@ -319,7 +319,7 @@ fn a_sylvan_trickster_picks_a_rogue_talent_or_a_witch_hex() {
 /// (the witch's 26 and the Hex Channeler's channel).
 // Game: SylvanTricksterTalentSelection 290bbcc3c3bb92144b853fd8fb8ff452
 #[test]
-#[ignore = "waits on ticket 276: the game gives the Sylvan Trickster's Fey Tricks 64 options"]
+#[ignore = "waits on ticket 306j: the game lists the Hex Channeler's channel, which 306j makes, and one more rogue talent than the planner"]
 fn a_sylvan_tricksters_fey_tricks_are_the_games_64() {
     let trickster = archetype_build("rogue", "rogue/sylvan-trickster", 2);
     assert_eq!(offered(&trickster, 2).len(), 64);
@@ -342,7 +342,6 @@ fn an_underground_chemist_may_take_discoveries_in_place_of_rogue_talents_from_le
 // Game: UndergroundChemistSelection c3d08fdb481aa2e4a9f71c4349141826 (29 options); UndergroundChemistArchetype
 // b4f5741d42c4cb04abf5ab3fe33f6fc5 (adds it at 10 only); Mummification daf854d84d442e941aa3a2fdc041b37c
 #[test]
-#[ignore = "waits on ticket 276: the game gives the Underground Chemist 29 options at 10 and no discovery at 12"]
 fn an_underground_chemist_takes_a_discovery_at_10_only() {
     let mut chemist = archetype_build("rogue", "rogue/underground-chemist", 12);
     assert_eq!(offered(&chemist, 10).len(), 29);

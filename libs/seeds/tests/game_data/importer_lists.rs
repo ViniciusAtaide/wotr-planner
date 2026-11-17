@@ -137,3 +137,51 @@ fn a_bard_and_a_skald_cant_take_extra_rogue_talent() {
         assert!(!possible(&with_extra(class)), "{class}");
     }
 }
+
+/// 306f: the Dark Lurker's talent list is the rogue's 38 and Evasion, at the seven levels the archetype adds it; a
+/// plain rogue's list has no Evasion.
+// Game: the `m_AllFeatures` of DarkLurkerRogueTalentSelection 1edbb68422c046f98a86f4726f6721b2 (39: RogueTalentSelection
+// c074a5d615200494b8f2a9c845799d93's 38 and Evasion 576933720c440aa4d8d42b0c54b77e80); DarkLurkerArchetype
+// 33eb002078e5437b8c25db4b80b4a4fe `AddFeatures` it at 4, 6, 10, 12, 16, 18 and 20 and `RemoveFeatures` Evasion and the
+// rogue's selection at 2
+#[test]
+fn the_dark_lurker_offers_its_own_list_with_evasion() {
+    let rogue = rogues();
+    let mut expected = rogue.clone();
+    expected.insert("evasion".to_owned());
+    assert_eq!(expected.len(), 39);
+    assert_eq!(talents("rogue/dark-lurker/rogue-talents"), expected);
+    assert!(!rogue.contains("evasion"));
+
+    let lurker = archetype_build("rogue", "rogue/dark-lurker", 20);
+    for level in [4, 6, 10, 12, 16, 18, 20] {
+        assert_eq!(
+            offered(&lurker, level)["rogue/rogue-talents/evasion"],
+            Ok(()),
+            "level {level}"
+        );
+    }
+    // The levels the archetype takes the rogue's slot away (2, 8, 14) hold no talent slot at all.
+    let rows = |level: u8| {
+        DATA.archetypes
+            .iter()
+            .find(|archetype| archetype.key.as_str() == "rogue/dark-lurker")
+            .and_then(|archetype| archetype.levels.iter().find(|row| row.level == level))
+            .map(|row| row.selections.len())
+    };
+    for level in [2, 8, 14] {
+        assert_eq!(rows(level), Some(0), "level {level}");
+    }
+    for level in [4, 6, 10, 12, 16, 18, 20] {
+        assert_eq!(rows(level), Some(1), "level {level}");
+    }
+    let plain = build("rogue", 20);
+    assert!(!offered(&plain, 4).contains_key("rogue/rogue-talents/evasion"));
+}
+
+/// 306f: the Master of All's Skill Focus no longer ignores prerequisites: the game's selection doesn't.
+// Game: MasterOfAllSkillFocus f2d2c1702d8a4cc6adfcbd4ebff8eee4 has `IgnorePrerequisites` false
+#[test]
+fn the_master_of_alls_skill_focus_checks_prerequisites() {
+    assert!(!selection("rogue/master-of-all/skill-focus").ignores_prerequisites);
+}
