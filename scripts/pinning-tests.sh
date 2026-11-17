@@ -20,7 +20,8 @@ dirs=("$root/libs/seeds/tests/game_data" "$root/libs/rules/tests")
 
 for key in "$@"; do
     echo "== $key"
-    grep -rlF --include='*.rs' --include='*.ron' -- "$key" "${dirs[@]}" 2>/dev/null | sort | while read -r file; do
+    # `|| true`: a key no test names is a result, not an error (`pipefail` would end the script there).
+    { grep -rlF --include='*.rs' --include='*.ron' -- "$key" "${dirs[@]}" 2>/dev/null || true; } | sort | while read -r file; do
         rel="${file#"$root"/}"
         # The name of the last `fn` above each line that names the key.
         tests="$(awk -v key="$key" '
@@ -37,16 +38,16 @@ done
 # Tests that list every entry holding a field, so they pin an entry that names no key a slice touches
 # (306k's rescue retro: a new selection with `band: Path` broke `pick_order`). Give the field as a key, as
 # `band: Path`, to see its tests. Add a row when a full run finds another such test.
-#   field<TAB>test
+#   field|test
 enumerating=(
-    "band: Path	pick_order::the_selections_outside_the_features_band_are_the_games"
+    "band: Path|pick_order::the_selections_outside_the_features_band_are_the_games"
 )
 for key in "$@"; do
     for row in "${enumerating[@]}"; do
-        field="${row%%	*}"
+        field="${row%%|*}"
         if [ "$key" = "$field" ]; then
             echo "== $key (lists every entry with it)"
-            echo "  ${row#*	}"
+            echo "  ${row#*|}"
         fi
     done
 done
