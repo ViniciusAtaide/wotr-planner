@@ -11,7 +11,7 @@
         (level: 5, features: ["warpriest/fervor"]),
         (level: 8, features: ["warpriest/champion-of-the-faith/smite", "warpriest/fervor"]),
         (level: 11, features: ["warpriest/fervor"]),
-        (level: 12, features: ["warpriest/champion-of-the-faith/sacred-weapon-aligned-weapon", "warpriest/champion-of-the-faith/smite"], selections: ["combat-feats"]),
+        (level: 12, features: ["warpriest/champion-of-the-faith/sacred-weapon-aligned-weapon", "warpriest/champion-of-the-faith/smite"], selections: ["warpriest/bonus-feats"]),
         (level: 14, features: ["warpriest/fervor"]),
         (level: 16, features: ["warpriest/champion-of-the-faith/smite", "warpriest/sacred-armor"]),
         (level: 17, features: ["warpriest/fervor"]),

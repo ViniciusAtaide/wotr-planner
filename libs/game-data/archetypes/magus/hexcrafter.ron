@@ -11,7 +11,7 @@
         (level: 4, selections: ["magus/hexcrafter/hex"]),
         (level: 6, selections: ["magus/hexcrafter/hex-arcana"]),
         (level: 9, features: ["arcane-weapon-3"], selections: ["magus/hexcrafter/hex-arcana"]),
-        (level: 11, selections: ["feats"]),
+        (level: 11, selections: ["magus/bonus-feats"]),
         (level: 12, selections: ["magus/hexcrafter/hex-arcana"]),
         (level: 15, selections: ["magus/hexcrafter/hex-arcana"]),
         (level: 18, selections: ["magus/hexcrafter/hex-arcana"]),

@@ -11,7 +11,7 @@
         (level: 1, features: ["detect-magic", "magus/eldritch-scion/eldritch-pool", "magus/magus-proficiencies", "magus/spell-combat"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"], selections: ["magus/eldritch-scion/bloodline"]),
         (level: 4),
         (level: 8),
-        (level: 11, selections: ["feats"]),
+        (level: 11, selections: ["magus/bonus-feats"]),
         (level: 14, features: ["magus/improved-spell-combat"]),
         (level: 18, features: ["magus/greater-spell-combat"], selections: ["magus/magus-arcana"]),
     ],

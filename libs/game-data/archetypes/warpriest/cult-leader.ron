@@ -12,7 +12,7 @@
         (level: 3, features: ["sneak-attack"]),
         (level: 4, features: ["warpriest/cult-leader/enthrall", "warpriest/sacred-weapon"]),
         (level: 5, features: ["warpriest/fervor"]),
-        (level: 6, features: ["sneak-attack"], selections: ["combat-feats"]),
+        (level: 6, features: ["sneak-attack"], selections: ["warpriest/bonus-feats"]),
         (level: 8, features: ["warpriest/fervor", "warpriest/sacred-weapon"]),
         (level: 9, features: ["sneak-attack"]),
         (level: 11, features: ["warpriest/fervor"]),
@@ -20,7 +20,7 @@
         (level: 14, features: ["warpriest/fervor"]),
         (level: 15, features: ["sneak-attack"]),
         (level: 17, features: ["warpriest/fervor"]),
-        (level: 18, features: ["sneak-attack"], selections: ["combat-feats"]),
+        (level: 18, features: ["sneak-attack"], selections: ["warpriest/bonus-feats"]),
         (level: 20, features: ["warpriest/aspect-of-war", "warpriest/fervor", "warpriest/sacred-weapon"]),
     ],
 )

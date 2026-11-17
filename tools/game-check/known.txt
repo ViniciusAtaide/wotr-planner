@@ -1009,7 +1009,6 @@ progression rows / * / archetype magus/eldritch-scion -> 283
 progression rows / * / archetype magus/spell-dancer -> 283
 progression rows / * / archetype magus/sword-saint -> 283
 progression rows / * / class magus -> 283
-progression rows / a bonus pick of another group / archetype magus/hexcrafter -> 283
 progression rows / in game only / archetype magus/hexcrafter -> 283
 
 # 284, inquisitor rows.
@@ -1123,3 +1122,17 @@ class tables / class skills differ (the user's facts) / class stalwart-defender 
 mapping / selection or not / selection option monk/zen-archer/way-of-the-bow/bow -> 316
 mapping / selection or not / selection option oracle/revelations/battle/weapon-mastery -> 316
 mapping / selection or not / selection option shaman/hex/battle-master -> 316
+
+# Ticket 306l (the magus's, the Arcane Rider's and the warpriest's bonus feat lists): the game's members the planner has no feat for yet.
+option lists / in game only / selection magus/bonus-feats / AdvancedWeaponTraining2 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection magus/bonus-feats / AdvancedWeaponTraining3 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection magus/bonus-feats / AdvancedWeaponTraining4 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection magus/bonus-feats / BleedingCriticalFeature -> 306r-multi-blueprint-feats-2
+option lists / in game only / selection magus/arcane-rider/bonus-feats / AdvancedWeaponTraining2 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection magus/arcane-rider/bonus-feats / AdvancedWeaponTraining3 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection magus/arcane-rider/bonus-feats / AdvancedWeaponTraining4 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection magus/arcane-rider/bonus-feats / BleedingCriticalFeature -> 306r-multi-blueprint-feats-2
+option lists / in game only / selection warpriest/bonus-feats / AdvancedWeaponTraining2 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection warpriest/bonus-feats / AdvancedWeaponTraining3 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection warpriest/bonus-feats / AdvancedWeaponTraining4 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection warpriest/bonus-feats / BleedingCriticalFeature -> 306r-multi-blueprint-feats-2

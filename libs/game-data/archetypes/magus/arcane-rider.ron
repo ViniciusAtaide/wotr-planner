@@ -8,10 +8,12 @@
     levels: [
         (level: 1, features: ["magus/arcane-pool", "magus/arcane-rider/arcane-mount", "magus/magus-proficiencies", "magus/spell-combat"], feats: ["armor-proficiency-light-armor", "martial-weapons-proficiency", "simple-weapon-proficiency"]),
         (level: 4),
+        (level: 5, features: ["arcane-weapon-2"], selections: ["magus/arcane-rider/bonus-feats"]),
         (level: 7),
         (level: 8, features: ["magus/arcane-rider/dimensional-ride", "magus/improved-spell-combat"]),
-        (level: 11, selections: ["feats"]),
+        (level: 11, selections: ["magus/arcane-rider/bonus-feats"]),
         (level: 13, features: ["arcane-weapon-4"]),
         (level: 14, features: ["magus/arcane-rider/greater-dimensional-ride", "magus/greater-spell-combat"]),
+        (level: 17, features: ["arcane-weapon-5"], selections: ["magus/arcane-rider/bonus-feats"]),
     ],
 )
