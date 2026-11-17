@@ -1,12 +1,11 @@
 //! Nested selections (ticket 302): a feat, a mythic feat or a mythic ability that grants a pick names the selection it
 //! grants, as the game's Extra feats and mythic abilities are themselves selections, and that selection's pick is
-//! the slot it opens. Also the category selections of ticket 301 against the planner's feat categories.
+//! the slot it opens. Also the general Combat, Magic and Teamwork lists (ticket 306s).
 
 use std::collections::BTreeSet;
 
 use rules::{
-    BASIC_FEAT_SELECTION, Band, FeatCategory, FeatKey, FeatureSelectionKey, MythicAbilityKey,
-    SlotId, SlotKind,
+    BASIC_FEAT_SELECTION, Band, FeatKey, FeatureSelectionKey, MythicAbilityKey, SlotId, SlotKind,
 };
 
 use crate::support::*;
@@ -274,8 +273,9 @@ fn the_mythic_abilities_that_grant_a_pick_name_their_selection() {
     assert_eq!(granting, cases.iter().map(|(key, ..)| *key).collect());
 }
 
-/// Extra Mythic Ability grants a selection of mythic abilities with its blueprint, listing every mythic ability (the
-/// planner's general pick's; the game's list is 293's); Extra Feat grants the general feat selection.
+/// Extra Mythic Ability grants a selection of mythic abilities with its blueprint, listing the game's list (every
+/// mythic ability but the two it leaves out, and SecondMysteryEnlightenedPhilosopher, which waits on ticket 306v's
+/// entry); Extra Feat grants its own selection of feats, with its blueprint (ticket 306s).
 #[test]
 fn extra_mythic_ability_and_extra_feat_grant_their_selections() {
     // Game: ExtraMythicAbilityMythicFeat 8a6a511c55e67d04db328cc49aaad2b8 (BlueprintFeatureSelection, Group
@@ -290,21 +290,44 @@ fn extra_mythic_ability_and_extra_feat_grant_their_selections() {
         guid_of(&selection.blueprint),
         Some("8a6a511c55e67d04db328cc49aaad2b8")
     );
-    let every: BTreeSet<MythicAbilityKey> = (DATA.mythic_abilities.iter())
+    // Game: ExtraMythicAbilityMythicFeat's list is MythicAbilitySelection ba0e5a900b775be4a99702f1ed08914d's but for
+    // EmergencyHelpFeature 22ce17c5253183b42845a5bfc54f8afa and FreeFromEvil a0a814897cd33ed4ea6ffca4b0e1197a (Any
+    // Means Necessary), and SecondMysteryHerbalist cff5c53fe99c48bf863a0005d768f75a and SecondMysteryHermit
+    // 324476155d5c4968babfecda37bcc87c, which the planner holds in no entry of that list.
+    let every_but_the_two: BTreeSet<MythicAbilityKey> = (DATA.mythic_abilities.iter())
         .map(|ability| ability.key.clone())
+        .filter(|key| !["emergency-help", "any-means-necessary"].contains(&key.as_str()))
         .collect();
-    assert_eq!(selection.mythic_abilities, every);
+    assert_eq!(selection.mythic_abilities, every_but_the_two);
     assert_eq!(selection.band, Band::MythicAbility);
     assert_eq!(selection.name, "Mythic ability");
-    // Game: ExtraFeatMythicFeat e10c4f18a6c8b4342afe6954bde0587b (Group Feat): the planner's general feat selection
-    // stands for it (its list is 293's)
+    // Game: ExtraFeatMythicFeat e10c4f18a6c8b4342afe6954bde0587b (Group Feat) is a selection of its own, and lists
+    // BasicFeatSelection 247a4068296e8be42890143f451b4b45's feats but five Trickster feats (the five of
+    // `extra_feat_offers_the_general_slots_feats_but_the_tricksters_five`).
+    let extra_feat = mythic_feat("extra-feat");
     assert_eq!(
-        mythic_feat("extra-feat")
-            .selection
-            .as_ref()
-            .map(|s| s.as_str()),
-        Some(BASIC_FEAT_SELECTION)
+        extra_feat.selection.as_ref().map(|s| s.as_str()),
+        Some("mythic/extra-feat")
     );
+    let list = any_selection("mythic/extra-feat");
+    assert_eq!(
+        guid_of(&list.blueprint),
+        Some("e10c4f18a6c8b4342afe6954bde0587b")
+    );
+    let general = any_selection(BASIC_FEAT_SELECTION);
+    let tricksters_five = [
+        "stat-focus",
+        "metamagic-completely-normal-spell",
+        "improved-improved-critical",
+        "improved-improved-improved-critical",
+        "improved-improved-improved-critical-improved",
+    ];
+    let expected: BTreeSet<FeatKey> = (general.feats.iter())
+        .filter(|feat| !tricksters_five.contains(&feat.as_str()))
+        .cloned()
+        .collect();
+    assert_eq!(list.feats, expected);
+    assert_eq!(general.feats.len() - list.feats.len(), 5);
     let granting: BTreeSet<&str> = (DATA.mythic_feats.iter())
         .filter(|feat| feat.selection.is_some())
         .map(|feat| feat.key.as_str())
@@ -360,29 +383,75 @@ fn extra_mythic_ability_then_second_bloodline_nest_at_one_rank() {
     );
 }
 
-/// The general Combat, Magic, Teamwork and Mounted Combat selections each list the planner's feats of their category
-/// (ticket 301's lists, by `FeatCategory`). Ticket 293 replaces them with the game's lists (`FighterFeatSelection`
-/// 41c8486641f7d6d4283ca9dae4147a9f, `WizardFeatSelection` 8c3102c2ff3b69444b139a98521a4899, `TeamworkFeat`
-/// d87e2f6a9278ac04caeb0f93eff95fcb, `CavalierBonusFeatSelection` dd17090d14958ef48ba601688b611970), and this test
-/// with one against the game's.
+/// The general Combat, Magic and Teamwork selections are the game's lists (ticket 306s; ticket 301 listed the
+/// planner's feats of each category): the fighter's list holds the teamwork feats and some of the wizard's, and lacks
+/// the saves, Toughness, Diehard and Throw Anything; the wizard's holds Spell Chain and no item creation feat; the
+/// teamwork list lacks Spell Chain. The game check compares every member; these are the ones the planner's lists
+/// had the other way.
 #[test]
-fn the_category_selections_list_the_feats_of_their_category() {
-    let of = |keep: &dyn Fn(FeatCategory) -> bool| -> BTreeSet<FeatKey> {
-        (DATA.feats.iter())
-            .filter(|feat| keep(feat.category))
-            .map(|feat| feat.key.clone())
+fn the_combat_magic_and_teamwork_lists_are_the_games() {
+    let keys = |selection: &str| -> BTreeSet<&str> {
+        (any_selection(selection).feats.iter())
+            .map(|feat| feat.as_str())
             .collect()
     };
-    assert_eq!(
-        any_selection("combat-feats").feats,
-        of(&FeatCategory::is_combat)
-    );
-    assert_eq!(
-        any_selection("magic-feats").feats,
-        of(&|category| category == FeatCategory::Magic)
-    );
-    assert_eq!(
-        any_selection("teamwork-feats").feats,
-        of(&|category| category == FeatCategory::Teamwork)
-    );
+    let combat = keys("combat-feats");
+    let magic = keys("magic-feats");
+    let teamwork = keys("teamwork-feats");
+    // Game: FighterFeatSelection 41c8486641f7d6d4283ca9dae4147a9f lists Outflank 422dab7309e1ad343935f33a4d6e9f11,
+    // BackToBack c920f2cd2244d284aa69a146aeefcb2c, CoordinatedDefense 992fd59da1783de49b135ad89142c6d7,
+    // ArcaneStrikeFeature 0ab2f21a922feee4dab116238e3150b4, ArcaneArmorMastery 453f5181a5ed3a445abfa3bcd3f4ac0c,
+    // ArcaneArmorTraining 1a0298abacb6e0f45b7e28553e99e76c and AcrobaticSpellcaster
+    // 7ba4b4023a7748669098c479dd9e8de6; and none of Diehard 86669ce8759f9d7478565db69b8c19ad, Toughness
+    // d09b20029e9abfe4480b356c92095623, IronWill 175d1577bb6c9a04baf88eec99c66334, GreatFortitude
+    // 79042cb55f030614ea29956177977c52, LightningReflexes 15e7da6645a7f3d41bdad7c8c4b9de1e, ThrowAnything
+    // 65c538dcfd91930489ad3ab18ad9204b (nor their Improved, Dragon Roar or Stat Focus).
+    for held in [
+        "outflank",
+        "back-to-back",
+        "coordinated-defense",
+        "arcane-strike",
+        "arcane-armor-mastery",
+        "arcane-armor-training",
+        "acrobatic-spellcaster",
+    ] {
+        assert!(combat.contains(held), "{held}");
+    }
+    for lacking in [
+        "diehard",
+        "dragon-roar",
+        "great-fortitude",
+        "improved-great-fortitude",
+        "improved-iron-will",
+        "improved-lightning-reflexes",
+        "iron-will",
+        "lightning-reflexes",
+        "stat-focus",
+        "throw-anything",
+        "toughness",
+    ] {
+        assert!(!combat.contains(lacking), "{lacking}");
+    }
+    // Game: WizardFeatSelection 8c3102c2ff3b69444b139a98521a4899 lists SpellChain d8d641edc9a74a64809f56feff9495b6
+    // and none of BrewPotions c0f8c4e513eb493408b8070a1de93fc0, DestructiveDispel
+    // d298e64e14398e848a54db5a2619ba42, DispelSynergy f3e3e29608ba07844ab3cafc4c8e4343, FavoredEnemySpellcasting
+    // 0226d84afe68462da8a392798f1225b8, ArcaneStrikeFeature, ArcaneArmorMastery, ArcaneArmorTraining or
+    // AcrobaticSpellcaster.
+    assert!(magic.contains("spell-chain"));
+    for lacking in [
+        "brew-potions",
+        "destructive-dispel",
+        "dispel-synergy",
+        "favored-enemy-spellcasting",
+        "scribe-scrolls",
+        "arcane-strike",
+        "arcane-armor-mastery",
+        "arcane-armor-training",
+        "acrobatic-spellcaster",
+    ] {
+        assert!(!magic.contains(lacking), "{lacking}");
+    }
+    // Game: TeamworkFeat d87e2f6a9278ac04caeb0f93eff95fcb lists no SpellChain.
+    assert!(!teamwork.contains("spell-chain"));
+    assert!(teamwork.contains("outflank"));
 }

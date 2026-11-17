@@ -343,7 +343,8 @@ pub fn possible(build: &Build) -> bool {
 /// character isn't proficient with (`RequireProficiency`, which `BlueprintParametrizedFeature.CanSelect` checks,
 /// WrathDecompiled 6ce4a6b): those make the link stale. So do a Build's feats that fail only on base attack bonus
 /// when it holds `druid/feyspeaker`, whose Half progression is the game's `BABLow`
-/// 0538081888b2d8c41893d25d098dee99 (ticket 293l); no other Build gets that. Panics when any other choice fails.
+/// 0538081888b2d8c41893d25d098dee99 (ticket 293l); no other Build gets that. A feat the game's fighter list lacks
+/// ([`THE_FIGHTERS_LIST_LACKS`]) in a class slot is refused too (ticket 306s). Panics when any other choice fails.
 pub fn without_unproficient_picks(mut build: Build) -> Build {
     let feyspeaker = build
         .class_choices
@@ -363,11 +364,35 @@ pub fn without_unproficient_picks(mut build: Build) -> Build {
             ) if feyspeaker => {
                 build.picks.remove(&slot);
             }
+            (rules::Choice::Slot(slot), Issue::NotAllowed)
+                if THE_FIGHTERS_LIST_LACKS.contains(&build.picks[&slot].key()) =>
+            {
+                build.picks.remove(&slot);
+            }
             (choice, issue) => panic!("{choice:?} fails: {issue:?}"),
         }
     }
     build
 }
+
+/// The feats the planner's combat feat list held until ticket 306s that the game's does not: FighterFeatSelection
+/// 41c8486641f7d6d4283ca9dae4147a9f lists none of Diehard 86669ce8759f9d7478565db69b8c19ad, Toughness
+/// d09b20029e9abfe4480b356c92095623, IronWill 175d1577bb6c9a04baf88eec99c66334, GreatFortitude
+/// 79042cb55f030614ea29956177977c52, LightningReflexes 15e7da6645a7f3d41bdad7c8c4b9de1e, ThrowAnything
+/// 65c538dcfd91930489ad3ab18ad9204b, nor their Improved, Dragon Roar or Stat Focus.
+pub const THE_FIGHTERS_LIST_LACKS: [&str; 11] = [
+    "diehard",
+    "dragon-roar",
+    "great-fortitude",
+    "improved-great-fortitude",
+    "improved-iron-will",
+    "improved-lightning-reflexes",
+    "iron-will",
+    "lightning-reflexes",
+    "stat-focus",
+    "throw-anything",
+    "toughness",
+];
 
 pub fn feat_pick(key: &str, value: Parameter) -> Pick {
     Pick::feat_for(FeatKey::new(key), value)

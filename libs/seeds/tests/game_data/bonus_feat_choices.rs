@@ -525,8 +525,12 @@ fn the_hunters_and_the_stormwalkers_choices_offer_their_lists_ignoring_prerequis
         }
     }
     let forester = archetype_build("hunter", "hunter/forester", 2);
+    // Game: FighterFeatSelection 41c8486641f7d6d4283ca9dae4147a9f, the combat feat list, holds Outflank
+    // 422dab7309e1ad343935f33a4d6e9f11 (a teamwork feat; ticket 306s) and not Toughness
+    // d09b20029e9abfe4480b356c92095623.
+    let offered = feats_offered(&forester, &class_slot(2));
     assert!(
-        !feats_offered(&forester, &class_slot(2)).contains("outflank"),
+        offered.contains("outflank") && !offered.contains("toughness"),
         "the Forester's level-2 slot is a combat feat"
     );
 }
