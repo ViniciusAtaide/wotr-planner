@@ -186,21 +186,37 @@ fn extra_rage_power_isnt_removable_while_its_slots_pick_depends_on_it_and_takes_
 }
 
 /// Any Extra feat opens its own selection's slot whenever it is held, whatever slots the character had before: a
-/// bard or a skald (the planner's prerequisite admits them until 308) has none of the rogue's.
+/// Dark Lurker 5 has none of the plain rogue's. Who may hold the feat is its prerequisite's: a bard or a skald, whose
+/// talent selections the feat doesn't name, is refused it and gets no slot from it.
 // Game: `SelectFeature.Apply` adds the picked selection with its own list to the level-up's selections (WrathDecompiled
-// 6ce4a6b, UnitLogic/Class/LevelUp/Actions/SelectFeature.cs); that the feat needs a class selection is its
-// prerequisite's (PrerequisiteFeature, S4), not the slot's.
+// 6ce4a6b, UnitLogic/Class/LevelUp/Actions/SelectFeature.cs); ExtraRogueTalentSelection
+// 14d9089df87a43b696fa9451ca2f0a12 needs RogueTalentSelection c074a5d615200494b8f2a9c845799d93,
+// SylvanTricksterTalentSelection 290bbcc3c3bb92144b853fd8fb8ff452 or DarkLurkerRogueTalentSelection
+// 1edbb68422c046f98a86f4726f6721b2 (not BardTalentSelection 94e2cd84bf3a8e04f8609fe502892f4f or SkaldTalentSelection
+// d2a8fde8985691045b90e1ec57e3cc57); DarkLurkerArchetype 33eb002078e5437b8c25db4b80b4a4fe removes the rogue's.
 #[test]
 fn an_extra_feat_opens_its_own_list_for_any_class() {
-    for (classes, level) in [(times("bard", 3), 3), (times("skald", 3), 3)] {
-        let mut build = with_selections_filled(classes_build(&classes));
+    let own = Some(selection_kind(slot_selection("extra-rogue-talent")));
+    for (build, holds) in [
+        (build("rogue", 3), true),
+        (archetype_build("rogue", "rogue/dark-lurker", 5), true),
+        (classes_build(&times("bard", 3)), false),
+        (classes_build(&times("skald", 3)), false),
+    ] {
+        let level = build.levels.len() as u8;
+        let mut build = with_selections_filled(build);
+        assert_eq!(
+            feat_status(&build, &general_slot(level), "extra-rogue-talent").is_ok(),
+            holds,
+            "{level}"
+        );
         build
             .picks
             .insert(general_slot(level), feat_pick_plain("extra-rogue-talent"));
         assert_eq!(
             kind_at(&build, &extra_slot(level, 0)),
-            Some(selection_kind(slot_selection("extra-rogue-talent"))),
-            "{classes:?}"
+            if holds { own.clone() } else { None },
+            "{level}"
         );
     }
 }
@@ -390,21 +406,28 @@ fn slot_selection(feat_key: &str) -> &'static str {
 }
 
 /// The Extra feats the game refuses: Extra Discovery to an Underground Chemist (its discovery selection meets no
-/// prerequisite), Extra Rogue Talent to a bard or a skald (their talent selections aren't named), Extra Hex to a
-/// Hexcrafter (its hex is its own selection).
-// Game: ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 (not UndergroundChemistSelection
-// c3d08fdb481aa2e4a9f71c4349141826); ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 (not
+/// prerequisite) or a Vivisectionist (which loses the alchemist's Discovery), Extra Rogue Talent to a bard or a skald
+/// (their talent selections aren't named), Extra Hex to a Hexcrafter (its hex is its own selection).
+// Game: ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 needs DiscoverySelection
+// cd86c437488386f438dcc9ae727ea2a6 only (not UndergroundChemistSelection c3d08fdb481aa2e4a9f71c4349141826;
+// VivisectionistArchetype 68cbcd9fbf1fb1d489562f829bb97e38 `RemoveFeatures` it at 2 and every even level);
+// ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 (not
 // BardTalentSelection 94e2cd84bf3a8e04f8609fe502892f4f or SkaldTalentSelection d2a8fde8985691045b90e1ec57e3cc57);
-// ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35 (not HexcrafterMagusHexMagusSelection
+// ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35 needs WitchHexSelection 9846043cf51251a4897728ed6e24e76f (or
+// WinterWitchWitchHexSelection b921af3627142bd4d9cf3aefb5e2610a; not HexcrafterMagusHexMagusSelection
 // a18b8c3d6251d8641a8094e5c2a7bc78)
 #[test]
-#[ignore = "waits on ticket 308: the game refuses them by the feats' prerequisites (an Underground Chemist's, a bard's and a skald's selections are none the feat names), which the importer writes in S4"]
 fn the_extra_feats_the_game_refuses_to_an_underground_chemist_a_bard_a_skald_and_a_hexcrafter() {
-    let cases: [(Build, &str, u8); 4] = [
+    let cases: [(Build, &str, u8); 5] = [
         (
             chaotic(archetype_build("rogue", "rogue/underground-chemist", 11)),
             "extra-discovery",
             11,
+        ),
+        (
+            chaotic(archetype_build("alchemist", VIVISECTIONIST, 5)),
+            "extra-discovery",
+            5,
         ),
         (classes_build(&times("bard", 3)), "extra-rogue-talent", 3),
         (classes_build(&times("skald", 3)), "extra-rogue-talent", 3),
@@ -577,34 +600,30 @@ fn a_hexcrafter_5_meets_extra_arcana() {
     );
 }
 
-/// A plain alchemist and magus are as before: their Extra feat needs a discovery or an arcana held, and gives a slot of
-/// the alchemist's Discovery or the magus's Magus Arcana, offering what their own slots offer.
+/// A plain alchemist and magus: their Extra feat gives a slot of the alchemist's Discovery or the magus's Magus Arcana,
+/// offering what their own slots offer. Extra Discovery needs the Discovery selection, held from alchemist 2 whatever
+/// is picked in it (306aa); Extra Arcana still needs an arcana picked (its prerequisite waits on 306o and 306q, S4).
 // Game: ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 (needs DiscoverySelection
-// cd86c437488386f438dcc9ae727ea2a6, from alchemist 2) and ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8 (needs
-// MagusArcanaSelection e9dc4dfc73eaaf94aae27e0ed6cc9ada, from magus 3; its 15 are the selection's). Not a game fact:
-// a slot left empty (the game has no unfilled slot; the selection is held from its level whatever is picked).
+// cd86c437488386f438dcc9ae727ea2a6, from alchemist 2; `LevelUpHelper.AddFeaturesFromProgression`, WrathDecompiled
+// 6ce4a6b, adds the selection itself as a fact, whatever was picked) and ExtraArcanaSelection
+// 00727883edf145e2a6bce9ad176ecfd8 (needs MagusArcanaSelection e9dc4dfc73eaaf94aae27e0ed6cc9ada, from magus 3; its 15
+// are the selection's). Not a game fact: Extra Arcana's refusal of a slot left empty (the game has no unfilled slot).
 #[test]
 fn a_plain_alchemists_and_magus_extra_picks_are_unchanged() {
-    for (class, feat, own, _needs, label) in [
-        (
-            "alchemist",
-            "extra-discovery",
-            2,
-            "alchemist/discovery",
-            "Extra Discovery",
-        ),
-        (
-            "magus",
-            "extra-arcana",
-            3,
-            "magus/magus-arcana",
-            "Magus Arcana",
-        ),
+    for (class, feat, own, held_empty, label) in [
+        ("alchemist", "extra-discovery", 2, true, "Extra Discovery"),
+        ("magus", "extra-arcana", 3, false, "Magus Arcana"),
     ] {
         let empty = borrower(class, None, 3);
+        assert_eq!(
+            feat_status(&empty, &general_slot(3), feat).is_ok(),
+            held_empty,
+            "{feat}: nothing picked"
+        );
+        // Before the Discovery selection is held (alchemist 1), the game refuses it.
         assert!(
-            feat_status(&empty, &general_slot(3), feat).is_err(),
-            "{feat}: nothing held"
+            feat_status(&borrower(class, None, 1), &general_slot(1), feat).is_err(),
+            "{feat}: before the selection"
         );
         let mut build = with_selections_filled(empty);
         assert_eq!(

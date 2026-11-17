@@ -670,10 +670,10 @@ pub(super) fn infusions(engine: &Engine) -> Vec<Named> {
 /// The talents other classes borrow: a bard, a skald and each of their archetypes, a Feyform Shifter, a
 /// Vivisectionist, a Sanctified Slayer and a Hexcrafter, each 20, empty and filled; a rogue 2 / bard 2, a bard 2 /
 /// skald 2, a rogue 2 / Feyform 8, a rogue 2 / Vivisectionist 2, a slayer 2 / Sanctified Slayer 8 and a witch 1 /
-/// Hexcrafter 6, empty and filled; fixed picks (a bard 3's Combat Trick and Extra Rogue Talent's slot, an
-/// Archaeologist 10's Crippling Strike, a Feyform 9's Extra Rogue Talent, a Sanctified Slayer 9's Extra Slayer Talent, a
-/// Hexcrafter 18's hexes and arcana with Extra Hex, a Vivisectionist 10's discoveries and talents); and Builds no sheet
-/// holds. Chaotic neutral humans.
+/// Hexcrafter 6, empty and filled; fixed picks (a bard 3's Combat Trick and Extra Rogue Talent with a talent in its
+/// slot, which the game's prerequisite refuses a bard, so the Build doesn't open; an Archaeologist 10's Crippling Strike,
+/// a Feyform 9's Extra Rogue Talent, a Sanctified Slayer 9's Extra Slayer Talent, a Hexcrafter 18's hexes and arcana, a
+/// Vivisectionist 10's discoveries and talents); and Builds no sheet holds. Chaotic neutral humans.
 pub(super) fn borrowed_talents(engine: &Engine) -> Vec<Named> {
     let talent = |name: &str| option(&format!("rogue/rogue-talents/{name}"));
     let feyform = Some("shifter/feyform-shifter");
@@ -750,8 +750,6 @@ pub(super) fn borrowed_talents(engine: &Engine) -> Vec<Named> {
     let mut out = empty_and_filled(engine, "t60", plain);
     let hex = |name: &str| option(&format!("witch/hex/{name}"));
     let fixed = vec![
-        // Extra Rogue Talent's slot is its own list since 306aa (the rogue's talents and Evasion), which a hex isn't
-        // in: the Build doesn't open, as the bard's Build with a talent in it did before the slot existed.
         (
             "bard 3 extra rogue talent",
             with(
@@ -759,7 +757,7 @@ pub(super) fn borrowed_talents(engine: &Engine) -> Vec<Named> {
                 vec![
                     (selection(2, 0), talent("combat-trick")),
                     (general(3), feat("extra-rogue-talent")),
-                    (feat_selection(3), hex("cackle")),
+                    (feat_selection(3), talent("fast-stealth")),
                 ],
             ),
         ),

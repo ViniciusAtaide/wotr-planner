@@ -335,15 +335,13 @@ prerequisites / * / feat extra-arcana -> 264
 prerequisites / * / feat extra-arcanist-exploit -> 264
 prerequisites / * / feat extra-bombs -> 264
 prerequisites / * / feat extra-channel -> 264
-prerequisites / * / feat extra-discovery -> 264
 prerequisites / * / feat extra-discovery-vivisectionist -> 264
-prerequisites / * / feat extra-hex -> 264
+prerequisites / * / feat extra-hex -> 306o
 prerequisites / * / feat extra-ki -> 264
 prerequisites / * / feat extra-lay-on-hands -> 264
 prerequisites / * / feat extra-hex-shaman -> 264
 prerequisites / * / feat extra-performance -> 264
 prerequisites / * / feat extra-rage-power -> 264
-prerequisites / * / feat extra-rogue-talent -> 264
 prerequisites / * / feat extra-slayer-talent -> 264
 prerequisites / * / feat extra-wild-talent -> 264
 
@@ -733,6 +731,7 @@ prerequisites / * / selection option rogue/rogue-talents/confounding-blades -> 2
 prerequisites / * / selection option rogue/rogue-talents/crippling-strike -> 276
 prerequisites / * / selection option rogue/rogue-talents/dispelling-attack -> 276
 prerequisites / * / selection option rogue/rogue-talents/emboldening-strike -> 276
+prerequisites / * / selection option rogue/rogue-talents/evasion -> 308
 prerequisites / * / selection option rogue/rogue-talents/focusing-attack-confused -> 276
 prerequisites / * / selection option rogue/rogue-talents/focusing-attack-shaken -> 276
 prerequisites / * / selection option rogue/rogue-talents/focusing-attack-sickened -> 276

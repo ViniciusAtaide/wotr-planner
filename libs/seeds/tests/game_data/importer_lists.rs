@@ -116,15 +116,14 @@ fn the_bard_skald_and_inciter_talents_are_their_own_lists() {
 }
 
 /// 306e: a bard and a skald can't take Extra Rogue Talent: the game's feat needs a rogue's, a Sylvan Trickster's or a
-/// Dark Lurker's talent selection, and their own are another feature. Its slot is the feat's own for any class that
-/// holds the feat (306aa), so the refusal is the feat's prerequisite, which S4 (308) writes as the game's.
+/// Dark Lurker's talent selection (or the Feyform Shifter's, which is the rogue's blueprint), and their own are
+/// another feature. The refusal is the feat's prerequisite (306aa: the slot is the feat's own for any class that holds
+/// it).
 // Game: ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 has PrerequisiteFeature (Group Any) of
 // RogueTalentSelection c074a5d615200494b8f2a9c845799d93, SylvanTricksterTalentSelection
 // 290bbcc3c3bb92144b853fd8fb8ff452 and DarkLurkerRogueTalentSelection 1edbb68422c046f98a86f4726f6721b2; BardTalentSelection
 // 94e2cd84bf3a8e04f8609fe502892f4f and SkaldTalentSelection d2a8fde8985691045b90e1ec57e3cc57 are none of them.
 #[test]
-#[ignore = "waits on ticket 308: the importer writes Extra Rogue Talent's prerequisite as the game's selections, \
-            which a bard's and a skald's talent selections aren't"]
 fn a_bard_and_a_skald_cant_take_extra_rogue_talent() {
     for class in ["bard", "skald"] {
         let build = with_selections_filled(classes_build(&[class, class, class]));
@@ -136,26 +135,36 @@ fn a_bard_and_a_skald_cant_take_extra_rogue_talent() {
 }
 
 /// 306aa: a rogue's pick in Extra Rogue Talent's slot stands, and the slot is the feat's own selection's, the rogue's
-/// talents and Evasion, whatever class takes the feat.
+/// talents and Evasion; a bard is refused the feat, so has no such slot.
 // Game: ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 (RogueTalentSelection
-// c074a5d615200494b8f2a9c845799d93's 38 and Evasion 576933720c440aa4d8d42b0c54b77e80); `SelectFeature.Apply`,
-// WrathDecompiled 6ce4a6b, adds the picked selection with its own list.
+// c074a5d615200494b8f2a9c845799d93's 38 and Evasion 576933720c440aa4d8d42b0c54b77e80; the prerequisites as in
+// `a_bard_and_a_skald_cant_take_extra_rogue_talent`); `SelectFeature.Apply`, WrathDecompiled 6ce4a6b, adds the picked
+// selection with its own list.
 #[test]
-fn a_pick_in_extra_rogue_talents_slot_stands_for_a_rogue_and_a_bard() {
-    for class in ["rogue", "bard"] {
-        let mut build = with_selections_filled(classes_build(&[class, class, class]));
-        build
-            .picks
-            .insert(general_slot(3), feat_pick_plain("extra-rogue-talent"));
-        assert!(
-            possible(&with_pick(
-                build,
-                extra_slot(3, 0),
-                &rogue_talent("fast-stealth")
-            )),
-            "{class}"
-        );
-    }
+fn a_pick_in_extra_rogue_talents_slot_stands_for_a_rogue_and_a_bard_is_refused_the_feat() {
+    let mut rogue = with_selections_filled(classes_build(&["rogue", "rogue", "rogue"]));
+    assert_eq!(
+        feat_status(&rogue, &general_slot(3), "extra-rogue-talent"),
+        Ok(())
+    );
+    rogue
+        .picks
+        .insert(general_slot(3), feat_pick_plain("extra-rogue-talent"));
+    assert!(possible(&with_pick(
+        rogue,
+        extra_slot(3, 0),
+        &rogue_talent("fast-stealth")
+    )));
+
+    let mut bard = with_selections_filled(classes_build(&["bard", "bard", "bard"]));
+    assert!(feat_status(&bard, &general_slot(3), "extra-rogue-talent").is_err());
+    bard.picks
+        .insert(general_slot(3), feat_pick_plain("extra-rogue-talent"));
+    assert!(!possible(&with_pick(
+        bard,
+        extra_slot(3, 0),
+        &rogue_talent("fast-stealth")
+    )));
 }
 
 /// 306f: the Dark Lurker's talent list is the rogue's 38 and Evasion, at the seven levels the archetype adds it; a

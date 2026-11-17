@@ -12,25 +12,22 @@ use crate::support::{DATA, feat, mythic_feat, picks_of};
 /// option key prefix (a full key names one option; a prefix ending in `/` names every option under it), and why
 /// that is no gap. An entry that covers nothing, or covers an option the prerequisite names, fails
 /// [`every_exception_covers_an_option_the_prerequisite_leaves_out`].
-const EXCEPTIONS: [(&str, &str, &str); 2] = [
-    (
-        "extra-arcanist-exploit",
-        "arcanist/greater-exploits/",
-        "the six greater exploits are in the game's list (306i), and the feat's prerequisite still names the sixteen \
-         exploits only: the importer's prerequisite stage (293) writes the game's selections",
-    ),
-    (
-        "extra-rogue-talent",
-        "rogue/rogue-talents/evasion",
-        "Evasion is a rogue talent only in the game's Extra Rogue Talent list (306aa), where it sits beside the \
-         rogue's 38; the feat's prerequisite names the talents",
-    ),
-];
+const EXCEPTIONS: [(&str, &str, &str); 1] = [(
+    "extra-arcanist-exploit",
+    "arcanist/greater-exploits/",
+    "the six greater exploits are in the game's list (306i), and the feat's prerequisite still names the sixteen \
+     exploits only: the importer's prerequisite stage (293) writes the game's selections",
+)];
 
 /// The extra feats whose prerequisite names no option, so the rule doesn't apply: a class level is their guide's
-/// "Slayer Talents or Talented Slayer" and "Wild Talents". A new extra feat of that shape needs a decision.
-const NO_OPTIONS_NAMED: [&str; 3] = [
+/// "Slayer Talents or Talented Slayer" and "Wild Talents"; the game's own names the class's selection (Extra
+/// Discovery's DiscoverySelection, Extra Hex's WitchHexSelection, Extra Rogue Talent's RogueTalentSelection and its two
+/// others, 306aa). A new extra feat of that shape needs a decision.
+const NO_OPTIONS_NAMED: [&str; 6] = [
+    "extra-discovery",
     "extra-discovery-vivisectionist",
+    "extra-hex",
+    "extra-rogue-talent",
     "extra-slayer-talent",
     "extra-wild-talent",
 ];
