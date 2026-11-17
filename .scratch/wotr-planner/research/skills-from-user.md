@@ -49,6 +49,28 @@ The user's table covers the 16 Kingmaker base classes and 7 prestige classes. It
 - **Arcane Trickster:** the guide says "Class Skills: All", so the data has Use Magic Device. The user's table doesn't list it.
 - **Dragon Disciple:** the user's table has Knowledge (World). The guide's list (Mobility, Knowledge (Arcana), Lore (Nature), Lore (Religion), Perception, Persuasion) doesn't, and neither does the data.
 
+## Replaced by the game's values (2026-11-16)
+
+The user chose the game's values over these facts where the two differ: ticket 261 for the Arcane Trickster's skill points, ticket 262 ("Apply the game's") for the rest. The importer wrote them in tickets 293i and 293l, and `tools/game-check/user-facts.txt` lists each as `applied`. The tables above keep the user's facts as given; the data now holds:
+
+| Entry | Field | Before | Now (the game's) |
+| --- | --- | --- | --- |
+| Arcane Trickster | skill points | 4 | 3 (261) |
+| Defender of the Hearth (fighter) | skill points | the fighter's 2 | 3 |
+| Stalwart Defender | class skills | Athletics, Perception | Athletics, Mobility, Perception (its Intimidate waits on ticket 312) |
+| Magic Deceiver (arcanist) | class skills | the arcanist's | its own: Knowledge (Arcana), Knowledge (World), Lore (Nature), Lore (Religion), Persuasion, Use Magic Device |
+| Divine Hunter (hunter) | class skills | the hunter's | its own: Athletics, Knowledge (Arcana), Lore (Nature), Lore (Religion), Perception, Persuasion, Stealth |
+| Spell Dancer (magus) | class skills | the magus's | its own: Knowledge (Arcana), Knowledge (World), Mobility, Persuasion, Use Magic Device |
+| Sable Company Marine (ranger) | class skills | the ranger's | its own: Athletics, Knowledge (World), Lore (Nature), Mobility, Perception, Persuasion, Stealth |
+| Sylvan Trickster (rogue) | class skills | its own, with Knowledge (World) | its own, without Knowledge (World) |
+| Seeker (oracle) | class skills | its own list | the oracle's; its Trickery comes from Seeker's Trapfinding (293i) |
+| Wind Whisperer (oracle) | class skills | its own list | the oracle's |
+| Witch of the Veil (witch) | class skills | its own list | the witch's; its Stealth and Trickery come from its Secrecy feature (293i) |
+| Metamorph (alchemist) | class skills | its own, with Stealth | the alchemist's; Stealth comes from a level-1 feature (293i) |
+| Sohei (monk) | class skills | its own, with Lore (Nature) | the monk's; Lore (Nature) comes from a level-1 feature (293i) |
+| Empyreal Sorcerer | class skills | its own list | the sorcerer's; Lore (Religion) comes from its bloodline's feature (293i) |
+| Sylvan Sorcerer | class skills | its own list | the sorcerer's; Lore (Nature) comes from its bloodline's feature (293i) |
+
 ## Expertise (a bonus of half the class level to a skill)
 
 Scaling numbers stay in summaries, so this isn't modelled. Sources the user listed, by skill:
