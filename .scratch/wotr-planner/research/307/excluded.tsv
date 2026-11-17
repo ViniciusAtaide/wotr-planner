@@ -1,0 +1,10 @@
+1670990255e4fe948a863bafd5dbda5d	AnimalCompanionRank	BlueprintFeature	true	prerequisite	263	OUT:pets	animal-companion-rank
+7d990675841a7354c957689a6707c6c2	SageBloodlineProgression	BlueprintProgression	false	prerequisite	265,293	OUT:316	sage-bloodline
+8a95d80a3162d274896d50c2f18bb6b1	EmpyrealBloodlineProgression	BlueprintProgression	false	prerequisite	265,293	OUT:316	empyreal-bloodline
+a46d4bd93601427409d034a997673ece	SylvanBloodlineProgression	BlueprintProgression	false	prerequisite	265,293	OUT:316	sylvan-bloodline
+b398a2ac41ea6c94683efd968b928595	LichSkeletalFighterTierI	BlueprintFeature	false	prerequisite	266	OUT:lich	lich-skeletal-fighter-tier-i
+c3e4d5681906d5246ab8b0637b98cbfe	GroetusFeature	BlueprintFeature	false	prerequisite	267,282	OUT:267	groetus
+ca763809e01f4247a3639965364c26cb	GreenFaithCameliaFeature	BlueprintFeature	false	prerequisite	282	OUT:267	green-faith-camelia
+daca06a3f3355664bba1e87e67f3b5b3	MongrelmanRace	BlueprintRace	false	prerequisite	265	OUT:none	mongrelman-race
+e1fbb0e0e610a3a4d91e5e5284587939	AngelIncorporateSpellbook	BlueprintFeatureSelectMythicSpellbook	false	row	266	OUT:317	angel-incorporate-spellbook
+e2ae828e848a30d4d9471a0dd393435e	LichSkeletalBarbarianTierI	BlueprintFeature	false	prerequisite	266	OUT:lich	lich-skeletal-barbarian-tier-i
