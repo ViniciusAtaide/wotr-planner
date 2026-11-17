@@ -1589,5 +1589,41 @@
     "!bp_000000000000000000000000000000b42"
    ]
   }
+ },
+ {
+  "guid": "000000000000000000000000000000b51",
+  "name": "TestPickSelection",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "Feat",
+   "m_AllFeatures": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b52",
+  "name": "TestPickPlain",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b53",
+  "name": "TestPickValued",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b54",
+  "name": "TestPickDerived",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "Feat",
+   "m_AllFeatures": []
+  }
  }
 ]
