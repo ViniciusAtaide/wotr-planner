@@ -20,7 +20,8 @@ dirs=("$root/libs/seeds/tests/game_data" "$root/libs/rules/tests")
 
 for key in "$@"; do
     echo "== $key"
-    grep -rlF --include='*.rs' --include='*.ron' -- "$key" "${dirs[@]}" 2>/dev/null | sort | while read -r file; do
+    # `|| true`: a key no test names is a result, not an error (`pipefail` would end the script there).
+    { grep -rlF --include='*.rs' --include='*.ron' -- "$key" "${dirs[@]}" 2>/dev/null || true; } | sort | while read -r file; do
         rel="${file#"$root"/}"
         # The name of the last `fn` above each line that names the key.
         tests="$(awk -v key="$key" '
