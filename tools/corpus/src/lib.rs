@@ -24,6 +24,7 @@
 pub mod bench;
 pub mod builds;
 mod generate;
+pub mod links;
 
 use std::sync::atomic::{AtomicUsize, Ordering};
 
