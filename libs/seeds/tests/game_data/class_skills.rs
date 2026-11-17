@@ -214,14 +214,10 @@ fn option_row_class_skills() -> Vec<(String, u8, Vec<String>)> {
     rows
 }
 
-/// Every option row's class skills are on its first row. The Animal domain's, which the data has on its 4th, wait on a
-/// ticket (`the_animal_domains_lore_nature_comes_with_the_domain_at_its_first_level`).
+/// Every option row's class skills are on its first row.
 #[test]
 fn options_class_skills_are_on_their_first_row() {
-    let rows: Vec<_> = option_row_class_skills()
-        .into_iter()
-        .filter(|(option, ..)| option != "cleric/domain/animal")
-        .collect();
+    let rows = option_row_class_skills();
     let mut expected: Vec<(String, u8, Vec<String>)> = Vec::new();
     let mut add = |option: String, skills: &[&str]| {
         expected.push((option, 1, skills.iter().map(|s| (*s).to_owned()).collect()));
@@ -300,6 +296,9 @@ fn options_class_skills_are_on_their_first_row() {
     // 0ff5141fe79c43345a1c8ff72b75923d, each `AddClassSkill(SkillPersuasion)`, at the curse progression's level 1.
     add("oracle/oracles-curse/demonic".into(), &["persuasion"]);
     add("oracle/oracles-curse/hellbound".into(), &["persuasion"]);
+    // Game: AnimalDomainProgression 23d2f87aa54c89f418e68e790dba11e0 (AnimalDomainBaseFeature
+    // d577aba79b5727a4ab74627c4c6ba23c at level 1, AddClassSkill LoreNature)
+    add("cleric/domain/animal".into(), &["lore-nature"]);
     expected.sort();
     assert_eq!(rows, expected);
 }
@@ -309,7 +308,6 @@ fn options_class_skills_are_on_their_first_row() {
 // Game: AnimalDomainProgression 23d2f87aa54c89f418e68e790dba11e0 (AnimalDomainBaseFeature
 // d577aba79b5727a4ab74627c4c6ba23c at level 1, with AddClassSkill LoreNature)
 #[test]
-#[ignore = "waits on ticket 261: the game gives the Animal domain's Lore (Nature) at the domain's level 1"]
 fn the_animal_domains_class_skill_is_on_its_first_row() {
     let animal: Vec<_> = option_row_class_skills()
         .into_iter()
@@ -338,7 +336,7 @@ fn no_feature_stands_for_a_fixed_class_skill() {
     // Lore (Nature)), which SageBloodlineProgression 7d990675841a7354c957689a6707c6c2 holds too; that the data keeps
     // them as features is its shape, not a game fact
     assert_eq!(features, [("arcane-bloodline-class-skill", "Class Skill")]);
-    // The archetypes whose feature went hold the skill through their own list.
+    // The archetypes whose feature went hold the skill through the game's own feature (293i; `an_archetypes_own_feature_holds_the_class_skill_its_list_lacks`).
     // Game: SoheiArchetype fad7c56737ed12e42aacc330acc86428 (SoheiLoreNatureFeature d59fe46a1aa1ace4e987d843c8e309ff);
     // EmpyrealBloodlineProgression 8a95d80a3162d274896d50c2f18bb6b1 (BloodlineCelestialClassSkill);
     // SylvanBloodlineProgression a46d4bd93601427409d034a997673ece (BloodlineFeyClassSkill)
@@ -356,6 +354,97 @@ fn no_feature_stands_for_a_fixed_class_skill() {
                 .contains(&SkillKey::new(skill)),
             "{archetype}"
         );
+    }
+}
+
+/// An archetype's own feature holds the class skill its list lacks: the game drops the skill from the list (or never
+/// had it there) and gives it through a level-1 feature with `AddClassSkill`.
+#[test]
+fn an_archetypes_own_feature_holds_the_class_skill_its_list_lacks() {
+    // (class, archetype, skills, the feature's key). Game, each: the feature's `AddClassSkill`, from
+    // `classskill-features.txt` of the ticket's research.
+    for (class, archetype, skills, feature) in [
+        // WitchOfTheVeilSecrecyFeature 8c189560d7f94dd688f0dc29f6963610 (Stealth, Thievery = Trickery)
+        (
+            "witch",
+            "witch/witch-of-the-veil",
+            &["stealth", "trickery"][..],
+            "witch/witch-of-the-veil/secrecy",
+        ),
+        // SeekerTrapfinding cb3abfaa682b67c48953dfa200aab325 (Thievery)
+        (
+            "oracle",
+            "oracle/seeker",
+            &["trickery"],
+            "oracle/seeker/seekers-trapfinding",
+        ),
+        // SorcererSeekerTrapfinding b1c4f14bc87534e4da7ecd8e0b0658d2 (Thievery)
+        (
+            "sorcerer",
+            "sorcerer/seeker-sorcerer",
+            &["trickery"],
+            "sorcerer/seeker-sorcerer/seekers-trapfinding",
+        ),
+        // MetamorphClassSkills 1d42191a101f2fb42b6e87b7bfc99a5e (Stealth)
+        (
+            "alchemist",
+            "alchemist/metamorph",
+            &["stealth"],
+            "alchemist/metamorph/stealth",
+        ),
+        // SoheiLoreNatureFeature d59fe46a1aa1ace4e987d843c8e309ff (Lore (Nature))
+        (
+            "monk",
+            "monk/sohei",
+            &["lore-nature"],
+            "monk/sohei/lore-nature",
+        ),
+        // BloodlineCelestialClassSkill b0520c35f31ba544189d3293ed14dd67 (Lore (Religion)), level 1 of
+        // EmpyrealBloodlineProgression 8a95d80a3162d274896d50c2f18bb6b1
+        (
+            "sorcerer",
+            "sorcerer/empyreal-sorcerer",
+            &["lore-religion"],
+            "sorcerer/empyreal-sorcerer/lore-religion",
+        ),
+        // BloodlineFeyClassSkill 243f474ce797acb4086c2dbc58660c4a (Lore (Nature)), level 1 of
+        // SylvanBloodlineProgression a46d4bd93601427409d034a997673ece
+        (
+            "sorcerer",
+            "sorcerer/sylvan-sorcerer",
+            &["lore-nature"],
+            "sorcerer/sylvan-sorcerer/lore-nature",
+        ),
+    ] {
+        // The engine's lists lack the skill, so what holds it is the feature.
+        let mut data = DATA.clone();
+        let edited = data
+            .archetypes
+            .iter_mut()
+            .find(|a| a.key.as_str() == archetype)
+            .unwrap();
+        match &mut edited.class_skills {
+            Some(list) => list.retain(|skill| !skills.contains(&skill.as_str())),
+            None => {
+                let class = data.classes.iter_mut().find(|c| c.key.as_str() == class);
+                class
+                    .unwrap()
+                    .class_skills
+                    .retain(|skill| !skills.contains(&skill.as_str()));
+            }
+        }
+        let engine = Engine::new(data.checked().unwrap_or_else(|problems| {
+            panic!("the data without {skills:?} in {archetype}'s list has problems: {problems:#?}")
+        }));
+        let mut build = archetype_build(class, archetype, 1);
+        align(&mut build, rules::Alignment::LawfulNeutral);
+        assert!(engine.is_possible(&build), "{archetype}");
+        let sheet = engine.evaluate(&build);
+        let state = sheet.at(1).unwrap();
+        assert!(holds(state, feature), "{archetype} holds {feature}");
+        for skill in skills {
+            assert!(has_class_skill(state, skill), "{archetype} {skill}");
+        }
     }
 }
 
@@ -394,7 +483,6 @@ fn class_skills_of(state: &CharacterState) -> BTreeSet<String> {
 // b1c4f14bc87534e4da7ecd8e0b0658d2 at 1 (AddClassSkill Thievery, the planner's Trickery); its bloodlines (e.g.
 // SeekerBloodlineAbyssalProgression 17b752be1e0f4a34e8914df52eebeb75) keep the bloodline's class skill
 #[test]
-#[ignore = "waits on ticket 261: the game gives a Seeker Sorcerer Trickery as a class skill"]
 fn a_seeker_sorcerer_holds_trickery_and_its_bloodlines_class_skill() {
     let sorcerer = skill_set(&["knowledge-arcana", "persuasion", "use-magic-device"]);
     for (bloodline, skill) in BLOODLINE_SKILLS {
@@ -422,7 +510,7 @@ fn an_overwhelming_mage_and_a_seeker_hold_their_bloodlines_class_skill_and_no_cl
             let expected: BTreeSet<String> =
                 sorcerer.iter().cloned().chain([skill.to_owned()]).collect();
             // Game: OverwhelimgMageArchetype 734917ec8b8542378c1d35519439d67f (keeps SorcererBloodlineSelection, adds
-            // no class skill). The Seeker holds these and, in the game, Trickery too, which waits on a ticket
+            // no class skill). The Seeker holds these and Trickery too
             // (`a_seeker_sorcerer_holds_trickery_and_its_bloodlines_class_skill`).
             if archetype == "sorcerer/overwhelming-mage" {
                 assert_eq!(held, expected, "{archetype} {bloodline}");
@@ -535,8 +623,7 @@ fn animal_inquisitor() -> Build {
 }
 
 /// The Animal domain's companion comes at the holder's 4th domain level; a druid's and an inquisitor's own lists hold
-/// Lore (Nature) from level 1. When the domain's Lore (Nature) comes waits on a ticket
-/// (`the_animal_domains_lore_nature_comes_with_the_domain_at_its_first_level`).
+/// Lore (Nature) from level 1.
 #[test]
 fn the_animal_domains_companion_comes_at_the_holders_4th_domain_level() {
     let animal = animal_cleric();
@@ -560,7 +647,6 @@ fn the_animal_domains_companion_comes_at_the_holders_4th_domain_level() {
 // e3d58ae932554987a6e247e281efc2f0 and AnimalDomainProgressionDruid a75ad4936e099c54881cf553e2110703 (each gives
 // AnimalDomainBaseFeature d577aba79b5727a4ab74627c4c6ba23c, AddClassSkill LoreNature, at level 1)
 #[test]
-#[ignore = "waits on ticket 261: the game gives the Animal domain's Lore (Nature) at its first level, cleric 1 for a Separatist too"]
 fn the_animal_domains_lore_nature_comes_with_the_domain_at_its_first_level() {
     assert!(has_class_skill(&at(&animal_cleric(), 1), "lore-nature"));
     assert!(has_class_skill(&at(&animal_separatist(), 1), "lore-nature"));

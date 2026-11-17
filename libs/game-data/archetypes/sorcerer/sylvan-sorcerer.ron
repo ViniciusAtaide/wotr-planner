@@ -5,9 +5,8 @@
     name: "Sylvan Sorcerer",
     summary: "Gets an animal companion at 1st level and the Fey bloodline's later powers; Lore (Nature) is a class skill.",
     guide: "sorcerer#sylvan-sorcerer",
-    class_skills: ["knowledge-arcana", "lore-nature", "persuasion", "use-magic-device"],
     levels: [
-        (level: 1, features: ["sorcerer/sylvan-sorcerer/animal-companion", "sorcerer-cantrips", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], selections: ["sorcerer/sylvan-sorcerer/bloodline", "magic-feats"]),
+        (level: 1, features: ["sorcerer/sylvan-sorcerer/animal-companion", "sorcerer/sylvan-sorcerer/lore-nature", "sorcerer-cantrips", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], selections: ["sorcerer/sylvan-sorcerer/bloodline", "magic-feats"]),
         (level: 3, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-entangle"]),
         (level: 5, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-hideous-laughter"]),
         (level: 7, features: ["sorcerer/sylvan-sorcerer/bloodline-spell-deep-slumber"], selections: ["sorcerer/bloodline-feats"]),
