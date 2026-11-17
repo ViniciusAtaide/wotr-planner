@@ -45,6 +45,18 @@
 //!   (the `Debug` text of the kind, as `slots.txt` holds it; `#` comments). `compare` accepts a slot line that
 //!   differs only by its kind through the map, and prints how many it mapped apart from the differences.
 //!
+//! - **`FORM_PROOF_CENSUS=<change log>`** (ticket 306ae) is for a stage that changes values, the TSV `game-check --write
+//!   --log` writes. `compare` then attributes each differing line of `builds.tsv`, `slots.txt`, `sheets.txt` and
+//!   `numbers.txt` (and the reopened Builds' slots and sheets) instead of failing on it. A line is attributed when the
+//!   Build holds an entry the log has a row for, and that row's field is one that moves the line's kind (`FIELDS`: a save
+//!   field the header and the save totals, `class_skills` the skill lines, `bab` the header and the attack lines…). A
+//!   field that gates a pick or sizes the generator's draws (`bab`, `skill_points`) also accounts for every line of a
+//!   Build whose link or slots changed. `compare` prints `census <field>: N lines in N Builds (per file)` and each
+//!   unattributed line (the first `FORM_PROOF_SHOWN`), and fails on any. A log field `FIELDS` lacks is refused: the
+//!   stage adds its row, with what the field moves. It replaces a per-ticket classifier.
+//! - **Unset, `record` and `compare` print a skip line and pass**, so `cargo test --release -p corpus -- --ignored`
+//!   passes.
+//!
 //! `FORM_PROOF_THREADS` sets the threads (8 by default). The hashes are `DefaultHasher`'s, so they compare only
 //! within one toolchain; `compare` never reads them.
 
@@ -68,6 +80,9 @@ const SHOWN: usize = 5;
 #[derive(Clone, Default)]
 struct Entry {
     name: String,
+    /// The keys of the classes and archetypes the Build holds (not recorded: read from this tree's Builds, for the
+    /// census).
+    held: BTreeSet<String>,
     link: String,
     opens: bool,
     picks: String,
@@ -78,8 +93,22 @@ struct Entry {
     numbers: String,
 }
 
-fn env_dir(var: &str) -> PathBuf {
-    PathBuf::from(std::env::var(var).unwrap_or_else(|_| panic!("{var} names a folder")))
+/// The folder `var` names, or the line to print when it's unset: the mode was not asked for, so its test passes.
+fn dir_or_skip(var: &str, value: Option<std::ffi::OsString>) -> Result<PathBuf, String> {
+    value.map(PathBuf::from).ok_or_else(|| {
+        format!("{var} is not set: skipped (the form proof runs only when asked for)")
+    })
+}
+
+/// [`dir_or_skip`] on the environment, printing the skip line.
+fn env_dir(var: &str) -> Option<PathBuf> {
+    match dir_or_skip(var, std::env::var_os(var)) {
+        Ok(dir) => Some(dir),
+        Err(skipped) => {
+            println!("{skipped}");
+            None
+        }
+    }
 }
 
 /// Every slot of the walk, `L<level>|R<rank> \t id \t kind \t pick`, one per line.
@@ -270,8 +299,16 @@ fn record_entry(engine: &Engine, keys: &LinkKeys, (name, build): &Named) -> Entr
         Ok(build) => format!("{:?}", build.picks),
         Err(error) => format!("does not decode: {error:?}"),
     };
+    let classes = build.levels.iter().map(|level| level.class.as_str());
+    let archetypes = (build.class_choices.values()).filter_map(|choice| {
+        choice
+            .archetype
+            .as_ref()
+            .map(|archetype| archetype.as_str())
+    });
     Entry {
         name: name.to_string(),
+        held: classes.chain(archetypes).map(str::to_owned).collect(),
         opens: engine.open_link(&link).is_ok(),
         picks: format!("{:?}", build.picks),
         decoded,
@@ -396,6 +433,7 @@ fn read_entries(dir: &Path) -> Vec<Entry> {
             let mut next = || parts.next().expect("five columns").to_owned();
             let (_, link, opens, picks, decoded) = (next(), next(), next(), next(), next());
             Entry {
+                held: BTreeSet::new(),
                 name: name.to_owned(),
                 link,
                 opens: opens == "true",
@@ -835,8 +873,10 @@ fn compare_offers(engine: &Engine, builds: &[Named], threads: usize, dir: &Path)
 #[test]
 #[ignore = "records about 2,000 real-data Builds: a minute in release"]
 fn record() {
+    let Some(out) = env_dir("FORM_PROOF_OUT") else {
+        return;
+    };
     let entries = record_all();
-    let out = env_dir("FORM_PROOF_OUT");
     let mut summary = write_entries(&out, &entries);
     if offers_wanted(std::env::var("FORM_PROOF_OFFERS").ok().as_deref()) {
         summary += &write_offers(&out);
@@ -847,8 +887,14 @@ fn record() {
 #[test]
 #[ignore = "records about 2,000 real-data Builds and compares: a minute in release"]
 fn compare() {
-    let before_dir = env_dir("FORM_PROOF_BEFORE");
+    let Some(before_dir) = env_dir("FORM_PROOF_BEFORE") else {
+        return;
+    };
     let before = read_entries(&before_dir);
+    let mut attribution = std::env::var_os("FORM_PROOF_CENSUS").map(|path| {
+        let log = std::fs::read_to_string(&path).expect("FORM_PROOF_CENSUS is readable");
+        Attribution::new(read_change_log(&log))
+    });
     let kind_map = std::env::var("FORM_PROOF_KIND_MAP")
         .map(|path| {
             read_kind_map(&std::fs::read_to_string(path).expect("the kind map is readable"))
@@ -868,19 +914,42 @@ fn compare() {
     for (b, n) in before.iter().zip(&now) {
         let build = n.name.as_str();
         differences.add("name", &b.name, &b.name, build);
-        differences.add("link", build, &b.link, &n.link);
         differences.add("opens", build, &b.opens.to_string(), &n.opens.to_string());
-        differences.add("picks", build, &b.picks, &n.picks);
-        differences.add("decoded picks", build, &b.decoded, &n.decoded);
-        differences.add_slots(
-            "slots",
-            build,
-            (b.slots.as_str(), n.slots.as_str()),
-            &kind_map,
-            &mut mapped,
-        );
-        differences.add("sheet", build, &b.sheet, &n.sheet);
-        differences.add("numbers", build, &b.numbers, &n.numbers);
+        match attribution.as_mut() {
+            // The census attributes each differing line of the Build's files to a change-log row.
+            Some(attribution) => {
+                let (slots, lines) = map_slot_kinds(&b.slots, &kind_map);
+                if slots == n.slots {
+                    mapped += lines;
+                }
+                let row = |e: &Entry| format!("{}\t{}\t{}", e.link, e.picks, e.decoded);
+                let regenerated = row(b) != row(n) || slots != n.slots;
+                let files: [(&str, Classify, String, &str); 4] = [
+                    ("builds.tsv", link_kind, row(b), &row(n)),
+                    ("slots.txt", slot_kind, slots, &n.slots),
+                    ("sheets.txt", sheet_kind, b.sheet.clone(), &n.sheet),
+                    ("numbers.txt", numbers_kind, b.numbers.clone(), &n.numbers),
+                ];
+                for (file, classify, before, now) in files {
+                    let held = (&n.held, regenerated);
+                    attribution.lines(file, build, held, (&before, now), classify);
+                }
+            }
+            None => {
+                differences.add("link", build, &b.link, &n.link);
+                differences.add("picks", build, &b.picks, &n.picks);
+                differences.add("decoded picks", build, &b.decoded, &n.decoded);
+                differences.add_slots(
+                    "slots",
+                    build,
+                    (b.slots.as_str(), n.slots.as_str()),
+                    &kind_map,
+                    &mut mapped,
+                );
+                differences.add("sheet", build, &b.sheet, &n.sheet);
+                differences.add("numbers", build, &b.numbers, &n.numbers);
+            }
+        }
     }
 
     // The old links against this tree's keys: what they decode to must be what they decoded to before, and walk
@@ -909,8 +978,32 @@ fn compare() {
             Some(r) => {
                 differences.add("reopened picks", &b.name, &b.picks, &r.picks);
                 let slots = (b.slots.as_str(), r.slots.as_str());
-                differences.add_slots("reopened slots", &b.name, slots, &kind_map, &mut mapped);
-                differences.add("reopened sheet", &b.name, &b.sheet, &r.sheet);
+                match attribution.as_mut() {
+                    Some(attribution) => {
+                        let held = (&r.held, false);
+                        let (before, _) = map_slot_kinds(slots.0, &kind_map);
+                        attribution.lines(
+                            "reopened slots",
+                            &b.name,
+                            held,
+                            (&before, slots.1),
+                            slot_kind,
+                        );
+                        let sheets = (b.sheet.as_str(), r.sheet.as_str());
+                        attribution.lines("reopened sheet", &b.name, held, sheets, sheet_kind);
+                    }
+                    None => {
+                        let name = &b.name;
+                        differences.add_slots(
+                            "reopened slots",
+                            name,
+                            slots,
+                            &kind_map,
+                            &mut mapped,
+                        );
+                        differences.add("reopened sheet", name, &b.sheet, &r.sheet);
+                    }
+                }
             }
             None => {
                 not_reopened += 1;
@@ -944,6 +1037,12 @@ fn compare() {
     };
     let offer_changes = changes.as_ref().map_or(0, OfferChanges::total);
 
+    // The census: each differing line, attributed to the change-log fields that move it.
+    let unattributed = attribution.as_ref().map_or(0, |a| a.unattributed.len());
+    if let Some(attribution) = &attribution {
+        println!("{}", attribution.report());
+    }
+
     println!(
         "{} Builds compared ({} open), {} old links reopened, {} differences, {offer_changes} offer differences, {mapped} slot lines mapped by FORM_PROOF_KIND_MAP",
         before.len(),
@@ -952,12 +1051,251 @@ fn compare() {
         differences.total()
     );
     assert_eq!(
-        differences.total() as u64 + offer_changes,
+        (differences.total() + unattributed) as u64 + offer_changes,
         0,
         "the form moved something:\n{}{}",
         differences.report(),
         changes.map_or(String::new(), |changes| changes.report())
     );
+}
+
+/// The kind of a differing line: what quantity it holds, which a change-log field moves or doesn't.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum LineKind {
+    /// `numbers.txt`: a level's header (scores, base attack bonus, base saves, caster level, mythic rank).
+    Header,
+    /// `numbers.txt`: the initiative and the three save totals.
+    Totals,
+    /// `numbers.txt`: a skill's ranks and total.
+    Skill,
+    /// `numbers.txt`: a caster line.
+    Spell,
+    /// `numbers.txt`: an attack line.
+    Attack,
+    /// `numbers.txt`: the steps of the held features.
+    Steps,
+    /// `sheets.txt`: a line of the sheet.
+    Sheet,
+    /// `slots.txt`: a slot and its pick.
+    Slot,
+    /// `builds.tsv`: the Build's link and picks.
+    Link,
+}
+
+/// The corpus's generated Builds are named `full <own Build>`; only they redraw their picks.
+const GENERATED: &str = "full ";
+
+/// What a change-log field moves (ticket 306ae): the line kinds it moves directly, and whether it also regenerates the
+/// corpus's full Builds. A full Build's picks, ranks and ability increases come from a generator that draws from
+/// what the data offers, so a field that gates a pick (a base attack bonus a feat needs) or sizes a draw (the skill
+/// points) can change the Build itself; then every line of that Build is its consequence. A Build whose link, picks or
+/// slots did not change, and every Build that is not generated (a hand-made or bench Build never redraws), moves only
+/// through the direct kinds.
+struct FieldMoves {
+    field: &'static str,
+    kinds: &'static [LineKind],
+    regenerates: bool,
+}
+
+/// The change log's fields (the `field` column of `game-check --write --log`) and what each moves. A stage that
+/// changes another field adds its row here, with what that field can move: a field absent from the table is refused.
+const FIELDS: &[FieldMoves] = &[
+    // The base attack bonus: the header's, each attack line's, and the feats it gates.
+    FieldMoves {
+        field: "bab",
+        kinds: &[LineKind::Header, LineKind::Attack],
+        regenerates: true,
+    },
+    // A base save: the header's saves and the save totals.
+    FieldMoves {
+        field: "fort",
+        kinds: &[LineKind::Header, LineKind::Totals],
+        regenerates: false,
+    },
+    FieldMoves {
+        field: "reflex",
+        kinds: &[LineKind::Header, LineKind::Totals],
+        regenerates: false,
+    },
+    FieldMoves {
+        field: "will",
+        kinds: &[LineKind::Header, LineKind::Totals],
+        regenerates: false,
+    },
+    // A save a class gives at one level: the same lines as the saves.
+    FieldMoves {
+        field: "save_exceptions",
+        kinds: &[LineKind::Header, LineKind::Totals],
+        regenerates: false,
+    },
+    // Which skills are class skills: the skill lines' totals.
+    FieldMoves {
+        field: "class_skills",
+        kinds: &[LineKind::Skill],
+        regenerates: false,
+    },
+    // The ranks a level gives: the skill lines, and the generator's draws.
+    FieldMoves {
+        field: "skill_points",
+        kinds: &[LineKind::Skill],
+        regenerates: true,
+    },
+];
+
+/// The `FIELDS` row of a change-log field.
+fn field_moves(field: &str) -> &'static FieldMoves {
+    FIELDS.iter().find(|row| row.field == field).unwrap_or_else(|| {
+        panic!(
+            "the change log's field `{field}` is not in the census table (`FIELDS` in form_proof.rs): add the line kinds it moves"
+        )
+    })
+}
+
+/// A change log (`game-check --write --log`: a header, then `entry<TAB>field<TAB>…`): each entry's key (`class x`
+/// and `archetype a/b` read as `x` and `a/b`) with the fields it changed. A field the table lacks is refused.
+fn read_change_log(text: &str) -> BTreeMap<String, BTreeSet<&'static str>> {
+    let mut rows: BTreeMap<String, BTreeSet<&'static str>> = BTreeMap::new();
+    for line in text.lines().skip(1).filter(|line| !line.is_empty()) {
+        let mut columns = line.split('\t');
+        let (entry, field) = (columns.next().unwrap_or(""), columns.next());
+        let field =
+            field.unwrap_or_else(|| panic!("a change-log line has a field column: {line:?}"));
+        let key = entry.split_once(' ').map_or(entry, |(_, key)| key);
+        rows.entry(key.to_owned())
+            .or_default()
+            .insert(field_moves(field).field);
+    }
+    rows
+}
+
+/// The kind of a line of a file: the file's one kind, or a `numbers.txt` line's by its shape.
+type Classify = fn(&str) -> LineKind;
+
+fn link_kind(_: &str) -> LineKind {
+    LineKind::Link
+}
+
+fn slot_kind(_: &str) -> LineKind {
+    LineKind::Slot
+}
+
+fn sheet_kind(_: &str) -> LineKind {
+    LineKind::Sheet
+}
+
+/// The kind of a `numbers.txt` line, by its shape: `L<n> scores …` (the header), `  initiative …`, `  steps …`,
+/// `  SpellTraits { … }` (a caster line), `  <skill> <ranks> <total> […]`; any other is an attack line
+/// (`  <weapon> <attacks> <damage> …`).
+fn numbers_kind(line: &str) -> LineKind {
+    let words: Vec<&str> = line.split_whitespace().collect();
+    let number = |word: Option<&&str>, sign: bool| {
+        word.is_some_and(|word| {
+            let digits = word.strip_prefix('-').filter(|_| sign).unwrap_or(word);
+            !digits.is_empty() && digits.chars().all(|c| c.is_ascii_digit())
+        })
+    };
+    match words.first().copied().unwrap_or("") {
+        first if !line.starts_with(' ') && first.starts_with('L') => LineKind::Header,
+        "initiative" => LineKind::Totals,
+        "steps" => LineKind::Steps,
+        "SpellTraits" => LineKind::Spell,
+        _ if number(words.get(1), false) && number(words.get(2), true) => LineKind::Skill,
+        _ => LineKind::Attack,
+    }
+}
+
+/// The census of a stage's differing lines (ticket 306ae): each is attributed to a field of the change log that the
+/// Build holds an entry of, when that field moves the line's kind, or to a regenerating field when the Build itself
+/// changed. A line no field accounts for is unattributed, and `compare` fails on it.
+struct Attribution {
+    log: BTreeMap<String, BTreeSet<&'static str>>,
+    /// Per field: lines attributed, by file, and the Builds.
+    counts: BTreeMap<&'static str, (BTreeMap<String, usize>, BTreeSet<String>)>,
+    /// `file: Build: kind: line` of each differing line no field accounts for.
+    unattributed: Vec<String>,
+}
+
+impl Attribution {
+    fn new(log: BTreeMap<String, BTreeSet<&'static str>>) -> Self {
+        Self {
+            log,
+            counts: BTreeMap::new(),
+            unattributed: Vec::new(),
+        }
+    }
+
+    /// The lines of `file` for `build` that differ between `before` and `now` (a line one side lacks differs),
+    /// attributed. `held` is the entries the Build holds and whether the Build itself changed.
+    fn lines(
+        &mut self,
+        file: &str,
+        build: &str,
+        (held, regenerated): (&BTreeSet<String>, bool),
+        (before, now): (&str, &str),
+        classify: Classify,
+    ) {
+        if before == now {
+            return;
+        }
+        let names: BTreeSet<&'static str> = (held.iter())
+            .filter_map(|entry| self.log.get(entry))
+            .flatten()
+            .copied()
+            .collect();
+        let fields: Vec<&'static FieldMoves> = names.into_iter().map(field_moves).collect();
+        let (old, new): (Vec<&str>, Vec<&str>) = (before.lines().collect(), now.lines().collect());
+        for at in 0..old.len().max(new.len()) {
+            let (was, is) = (old.get(at), new.get(at));
+            if was == is {
+                continue;
+            }
+            let line = is.or(was).copied().unwrap_or("");
+            let kind = classify(line);
+            let generated = build.starts_with(GENERATED);
+            let moves = |row: &&&'static FieldMoves| {
+                row.kinds.contains(&kind) || (regenerated && generated && row.regenerates)
+            };
+            match fields.iter().find(moves) {
+                Some(row) => {
+                    let (lines, builds) = self.counts.entry(row.field).or_default();
+                    *lines.entry(file.to_owned()).or_default() += 1;
+                    builds.insert(build.to_owned());
+                }
+                None => {
+                    let shown: String = line.chars().take(110).collect();
+                    self.unattributed
+                        .push(format!("{file}: {build}: {kind:?}: {shown}"));
+                }
+            }
+        }
+    }
+
+    /// The attributed counts per field, and the unattributed lines (the first `FORM_PROOF_SHOWN`).
+    fn report(&self) -> String {
+        let mut text = String::new();
+        for (field, (lines, builds)) in &self.counts {
+            let files: Vec<String> = (lines.iter())
+                .map(|(file, count)| format!("{file} {count}"))
+                .collect();
+            let total: usize = lines.values().sum();
+            writeln!(
+                text,
+                "census {field}: {total} lines in {} Builds ({})",
+                builds.len(),
+                files.join(", ")
+            )
+            .unwrap();
+        }
+        let most = std::env::var("FORM_PROOF_SHOWN")
+            .ok()
+            .and_then(|n| n.parse().ok())
+            .unwrap_or(SHOWN);
+        for line in self.unattributed.iter().take(most) {
+            writeln!(text, "  UNATTRIBUTED {line}").unwrap();
+        }
+        write!(text, "census: {} unattributed", self.unattributed.len()).unwrap();
+        text
+    }
 }
 
 /// What the old links that opened came to with this tree's data (ticket 306c).
@@ -1057,6 +1395,169 @@ mod pieces {
             found.push(build);
         }
         (found, kinds)
+    }
+
+    const LOG: &str = "entry\tfield\told\tnew\tfindings removed\tfact\n\
+        class stalwart-defender\tfort\tPoor\tGood\tx\t-\n\
+        class stalwart-defender\tclass_skills\ta\tb\tx\t262\n\
+        archetype druid/feyspeaker\tbab\tthe class's\tHalf\tx\t-\n";
+    const HEADER: &str =
+        "L1 scores AbilityScores { strength: 10 } bab 0 saves 2/2/0 caster level 0 mythic 0";
+    const TOTALS: &str = "  initiative 0 [Dexterity=0] fortitude 2 [Base save=2] reflex 2 [Base save=2] will 0 [Base save=0]";
+    const SKILL: &str = "  athletics 0 0 [Ranks=0,Strength=0]";
+    const ATTACK: &str = "  longsword +0 1d8 19–20/×2 None [Strength=0/0]";
+
+    fn held(keys: &[&str]) -> BTreeSet<String> {
+        keys.iter().map(|key| (*key).to_owned()).collect()
+    }
+
+    #[test]
+    fn a_missing_variable_skips_the_mode_and_a_set_one_names_its_folder() {
+        let skipped = dir_or_skip("FORM_PROOF_OUT", None).unwrap_err();
+        assert!(
+            skipped.contains("FORM_PROOF_OUT is not set: skipped"),
+            "{skipped}"
+        );
+        let dir = dir_or_skip("FORM_PROOF_OUT", Some("/x/y".into()));
+        assert_eq!(dir, Ok(PathBuf::from("/x/y")));
+    }
+
+    #[test]
+    fn a_numbers_line_is_classified_by_its_shape() {
+        assert_eq!(numbers_kind(HEADER), LineKind::Header);
+        assert_eq!(numbers_kind(TOTALS), LineKind::Totals);
+        assert_eq!(numbers_kind(SKILL), LineKind::Skill);
+        assert_eq!(
+            numbers_kind("  trident +8/+3 1d8 ×3 None []"),
+            LineKind::Attack
+        );
+        assert_eq!(numbers_kind(ATTACK), LineKind::Attack);
+        assert_eq!(numbers_kind("  steps rage=2,bloodrage=1"), LineKind::Steps);
+        assert_eq!(
+            numbers_kind("  SpellTraits { school: Evocation } wizard Some(Intelligence) cl 1"),
+            LineKind::Spell
+        );
+        assert_eq!(
+            numbers_kind("  stealth 3 -1 [Ranks=3,Dexterity=-4]"),
+            LineKind::Skill
+        );
+    }
+
+    #[test]
+    fn the_change_log_reads_each_entry_key_with_its_fields() {
+        let log = read_change_log(LOG);
+        assert_eq!(
+            log["stalwart-defender"],
+            BTreeSet::from(["fort", "class_skills"])
+        );
+        assert_eq!(log["druid/feyspeaker"], BTreeSet::from(["bab"]));
+    }
+
+    #[test]
+    #[should_panic(expected = "`new_field` is not in the census table")]
+    fn a_log_field_the_table_lacks_is_refused() {
+        read_change_log("entry\tfield\nclass x\tnew_field\n");
+    }
+
+    #[test]
+    fn a_line_a_held_field_moves_is_attributed_and_an_unrelated_one_is_not() {
+        let mut attribution = Attribution::new(read_change_log(LOG));
+        let held = (&held(&["stalwart-defender"]), false);
+        // The save totals move with a save field; the skill line with class skills; both held.
+        let before = format!("{HEADER}\n{TOTALS}\n{SKILL}");
+        let now = format!(
+            "{}\n{}\n{}",
+            HEADER.replace("saves 2/2/0", "saves 3/2/0"),
+            TOTALS.replace("fortitude 2", "fortitude 3"),
+            SKILL.replace("Strength=0", "Strength=0,Class skill=3")
+        );
+        attribution.lines("numbers.txt", "b", held, (&before, &now), numbers_kind);
+        assert!(
+            attribution.unattributed.is_empty(),
+            "{:?}",
+            attribution.unattributed
+        );
+        assert_eq!(attribution.counts["fort"].0["numbers.txt"], 2);
+        assert_eq!(attribution.counts["class_skills"].0["numbers.txt"], 1);
+        // An attack line moves with neither: it's unattributed, in a Build that holds a changed class.
+        attribution.lines(
+            "numbers.txt",
+            "b",
+            held,
+            (ATTACK, &ATTACK.replace("+0", "+1")),
+            numbers_kind,
+        );
+        assert_eq!(attribution.unattributed.len(), 1);
+        assert!(attribution.unattributed[0].contains("Attack"));
+        assert!(attribution.report().contains("census: 1 unattributed"));
+        // A Build that holds no changed entry has no attributed line at all.
+        let mut other = Attribution::new(read_change_log(LOG));
+        other.lines(
+            "numbers.txt",
+            "c",
+            (&held_none(), false),
+            (&before, &now),
+            numbers_kind,
+        );
+        assert_eq!(other.unattributed.len(), 3);
+    }
+
+    fn held_none() -> BTreeSet<String> {
+        held(&["fighter"])
+    }
+
+    #[test]
+    fn a_regenerated_build_attributes_all_its_lines_to_the_field_that_regenerates() {
+        let mut attribution = Attribution::new(read_change_log(LOG));
+        let (feyspeaker, other) = (held(&["druid/feyspeaker"]), held(&["stalwart-defender"]));
+        let (before, now) = ("L1\tS\tK\tp1\nL2\tS\tK\tp2", "L1\tS\tK\tp1\nL2\tS\tK\tp3");
+        attribution.lines(
+            "slots.txt",
+            "full b",
+            (&feyspeaker, true),
+            (before, now),
+            slot_kind,
+        );
+        assert_eq!(attribution.counts["bab"].0["slots.txt"], 1);
+        // The same lines, unchanged Build: a slot line is no save field's, and no regenerating field is held.
+        attribution.lines(
+            "slots.txt",
+            "b",
+            (&feyspeaker, false),
+            (before, now),
+            slot_kind,
+        );
+        attribution.lines(
+            "slots.txt",
+            "full b",
+            (&other, true),
+            (before, now),
+            slot_kind,
+        );
+        // A hand-made Build never redraws: its changed slot is a real difference, though it holds a changed class.
+        attribution.lines(
+            "slots.txt",
+            "bench b",
+            (&feyspeaker, true),
+            (before, now),
+            slot_kind,
+        );
+        assert_eq!(attribution.unattributed.len(), 3);
+        assert!(attribution.unattributed[2].contains("bench b"));
+    }
+
+    #[test]
+    fn a_line_one_side_lacks_differs() {
+        let mut attribution = Attribution::new(read_change_log(LOG));
+        let held = held(&["stalwart-defender"]);
+        attribution.lines(
+            "numbers.txt",
+            "b",
+            (&held, false),
+            (TOTALS, &format!("{TOTALS}\n{ATTACK}")),
+            numbers_kind,
+        );
+        assert_eq!(attribution.unattributed.len(), 1);
     }
 
     #[test]
