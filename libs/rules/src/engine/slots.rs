@@ -94,12 +94,13 @@ impl Catalog {
             .collect()
     }
 
-    /// Whether a selection a pick grants has an option left for a character in `state` (ticket 303): one of its feats,
-    /// mythic abilities or options held fewer times than it can be ([`Repeat::times`](crate::Repeat::times)), as the
-    /// game refuses a selection none of whose items it can select (`FeatureSelectionExtensions.CanSelectAny`,
-    /// WrathDecompiled 6ce4a6b). The game asks each item's prerequisites too; the planner counts only what is held, so
-    /// an option whose prerequisite a later pick of the level meets still counts. A selection that nests lists (whose
-    /// options the slot reads), or that lists nothing of its own (a first-had one, 293's), has one.
+    /// Whether a selection a pick grants has an option left for a character in `state` (tickets 303, 306d): one of its
+    /// feats, mythic abilities or options held fewer times than it can be ([`Repeat::times`](crate::Repeat::times))
+    /// whose prerequisite holds, as the game refuses a selection none of whose items it can select
+    /// (`FeatureSelectionExtensions.CanSelectAny` runs each item's `BlueprintFeatureSelection.CanSelect`,
+    /// prerequisites included; WrathDecompiled 6ce4a6b). A selection that ignores prerequisites
+    /// ([`ignores_prerequisites`](FeatureSelection::ignores_prerequisites)) skips them. A selection that nests lists
+    /// (whose options the slot reads), or that lists nothing of its own (a first-had one, 293's), has one.
     pub(super) fn has_option_left(
         &self,
         key: &FeatureSelectionKey,
@@ -111,16 +112,22 @@ impl Catalog {
         if self.nests(key) {
             return true;
         }
+        let holds = |needs: Option<&Prerequisite>| {
+            selection.ignores_prerequisites || needs.is_none_or(|needs| state.check(needs).is_ok())
+        };
         if !selection.feats.is_empty() {
             return (selection.feats.iter()).any(|key| {
-                self.feat(key)
-                    .is_none_or(|feat| state.feat_count(key) < feat.repeat().times())
+                self.feat(key).is_none_or(|feat| {
+                    state.feat_count(key) < feat.repeat().times()
+                        && holds(feat.prerequisite.as_ref())
+                })
             });
         }
         if !selection.mythic_abilities.is_empty() {
             return (selection.mythic_abilities.iter()).any(|key| {
                 self.mythic_ability(key).is_none_or(|ability| {
                     state.mythic_ability_count(key) < ability.repeat().times()
+                        && holds(ability.prerequisite.as_ref())
                 })
             });
         }
@@ -128,8 +135,10 @@ impl Catalog {
             || (selection.options.iter())
                 .chain(&selection.shared_options)
                 .any(|key| {
-                    self.option(key)
-                        .is_none_or(|option| state.option_count(key) < option.repeat().times())
+                    self.option(key).is_none_or(|option| {
+                        state.option_count(key) < option.repeat().times()
+                            && holds(option.prerequisite.as_ref())
+                    })
                 })
     }
 

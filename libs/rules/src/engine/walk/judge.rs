@@ -42,6 +42,7 @@ pub(super) fn check_pick_with(
     pick: &Pick,
 ) -> Result<(), Issue> {
     let value = pick.parameter();
+    let nested;
     let prerequisite = match (kind, pick) {
         (_, Pick::Feat { feat: key, .. }) => {
             let feat = catalog.feat(key).ok_or(Issue::UnknownKey)?;
@@ -53,7 +54,7 @@ pub(super) fn check_pick_with(
             }
             let held_for = value.is_some_and(|value| state.has_feat_for(key, value));
             check_repeat(feat.repeat(), state.feat_count(key), held_for)?;
-            check_option_left(catalog, state, feat.selection.as_ref())?;
+            nested = feat.selection.as_ref();
             if feat.requires_proficiency && !skips_proficiency(lists, key) {
                 check_proficiency(catalog, start, state, value)?;
             }
@@ -62,7 +63,7 @@ pub(super) fn check_pick_with(
                 .iter()
                 .any(|list| list.ignores_prerequisites && list.feats.contains(&feat.key))
             {
-                return Ok(());
+                return check_option_left(catalog, state, nested);
             }
             feat.prerequisite.as_ref()
         }
@@ -93,7 +94,7 @@ pub(super) fn check_pick_with(
                 None => state.has_option_for(key, value),
             });
             check_repeat(option.repeat(), count, held_for)?;
-            check_option_left(catalog, state, option.nested_selection())?;
+            nested = option.nested_selection();
             // Once through this selection, however often the option repeats (Expanded Element).
             if through.once_per_option && state.holds_through(selection, key) {
                 return Err(Issue::AlreadyHeld);
@@ -124,7 +125,7 @@ pub(super) fn check_pick_with(
             let held_for =
                 value.map_or(count > 0, |value| state.has_mythic_ability_for(key, value));
             check_repeat(ability.repeat(), count, held_for)?;
-            check_option_left(catalog, state, ability.selection.as_ref())?;
+            nested = ability.selection.as_ref();
             ability.prerequisite.as_ref()
         }
         (_, Pick::MythicFeat { feat: key, .. }) => {
@@ -135,13 +136,14 @@ pub(super) fn check_pick_with(
             let count = state.mythic_feat_count(key);
             let held_for = value.map_or(count > 0, |value| state.has_mythic_feat_for(key, value));
             check_repeat(feat.repeat(), count, held_for)?;
-            check_option_left(catalog, state, feat.selection.as_ref())?;
+            nested = feat.selection.as_ref();
             if feat.requires_proficiency {
                 check_proficiency(catalog, start, state, value)?;
             }
             feat.prerequisite.as_ref()
         }
     };
+    // Its own prerequisite first, then the selection it grants (ticket 306d): an unmet one is the reason shown.
     match (prerequisite, pick, kind) {
         (None, _, _) => Ok(()),
         // Feats see the class levels other classes count toward (Diverse Training).
@@ -157,7 +159,8 @@ pub(super) fn check_pick_with(
             .check_option(prerequisite, option, selection, value)
             .map_err(Issue::Unmet),
         (Some(prerequisite), _, _) => state.check_for(prerequisite, value).map_err(Issue::Unmet),
-    }
+    }?;
+    check_option_left(catalog, state, nested)
 }
 
 /// Whether a deity-limited selection takes an option, by its domain: one the deity offers (`Offered`) or one it
