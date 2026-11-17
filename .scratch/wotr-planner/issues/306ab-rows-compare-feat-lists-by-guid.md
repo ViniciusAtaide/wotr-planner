@@ -13,3 +13,5 @@ A slice of [306](306-importer-selections.md), the importer's stage S2, cut to ab
 ## Done when
 
 Its section in `slices.md` is built and proved as written there, and the scoped checks pass.
+
+**Also, from 306j's rescue retro (main session, 2026-11-17):** `game-check --write option-lists` skips a selection named in `--only` that holds no list, and says nothing. 306j's `witch/extra-hex` had none and was skipped. List each such selection as unexpressed with the reason "holds no list to write (seed one shared option first)", and test it.

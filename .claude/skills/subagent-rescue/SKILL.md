@@ -15,7 +15,9 @@ A subagent has been running past 30 minutes. You find out why, tell the main ses
    - `ls -lt` on the worktree and its scratchpad folder shows when it last wrote;
    - `ps` with `lsof -a -d cwd` shows what runs under the worktree: a test, a hung shell, a Python process;
    - look for locks: `target/.cargo-lock`, and `index.lock` in the worktree's git dir;
-   - logs in its scratchpad folder (`*.log`, the form proof's `compare.log`) hold its last results.
+   - logs in its scratchpad folder (`*.log`, the form proof's `compare.log`) hold its last results;
+   - the machine itself: before calling a process hung, compare its elapsed time with the test's own "finished in", and read `pmset -g log` for `Sleep` lines since the builder started. If the machine slept, the verdict is "wait", not a rescue (306j);
+   - the load: `ps -axo pcpu,comm -r | head` shows what else uses the CPU (Spotlight indexing the `target/` folders drove the load past 60 during 306j's fix).
 
    Done when you can say, for each done-when item: met, in progress, or not started.
 3. **Judge it:**
