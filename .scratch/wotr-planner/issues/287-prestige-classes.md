@@ -49,3 +49,7 @@ The report lists each finding under its group, marked `[known: 287]`, with the e
 
 - The game check reports none of this ticket's findings and `known.txt` holds no line naming 287 (exit 0, run by the main session).
 - The tests above hold the game's values, cited; the scoped checks pass.
+
+## From the 308 queue (2026-11-17)
+
+- `options/stalwart-defender/defensive-powers/clear-mind.ron` is planner-only: the game's StalwartDefenderDefensivePowerSelection 2cd91c501bda80b47ac2df0d51b02973 doesn't list Clear Mind. 308e wrote the rage power's ClearMindFeature 4a236ae2… prerequisite on it, so no Stalwart Defender can take it; remove the option.
