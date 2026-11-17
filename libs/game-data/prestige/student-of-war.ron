@@ -9,7 +9,6 @@ Class(
     fort: Poor,
     reflex: Poor,
     will: Good,
-    save_exceptions: [(level: 4, save: Will, value: 3)],
     class_skills: ["knowledge-arcana", "knowledge-world", "perception"],
     components: [
         Requires(condition: ParametrizedFeature("skill-focus", Skill("knowledge-arcana")), group: Any),

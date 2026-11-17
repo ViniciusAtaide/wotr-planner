@@ -139,20 +139,31 @@ pub(crate) fn changes(ctx: &Ctx, facts: &Facts) -> (Vec<Change>, Vec<Unexpressed
             });
         };
 
-        let points = int(&json["SkillPoints"]);
-        if let Ok(points) = u8::try_from(points)
-            && points != class.skill_points
-        {
-            push(
-                "skill_points",
-                POINTS,
-                Some(Value::One(points.to_string())),
-                class.skill_points.to_string(),
-                points.to_string(),
-            );
-            if !held(POINTS) {
-                target.skill_points = points;
+        match json["SkillPoints"].as_i64().map(u8::try_from) {
+            None => unexpressed.push(Unexpressed {
+                at: at.clone(),
+                what: "skill points: the blueprint names none".to_owned(),
+            }),
+            Some(Err(_)) => unexpressed.push(Unexpressed {
+                at: at.clone(),
+                what: format!(
+                    "skill points: {} is out of range",
+                    int(&json["SkillPoints"])
+                ),
+            }),
+            Some(Ok(points)) if points != class.skill_points => {
+                push(
+                    "skill_points",
+                    POINTS,
+                    Some(Value::One(points.to_string())),
+                    class.skill_points.to_string(),
+                    points.to_string(),
+                );
+                if !held(POINTS) {
+                    target.skill_points = points;
+                }
             }
+            Some(Ok(_)) => {}
         }
         let skills = expressed_skills(json, &at, &mut unexpressed);
         if skills != class.class_skills {
@@ -403,17 +414,23 @@ fn archetype_changes_of(
     }
 
     let total = i64::from(class.skill_points) + int(&json["AddSkillPoints"]);
-    if i64::from(archetype.skill_points.unwrap_or(class.skill_points)) != total
-        && let Ok(total) = u8::try_from(total)
-    {
-        let wanted = (total != class.skill_points).then_some(total);
-        push(
-            "skill_points",
-            POINTS,
-            wanted.as_ref().map(|points| Value::One(points.to_string())),
-            show(archetype.skill_points),
-            show(wanted),
-        );
+    if i64::from(archetype.skill_points.unwrap_or(class.skill_points)) != total {
+        match u8::try_from(total) {
+            Ok(total) => {
+                let wanted = (total != class.skill_points).then_some(total);
+                push(
+                    "skill_points",
+                    POINTS,
+                    wanted.as_ref().map(|points| Value::One(points.to_string())),
+                    show(archetype.skill_points),
+                    show(wanted),
+                );
+            }
+            Err(_) => unexpressed.push(Unexpressed {
+                at: at.clone(),
+                what: format!("skill points: {total} is out of range"),
+            }),
+        }
     }
 
     let replaces = flag(&json["ReplaceClassSkills"]);

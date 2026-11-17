@@ -5,6 +5,7 @@
     name: "Magic Deceiver",
     summary: "Arcanist (Dance of Masks DLC) who fuses spells into new ones and picks a deceiver path; no reservoir or exploits, spells to 6th level.",
     guide: "arcanist#magic-deceiver",
+    class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "persuasion", "use-magic-device"],
     levels: [
         (level: 1, features: ["arcanist-cantrips", "arcanist/magic-deceiver/magic-fusion"], feats: ["simple-weapon-proficiency"], selections: ["arcanist/magic-deceiver/ways-of-the-deceiver"]),
         (level: 3),

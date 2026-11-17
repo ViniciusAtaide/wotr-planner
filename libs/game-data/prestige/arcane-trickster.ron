@@ -4,12 +4,11 @@ Class(
     name: "Arcane Trickster",
     summary: "Ten-level rogue-caster with half BAB, full caster progression and 4 HP per level: more sneak attack dice, sneak attacks on aware foes, sneak damage on spells.",
     guide: "prestige-classes#arcane-trickster",
-    skill_points: 4,
+    skill_points: 3,
     bab: Half,
     fort: Poor,
     reflex: Good,
     will: Good,
-    save_exceptions: [(level: 4, save: Will, value: 3)],
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "perception", "persuasion", "stealth", "trickery"],
     prerequisite: All([AtLeast(2, [Feat("accomplished-sneak-attacker"), Feature(feature: "sneak-attack", count: 1), Feature(feature: "sneak-attack", count: 2)]), SkillRanks(skill: "knowledge-arcana", ranks: 4), SkillRanks(skill: "mobility", ranks: 4), SkillRanks(skill: "trickery", ranks: 4), SpellLevel(spell_type: Arcane, level: 2), CharacterLevel(5)]),
     levels: [

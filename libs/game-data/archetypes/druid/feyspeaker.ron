@@ -7,6 +7,7 @@
     guide: "druid#feyspeaker",
     skill_points: 4,
     class_skills: ["athletics", "knowledge-arcana", "knowledge-world", "lore-nature", "perception", "persuasion"],
+    bab: Half,
     levels: [
         (level: 1, features: ["druid/druid-proficiencies", "druid/nature-sense"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency"], selections: ["druid/nature-bond"]),
         (level: 4, features: ["druid/feyspeaker/fey-magic", "resist-natures-lure"]),

@@ -10,7 +10,6 @@ Class(
     fort: Good,
     reflex: Good,
     will: Poor,
-    save_exceptions: [(level: 7, save: Will, value: 3)],
     class_skills: ["athletics", "knowledge-world", "lore-nature", "perception", "persuasion", "stealth"],
     spontaneous: true,
     levels: [

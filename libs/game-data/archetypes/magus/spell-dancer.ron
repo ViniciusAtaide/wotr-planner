@@ -5,6 +5,7 @@
     name: "Spell Dancer",
     summary: "Elf-only magus trading weapon enhancement and heavier armour for mobility.",
     guide: "magus#spell-dancer",
+    class_skills: ["knowledge-arcana", "knowledge-world", "mobility", "persuasion", "use-magic-device"],
     components: [
         Requires(condition: Has(Race("elf"))),
     ],

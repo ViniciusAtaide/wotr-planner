@@ -10,7 +10,6 @@ Class(
     fort: Good,
     reflex: Poor,
     will: Good,
-    save_exceptions: [(level: 20, save: Will, value: 20)],
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "persuasion"],
     components: [
         Requires(condition: Alignment([LawfulGood])),

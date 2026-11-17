@@ -1,7 +1,7 @@
 //! The class tables the game gives (ticket 293, stage S1): saves, base attack bonus, skill points and class skills of
 //! the classes and archetypes the game check found differing (tickets 261 and 262). Each expected value is the
-//! game's, read from the class's or archetype's stat progressions and class-skill fields; the tests wait on the run
-//! that writes them (ticket 293l), which removes each `#[ignore]`.
+//! game's, read from the class's or archetype's stat progressions and class-skill fields; the run that wrote
+//! them is ticket 293l.
 
 use rules::{ArchetypeKey, ClassKey, Save};
 
@@ -33,7 +33,6 @@ fn save_of(class: &str, archetype: Option<&str>, save: Save, level: u8) -> u8 {
 /// 1f309006cd2855e4e91a6c3707f3f700 (0, 1, 1, 2, 2, …) and SavesPrestigeLow dc5257e1100ad0d48b8f3b9798421c72
 /// (0, 0, 1, 1, 1, …); WrathDecompiled ClassData.FortitudeSave, ReflexSave and WillSave (the archetype's when set).
 #[test]
-#[ignore = "waits on ticket 293l"]
 fn the_save_tables_are_the_games() {
     use Save::{Fortitude, Reflex, Will};
     // (class, archetype, save, class level, the game's bonus), each row's table cited
@@ -99,7 +98,6 @@ fn the_save_tables_are_the_games() {
 /// 4c936de4249b61e419a3fb775b9f2581 (0, 0, 1, 2, 3, …: 2 at 3); DruidClass 610d836f3a3a9ed42a4349b62f002e96,
 /// FeyspeakerArchetype da69747aa3dd0044ebff5f3d701cdde3 (`m_BaseAttackBonus` BABLow).
 #[test]
-#[ignore = "waits on ticket 293l"]
 fn the_feyspeakers_bab_is_low() {
     let druid = DATA.class(&ClassKey::new("druid")).expect("the druid");
     let feyspeaker = DATA
@@ -115,7 +113,6 @@ fn the_feyspeakers_bab_is_low() {
 /// fighter's 2 (FighterClass) plus `AddSkillPoints` 1 on DefenderOfTheHearthArchetype
 /// 6c96dc1f5573487399336cd351ef8f2c.
 #[test]
-#[ignore = "waits on ticket 293l"]
 fn skill_points_are_the_games() {
     let trickster = DATA
         .class(&ClassKey::new("arcane-trickster"))
@@ -160,7 +157,6 @@ fn class_skills_of(entry: &str) -> Vec<String> {
 /// set none: their blueprints' `ReplaceClassSkills` is false, and the skill each gives back comes through its own
 /// feature). Skill names are the planner's keys (SkillThievery is "trickery").
 #[test]
-#[ignore = "waits on ticket 293l"]
 fn class_skills_are_the_games() {
     let alchemist = &[
         "knowledge-arcana",

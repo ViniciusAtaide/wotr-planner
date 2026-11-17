@@ -9,7 +9,6 @@ Class(
     fort: Good,
     reflex: Good,
     will: Poor,
-    save_exceptions: [(level: 2, save: Reflex, value: 2)],
     class_skills: ["athletics", "lore-nature", "mobility", "perception", "stealth"],
     components: [
         Requires(condition: Alignment([NeutralGood, LawfulNeutral, TrueNeutral, ChaoticNeutral, NeutralEvil])),

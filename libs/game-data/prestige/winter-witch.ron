@@ -9,7 +9,6 @@ Class(
     fort: Poor,
     reflex: Poor,
     will: Good,
-    save_exceptions: [(level: 4, save: Will, value: 3)],
     class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "persuasion", "use-magic-device"],
     components: [
         Requires(condition: Any([Has(Archetype("druid/winter-child")), Has(Option("shaman/spirit/frost")), Has(Option("witch/patron/winter"))])),

@@ -1,0 +1,2 @@
+full druid druid/feyspeaker
+full druid druid/feyspeaker / legend

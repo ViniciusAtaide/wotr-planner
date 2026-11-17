@@ -1553,3 +1553,70 @@ fn a_selection_whose_blueprint_is_another_selections_too_is_listed_unless_both_a
     assert!(unexpressed_of(&outcome, "selection echo-a").is_empty());
     assert!(read(dir.path(), "selections/echo-a.ron").contains("shared_options: [\"power-x\"]"));
 }
+
+/// The fixture's records with `from` replaced by `to` in the raw JSON of the blueprint named `name`.
+fn records_with(name: &str, from: &str, to: &str) -> Vec<crate::support::Record> {
+    let mut records = crate::support::records();
+    let record = records.iter_mut().find(|r| r.name == name).unwrap();
+    assert!(record.raw.contains(from), "{name} has no {from}");
+    record.raw = record.raw.replace(from, to);
+    records
+}
+
+fn the_skill_points_stay_and_are_listed(
+    records: Vec<crate::support::Record>,
+    at: &str,
+    what: &str,
+) {
+    let dir = data_copy();
+    let outcome = write_tables(dir.path(), records, &applied_facts());
+    assert!(
+        outcome
+            .unexpressed
+            .iter()
+            .any(|each| each.at.to_string() == at && each.what.contains(what)),
+        "{:?}",
+        outcome.unexpressed
+    );
+    assert!(
+        outcome
+            .changes
+            .iter()
+            .chain(&outcome.to_the_user)
+            .all(|c| c.at.to_string() != at || c.field != "skill_points"),
+        "{:?}",
+        outcome.changes
+    );
+    let (file, kept) = match at {
+        "class warden" => ("classes/warden.ron", "    skill_points: 4,\n"),
+        _ => ("archetypes/warden/stoic.ron", "    skill_points: 5,\n"),
+    };
+    assert!(read(dir.path(), file).contains(kept));
+}
+
+#[test]
+fn a_class_whose_blueprint_has_no_skill_points_is_listed_not_planned_to_zero() {
+    the_skill_points_stay_and_are_listed(
+        records_with("WardenClass", "\"SkillPoints\":3,", ""),
+        "class warden",
+        "skill points",
+    );
+}
+
+#[test]
+fn a_skill_points_value_out_of_range_is_listed_not_skipped() {
+    the_skill_points_stay_and_are_listed(
+        records_with("WardenClass", "\"SkillPoints\":3", "\"SkillPoints\":300"),
+        "class warden",
+        "skill points",
+    );
+    the_skill_points_stay_and_are_listed(
+        records_with(
+            "StoicArchetype",
+            "\"AddSkillPoints\":1",
+            "\"AddSkillPoints\":300",
+        ),
+        "archetype warden/stoic",
+        "skill points",
+    );
+}
