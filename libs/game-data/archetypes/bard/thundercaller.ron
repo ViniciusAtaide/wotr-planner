@@ -8,11 +8,11 @@
     levels: [
         (level: 1, features: ["bard/bard-proficiencies", "bard/inspire-courage", "bard/thundercaller/bound-to-the-land"], feats: ["armor-proficiency-light-armor", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 3, features: ["bard/thundercaller/thunder-call"]),
-        (level: 6, features: ["bard/fascinate", "bard/thundercaller/incite-rage"], selections: ["rogue/rogue-talents"]),
+        (level: 6, features: ["bard/fascinate", "bard/thundercaller/incite-rage"], selections: ["bard/rogue-talents"]),
         (level: 7, features: ["bard/bardic-performance-move-action", "bard/thundercaller/thunder-call"]),
         (level: 8, features: ["bard/thundercaller/storm-call"]),
         (level: 11, features: ["bard/thundercaller/thunder-call"]),
-        (level: 14, features: ["bard/frightening-tune", "bard/thundercaller/storm-call-greater"], selections: ["rogue/rogue-talents"]),
+        (level: 14, features: ["bard/frightening-tune", "bard/thundercaller/storm-call-greater"], selections: ["bard/rogue-talents"]),
         (level: 15, features: ["bard/inspire-heroics", "bard/thundercaller/thunder-call"]),
         (level: 19, features: ["bard/thundercaller/thunder-call"]),
     ],

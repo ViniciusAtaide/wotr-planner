@@ -35,6 +35,7 @@
 //!   another number), with the options that appeared or disappeared, and fails on any. It judges the Builds the old
 //!   links open to. A record without `offers.bin` (an older one) compares everything else and says offers were not
 //!   recorded. The options' names are those of the tree now: an option that disappeared is counted, not named.
+//!   `compare` also counts the Builds a status changed in, and `FORM_PROOF_OFFER_BUILDS_OUT=<file>` writes their names.
 //! - **The link census** (ticket 306c): `compare` opens each old link that opened with this tree's data and prints
 //!   how many opened with the same picks, through an heir (a pick carried to the entry whose `aliases` name its key)
 //!   or refused (`links: N the same, N through an heir, N refused, N changed`); one that opens as another Build is a
@@ -713,6 +714,14 @@ impl OfferChanges {
         for ((key, from, to), n) in changes.into_iter().take(shown) {
             let builds = self.builds.get(key).map_or(0, BTreeSet::len);
             writeln!(text, "  {n:6} {key}: {from} -> {to} ({builds} Builds)").unwrap();
+        }
+        // The Builds a status changed in, once each; `FORM_PROOF_OFFER_BUILDS_OUT=<file>` writes their names.
+        let changed: BTreeSet<&String> = self.builds.values().flatten().collect();
+        writeln!(text, "offers: statuses changed in {} Builds", changed.len()).unwrap();
+        if let Some(file) = std::env::var_os("FORM_PROOF_OFFER_BUILDS_OUT") {
+            let names: Vec<&str> = changed.iter().map(|name| name.as_str()).collect();
+            std::fs::write(file, names.join("\n"))
+                .expect("FORM_PROOF_OFFER_BUILDS_OUT is writable");
         }
         text
     }

@@ -211,7 +211,7 @@
             (item: Feature("bard/frightening-tune")),
             (item: Feature("bard/inspire-competence")),
             (item: Feature("bard/inspire-courage")),
-            (item: Selection("rogue/rogue-talents"), at: [2, 10], why: "table has no Rogue Talents at these levels; its rows there show 2: Well Versed, Augment Summoning; 10: Jack of All Trades"),
+            (item: Selection("bard/rogue-talents"), at: [2, 10], why: "table has no Rogue Talents at these levels; its rows there show 2: Well Versed, Augment Summoning; 10: Jack of All Trades"),
             (item: Feature("bard/well-versed"), waits_on: "ticket 286", why: "the game removes Well-Versed at 2"),
         ],
     ),
@@ -1627,7 +1627,7 @@
             (item: Feature("well-versed")),
             (item: Feat("scribe-scrolls")),
             (item: Selection("barbarian/rage-power"), at: [9, 15], why: "table has no Rage Power at these levels; its rows there show 9: Skald Talent; 15: nothing"),
-            (item: Selection("rogue/rogue-talents")),
+            (item: Selection("rogue/skald-talents")),
         ],
     ),
     // Game: ArcaneEnforcerArchetype 23a5d0ca607f6094097d509b2b1f4a10

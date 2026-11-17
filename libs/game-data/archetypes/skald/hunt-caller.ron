@@ -6,7 +6,7 @@
     summary: "You turn yourself and allies into wolves and share Scent, at the cost of some songs and two rage powers.",
     guide: "skald#hunt-caller",
     levels: [
-        (level: 2, selections: ["rogue/rogue-talents"]),
+        (level: 2, selections: ["rogue/skald-talents"]),
         (level: 6, features: ["skald/hunt-caller/inspire-scent", "skald/hunt-caller/scent"]),
         (level: 10, features: ["skald/hunt-caller/call-of-the-wild-i", "dirge-of-doom"]),
         (level: 14, features: ["skald/damage-reduction", "skald/hunt-caller/call-of-the-wild-ii"]),

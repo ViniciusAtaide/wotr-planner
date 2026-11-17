@@ -6,9 +6,9 @@
     summary: "Bard with necromantic spells and powers over the dead.",
     guide: "bard#dirge-bard",
     levels: [
-        (level: 2, features: ["bard/dirge-bard/haunted-eyes", "bard/dirge-bard/secrets-of-the-grave"], selections: ["rogue/rogue-talents"]),
+        (level: 2, features: ["bard/dirge-bard/haunted-eyes", "bard/dirge-bard/secrets-of-the-grave"], selections: ["bard/rogue-talents"]),
         (level: 5, features: ["bard/dirge-bard/haunting-refrain", "bard/lore-master"]),
-        (level: 10, features: ["bard/dirge-bard/dance-of-the-dead", "bard/dirge-bard/haunting-refrain"], selections: ["rogue/rogue-talents"]),
+        (level: 10, features: ["bard/dirge-bard/dance-of-the-dead", "bard/dirge-bard/haunting-refrain"], selections: ["bard/rogue-talents"]),
         (level: 15, features: ["bard/dirge-bard/haunting-refrain", "bard/inspire-heroics"]),
         (level: 20, features: ["bard/deadly-performance", "bard/dirge-bard/haunting-refrain"]),
     ],
