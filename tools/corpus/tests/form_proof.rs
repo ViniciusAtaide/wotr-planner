@@ -35,6 +35,11 @@
 //!   another number), with the options that appeared or disappeared, and fails on any. It judges the Builds the old
 //!   links open to. A record without `offers.bin` (an older one) compares everything else and says offers were not
 //!   recorded. The options' names are those of the tree now: an option that disappeared is counted, not named.
+//! - **The link census** (ticket 306c): `compare` opens each old link that opened with this tree's data and prints
+//!   how many opened with the same picks, through an heir (a pick carried to the entry whose `aliases` name its key)
+//!   or refused (`links: N the same, N through an heir, N refused, N changed`); one that opens as another Build is a
+//!   difference. `FORM_PROOF_LINKS_OUT=<file>` writes `name<TAB>slot<TAB>key<TAB>kind` of each heir (`old=>new`)
+//!   and each refused pick. `tests/links.rs` pins a stage's base links and refusals.
 //! - **`FORM_PROOF_KIND_MAP=<file>`** is for a ticket that renames a slot kind: a file of `old kind<TAB>new kind` lines
 //!   (the `Debug` text of the kind, as `slots.txt` holds it; `#` comments). `compare` accepts a slot line that
 //!   differs only by its kind through the map, and prints how many it mapped apart from the differences.
@@ -48,10 +53,11 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 use std::io::{self, BufReader, BufWriter, Read, Write};
 use std::path::{Path, PathBuf};
 
+use corpus::links::{Fate, fate};
 use corpus::{Named, in_parallel};
 use rules::{
-    Build, CasterPart, Energy, Engine, LinkKeys, SpellSchool, SpellTraits, Subschool, Total,
-    WeaponKey, decode_build, encode_build,
+    Build, CasterPart, Energy, Engine, GameData, LinkKeys, SpellSchool, SpellTraits, Subschool,
+    Total, WeaponKey, decode_build, encode_build,
 };
 
 /// How many differences of each kind `compare` prints (`FORM_PROOF_SHOWN` sets another number).
@@ -904,6 +910,18 @@ fn compare() {
         }
     }
 
+    // The link census: each old link that opened, opened with this tree's data: the same picks, through an heir (a
+    // pick carried to the entry whose `aliases` name its key), or refused. A link that opens as another Build is a
+    // difference.
+    let census = link_census(&engine, &data, &keys, &before);
+    println!("{}", census.summary());
+    for (name, why) in &census.changed {
+        differences.add("opened link", name, "the same picks or an heir", why);
+    }
+    if let Some(file) = std::env::var_os("FORM_PROOF_LINKS_OUT") {
+        std::fs::write(&file, &census.lines).expect("FORM_PROOF_LINKS_OUT is writable");
+    }
+
     // The offers: every option's status kind at every slot of the old links' Builds, against the record, streamed.
     let changes = if before_dir.join(OFFERS_FILE).exists() {
         let changes = compare_offers(&engine, &builds, threads, &before_dir);
@@ -931,6 +949,55 @@ fn compare() {
         differences.report(),
         changes.map_or(String::new(), |changes| changes.report())
     );
+}
+
+/// What the old links that opened came to with this tree's data (ticket 306c).
+#[derive(Default)]
+struct LinkCensus {
+    same: usize,
+    heirs: usize,
+    refused: usize,
+    /// The links that open as another Build, by Build and how.
+    changed: Vec<(String, String)>,
+    /// `name<TAB>slot<TAB>key<TAB>kind` of each heir (`key` is `old=>new`) and each refused pick.
+    lines: String,
+}
+
+impl LinkCensus {
+    fn summary(&self) -> String {
+        format!(
+            "links: {} the same, {} through an heir, {} refused, {} changed",
+            self.same,
+            self.heirs,
+            self.refused,
+            self.changed.len()
+        )
+    }
+}
+
+/// Opens the link of each recorded Build that opened, and counts what became of it.
+fn link_census(engine: &Engine, data: &GameData, keys: &LinkKeys, before: &[Entry]) -> LinkCensus {
+    let mut census = LinkCensus::default();
+    for e in before.iter().filter(|e| e.opens) {
+        match fate(engine, data, keys, &e.link, &e.picks) {
+            Fate::Same => census.same += 1,
+            Fate::Heirs(moved) => {
+                census.heirs += 1;
+                for (slot, old, new) in moved {
+                    let name = &e.name;
+                    writeln!(census.lines, "{name}\t{slot:?}\t{old}=>{new}\their").unwrap();
+                }
+            }
+            Fate::Refused(picks) => {
+                census.refused += 1;
+                for (slot, key) in picks {
+                    writeln!(census.lines, "{}\t{slot}\t{key}\trefused", e.name).unwrap();
+                }
+            }
+            Fate::Changed(why) => census.changed.push((e.name.clone(), why)),
+        }
+    }
+    census
 }
 
 /// The unit tests of the record's and the compare's pieces (they run with `cargo test -p corpus`).
