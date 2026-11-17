@@ -54,7 +54,9 @@
 //!   --log` writes. `compare` then attributes each differing line of `builds.tsv`, `slots.txt`, `sheets.txt` and
 //!   `numbers.txt` (and the reopened Builds' slots and sheets) instead of failing on it. A line is attributed when the
 //!   Build holds an entry the log has a row for, and that row's field is one that moves the line's kind (`FIELDS`: a save
-//!   field the header and the save totals, `class_skills` the skill lines, `bab` the header and the attack lines…). A
+//!   field the header and the save totals, `class_skills` the skill lines, `bab` the header and the attack lines,
+//!   `prerequisite` (ticket 308b) every kind: the entry may be a class, an archetype or a pick key of the base or the
+//!   tip, and a change-log entry of two words, `selection option a/b`, reads as its last word…). A
 //!   field that gates a pick or sizes the generator's draws (`bab`, `skill_points`) also accounts for every line of a
 //!   Build whose link or slots changed. `compare` prints `census <field>: N lines in N Builds (per file)` and each
 //!   unattributed line (the first `FORM_PROOF_SHOWN`), and fails on any. A log field `FIELDS` lacks is refused: the
@@ -617,6 +619,28 @@ fn pick_key(pick: &str) -> Option<&str> {
     None
 }
 
+/// Every key the picks' `Debug` text names (`pick_key`'s scan, repeated past each key found).
+fn pick_keys(picks: &str) -> BTreeSet<String> {
+    let mut keys = BTreeSet::new();
+    let mut rest = picks;
+    while let Some(key) = pick_key(rest) {
+        keys.insert(key.to_owned());
+        let end = key.as_ptr() as usize - rest.as_ptr() as usize + key.len();
+        rest = &rest[end..];
+    }
+    keys
+}
+
+/// The entries a Build holds for the census (ticket 308b): its classes and archetypes, and the pick keys of the base
+/// and the tip, so a prerequisite change attributes the Build that held the entry on either side.
+fn held_with_picks(held: &BTreeSet<String>, picks: &[&str]) -> BTreeSet<String> {
+    let mut all = held.clone();
+    for picks in picks {
+        all.extend(pick_keys(picks));
+    }
+    all
+}
+
 /// Every option of every slot of a Build's walk, with its status's kind.
 fn offers(engine: &Engine, build: &Build) -> Vec<Offer> {
     let sheet = engine.evaluate(build);
@@ -984,8 +1008,9 @@ fn compare() {
                     ("sheets.txt", sheet_kind, b.sheet.clone(), &n.sheet),
                     ("numbers.txt", numbers_kind, b.numbers.clone(), &n.numbers),
                 ];
+                let held_set = held_with_picks(&n.held, &[&b.picks, &n.picks]);
                 for (file, classify, before, now) in files {
-                    let held = (&n.held, regenerated);
+                    let held = (&held_set, regenerated);
                     attribution.lines(file, build, held, (&before, now), classify);
                 }
             }
@@ -1034,7 +1059,8 @@ fn compare() {
                 let slots = (b.slots.as_str(), r.slots.as_str());
                 match attribution.as_mut() {
                     Some(attribution) => {
-                        let held = (&r.held, false);
+                        let held_set = held_with_picks(&r.held, &[&b.picks, &r.picks]);
+                        let held = (&held_set, false);
                         let (before, _) = map_slot_kinds(slots.0, &kind_map);
                         attribution.lines(
                             "reopened slots",
@@ -1194,6 +1220,23 @@ const FIELDS: &[FieldMoves] = &[
         kinds: &[LineKind::Skill],
         regenerates: true,
     },
+    // A prerequisite (ticket 308b): a refused or newly allowed pick can move every line of a Build that holds the
+    // entry, at the base or the tip.
+    FieldMoves {
+        field: "prerequisite",
+        kinds: &[
+            LineKind::Header,
+            LineKind::Totals,
+            LineKind::Skill,
+            LineKind::Spell,
+            LineKind::Attack,
+            LineKind::Steps,
+            LineKind::Sheet,
+            LineKind::Slot,
+            LineKind::Link,
+        ],
+        regenerates: true,
+    },
 ];
 
 /// The `FIELDS` row of a change-log field.
@@ -1214,7 +1257,8 @@ fn read_change_log(text: &str) -> BTreeMap<String, BTreeSet<&'static str>> {
         let (entry, field) = (columns.next().unwrap_or(""), columns.next());
         let field =
             field.unwrap_or_else(|| panic!("a change-log line has a field column: {line:?}"));
-        let key = entry.split_once(' ').map_or(entry, |(_, key)| key);
+        // `class x`, `selection option a/b` and `mythic ability x` read as their keys.
+        let key = entry.rsplit_once(' ').map_or(entry, |(_, key)| key);
         rows.entry(key.to_owned())
             .or_default()
             .insert(field_moves(field).field);
@@ -1826,6 +1870,62 @@ mod pieces {
         );
         assert_eq!(attribution.unattributed.len(), 3);
         assert!(attribution.unattributed[2].contains("bench b"));
+    }
+
+    #[test]
+    fn a_prerequisite_row_attributes_every_line_of_a_build_holding_the_entry_at_the_base() {
+        let log = "entry\tfield\told\tnew\tfindings removed\tfact\n\
+            feat extra-feat\tprerequisite\ta\tb\tx\t-\n";
+        let mut attribution = Attribution::new(read_change_log(log));
+        // The base's picks name the entry; the tip's (a refused pick) do not.
+        let held = held_with_picks(&held(&["fighter"]), &[EXTRA, ""]);
+        assert!(held.contains("extra-feat"));
+        let files: [(&str, Classify, &str); 10] = [
+            ("builds.tsv", link_kind, "x"),
+            ("slots.txt", slot_kind, "x"),
+            ("sheets.txt", sheet_kind, "x"),
+            ("numbers.txt", numbers_kind, HEADER),
+            ("numbers.txt", numbers_kind, TOTALS),
+            ("numbers.txt", numbers_kind, SKILL),
+            ("numbers.txt", numbers_kind, ATTACK),
+            ("numbers.txt", numbers_kind, "  steps 1,2"),
+            ("numbers.txt", numbers_kind, "  caster arcane 1"),
+            ("numbers.txt", numbers_kind, "  other"),
+        ];
+        for (file, classify, line) in files {
+            attribution.lines(file, "b", (&held, false), (line, "changed"), classify);
+        }
+        let attributed = &attribution.counts["prerequisite"];
+        assert_eq!(attributed.0["numbers.txt"], 7);
+        assert_eq!(attributed.1.len(), 1);
+        assert!(attribution.unattributed.is_empty());
+        // A Build holding no entry of the row is not attributed.
+        attribution.lines(
+            "slots.txt",
+            "c",
+            (&held_none(), false),
+            ("x", "y"),
+            slot_kind,
+        );
+        assert_eq!(attribution.unattributed.len(), 1);
+    }
+
+    #[test]
+    fn a_change_log_entry_with_a_two_word_kind_reads_as_its_key() {
+        let log = "entry\tfield\told\tnew\tfindings removed\tfact\n\
+            selection option rogue/rogue-talents/uncanny-dodge\tprerequisite\ta\tb\tx\t-\n\
+            mythic ability impossible-domain\tprerequisite\ta\tb\tx\t-\n\
+            class stalwart-defender\tfort\ta\tb\tx\t-\n";
+        let rows = read_change_log(log);
+        let keys: Vec<&str> = rows.keys().map(String::as_str).collect();
+        assert_eq!(
+            keys,
+            [
+                "impossible-domain",
+                "rogue/rogue-talents/uncanny-dodge",
+                "stalwart-defender"
+            ]
+        );
     }
 
     #[test]
