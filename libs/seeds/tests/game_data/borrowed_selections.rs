@@ -236,7 +236,6 @@ fn a_feyform_shifters_rogue_talent_is_the_rogues_selection() {
 // Game: VivisectionistArchetype 68cbcd9fbf1fb1d489562f829bb97e38 adds AdvanceTalents a33b99f95322d6741af83e9381b2391c
 // at 10; e.g. BlindingStrike fd01c15d9e74cd247b1fdbd6eb4d4713 needs AdvanceTalents
 #[test]
-#[ignore = "waits on ticket 276: the game gives one Advanced Talents feature, which the Vivisectionist's meets for every advanced talent"]
 fn the_vivisectionists_advanced_talents_meet_every_advanced_talent() {
     for talent in ADVANCED_TALENTS.map(rogue_talent) {
         assert!(
@@ -251,7 +250,8 @@ fn the_vivisectionists_advanced_talents_meet_every_advanced_talent() {
 // a33b99f95322d6741af83e9381b2391c or SneakyTricksFeature; PrerequisiteFeature SneakAttack
 // 9b9eac6709e1c084cb18c3a366e0ec87)
 #[test]
-#[ignore = "waits on ticket 276: the game gives Emboldening Strike the Advanced Talents and Sneak Attack prerequisites"]
+#[ignore = "waits on ticket 307: the game gives Emboldening Strike the Advanced Talents and Sneak Attack \
+            prerequisites, which 308e's writer leaves whole until TaintedSneakAttackFeature's carrier"]
 fn emboldening_strike_is_an_advanced_talent() {
     let prerequisite = option_prerequisite(&rogue_talent("emboldening-strike"));
     assert!(names_feature(prerequisite, "advanced-talents"));
@@ -263,7 +263,8 @@ fn emboldening_strike_is_an_advanced_talent() {
 // EmboldeningStrike ba6bea8c93c64764ab7e5bbdb88fb9a6, PetrifyingStrike 719d4539f7824eb99b8c6668e77820d2: each
 // PrerequisiteFeature SneakAttack 9b9eac6709e1c084cb18c3a366e0ec87 (Group All)
 #[test]
-#[ignore = "waits on ticket 276: the game gives six advanced talents a Sneak Attack prerequisite"]
+#[ignore = "waits on ticket 307: the game gives six advanced talents a Sneak Attack prerequisite, which 308e's \
+            writer leaves whole until TaintedSneakAttackFeature's carrier"]
 fn six_advanced_talents_need_sneak_attack() {
     let names_sneak_attack = |prerequisite: &Prerequisite| {
         prerequisite.leaves().any(|leaf| {
@@ -501,7 +502,8 @@ fn a_bard_takes_rogue_talents_and_an_archaeologist_advanced_ones_from_10() {
 // Game: CripplingStrike b696bd7cb38da194fa3404032483d1db (PrerequisiteFeature SneakAttack
 // 9b9eac6709e1c084cb18c3a366e0ec87); ArchaeologistArchetype 38384e0c1e99c2e42ac6ed70a04aca46 grants no SneakAttack
 #[test]
-#[ignore = "waits on ticket 276: the game locks Crippling Strike for an Archaeologist 10, who has no Sneak Attack"]
+#[ignore = "waits on ticket 307: the game locks Crippling Strike for an Archaeologist 10, who has no Sneak \
+            Attack; 308e's writer leaves it whole until TaintedSneakAttackFeature's carrier"]
 fn an_archaeologist_10_has_no_sneak_attack_for_crippling_strike() {
     let archaeologist = borrower("bard", Some(ARCHAEOLOGIST), 10);
     assert!(offered(&archaeologist, 10)[&rogue_talent("crippling-strike")].is_err());
@@ -527,7 +529,6 @@ fn a_feyform_shifter_picks_a_rogue_talent_at_8_and_14_but_no_advanced_one() {
 // FeyformShifterShifterArchetype 1cdfc7d306d1430eac19427539b62091 (RogueTalentSelection
 // c074a5d615200494b8f2a9c845799d93 at 8); BlueprintFeatureSelection.CanSelect, WrathDecompiled 6ce4a6b
 #[test]
-#[ignore = "waits on ticket 276: the game offers a rogue 10 the advanced talents at the Feyform Shifter's slot"]
 fn a_rogue_10_feyform_shifter_is_offered_the_advanced_talents() {
     let rogue_then_feyform = multiclass(&[("rogue", None, 10), ("shifter", Some(FEYFORM), 8)]);
     let slot = the_slot_at(&rogue_then_feyform, 18);
@@ -637,7 +638,6 @@ fn a_sanctified_slayer_picks_slayer_talents_at_8_16_17_and_20() {
 // SlayerTalentSelection6 43d1b15873e926848be2abf0ea3ad9a8, which SanctifiedSlayerArchetype
 // 19b4a243d9a4bd34887d03c3dea03ced adds at 8
 #[test]
-#[ignore = "waits on stage S4 (the prerequisites writer): the first combat style talent's option still needs slayer level 2 (known.txt, 276)"]
 fn a_sanctified_slayer_8_may_take_the_first_combat_style_feat() {
     let at_8 = borrower("inquisitor", Some(SANCTIFIED), 8);
     assert_eq!(
@@ -808,7 +808,6 @@ fn an_eldritch_scoundrel_is_offered_uncanny_dodge_at_each_talent_level() {
 // Game: UncannyDodgeTalent ca5274d057152fa45b7527cad0927840 (PrerequisiteArchetypeLevel EldritchScoundrelArchetype
 // 57f93dd8423c97c49989501281296c4a 4)
 #[test]
-#[ignore = "waits on ticket 276: the game gives the Uncanny Dodge talent from Eldritch Scoundrel 4, not at 2"]
 fn an_eldritch_scoundrel_2_isnt_offered_uncanny_dodge() {
     assert!(!open_at(&scoundrel(20), 2, &rogue_talent(UNCANNY_DODGE)));
 }
@@ -840,7 +839,6 @@ fn an_eldritch_scoundrel_has_no_improved_uncanny_dodge_at_2_or_8() {
 // Game: ImprovedUncannyDodgeTalent e821c61b2711cea4cb993725b910e7e8 (PrerequisiteArchetypeLevel
 // EldritchScoundrelArchetype 57f93dd8423c97c49989501281296c4a 12; no Uncanny Dodge prerequisite)
 #[test]
-#[ignore = "waits on ticket 276: the game gives Improved Uncanny Dodge from Eldritch Scoundrel 12, with no Uncanny Dodge first"]
 fn an_eldritch_scoundrel_takes_improved_uncanny_dodge_from_rogue_12() {
     let improved = rogue_talent(IMPROVED_UNCANNY_DODGE);
     let build = scoundrel(20);
@@ -923,7 +921,6 @@ fn no_other_class_or_archetype_is_offered_the_scoundrels_talents() {
 // SlayerTalentSelection6 43d1b15873e926848be2abf0ea3ad9a8, SlayerTalentSelection10 913b9cf25c9536949b43a2651b7ffb66,
 // RogueTalentSelection c074a5d615200494b8f2a9c845799d93 (the Feyform's)
 #[test]
-#[ignore = "waits on ticket 308: the lists hold the talents (276, applied), but their prerequisite is still the Eldritch Scoundrel alone"]
 fn the_bard_slayer_and_feyform_shifter_are_offered_the_uncanny_dodge_talents() {
     let [uncanny_dodge, improved] = SCOUNDRELS_TALENTS.map(rogue_talent);
     for bard in [
@@ -947,7 +944,6 @@ fn the_bard_slayer_and_feyform_shifter_are_offered_the_uncanny_dodge_talents() {
 /// character level 4 (the bard's level 2) doesn't offer it.
 // Game: UncannyDodgeTalent ca5274d057152fa45b7527cad0927840 (Any: Eldritch Scoundrel 4, bard 4, slayer 4, …)
 #[test]
-#[ignore = "waits on ticket 276: the game refuses Uncanny Dodge to an Eldritch Scoundrel 2 / bard 2"]
 fn a_scoundrel_2_with_bard_2_isnt_offered_uncanny_dodge() {
     let build = multiclass(&[("rogue", Some(ELDRITCH_SCOUNDREL), 2), ("bard", None, 2)]);
     assert!(!open_at(&build, 4, &rogue_talent(UNCANNY_DODGE)));

@@ -91,8 +91,20 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
             // Ticket 308d: a selection's own PrerequisiteNoFeature of a blueprint it shares with another entry
             // (SecondMystery 277b0164740b97945a3f8022bd572f48, SecondBloodragerBloodline
             // b7f62628915bdb14d8888c25da3fac56), each held entry named once.
-            Prerequisite::Any(_) => {
-                assert!(!text.contains('('), "{child:?} reads {text:?}");
+            // Ticket 308e: the slayer's combat style talents, whose own NoFeature names a blueprint the ranger's stage
+            // selection shares (RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9, 6 and 10); an option's own
+            // name may hold a parenthesis ("Combat Style Feat (10th level or later)"), so it is set aside first.
+            Prerequisite::Any(members) => {
+                let bare = members
+                    .iter()
+                    .fold(text.clone(), |text, member| match member {
+                        Prerequisite::SelectionOption(key) => {
+                            let name = &DATA.selection_option(key).expect("an option").name;
+                            text.replacen(name.as_str(), "", 1)
+                        }
+                        _ => text,
+                    });
+                assert!(!bare.contains('('), "{child:?} reads {text:?}");
                 ("any held", "Not with ")
             }
             other => panic!("a new negated kind: {other:?} reads {text:?}"),
@@ -178,7 +190,6 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
 /// The slayer's 2nd-level combat style talent needs only that it isn't held: a slayer who skipped it at 2 and 4
 /// takes it at 6.
 #[test]
-#[ignore = "waits on stage S4 (the prerequisites writer): the 2nd-level combat style talent's option still carries the old upper slayer level (known.txt, 276)"]
 fn a_slayer_6_who_skipped_it_takes_the_2nd_level_combat_style() {
     // Game: RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9 needs only that it isn't held, and
     // SlayerTalentSelection6 43d1b15873e926848be2abf0ea3ad9a8 offers it.

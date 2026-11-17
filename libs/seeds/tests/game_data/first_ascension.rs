@@ -180,6 +180,7 @@ fn the_enforcer_takes_bit_of_fun_at_mr_1_and_goes_azata_at_mr_3() {
 fn every_older_link_decodes_to_the_same_build_and_takes_its_mr_3_paths_first_ascension() {
     let engine = engine();
     let keys = rules::LinkKeys::new(&DATA);
+    let mut nauseating_flesh_dropped = Vec::new();
     for (path, link) in OLD_LINKS.into_iter().chain([("azata", ENFORCER)]) {
         let build = decode_build(link, &keys).expect("an old link decodes");
         assert_eq!(build.first_ascension, None, "{path}");
@@ -197,10 +198,12 @@ fn every_older_link_decodes_to_the_same_build_and_takes_its_mr_3_paths_first_asc
             build
         };
         // Its combat feats the game's fighter list lacks fail since ticket 306s, its weapon feats in weapons the
-        // character isn't proficient with since ticket 251, and Over-Infused Blasts without kineticist 1 and Impossible
-        // Domain without a domain selection since 308d.
+        // character isn't proficient with since ticket 251, Over-Infused Blasts without kineticist 1 and Impossible
+        // Domain without a domain selection since 308d, and Nauseating Flesh below level 12 since 308e.
         let build = without_picks_the_fighters_list_lacks(build);
         let build = without_mythic_abilities_the_game_refuses_since_308d(build);
+        let (build, emptied) = without_discoveries_the_game_refuses_since_308e(build);
+        nauseating_flesh_dropped.extend(emptied.into_iter().map(|slot| (path, slot)));
         let build = without_unproficient_picks(build);
         assert!(possible(&build), "{path}");
         // MR 1 and 2 give the MR 3 path's rows, from their own ranks.
@@ -217,4 +220,12 @@ fn every_older_link_decodes_to_the_same_build_and_takes_its_mr_3_paths_first_asc
         chosen.first_ascension = Some(MythicPathKey::new(path));
         assert_eq!(engine.evaluate(&chosen), sheet, "{path}");
     }
+    // Exactly two older links took Nauseating Flesh in the alchemist's discovery slot below alchemist 12: `full
+    // alchemist` (demon) at alchemist 10 and `full alchemist alchemist/chirurgeon` (lich) at alchemist 2. The game
+    // refuses both (NauseatingFlesh de112af9600e0e446af0c7ef0707e1c8: PrerequisiteClassLevel AlchemistClass 12).
+    let discovery = |level| rules::SlotId::Selection { level, index: 0 };
+    assert_eq!(
+        nauseating_flesh_dropped,
+        [("demon", discovery(10)), ("lich", discovery(2))]
+    );
 }

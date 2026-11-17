@@ -1,1 +1,1 @@
-(key: "magus/magus-arcana/empowered-magic-level-6", blueprint: "4cab1e1a9d8e68f41a48777196c65501", name: "Empowered Magic (Level 6)", summary: "Cast three spells a day as if with Empower Spell.", guide: "magus#empowered-magic-level-6")
+(key: "magus/magus-arcana/empowered-magic-level-6", blueprint: "4cab1e1a9d8e68f41a48777196c65501", name: "Empowered Magic (Level 6)", summary: "Cast three spells a day as if with Empower Spell.", guide: "magus#empowered-magic-level-6", components: [Requires(condition: ClassLevel("magus", 6))])

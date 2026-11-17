@@ -54,9 +54,9 @@ fn options_of(data: &GameData, selection: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
-/// Half-elf subraces, a ranger/slayer's combat styles, a Living Deity with Second Mystery, a Hellknight with
-/// Pentamic Faith and (after a cleric level) Impossible Domain, a lawful good Separatist, a bloodrager's Second
-/// Bloodline, a Hellknight who becomes a Signifer (`targeted …`).
+/// Half-elf subraces, a ranger 5 / slayer 6's 6th-level combat style talent, a Living Deity with Second Mystery, a
+/// Hellknight with Pentamic Faith and (after a cleric level) Impossible Domain, a lawful good Separatist, a
+/// bloodrager's Second Bloodline, a Hellknight who becomes a Signifer (`targeted …`).
 /// Quirk kept: most name no class choice for their classes.
 pub(super) fn targeted() -> Vec<Named> {
     let mut out = Vec::new();
@@ -69,17 +69,21 @@ pub(super) fn targeted() -> Vec<Named> {
         build.levels = levels(&[("fighter", 1)]);
         out.push((format!("targeted half-elf {subrace:?}"), build));
     }
+    // A ranger 5 / slayer 6 takes the slayer's 6th-level combat style talent on the ranger's style:
+    // RangerStyleSelection6 61f82ba786fe05643beb3cd3910233a8 (SlayerTalentSelection6 43d1b15873e926848be2abf0ea3ad9a8
+    // lists it) needs RangerStyleSelection2, which ranger 2 gives, not itself (a ranger gets it at 6), and ranger or
+    // slayer 6. The game refuses the slayer's 2nd-level one to any ranger 2.
     let mut build = start("human", None, TrueNeutral);
-    build.levels = levels(&[("ranger", 10), ("slayer", 2)]);
+    build.levels = levels(&[("ranger", 5), ("slayer", 6)]);
     build.picks.insert(
         selection(2, 0),
         option("ranger/combat-style-feat/archery-feats"),
     );
     build.picks.insert(
-        selection(12, 0),
-        option("slayer/slayer-talents/combat-style-feat-2"),
+        selection(11, 0),
+        option("slayer/slayer-talents/combat-style-feat-6"),
     );
-    out.push(("targeted ranger10-slayer2".into(), build));
+    out.push(("targeted ranger5-slayer6".into(), build));
     // A Living Deity holds a domain selection only from arcanist 20, which Impossible Domain needs (ExtraDomain
     // 213a8480d22206b45acbfa0619ca5aaf: FakeDivineSparkSelection e6d337e709b4478cb6e5389d3f85b601, ticket 308d), so
     // its MR 1 selection at 8 is Second Mystery's, a mystery levelled by arcanist levels as the domain was.

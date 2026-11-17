@@ -1,1 +1,1 @@
-(key: "monk/ki-power/sudden-speed", blueprint: "96d96f5b6f71004418e7a7e42a81c94d", name: "Sudden Speed", summary: "From 4th level, 1 ki: +30' base speed for 1 minute.", guide: "monk#sudden-speed", components: [Requires(condition: ClassLevel("monk", 4))])
+(key: "monk/ki-power/sudden-speed", blueprint: "96d96f5b6f71004418e7a7e42a81c94d", name: "Sudden Speed", summary: "From 4th level, 1 ki: +30' base speed for 1 minute.", guide: "monk#sudden-speed")

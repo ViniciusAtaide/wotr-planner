@@ -61,6 +61,10 @@ prerequisites / * / selection option sorcerer/bloodline-feats/fey -> 293
 prerequisites / * / selection option sorcerer/bloodline-feats/infernal -> 293
 prerequisites / * / selection option sorcerer/bloodline-feats/serpentine -> 293
 prerequisites / * / selection option sorcerer/bloodline-feats/undead -> 293
+# The ranger's 10th-level style lists (RangerStyleArcherySelection10 7ef950ca681955d47bc4efbe77073e2c and the four
+# others) need the 6th-level list (RangerStyleArcherySelection6 6c799d09d5b93f344b9ade0e0c765c2d), which the planner
+# nests in `ranger/combat-style-feats-6` and never holds (304: a link stores only the feat), so writing it refused every
+# 10th-level style feat (308e). The writer leaves them whole (its narrowing guard prints `-> 308`); 293's still.
 prerequisites / * / selection option ranger/combat-style-feats-10/archery -> 293
 prerequisites / * / selection option ranger/combat-style-feats-10/menacing -> 293
 prerequisites / * / selection option ranger/combat-style-feats-10/two-handed-weapon -> 293
@@ -607,10 +611,7 @@ progression rows / a further rank in planner only / archetype cavalier/cavalier-
 progression rows / in game only / archetype cavalier/cavalier-of-the-paw -> 273
 progression rows / in planner only / archetype cavalier/cavalier-of-the-paw -> 273
 
-# 274, paladin rows and mercies.
-prerequisites / * / selection option paladin/mercy/fatigued -> 274
-prerequisites / * / selection option paladin/mercy/shaken -> 274
-prerequisites / * / selection option paladin/mercy/sickened -> 274
+# 274, paladin rows and mercies. 308e wrote the mercies' prerequisites from the game.
 progression rows / * / archetype paladin/divine-guardian -> 274
 progression rows / * / archetype paladin/divine-hunter-paladin -> 274
 progression rows / * / archetype paladin/hospitaler -> 274
@@ -620,13 +621,11 @@ progression rows / * / archetype paladin/tortured-crusader -> 274
 progression rows / * / archetype paladin/warrior-of-the-holy-light -> 274
 progression rows / * / class paladin -> 274
 
-# 275, ranger and hunter rows and lists.
+# 275, ranger and hunter rows and lists. 308e wrote the options' prerequisites from the game.
 option lists / * / selection hunter/bonus-feats-3 -> 275
 option lists / * / selection ranger/bonus-feats-10b -> 275
 option lists / * / selection ranger/bonus-feats-2b -> 275
 option lists / * / selection ranger/bonus-feats-6b -> 275
-prerequisites / * / selection option hunter/divine-hunter/otherworldly-companion/otherworldly-companion-celestial -> 275
-prerequisites / * / selection option hunter/divine-hunter/otherworldly-companion/otherworldly-companion-fiendish -> 275
 progression rows / * / archetype hunter/colluding-scoundrel -> 275
 progression rows / * / archetype hunter/divine-hound -> 275
 progression rows / * / archetype hunter/divine-hunter -> 275
@@ -643,39 +642,23 @@ progression rows / * / archetype ranger/sable-company-marine -> 275
 progression rows / * / archetype ranger/stormwalker -> 275
 progression rows / * / class ranger -> 275
 
-# 276, rogue and slayer talents and rows.
+# 276, rogue and slayer talents and rows. 308e wrote the rogue's and slayer's options' prerequisites from the game; the
+# lines left name their owner. The writer's carrier guard (308h) leaves the eleven talents that need Sneak Attack whole:
+# TaintedSneakAttackFeature e6ce101a94ac9034b8b55c546e74b9dd grants the game's SneakAttack, which the planner's
+# lich/lich-powers/tainted-sneak-attack doesn't (307's carriers). Weapon Focus waits on a weapon category (313).
 option lists / * / selection slayer/imitator/imitation -> 276
-prerequisites / * / selection option rogue/rogue-talents/blinding-strike -> 276
-prerequisites / * / selection option rogue/rogue-talents/confounding-blades -> 276
-prerequisites / * / selection option rogue/rogue-talents/crippling-strike -> 276
-prerequisites / * / selection option rogue/rogue-talents/dispelling-attack -> 276
-prerequisites / * / selection option rogue/rogue-talents/emboldening-strike -> 276
-prerequisites / * / selection option rogue/rogue-talents/focusing-attack-confused -> 276
-prerequisites / * / selection option rogue/rogue-talents/focusing-attack-shaken -> 276
-prerequisites / * / selection option rogue/rogue-talents/focusing-attack-sickened -> 276
-prerequisites / * / selection option rogue/rogue-talents/improved-evasion -> 276
-prerequisites / * / selection option rogue/rogue-talents/improved-uncanny-dodge -> 276
-prerequisites / * / selection option rogue/rogue-talents/mystery-seeker -> 276
-prerequisites / * / selection option rogue/rogue-talents/petrifying-strike -> 276
-prerequisites / * / selection option rogue/rogue-talents/slow-reactions -> 276
-prerequisites / * / selection option rogue/rogue-talents/survivalist -> 276
-prerequisites / * / selection option rogue/rogue-talents/uncanny-dodge -> 276
-prerequisites / * / selection option rogue/rogue-talents/weakening-wound -> 276
-prerequisites / * / selection option rogue/rogue-talents/weapon-focus -> 276
-prerequisites / * / selection option rogue/rogue-talents/wearying-strike -> 276
-prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/blasphemy -> 276
-prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/enervation -> 276
-prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/haste -> 276
-prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/predatory-might -> 276
-prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/predatory-prowess -> 276
-prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/slow -> 276
-prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/summon-bloody-bones-beast -> 276
-prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/vampiric-shadow-shield -> 276
-prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/vampiric-touch -> 276
-prerequisites / * / selection option slayer/bloodseeker/nocturnal-abilities/wracking-ray -> 276
-prerequisites / * / selection option slayer/slayer-talents/combat-style-feat-10 -> 276
-prerequisites / * / selection option slayer/slayer-talents/combat-style-feat-2 -> 276
-prerequisites / * / selection option slayer/slayer-talents/combat-style-feat-6 -> 276
+prerequisites / * / selection option rogue/rogue-talents/confounding-blades -> 307
+prerequisites / * / selection option rogue/rogue-talents/crippling-strike -> 307
+prerequisites / * / selection option rogue/rogue-talents/dispelling-attack -> 307
+prerequisites / * / selection option rogue/rogue-talents/emboldening-strike -> 307
+prerequisites / * / selection option rogue/rogue-talents/focusing-attack-confused -> 307
+prerequisites / * / selection option rogue/rogue-talents/focusing-attack-shaken -> 307
+prerequisites / * / selection option rogue/rogue-talents/focusing-attack-sickened -> 307
+prerequisites / * / selection option rogue/rogue-talents/petrifying-strike -> 307
+prerequisites / * / selection option rogue/rogue-talents/slow-reactions -> 307
+prerequisites / * / selection option rogue/rogue-talents/weakening-wound -> 307
+prerequisites / * / selection option rogue/rogue-talents/weapon-focus -> 313
+prerequisites / * / selection option rogue/rogue-talents/wearying-strike -> 307
 progression rows / * / archetype rogue/eldritch-scoundrel -> 276
 progression rows / * / archetype rogue/sylvan-trickster -> 276
 progression rows / * / archetype rogue/underground-chemist -> 276
@@ -790,7 +773,6 @@ option lists / * / selection monk/zen-archer/bonus-feats-1 -> 279
 option lists / * / selection monk/zen-archer/bonus-feats-10 -> 279
 option lists / * / selection monk/zen-archer/bonus-feats-6 -> 279
 option lists / * / selection monk/zen-archer/way-of-the-bow -> 279
-prerequisites / * / selection option monk/ki-power/sudden-speed -> 279
 progression rows / * / archetype monk/drunken-master -> 279
 progression rows / * / archetype monk/quarterstaff-master -> 279
 progression rows / * / archetype monk/scaled-fist -> 279
@@ -799,29 +781,22 @@ progression rows / * / archetype monk/sohei -> 279
 progression rows / * / archetype monk/student-of-stone -> 279
 progression rows / * / archetype monk/zen-archer -> 279
 
-# 280, alchemist rows and discoveries.
-prerequisites / * / selection option alchemist/discovery/acid-bomb -> 280
-prerequisites / * / selection option alchemist/discovery/blinding-bombs -> 280
-prerequisites / * / selection option alchemist/discovery/breath-weapon-bomb -> 280
-prerequisites / * / selection option alchemist/discovery/choking-bomb -> 280
-prerequisites / * / selection option alchemist/discovery/cognatogen -> 280
-prerequisites / * / selection option alchemist/discovery/cursed-bomb -> 280
-prerequisites / * / selection option alchemist/discovery/dispelling-bombs -> 280
-prerequisites / * / selection option alchemist/discovery/explosive-bombs -> 280
-prerequisites / * / selection option alchemist/discovery/fast-bombs -> 280
-prerequisites / * / selection option alchemist/discovery/feral-mutagen -> 280
-prerequisites / * / selection option alchemist/discovery/feral-wings -> 280
-prerequisites / * / selection option alchemist/discovery/force-bombs -> 280
-prerequisites / * / selection option alchemist/discovery/frost-bomb -> 280
-prerequisites / * / selection option alchemist/discovery/grand-mutagen -> 280
-prerequisites / * / selection option alchemist/discovery/greater-mutagen -> 280
-prerequisites / * / selection option alchemist/discovery/holy-bombs -> 280
-prerequisites / * / selection option alchemist/discovery/mummification -> 280
-prerequisites / * / selection option alchemist/discovery/nauseating-flesh -> 280
-prerequisites / * / selection option alchemist/discovery/precise-bomb -> 280
-prerequisites / * / selection option alchemist/discovery/preserve-organs -> 280
-prerequisites / * / selection option alchemist/discovery/shock-bomb -> 280
-prerequisites / * / selection option alchemist/discovery/tanglefoot-bombs -> 280
+# 280, alchemist rows and discoveries. 308e wrote the discoveries' prerequisites from the game; the carrier guard (308h)
+# leaves the thirteen bomb discoveries whole: ExplosiveExpert 8a551fcca93446f0adfbe5e57e5bc636 grants the game's bomb
+# feature, which the planner's mythic ability explosives-expert doesn't (307's carriers).
+prerequisites / * / selection option alchemist/discovery/acid-bomb -> 307
+prerequisites / * / selection option alchemist/discovery/blinding-bombs -> 307
+prerequisites / * / selection option alchemist/discovery/breath-weapon-bomb -> 307
+prerequisites / * / selection option alchemist/discovery/choking-bomb -> 307
+prerequisites / * / selection option alchemist/discovery/cursed-bomb -> 307
+prerequisites / * / selection option alchemist/discovery/dispelling-bombs -> 307
+prerequisites / * / selection option alchemist/discovery/explosive-bombs -> 307
+prerequisites / * / selection option alchemist/discovery/force-bombs -> 307
+prerequisites / * / selection option alchemist/discovery/frost-bomb -> 307
+prerequisites / * / selection option alchemist/discovery/holy-bombs -> 307
+prerequisites / * / selection option alchemist/discovery/precise-bomb -> 307
+prerequisites / * / selection option alchemist/discovery/shock-bomb -> 307
+prerequisites / * / selection option alchemist/discovery/tanglefoot-bombs -> 307
 progression rows / * / archetype alchemist/grenadier -> 280
 progression rows / * / archetype alchemist/incense-synthesizer -> 280
 progression rows / * / archetype alchemist/metamorph -> 280
@@ -874,17 +849,18 @@ progression rows / * / class sorcerer -> 281
 progression rows / a further rank in planner only / archetype sorcerer/nine-tailed-heir -> 281
 progression rows / in game only / archetype sorcerer/nine-tailed-heir -> 281
 
-# 282, arcanist and wizard.
+# 282, arcanist and wizard. 308e wrote the arcanist's options' prerequisites from the game; the lines left name their
+# owner: Holy Water Jet names the mythic classes (AeonMythicClass, DemonMythicClass, …), which no single entry maps
+# (266); the Razmiri Infiltrator names deity features no entry maps, and the Living Deity's hand prerequisite (Atheist)
+# stands for the game's list of every deity's feature (267).
 option lists / * / selection arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/curse -> 282
 option lists / * / selection wizard/cruromancer/blood-infusion -> 282
 option lists / * / selection wizard/cruromancer/school -> 282
 option lists / * / selection wizard/elemental-specialist/school -> 282
 option lists / * / selection wizard/thassilonian-specialist/school -> 282
-prerequisites / * / selection option arcanist/arcanist-exploits/holy-water-jet -> 282
-prerequisites / * / selection option arcanist/arcanist-exploits/potent-magic -> 282
-prerequisites / * / selection option arcanist/arcanist-exploits/swift-consume -> 282
-prerequisites / * / selection option arcanist/magic-deceiver/ways-of-the-deceiver/living-deity -> 282
-prerequisites / * / selection option arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator -> 282
+prerequisites / * / selection option arcanist/arcanist-exploits/holy-water-jet -> 266
+prerequisites / * / selection option arcanist/magic-deceiver/ways-of-the-deceiver/living-deity -> 267
+prerequisites / * / selection option arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator -> 267
 prerequisites / * / selection option wizard/school/abjurer -> 282
 prerequisites / * / selection option wizard/school/conjurer -> 282
 prerequisites / * / selection option wizard/school/diviner -> 282
@@ -905,19 +881,9 @@ progression rows / * / class wizard -> 282
 progression rows / in game only / archetype wizard/exploiter-wizard -> 282
 
 # 283, magus rows and arcana. The magus class's prerequisite names EldritchScionClass f5b8c63b141b2f44cbb8c2d7579c34f5,
-# which no entry maps (306o, 308d).
+# which no entry maps (306o, 308d). 308e wrote the arcana's prerequisites from the game.
 option lists / * / selection magus/sword-saint/chosen-weapon -> 283
 prerequisites / * / class magus -> 306o
-prerequisites / * / selection option magus/magus-arcana/bane-blade-level-15 -> 283
-prerequisites / * / selection option magus/magus-arcana/devoted-blade-level-12 -> 283
-prerequisites / * / selection option magus/magus-arcana/dimension-strike-level-9 -> 283
-prerequisites / * / selection option magus/magus-arcana/empowered-magic-level-6 -> 283
-prerequisites / * / selection option magus/magus-arcana/enduring-blade-level-6 -> 283
-prerequisites / * / selection option magus/magus-arcana/ghost-blade-level-9 -> 283
-prerequisites / * / selection option magus/magus-arcana/hasted-assault-level-9 -> 283
-prerequisites / * / selection option magus/magus-arcana/maximized-magic-level-12 -> 283
-prerequisites / * / selection option magus/magus-arcana/prescient-attack-level-6 -> 283
-prerequisites / * / selection option magus/magus-arcana/quickened-magic-level-15 -> 283
 progression rows / * / archetype magus/arcane-rider -> 283
 progression rows / * / archetype magus/armored-battlemage -> 283
 progression rows / * / archetype magus/bladebound -> 283
@@ -990,7 +956,7 @@ progression rows / in planner only / archetype bard/thundercaller -> 286
 
 # 287, prestige classes. 308d wrote the classes' prerequisites the writer can express from the game; the class lines
 # left name their owner (a weapon proficiency 313, Skill Focus per skill 315, a carrier 307), or stay 287's for a hand
-# prerequisite.
+# prerequisite. 308e wrote the defensive powers' prerequisites from the game.
 option lists / * / selection loremaster/secret -> 287
 option lists / * / selection stalwart-defender/defensive-powers -> 287
 option lists / * / selection student-of-war/know-your-enemy -> 287
@@ -1002,9 +968,6 @@ prerequisites / * / class loremaster -> 315
 prerequisites / * / class stalwart-defender -> 307
 prerequisites / * / class student-of-war -> 315
 prerequisites / * / selection option loremaster/secret/combat-feat -> 287
-prerequisites / * / selection option stalwart-defender/defensive-powers/clear-mind -> 287
-prerequisites / * / selection option stalwart-defender/defensive-powers/fearless-defense -> 287
-prerequisites / * / selection option stalwart-defender/defensive-powers/increased-damage-reduction -> 287
 progression rows / * / class aldori-swordlord -> 287
 progression rows / * / class arcane-trickster -> 287
 progression rows / * / class assassin -> 287

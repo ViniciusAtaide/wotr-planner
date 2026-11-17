@@ -387,6 +387,51 @@ pub fn without_mythic_abilities_the_game_refuses_since_308d(mut build: Build) ->
     build
 }
 
+/// A Build from an older link without Nauseating Flesh where an alchemist took it in the alchemist's discovery slot
+/// and it fails on exactly the level ticket 308e made the game's: NauseatingFlesh de112af9600e0e446af0c7ef0707e1c8
+/// needs alchemist 12, or a Mutation Warrior fighter or an Underground Chemist rogue at 12 (PrerequisiteClassLevel
+/// AlchemistClass, PrerequisiteArchetypeLevel, Group Any). Every other failure is left in. Returns the Build and the
+/// slots it emptied.
+pub fn without_discoveries_the_game_refuses_since_308e(mut build: Build) -> (Build, Vec<SlotId>) {
+    let level_12 = |class: &str| Prerequisite::ClassLevel {
+        class: ClassKey::new(class),
+        level: 12,
+    };
+    let alchemist_12 = level_12("alchemist");
+    // The game's alternatives, as the planner compiles them: alchemist 12, and each archetype with its class at 12.
+    let alternatives = [
+        alchemist_12.clone(),
+        level_12("fighter"),
+        level_12("rogue"),
+        Prerequisite::Archetype(ArchetypeKey::new("fighter/mutation-warrior")),
+        Prerequisite::Archetype(ArchetypeKey::new("rogue/underground-chemist")),
+    ];
+    let alchemist = ClassKey::new("alchemist");
+    let takes_alchemist = build.levels.iter().any(|level| level.class == alchemist);
+    let sheet = engine().evaluate(&build);
+    let mut emptied = Vec::new();
+    for failure in engine().failures(&build) {
+        let (rules::Choice::Slot(slot), Issue::Unmet(unmet)) = (&failure.choice, &failure.issue)
+        else {
+            continue;
+        };
+        let in_discovery = sheet
+            .slot(slot)
+            .is_some_and(|found| found.kind == selection_kind("alchemist/discovery"));
+        let named = conditions(unmet);
+        if takes_alchemist
+            && in_discovery
+            && build.picks.get(slot).map(Pick::key) == Some("alchemist/discovery/nauseating-flesh")
+            && named.iter().any(|(needs, _)| **needs == alchemist_12)
+            && named.iter().all(|(needs, _)| alternatives.contains(*needs))
+        {
+            build.picks.remove(slot);
+            emptied.push(slot.clone());
+        }
+    }
+    (build, emptied)
+}
+
 /// A Build from a link made before ticket 251, without the weapon feats in it that the game refuses for a weapon the
 /// character isn't proficient with (`RequireProficiency`, which `BlueprintParametrizedFeature.CanSelect` checks,
 /// WrathDecompiled 6ce4a6b): those make the link stale. So do a Build's feats that fail only on base attack bonus

@@ -44,32 +44,9 @@ selection option kineticist/wild-talents/jagged-flesh -> JaggedFleshFeature 9406
 selection option kineticist/wild-talents/jagged-flesh / drops selection option kineticist/element/earth
 selection option kineticist/wild-talents/kinetic-revivification -> KineticRevificationFeature 0377fcf4c10871f4187809d273af7f5d names its list and kineticist 12, not the water element
 selection option kineticist/wild-talents/kinetic-revivification / drops selection option kineticist/element/water
-selection option monk/ki-power/sudden-speed -> KiSuddenSpeedFeature 96d96f5b6f71004418e7a7e42a81c94d has no prerequisite
-selection option monk/ki-power/sudden-speed / drops class monk
-selection option paladin/mercy/fatigued -> MercyFatigued e5aa306af9b91974a9b2f2cbe702f562 has no prerequisite
-selection option paladin/mercy/fatigued / drops class paladin
-selection option paladin/mercy/shaken -> MercyShaken c4732ca5b0af7214a98f9b4dafe87da9 has no prerequisite
-selection option paladin/mercy/shaken / drops class paladin
-selection option paladin/mercy/sickened -> MercySickened 7ee2ef06226a4884f80b7647a2aa2dee has no prerequisite
-selection option paladin/mercy/sickened / drops class paladin
-selection option slayer/slayer-talents/combat-style-feat-2 -> RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9 names only its own NoFeature, no slayer level
-selection option slayer/slayer-talents/combat-style-feat-2 / drops class slayer
 
 # A class or an archetype the game names, or refuses (PrerequisiteNoClassLevel, PrerequisiteNoArchetype): each maps
 # one entry exactly.
-selection option alchemist/discovery/mummification -> Mummification daf854d84d442e941aa3a2fdc041b37c names UndergroundChemistArchetype b4f5741d42c4cb04abf5ab3fe33f6fc5 rogue 10 (PrerequisiteArchetypeLevel), not the Underground Chemist's discovery feature
-selection option alchemist/discovery/mummification / drops feature rogue/underground-chemist/discovery
-selection option rogue/rogue-talents/improved-uncanny-dodge -> ImprovedUncannyDodgeTalent e821c61b2711cea4cb993725b910e7e8 names level 12 of the Eldritch Scoundrel rogue, slayer, bard or skald, not Uncanny Dodge: the user's rule (276; user-facts.txt, applied 276)
-selection option rogue/rogue-talents/improved-uncanny-dodge / drops feature uncanny-dodge
-selection option alchemist/discovery/cognatogen -> CognatogenFeature e3f460ea61fcc504183c7d6818bbbf7a: PrerequisiteNoArchetype IncenseSynthesizerArchetype 6faf49766d8156c419d08f556a40374f
-selection option alchemist/discovery/cognatogen / adds Not archetype alchemist/incense-synthesizer
-selection option alchemist/discovery/fast-bombs -> FastBombsFeature 128c5fccec5ca724281a4907b1f0ac83: PrerequisiteNoArchetype VivisectionistArchetype 68cbcd9fbf1fb1d489562f829bb97e38 and MetamorphArchetype ac242ddeaa05af449bfc5230231fab84
-selection option alchemist/discovery/fast-bombs / adds Not archetype alchemist/metamorph
-selection option alchemist/discovery/fast-bombs / adds Not archetype alchemist/vivisectionist
-selection option alchemist/discovery/preserve-organs -> PreserveOrgans 76b4bb8e54f3f5c418f421684c76ef4e: PrerequisiteNoArchetype MetamorphArchetype ac242ddeaa05af449bfc5230231fab84
-selection option alchemist/discovery/preserve-organs / adds Not archetype alchemist/metamorph
-selection option arcanist/arcanist-exploits/potent-magic -> ArcanistExploitPotentMagicFeature 995110cc948d5164a820403a9e903151: PrerequisiteNoArchetype PhantasmalMageArchetype e9d0ee69305049fe8400a066010dbcd1
-selection option arcanist/arcanist-exploits/potent-magic / adds Not archetype arcanist/phantasmal-mage
 selection option barbarian/rage-power/increased-damage-reduction -> IncreasedDamageReductionFeature ddaee203ee4dcb24c880d633fbd77db6: PrerequisiteNoArchetype ProvocateurArchetype a1f5ab7eb78942f6889304acbd92e945, the planner's skald/inciter
 selection option barbarian/rage-power/increased-damage-reduction / adds Not archetype skald/inciter
 selection option kineticist/element/air -> ElementalFocusAir 2bd0d44953a536f489082534c48f8e31: PrerequisiteNoArchetype BloodKineticistArchetype 365b50dba54efb74fa24c07e9b7a838c
@@ -78,23 +55,8 @@ selection option kineticist/element/earth -> ElementalFocusEarth c6816ad80a3df9c
 selection option kineticist/element/earth / adds Not archetype kineticist/blood-kineticist
 selection option kineticist/element/fire -> ElementalFocusFire 3d8d3d6678b901444a07984294a1bc24: PrerequisiteNoArchetype BloodKineticistArchetype 365b50dba54efb74fa24c07e9b7a838c
 selection option kineticist/element/fire / adds Not archetype kineticist/blood-kineticist
-selection option magus/magus-arcana/bane-blade-level-15 -> BaneBladeFeature a2e0691dcfda2374e84d8bbf480e06a0: PrerequisiteNoArchetype ArmoredBattlemageArchetype 67ec8dcae6fb3d3439e5ae874ddc7b9b
-selection option magus/magus-arcana/bane-blade-level-15 / adds Not archetype magus/armored-battlemage
-selection option magus/magus-arcana/devoted-blade-level-12 -> DevotedBladeFeature 4be0bb10e110a35419e406da767bd1e3: PrerequisiteNoArchetype ArmoredBattlemageArchetype 67ec8dcae6fb3d3439e5ae874ddc7b9b
-selection option magus/magus-arcana/devoted-blade-level-12 / adds Not archetype magus/armored-battlemage
-selection option magus/magus-arcana/enduring-blade-level-6 -> EnduringBladeFeature 7a73bf165e8eda6478b4419f857d1ab5: PrerequisiteNoArchetype ArmoredBattlemageArchetype 67ec8dcae6fb3d3439e5ae874ddc7b9b
-selection option magus/magus-arcana/enduring-blade-level-6 / adds Not archetype magus/armored-battlemage
-selection option magus/magus-arcana/ghost-blade-level-9 -> GhostBladeFeature 8896f327c59569c4eaf129bf35b96c1f: PrerequisiteNoArchetype ArmoredBattlemageArchetype 67ec8dcae6fb3d3439e5ae874ddc7b9b
-selection option magus/magus-arcana/ghost-blade-level-9 / adds Not archetype magus/armored-battlemage
-selection option rogue/rogue-talents/mystery-seeker -> MysterySeeker 04f8c258a47a2de4faac28be313b1621: PrerequisiteNoArchetype MasterOfAllArchetype bd4e70bfb89a452b876713d61b9b8eb2
-selection option rogue/rogue-talents/mystery-seeker / adds Not archetype rogue/master-of-all
-selection option rogue/rogue-talents/survivalist -> Survivalist 9836ea18e56af8249bdda4a4b11ea78c: PrerequisiteNoArchetype MasterOfAllArchetype bd4e70bfb89a452b876713d61b9b8eb2 and SylvanTricksterArchetype 490394869f666c141bf8647b1a365220
-selection option rogue/rogue-talents/survivalist / adds Not archetype rogue/master-of-all
-selection option rogue/rogue-talents/survivalist / adds Not archetype rogue/sylvan-trickster
 
 # A PrerequisiteNoFeature of a blueprint one planner entry alone maps.
-selection option rogue/rogue-talents/blinding-strike -> BlindingStrike fd01c15d9e74cd247b1fdbd6eb4d4713: PrerequisiteNoFeature BlindingCriticalFeature 787e56055e3ef864d9c78a3ec21e56be, which the feat blinding-critical alone maps
-selection option rogue/rogue-talents/blinding-strike / adds Not feat blinding-critical
 selection option shaman/hex/iceplant -> ShamanHexIceplantFeature 999e367bbabc42d46bf864d3f4bda86d: PrerequisiteNoFeature WitchHexIceplantFeature 9af6dc2697c8ef24eab8ce1c697b05c4, which witch/hex/iceplant alone maps
 selection option shaman/hex/iceplant / adds Not selection option witch/hex/iceplant
 selection option witch/hex/iceplant -> WitchHexIceplantFeature 9af6dc2697c8ef24eab8ce1c697b05c4: PrerequisiteNoFeature ShamanHexIceplantFeature 999e367bbabc42d46bf864d3f4bda86d, which shaman/hex/iceplant alone maps
@@ -106,13 +68,3 @@ selection option shaman/hex/intimidating-display / adds Not feat dazzling-displa
 # game's do: the check finds no `progression rows / … game only` row of it.
 selection option kineticist/infusions/extended-range -> ExtendedRangeInfusion cb2d9e6355dd33940b2bef49e544b0bf names ElementalFocusSelection 1f3a15a3ae8a5524ab8b97f469bf4e3d, not a kineticist level
 selection option kineticist/infusions/extended-range / drops class kineticist
-selection option ranger/combat-style-feats-10/archery -> RangerStyleArcherySelection10 7ef950ca681955d47bc4efbe77073e2c names RangerStyleArcherySelection6 6c799d09d5b93f344b9ade0e0c765c2d, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
-selection option ranger/combat-style-feats-10/archery / drops selection option ranger/combat-style-feat/archery-feats
-selection option ranger/combat-style-feats-10/menacing -> RangerStyleMenacingSelection10 7d5bd07830a5e2c478852bf8b860db2c names RangerStyleMenacingSelection6 a9998f05a0472bb4f8950304fe26ec0c, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
-selection option ranger/combat-style-feats-10/menacing / drops selection option ranger/combat-style-feat/menacing-feats
-selection option ranger/combat-style-feats-10/two-handed-weapon -> RangerStyleTwoHandedSelection10 f96ad7f1fe7e62c4d8f7540d0f4c7313 names RangerStyleTwoHandedSelection6 83a4b2605333e004f875e2fd22f6be30, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
-selection option ranger/combat-style-feats-10/two-handed-weapon / drops selection option ranger/combat-style-feat/two-handed-weapon-feats
-selection option ranger/combat-style-feats-10/two-weapon-combat -> RangerStyleTwoWeaponSelection10 ee907845112b8aa4e907cf326e6142a6 names RangerStyleTwoWeaponSelection6 59d5445392ac62245a5ece9b01c05ee8, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
-selection option ranger/combat-style-feats-10/two-weapon-combat / drops selection option ranger/combat-style-feat/two-weapon-combat-feats
-selection option ranger/combat-style-feats-10/weapon-and-shield -> RangerStyleShieldSelection10 b2e73b554839a314a8c716dbf33fcfc3 names RangerStyleShieldSelection6 10d8245011456224cb6358f640364e26, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
-selection option ranger/combat-style-feats-10/weapon-and-shield / drops selection option ranger/combat-style-feat/weapon-and-shield-feats
