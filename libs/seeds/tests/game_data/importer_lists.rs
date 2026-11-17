@@ -1354,7 +1354,7 @@ fn magical_tail_is_the_games_one_feat_of_eight_ranks() {
     assert_eq!(feat("magical-tail").ranks, 8);
 }
 
-/// 306q: Abundant Smite and Abundant Smite Chaos are two mythic abilities, as the game's two blueprints.
+/// 306q: Abundant Smite keeps its old key (a mythic ability has no alias) and Abundant Smite Chaos is its own ability.
 // Game: AbundantSmite 7e5b63faeca24474db0bfd019167dda4 (PrerequisiteFeature SmiteEvilFeature
 // 3a6db57fce75b0244a6a5819528ddf26) and AbundantSmiteChaos 4cdc155e26204491ba4d193646cb4443 (SmiteChaosFeature
 // 67d08ed4892de3441a43aae91a7dd7c9), each `Ranks` 1.
@@ -1368,12 +1368,12 @@ fn abundant_smite_is_two_mythic_abilities() {
     };
     for (key, guid, feature) in [
         (
-            "abundant-smite",
+            "abundant-smite-smite-chaos",
             "7e5b63faeca24474db0bfd019167dda4",
             "smite-evil",
         ),
         (
-            "abundant-smite-smite-chaos",
+            "abundant-smite-chaos",
             "4cdc155e26204491ba4d193646cb4443",
             "hellknight/smite-chaos",
         ),
@@ -1387,7 +1387,7 @@ fn abundant_smite_is_two_mythic_abilities() {
         );
     }
     let list = selection("mythic/extra-mythic-ability");
-    for key in ["abundant-smite", "abundant-smite-smite-chaos"] {
+    for key in ["abundant-smite-smite-chaos", "abundant-smite-chaos"] {
         assert!(
             list.mythic_abilities.iter().any(|a| a.as_str() == key),
             "{key}"

@@ -320,7 +320,11 @@ prerequisites / * / feat extra-arcana -> 264
 prerequisites / * / feat extra-arcanist-exploit -> 264
 prerequisites / * / feat extra-bombs -> 264
 prerequisites / * / feat extra-channel -> 264
-prerequisites / * / feat extra-channel-shaman -> 264
+# The Life spirit's channel: the game's ExtraChannelShaman names ShamanLifeSpiritChannelEnergyFeature b8ec9dcc…, which only
+# ShamanLifeSpiritBaseFeature 9ae3ba76… grants (refs), and the planner holds the channel as that base feature; the check
+# compares by GUID, so each side shows (307's carriers).
+prerequisites / missing in planner, a blueprint it doesn't map / feat extra-channel-shaman -> 307
+prerequisites / not in game / feat extra-channel-shaman -> 307
 prerequisites / * / feat extra-discovery -> 264
 prerequisites / * / feat extra-discovery-vivisectionist -> 264
 prerequisites / * / feat extra-hex -> 264

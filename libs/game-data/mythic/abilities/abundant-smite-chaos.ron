@@ -1,0 +1,1 @@
+(key: "abundant-smite-chaos", blueprint: "4cdc155e26204491ba4d193646cb4443", name: "Abundant Smite Chaos", summary: "Use Smite Chaos MR/2 more times per day.", group: Class, guide: "mythic-paths#abundant-smite-smite-chaos", components: [Requires(condition: Has(Feature("hellknight/smite-chaos")))])
