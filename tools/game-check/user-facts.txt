@@ -67,3 +67,10 @@ option lists / * / selection slayer/slayer-talents -> applied 276
 option lists / * / selection slayer/slayer-talents-6 -> applied 276
 option lists / * / selection slayer/slayer-talents-10 -> applied 276
 option lists / * / selection slayer/extra-slayer-talent -> applied 276
+
+# Ticket 281 (user, 2026-11-15): the game's lists replace ticket 92's Magic feats for the sorcerer's level-1 bonus feat
+# (SorcererBonusFeat, 21 feats) and the Seeker's feats at 5, 10 and 15 (SeekerFeatSelection, 26), "applied without asking
+# again". The sorcerer's list and both Seekers' (306n), applied.
+option lists / * / selection sorcerer/bonus-feat -> applied 281
+option lists / * / selection sorcerer/seeker-sorcerer/bonus-feats -> applied 281
+option lists / * / selection oracle/seeker/bonus-feats -> applied 281

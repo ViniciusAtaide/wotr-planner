@@ -1583,3 +1583,154 @@ fn bleeding_critical_and_spell_bane_are_feats() {
     }
     assert!(feat_keys(selection("feats")).contains("spell-bane"));
 }
+
+/// The game's `m_AllFeatures` of SorcererBonusFeat: 21 feats (user fact 281, 2026-11-15: the game's list replaces ticket
+/// 92's Magic feats).
+const SORCERER_BONUS_FEATS_GUIDS: [&str; 21] = [
+    "06964d468fde1dc4aa71a92ea04d930d", // CombatCasting
+    "1978c3f91cfbbc24b9c9b0d017f4beec", // GreaterSpellPenetration
+    "ee7dc126939e4d9438357fbd5980d459", // SpellPenetration
+    "38155ca9e4055bb48a89240a2055dcc3", // AugmentSummoning
+    "0477936c0f74841498b5c8753a8062a3", // SuperiorSummoning
+    "a1de1e4f92195b442adb946f0e2b9d4e", // EmpowerSpellFeat
+    "f180e72e4a9cbaa4da8be9bc958132ef", // ExtendSpellFeat
+    "2f5d1e705c7967546b72ad8218ccf99c", // HeightenSpellFeat
+    "7f2b282626862e345935bbea5e66424b", // MaximizeSpellFeat
+    "ef7ece7bb5bb66a41b256976b27f424e", // QuickenSpellFeat
+    "46fad72f54a33dc4692d3b62eca7bb78", // ReachSpellFeat
+    "cd26b9fa3f734461a0fcedc81cafaaac", // PersistentSpellFeat
+    "85f3340093d144dd944fff9a9adfd2f2", // SelectiveSpellFeat
+    "1c17446a3eb744f438488711b792ca4d", // GreaterElementalFocusSelection
+    "bb24cc01319528849b09a3ae8eec0b31", // ElementalFocusSelection
+    "5b04b45b228461c43bad768eb0f7c7bf", // SpellFocusGreater
+    "16fa59cc9a72a6043b566b49184f53fe", // SpellFocus
+    "f327a765a4353d04f872482ef3e48c35", // SpellSpecializationFirst
+    "fbf5d9ce931f47f3a0c818b3f8ef8414", // BolsteredSpellFeat
+    "c101ad6879a94204a780506f7a554865", // PiercingSpell
+    "8ad7fd39abea4722b39eb5a67d606a41", // IntensifiedSpell
+];
+
+/// What SeekerFeatSelection and SkaldFeatSelection hold beyond the sorcerer's 21.
+const SEEKER_AND_SKALD_EXTRA_GUIDS: [&str; 5] = [
+    "2fb48bed3746431bb3080c34f11597da", // AmbuscadingSpell
+    "e55e2c96ae974bc9ac9fda8b3a56e432", // ArcaneSpiritFeat
+    "c39576f8842e4505b14aa918b3a36a0a", // DispelFocus
+    "d0cf79c8e0a44325b00dc8fa6ad37d7c", // GreaterDispelFocus
+    "d8d641edc9a74a64809f56feff9495b6", // SpellChain
+];
+
+/// 306n: the sorcerer's level-1 bonus feat, the Seekers' feats at 5, 10 and 15 and the skald's level-1 bonus feat are
+/// lists of their own, each the game's full member set, and no row names the Magic feats any more.
+// Game: SorcererProgression 997665565ca80a649aedd72455c4df1f grants SorcererBonusFeat
+// d6dd06f454b34014ab0903cb1ed2ade3 at 1 (21 feats; OverwhelimgMageArchetype 734917ec8b8542378c1d35519439d67f removes
+// it); both SeekerArchetypes (sorcerer 7229db6fc0b07af4180e783eed43c4d9, oracle c539d65b7682c8d469e6f122922f1dee)
+// `AddFeatures` SeekerFeatSelection c6b609279cc3174478624182ac1ad812 at 5, 10 and 15 (26 feats: the 21 and five
+// more); SkaldProgression 26418fed2bc153245972a5b54204ed75 grants SkaldFeatSelection
+// 0a1999535b4f77b4d89f689a385e5ec9 at 1 (the same 26). All three have `IgnorePrerequisites` false.
+#[test]
+fn the_sorcerers_seekers_and_skalds_bonus_feats_are_the_games() {
+    let sorcerer: BTreeSet<String> = (SORCERER_BONUS_FEATS_GUIDS.iter())
+        .map(|guid| guid.to_string())
+        .collect();
+    assert_eq!(sorcerer.len(), 21);
+    let seeker: BTreeSet<String> = (sorcerer.iter().cloned())
+        .chain(
+            SEEKER_AND_SKALD_EXTRA_GUIDS
+                .iter()
+                .map(|guid| guid.to_string()),
+        )
+        .collect();
+    assert_eq!(seeker.len(), 26);
+    for (key, guid, members) in [
+        (
+            "sorcerer/bonus-feat",
+            "d6dd06f454b34014ab0903cb1ed2ade3",
+            &sorcerer,
+        ),
+        (
+            "sorcerer/seeker-sorcerer/bonus-feats",
+            "c6b609279cc3174478624182ac1ad812",
+            &seeker,
+        ),
+        (
+            "oracle/seeker/bonus-feats",
+            "c6b609279cc3174478624182ac1ad812",
+            &seeker,
+        ),
+        (
+            "skald/bonus-feat",
+            "0a1999535b4f77b4d89f689a385e5ec9",
+            &seeker,
+        ),
+    ] {
+        assert_eq!(
+            selection(key).blueprint.as_ref().map(|guid| guid.as_str()),
+            Some(guid),
+            "{key}"
+        );
+        assert_eq!(&blueprints_of(key), members, "{key}");
+    }
+
+    // No sorcerer, Seeker or skald row names the Magic feats; each names its own list at the game's levels.
+    let named = |rows: Vec<(u8, &'static [rules::FeatureSelectionKey])>, key: &str| {
+        (
+            levels_naming(rows.clone(), key),
+            levels_naming(rows, "magic-feats"),
+        )
+    };
+    assert_eq!(
+        named(class_rows("sorcerer"), "sorcerer/bonus-feat"),
+        (vec![1], vec![])
+    );
+    for archetype in [
+        "sorcerer/crossblooded",
+        "sorcerer/empyreal-sorcerer",
+        "sorcerer/geomancer",
+        "sorcerer/nine-tailed-heir",
+        "sorcerer/sage-sorcerer",
+        "sorcerer/seeker-sorcerer",
+        "sorcerer/sylvan-sorcerer",
+    ] {
+        assert_eq!(
+            named(archetype_rows(archetype), "sorcerer/bonus-feat"),
+            (vec![1], vec![]),
+            "{archetype}"
+        );
+    }
+    assert_eq!(
+        named(
+            archetype_rows("sorcerer/overwhelming-mage"),
+            "sorcerer/bonus-feat"
+        ),
+        (vec![], vec![])
+    );
+    for (archetype, list) in [
+        (
+            "sorcerer/seeker-sorcerer",
+            "sorcerer/seeker-sorcerer/bonus-feats",
+        ),
+        ("oracle/seeker", "oracle/seeker/bonus-feats"),
+    ] {
+        assert_eq!(
+            named(archetype_rows(archetype), list),
+            (vec![5, 10, 15], vec![]),
+            "{archetype}"
+        );
+    }
+    assert_eq!(
+        named(class_rows("skald"), "skald/bonus-feat"),
+        (vec![1], vec![])
+    );
+    for archetype in [
+        "skald/battle-scion",
+        "skald/court-poet",
+        "skald/herald-of-the-horn",
+        "skald/inciter",
+    ] {
+        assert_eq!(
+            named(archetype_rows(archetype), "skald/bonus-feat"),
+            (vec![1], vec![]),
+            "{archetype}"
+        );
+    }
+}

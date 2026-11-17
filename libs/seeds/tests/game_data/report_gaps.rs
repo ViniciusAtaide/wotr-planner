@@ -277,7 +277,7 @@ fn sorcerers_with_a_bonus_feat(
 /// Ticket 92 (user, 2026-11-07): every sorcerer's level-1 "Bonus Feat" is a Magic feat, in place of ticket 44's
 /// bloodline list (the Jack-in-the-Green write-up takes Spell Penetration there, off the Fey list) and of the
 /// Geomancer's General slot. Dodge, Power Attack and Toughness, on some bloodline lists, aren't Magic feats. Which
-/// feats the slot offers waits in `every_sorcerers_level_1_bonus_feat_is_one_of_the_games_21`.
+/// feats the slot offers are in `every_sorcerers_level_1_bonus_feat_is_one_of_the_games_21`.
 #[test]
 fn every_sorcerers_level_1_bonus_feat_is_a_magic_feat() {
     // Game: SorcererProgression 997665565ca80a649aedd72455c4df1f gives SorcererBonusFeat
@@ -336,7 +336,6 @@ const SORCERER_BONUS_FEATS: [&str; 21] = [
 
 /// The game's sorcerer level-1 bonus feat offers the 21 feats of its own selection, not every Magic feat.
 #[test]
-#[ignore = "waits on ticket 281: the game gives the sorcerer's level-1 bonus feat 21 feats"]
 fn every_sorcerers_level_1_bonus_feat_is_one_of_the_games_21() {
     for (name, build, _) in sorcerers_with_a_bonus_feat(1) {
         let offered = feats_offered(&build, &class_slot(1));
@@ -350,7 +349,6 @@ fn every_sorcerers_level_1_bonus_feat_is_one_of_the_games_21() {
 
 /// The game's Seeker picks its feats at 5, 10 and 15 from its own selection of 26.
 #[test]
-#[ignore = "waits on ticket 281: the game gives the Seeker's feats at 5, 10 and 15 a list of 26"]
 fn the_seekers_feats_at_5_10_and_15_are_its_own_26() {
     // Game: SeekerArchetype 7229db6fc0b07af4180e783eed43c4d9 adds SeekerFeatSelection c6b609279cc3174478624182ac1ad812
     // at 5, 10 and 15: the 21 above with Ambuscading Spells, Arcane Spirit, Dispel Focus, Greater Dispel Focus and
@@ -463,7 +461,7 @@ fn the_bloodline_feats_stay_at_7_13_and_19() {
         0,
         ABYSSAL,
     );
-    // Game: SeekerArchetype 7229db6fc0b07af4180e783eed43c4d9 adds a feat at 5, 10 and 15; which feats waits in
+    // Game: SeekerArchetype 7229db6fc0b07af4180e783eed43c4d9 adds a feat at 5, 10 and 15; which feats are in
     // the_seekers_feats_at_5_10_and_15_are_its_own_26.
     for level in [5, 10, 15] {
         assert!(class_slot_kind(&seeker, level).is_some(), "{level}");
