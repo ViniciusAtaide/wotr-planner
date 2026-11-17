@@ -28,3 +28,8 @@ Read at review, by the reviewer (`.claude/agents/ticket-reviewer.md`). These are
 
 - **A test asserts what its comment says.** A comment that a row "keeps" something is backed by an assertion on it.
 - **Every archetype is pinned,** the ones that lose a feature included (`Some(&[])`), so a leak fails.
+- **An expectation moves only toward the game,** never to get a test to pass (306aa, 306s, 308c and 308e each needed a fix round for it):
+  - An exception that lets a refused pick through names its entry and its slot kind, never a key alone, and cites the game's reason (`support::without_picks_the_fighters_list_lacks` is the model).
+  - An assertion is never made weaker: an exact reason stays an exact reason, not `.is_err()`.
+  - A corpus generator changed to hold the Build count keeps what its Build tests; a swap that only keeps a Build closed is a finding.
+  - A gold Build that turns impossible is a gold change for the user, even when reverting the written entries clears it; the Answer names the pick, the condition and the game's verdict.
