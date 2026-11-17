@@ -31,3 +31,5 @@ Built as the section of [slices.md](../research/306/slices.md) says, with the di
 **Tests** (`tools/corpus/tests/links.rs`): `a_base_link_opens_the_same_through_an_heir_or_is_a_listed_refusal` (same 3/0/0; renamed with alias 2/1/0; renamed without alias, listed, 2/0/1; unlisted fails), `a_listed_refusal_that_opens_fails`, `every_s2_base_link_opens_the_same_or_through_an_heir_or_is_listed`.
 
 **Proof:** `record` then `compare` on this tree: `links: 2000 the same, 0 through an heir, 0 refused, 0 changed`; 2161 Builds compared (2000 open), 0 differences. Checks: `cargo test -p corpus`, clippy `--all-targets -D warnings`, fmt, `scripts/test-modules.sh` all pass.
+
+**Review fixes.** `moved_since` matches an old map entry only after `{` or `, `, so `Selection { .. }: ` no longer matches inside `OptionSelection { .. }: ` (test `a_selection_slot_is_not_matched_inside_an_option_selection_slot`, in `src/links.rs`). The S2 test's doc says its heir count is meaningful only in `compare`, since it reads the current data's keys.

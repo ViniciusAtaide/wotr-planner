@@ -231,7 +231,8 @@ fn a_listed_refusal_that_opens_fails() {
 }
 
 /// Ticket 306's stage S2: each link of its base opens with the same picks or through an heir, or is a listed
-/// refusal, and no listed one opens. The base is the links of the corpus's open Builds when 306c was built, before
+/// refusal, and no listed one opens. The heir count is of no use here: the keys are the current data's, which
+/// already carry a pick with a single heir, so it counts as the same; only `compare`, with the base's picks, sees it. The base is the links of the corpus's open Builds when 306c was built, before
 /// any slice of S2 changed the data (`FORM_PROOF_LINKS_OUT` of `compare` lists the heirs and the refusals).
 #[test]
 fn every_s2_base_link_opens_the_same_or_through_an_heir_or_is_listed() {

@@ -116,13 +116,23 @@ fn moved_since(old_picks: &str, opened: &Build) -> Fate {
     let mut moved = Vec::new();
     for (slot, pick) in &opened.picks {
         let at = format!("{slot:?}: ");
-        if old_picks.contains(&format!("{at}{pick:?}")) {
+        // An entry of the map's text starts after `{` or `, `: `Selection { .. }: ` is also the end of
+        // `OptionSelection { .. }: `.
+        let starts: Vec<usize> = (old_picks.match_indices(&at))
+            .map(|(start, _)| start)
+            .filter(|&start| {
+                let before = &old_picks[..start];
+                before.ends_with('{') || before.ends_with(", ")
+            })
+            .collect();
+        if (starts.iter())
+            .any(|&start| old_picks[start + at.len()..].starts_with(&format!("{pick:?}")))
+        {
             continue;
         }
         // The old pick at this slot: its key is the first quoted text after the slot.
-        let old = old_picks
-            .split_once(&at)
-            .and_then(|(_, rest)| rest.split('"').nth(1));
+        let old =
+            (starts.first()).and_then(|&start| old_picks[start + at.len()..].split('"').nth(1));
         match old {
             Some(old) => moved.push((slot.clone(), old.to_owned(), pick.key().to_owned())),
             None => return Fate::Changed(format!("{slot:?} is not a slot of the old picks")),
@@ -132,5 +142,42 @@ fn moved_since(old_picks: &str, opened: &Build) -> Fate {
         Fate::Same
     } else {
         Fate::Heirs(moved)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use rules::SelectionOptionKey;
+
+    fn option(key: &str) -> Pick {
+        Pick::SelectionOption {
+            option: SelectionOptionKey::new(key),
+            parameter: None,
+        }
+    }
+
+    /// `Selection { level: 5, index: 0 }: ` ends `OptionSelection { level: 5, index: 0 }: `, and the old text of
+    /// the second must not stand for the first.
+    #[test]
+    fn a_selection_slot_is_not_matched_inside_an_option_selection_slot() {
+        let selection = SlotId::Selection { level: 5, index: 0 };
+        let inner = SlotId::OptionSelection { level: 5, index: 0 };
+        let mut old = Build::default();
+        old.picks.insert(selection.clone(), option("old-key"));
+        old.picks.insert(inner.clone(), option("kept"));
+        let old = format!("{:?}", old.picks);
+
+        let mut now = Build::default();
+        now.picks.insert(selection.clone(), option("heir-key"));
+        now.picks.insert(inner, option("kept"));
+        assert_eq!(
+            moved_since(&old, &now),
+            Fate::Heirs(vec![(
+                selection,
+                "old-key".to_owned(),
+                "heir-key".to_owned()
+            )])
+        );
     }
 }
