@@ -4,6 +4,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
+use game_check::KnownCarriers;
 use game_check::write::facts::Facts;
 use game_check::write::prerequisites::{self, Narrowings};
 use game_check::write::{Outcome, WriteArea, WriteError, run, run_with};
@@ -1160,6 +1161,122 @@ fn the_carrier_audit_lists_what_the_data_holds_and_what_the_writer_leaves_whole(
             ),
         ])
     );
+}
+
+/// The fixture world's carrier hits, in the audit's order, and the three it holds: `feat held-sworn`'s, `feat
+/// sworn-feat`'s and `feat leveled-feat`'s.
+fn carrier_hits() -> (Vec<String>, [String; 3]) {
+    let (dir, _, dump) = world();
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    let granter = format!(
+        "feat carried-feat granted by PlantedGranterFeature {}, which feature granter doesn't grant -> 307",
+        guid(230)
+    );
+    let three = [
+        format!("feat held-sworn | holds: {granter}"),
+        format!("feat sworn-feat | left whole: {granter}"),
+        format!(
+            "feat leveled-feat | left whole: feat ranked-feat granted by PlantedLevelGranterFeature {}, which feature level-granter doesn't grant -> 307",
+            guid(231)
+        ),
+    ];
+    (prerequisites::audit(&dump, &data), three)
+}
+
+/// A carrier hit no game blueprint holds: a stale line once listed.
+const GONE: &str = "feat gone-feat | holds: feat gone granted by GoneFeature 00000000000000000000000000000000, which feature gone doesn't grant -> 307";
+
+/// 322: the plain game check compares the carrier audit's hits with `carriers-known.txt`, as it does its findings
+/// with `known.txt`: a hit no line lists fails it, and so does a line no hit matches; it prints each.
+#[test]
+fn an_unlisted_carrier_hit_and_a_stale_carrier_line_fail_the_check() {
+    let (hits, [held, sworn, leveled]) = carrier_hits();
+    let every_area = "mapping -> a\nprerequisites -> a\nclass tables -> a\nprogression rows -> a\noption lists -> a\n\
+                      mythic ranks -> a\nitems -> a\n";
+
+    let all =
+        KnownCarriers::parse(&format!("# The list.\n\n{held}\n{sworn}\n{leveled}\n")).unwrap();
+    let check = all.compare(&hits);
+    assert!(check.unlisted.is_empty() && check.stale.is_empty());
+    let passing = report_with(every_area).with_carriers(&check);
+    assert!(!passing.failed(), "{}", passing.text());
+    assert!(
+        passing
+            .text()
+            .contains("\nCarrier hits (ticket 322): 3, each listed in carriers-known.txt.\n"),
+        "{}",
+        passing.text()
+    );
+
+    let some = KnownCarriers::parse(&format!("{held}\n{sworn}\n{GONE}\n")).unwrap();
+    let check = some.compare(&hits);
+    assert_eq!(check.unlisted, std::slice::from_ref(&leveled));
+    assert_eq!(check.stale, [format!("line 3: {GONE}")]);
+    let failing = report_with(every_area).with_carriers(&check);
+    assert!(failing.failed());
+    let text = failing.text();
+    assert!(
+        text.contains(&format!(
+            "\nCarrier hits carriers-known.txt doesn't list:\n  {leveled}\n"
+        )),
+        "{text}"
+    );
+    assert!(
+        text.contains(&format!(
+            "\ncarriers-known.txt lines that match no carrier hit:\n  line 3: {GONE}\n"
+        )),
+        "{text}"
+    );
+}
+
+/// 322: a line's ticket is the main session's to set (the hit's own owner, 307, or a slice that will remove it), so a
+/// line matches the hit whose text before its last ` -> ` it repeats. Regenerating the list (`--carrier-audit
+/// --known-format`) keeps its header and each listed hit's ticket, drops a stale line and lists a new hit with its
+/// own owner.
+#[test]
+fn a_carrier_line_matches_its_hit_whatever_its_ticket_and_regenerating_keeps_the_ticket() {
+    let (hits, [held, sworn, leveled]) = carrier_hits();
+    let held_hit = held.strip_suffix(" -> 307").unwrap();
+    let text = format!("# The list.\n#\n\n{held_hit} -> 308f\n{GONE}\n");
+    let check = KnownCarriers::parse(&text).unwrap().compare(&hits);
+    let mut unlisted = check.unlisted.clone();
+    unlisted.sort();
+    let mut expected = vec![sworn.clone(), leveled.clone()];
+    expected.sort();
+    assert_eq!(unlisted, expected);
+    assert_eq!(check.stale, [format!("line 5: {GONE}")]);
+
+    let listed: String = (hits.iter())
+        .map(|hit| match hit == &held {
+            true => format!("{held_hit} -> 308f\n"),
+            false => format!("{hit}\n"),
+        })
+        .collect();
+    assert_eq!(
+        KnownCarriers::regenerate(&text, &hits).unwrap(),
+        format!("# The list.\n#\n\n{listed}")
+    );
+}
+
+#[test]
+fn a_carrier_line_without_a_ticket_or_listed_twice_is_refused() {
+    let refusals = [
+        ("feat a | holds: b\n", "line 1: no ` -> <ticket>`"),
+        ("feat a | holds: b -> \n", "line 1: no ` -> <ticket>`"),
+        (
+            "feat a | holds: b -> 307\n# between\nfeat a | holds: b -> 308f\n",
+            "line 3: a hit listed twice",
+        ),
+    ];
+    for (text, why) in refusals {
+        let error = KnownCarriers::parse(text).unwrap_err().to_string();
+        assert!(error.contains(why), "{text:?}: {error}");
+    }
+}
+
+#[test]
+fn the_embedded_carrier_list_parses() {
+    KnownCarriers::embedded().expect("carriers-known.txt parses");
 }
 
 /// 308h: a grantor the planner gives only in a row that gives the fact too refuses no one (the rogue's class row gives

@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
-# Pre-commit: fmt and clippy, only when the commit touches Rust or its build
-# files. It checks the working tree, not just what's staged. Enabled per clone with
-# `git config core.hooksPath .githooks`; `git commit --no-verify` skips it.
+# Pre-commit: the guarded files on every commit (ticket 322: an expected value of the gold Builds or a held user fact
+# changes only with a `User approved:` line in the ticket's file), with the guard's own test when it changes; then fmt
+# and clippy, only when the commit touches Rust or its build files. Those check the working tree, not just what's
+# staged. Enabled per clone with `git config core.hooksPath .githooks`; `git commit --no-verify` skips it.
 set -euo pipefail
+
+scripts/guarded-files.sh
+# Not `grep -q`: it can stop reading early, and `pipefail` would take git's SIGPIPE for no match.
+if git diff --cached --name-only | grep '^scripts/guarded-files' >/dev/null; then
+    scripts/guarded-files-test.sh >/dev/null
+fi
 
 if ! git diff --cached --name-only | grep -qE '\.rs$|(^|/)Cargo\.(toml|lock)$|^rustfmt\.toml$|^rust-toolchain\.toml$'; then
     exit 0

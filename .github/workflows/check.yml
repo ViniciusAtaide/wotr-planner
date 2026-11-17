@@ -1,6 +1,6 @@
-# Runs the full set of checks (CLAUDE.md "Checks": fmt, css-classes, clippy on both targets, the workspace tests, the
-# rules wasm build and the data check) on every push to main and every pull request, and by hand. The cargo-leptos
-# builds are left to the Pages workflow, which builds the site.
+# Runs the full set of checks (CLAUDE.md "Checks": the guarded files, fmt, css-classes, clippy on both targets, the
+# workspace tests, the rules wasm build and the data check) on every push to main and every pull request, and by hand.
+# The cargo-leptos builds are left to the Pages workflow, which builds the site.
 name: Check
 
 on:
@@ -24,6 +24,17 @@ jobs:
       CARGO_TERM_COLOR: always
     steps:
       - uses: actions/checkout@v5
+        with:
+          # The whole history: the guarded-files step diffs against the merge base with the default branch.
+          fetch-depth: 0
+
+      # Ticket 322: an expected value of the gold Builds or a held user fact changes only with the user's `User
+      # approved:` line in the ticket's file. Against the merge base with the default branch: a pull request's
+      # commits; on the default branch itself, nothing.
+      - name: guarded-files
+        run: |
+          scripts/guarded-files-test.sh
+          scripts/guarded-files.sh "$(git merge-base "origin/${{ github.event.repository.default_branch }}" HEAD)"
 
       # rustup is on the runner: this installs the nightly pinned in rust-toolchain.toml with its components.
       - name: Install the pinned toolchain
