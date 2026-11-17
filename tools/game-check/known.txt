@@ -254,66 +254,6 @@ prerequisites / * / selection option arcanist/greater-exploits/hellfire-ray -> 2
 prerequisites / * / selection option arcanist/greater-exploits/icy-tomb -> 260
 prerequisites / * / selection option arcanist/greater-exploits/lingering-acid -> 260
 
-# 261, class tables: saves, BAB and the Arcane Trickster's skill points.
-class tables / * / archetype cleric/priest-of-balance -> 261
-class tables / * / archetype druid/feyspeaker -> 261
-class tables / * / archetype hunter/colluding-scoundrel -> 261
-class tables / * / archetype hunter/divine-hound -> 261
-class tables / * / archetype hunter/forester -> 261
-class tables / * / archetype hunter/tandem-executioner -> 261
-class tables / * / archetype hunter/urban-hunter -> 261
-class tables / * / archetype hunter/wandering-marksman -> 261
-class tables / * / archetype kineticist/dark-elementalist -> 261
-class tables / * / archetype monk/traditional-monk -> 261
-class tables / * / archetype paladin/divine-guardian -> 261
-class tables / * / archetype paladin/divine-hunter-paladin -> 261
-class tables / * / archetype paladin/divine-scion -> 261
-class tables / * / archetype paladin/hospitaler -> 261
-class tables / * / archetype paladin/martyr -> 261
-class tables / * / archetype paladin/stonelord -> 261
-class tables / * / archetype paladin/tortured-crusader -> 261
-class tables / * / archetype paladin/warrior-of-the-holy-light -> 261
-class tables / * / archetype shifter/child-of-the-manticore -> 261
-class tables / * / archetype shifter/dragonblood-shifter -> 261
-class tables / * / archetype shifter/feyform-shifter -> 261
-class tables / * / archetype shifter/fiendflesh-shifter -> 261
-class tables / * / archetype shifter/griffonheart-shifter -> 261
-class tables / * / archetype shifter/rageshaper -> 261
-class tables / * / archetype shifter/weretouched -> 261
-class tables / * / archetype shifter/wild-effigy -> 261
-class tables / * / archetype warpriest/champion-of-the-faith -> 261
-class tables / * / archetype warpriest/cult-leader -> 261
-class tables / * / archetype warpriest/disenchanter -> 261
-class tables / * / archetype warpriest/feral-champion -> 261
-class tables / * / archetype warpriest/mantis-zealot -> 261
-class tables / * / archetype warpriest/proclaimer -> 261
-class tables / * / archetype warpriest/shieldbearer -> 261
-class tables / * / class arcane-trickster -> 261
-class tables / * / class hunter -> 261
-class tables / * / class loremaster -> 261
-class tables / * / class mystic-theurge -> 261
-class tables / * / class paladin -> 261
-class tables / * / class shifter -> 261
-class tables / * / class student-of-war -> 261
-class tables / * / class warpriest -> 261
-class tables / * / class winter-witch -> 261
-class tables / Fortitude differs / class stalwart-defender -> 261
-class tables / Reflex differs / class stalwart-defender -> 261
-class tables / Will differs / archetype hunter/divine-hunter -> 261
-class tables / Will differs / class stalwart-defender -> 261
-
-# 262, class skills and the Defender of the Hearth's skill points (the user's facts, to the user).
-class tables / * / archetype arcanist/magic-deceiver -> 262
-class tables / * / archetype fighter/defender-of-the-hearth -> 262
-class tables / * / archetype magus/spell-dancer -> 262
-class tables / * / archetype oracle/seeker -> 262
-class tables / * / archetype oracle/wind-whisperer -> 262
-class tables / * / archetype ranger/sable-company-marine -> 262
-class tables / * / archetype rogue/sylvan-trickster -> 262
-class tables / * / archetype witch/witch-of-the-veil -> 262
-class tables / class skills differ (the user's facts) / archetype hunter/divine-hunter -> 262
-class tables / class skills differ (the user's facts) / class stalwart-defender -> 262
-
 # 263, feats' prerequisites.
 option lists / in game only / pool general feats -> 263
 prerequisites / * / feat accomplished-sneak-attacker -> 263
@@ -1192,6 +1132,9 @@ option lists / * / selection rogue/finesse-training -> 289
 
 # 291, races.
 option lists / ignores prerequisites or not / selection half-elf/adaptability -> 291
+
+# 312, the Stalwart Defender's Intimidate: the game's sub-skills in class skills.
+class tables / class skills differ (the user's facts) / class stalwart-defender -> 312
 
 # 316 (306ac), planner choices the game lacks: an option the planner takes a value for (a weapon or a school) whose
 # blueprint is not a selection.

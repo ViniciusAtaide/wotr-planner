@@ -3,6 +3,7 @@
     class: "hunter",
     blueprint: "f996f0a18e5d945459e710ee3a6dd485",
     prerequisite: Worships,
+    class_skills: ["athletics", "knowledge-arcana", "lore-nature", "lore-religion", "perception", "persuasion", "stealth"],
     name: "Divine Hunter",
     summary: "Hunter devoted to a deity: a domain and Lore (Religion) as a class skill, losing teamwork feats.",
     guide: "hunter#divine-hunter",

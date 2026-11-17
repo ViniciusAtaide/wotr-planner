@@ -101,7 +101,6 @@ fn the_arcane_enforcer_replaces_its_fortitude_and_will_progressions() {
 // a4560e3fb5d247d68fb1a2738fcc0855 (ClericClass 67819271767a9dd4fbfd4ae700befea0); TraditionalMonk
 // 8f3242d209994884bbb6c0999660f4df (MonkClass e8f21e5b58e0569468e420ebea456124)
 #[test]
-#[ignore = "waits on ticket 261: the game gives the Dark Elementalist, the Priest of Balance and the Traditional Monk save progressions of their own"]
 fn four_archetypes_replace_a_save_progression() {
     assert_eq!(replacing(), game_replacing());
 }

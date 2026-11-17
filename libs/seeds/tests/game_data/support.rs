@@ -341,11 +341,26 @@ pub fn possible(build: &Build) -> bool {
 
 /// A Build from a link made before ticket 251, without the weapon feats in it that the game refuses for a weapon the
 /// character isn't proficient with (`RequireProficiency`, which `BlueprintParametrizedFeature.CanSelect` checks,
-/// WrathDecompiled 6ce4a6b): those make the link stale. Panics when any other choice fails.
+/// WrathDecompiled 6ce4a6b): those make the link stale. So do a Build's feats that fail only on base attack bonus
+/// when it holds `druid/feyspeaker`, whose Half progression is the game's `BABLow`
+/// 0538081888b2d8c41893d25d098dee99 (ticket 293l); no other Build gets that. Panics when any other choice fails.
 pub fn without_unproficient_picks(mut build: Build) -> Build {
+    let feyspeaker = build
+        .class_choices
+        .values()
+        .any(|choice| choice.archetype == Some(ArchetypeKey::new("druid/feyspeaker")));
     for failure in engine().failures(&build) {
         match (failure.choice, failure.issue) {
             (rules::Choice::Slot(slot), Issue::NotProficient { .. }) => {
+                build.picks.remove(&slot);
+            }
+            (
+                rules::Choice::Slot(slot),
+                Issue::Unmet(Unmet::Condition {
+                    needs: Prerequisite::BaseAttackBonus(_),
+                    ..
+                }),
+            ) if feyspeaker => {
                 build.picks.remove(&slot);
             }
             (choice, issue) => panic!("{choice:?} fails: {issue:?}"),

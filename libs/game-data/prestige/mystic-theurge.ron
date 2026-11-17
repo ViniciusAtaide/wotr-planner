@@ -9,7 +9,6 @@ Class(
     fort: Poor,
     reflex: Poor,
     will: Good,
-    save_exceptions: [(level: 4, save: Will, value: 3)],
     class_skills: ["knowledge-arcana", "lore-religion", "perception"],
     components: [
         Requires(condition: Stat(stat: Skill("knowledge-arcana"), value: 5)),

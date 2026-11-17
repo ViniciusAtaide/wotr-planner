@@ -5,7 +5,6 @@
     name: "Seeker",
     summary: "Trades revelations for Trickery bonuses and bonus magic feats at 5th, 10th and 15th level.",
     guide: "oracle#seeker",
-    class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "persuasion", "trickery"],
     levels: [
         (level: 1, features: ["oracle/additional-spells", "oracle/seeker/seekers-trapfinding"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/mystery", "oracle/oracles-curse", "oracle/revelations"]),
         (level: 3),

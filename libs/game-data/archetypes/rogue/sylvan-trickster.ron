@@ -5,7 +5,7 @@
     name: "Sylvan Trickster",
     summary: "Dexterity and Intelligence rogue who takes witch hexes, with fey resistances and no Uncanny Dodge.",
     guide: "rogue#sylvan-trickster",
-    class_skills: ["athletics", "knowledge-world", "lore-nature", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
+    class_skills: ["athletics", "lore-nature", "mobility", "perception", "persuasion", "stealth", "trickery", "use-magic-device"],
     levels: [
         (level: 2, features: ["evasion", "rogue/sylvan-trickster/fey-tricks"], selections: ["rogue/sylvan-trickster/fey-tricks"]),
         (level: 4, features: ["rogue/debilitating-injury", "rogue/sylvan-trickster/fey-tricks", "resist-natures-lure"], selections: ["rogue/sylvan-trickster/fey-tricks"]),

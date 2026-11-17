@@ -5,7 +5,6 @@
     name: "Wind Whisperer",
     summary: "Wind mystery only: grants allies Haste at 7th level and Freedom of Movement at 15th.",
     guide: "oracle#wind-whisperer",
-    class_skills: ["knowledge-arcana", "knowledge-world", "lore-nature", "lore-religion", "mobility", "persuasion", "stealth"],
     levels: [
         (level: 1, features: ["oracle/additional-spells"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/oracles-curse", "oracle/revelations", "oracle/wind-whisperer/mystery"]),
         (level: 7, features: ["oracle/wind-whisperer/haste-of-the-wind"]),

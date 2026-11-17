@@ -5,6 +5,7 @@
     name: "Traditional Monk",
     summary: "Monk with good saves in all three and a fixed set of ki powers.",
     guide: "monk#traditional-monk",
+    will: Good,
     levels: [
         (level: 4, features: ["monk/still-mind", "monk/stunning-fist-fatigue"]),
         (level: 6, features: ["monk/traditional-monk/ki-power-wholeness-of-body"], selections: ["monk/bonus-feats-6"]),

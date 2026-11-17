@@ -5,6 +5,7 @@
     name: "Sable Company Marine",
     summary: "Dance of Masks ranger riding a hippogriff, with favoured enemy delayed and no favoured terrains.",
     guide: "ranger#sable-company-marine",
+    class_skills: ["athletics", "knowledge-world", "lore-nature", "mobility", "perception", "persuasion", "stealth"],
     levels: [
         (level: 1, features: ["ranger/sable-company-marine/hippogriff-companion"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"]),
         (level: 3, features: ["ranger/favored-enemy", "ranger/sable-company-marine/the-strongest-wings"]),
