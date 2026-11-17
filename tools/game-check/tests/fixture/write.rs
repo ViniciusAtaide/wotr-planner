@@ -1902,3 +1902,310 @@ fn two_new_files_a_case_insensitive_disk_would_merge_are_refused() {
     assert!(matches!(error, WriteError::Exists(_)), "{error}");
     assert!(!dir.path().join("features").exists());
 }
+
+// The carriers target (ticket 307b), on a world of its own: a feat whose prerequisites name hidden features, a
+// chain of two up to a mapped holder, a selection's member, and keys that share a suffix-less form.
+
+const FEATURE: &str = "Kingmaker.Blueprints.Classes.BlueprintFeature";
+const PROGRESSION: &str = "Kingmaker.Blueprints.Classes.Selection.BlueprintProgression";
+const SELECTION: &str = "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection";
+
+fn feature_record(n: u32, name: &str, type_name: &str, components: &str) -> crate::support::Record {
+    record(
+        n,
+        name,
+        type_name,
+        &format!("{{\"$type\": \"0, {name}\", \"Components\": [{components}]}}"),
+    )
+}
+
+fn requires(n: u32) -> String {
+    format!(
+        "{{\"$type\": \"0, PrerequisiteFeature\", \"Group\": \"All\", \"m_Feature\": \"!bp_{}\"}}",
+        guid(n)
+    )
+}
+
+fn adds(n: u32) -> String {
+    format!(
+        "{{\"$type\": \"0, AddFacts\", \"m_Facts\": [\"!bp_{}\"]}}",
+        guid(n)
+    )
+}
+
+/// The world's data folder and dump. The feat `steady-feat` (100) requires, directly or inside a condition's tree,
+/// `HiddenTrickFeature` (101), `DeepRankUp2Feature` (102), `ListedMemberFeature` (103, a member of the selection 104, an entry), `UnmodelledPickFeature` (109, listed by the selection 108, no entry)
+/// and four whose keys share a form: 110 `FooFeature`, 111 `FooProgression`, 112 `BarFeature`, 113 `BazFeature`
+/// (the entry `baz` exists). 101 is added by `TrickWrapperFeature` (105), which `MappedHolderFeature` (106, an entry)
+/// adds; 107 `AboveMappedFeature` adds 106.
+fn carriers_world() -> (tempfile::TempDir, game_check::Dump) {
+    let dir = data_copy();
+    let put = |file: &str, text: String| std::fs::write(dir.path().join(file), text).unwrap();
+    std::fs::create_dir(dir.path().join("features")).unwrap();
+    put(
+        "feats/steady-feat.ron",
+        format!(
+            "(key: \"steady-feat\", blueprint: \"{}\", name: \"Steady\", category: Weapon)\n",
+            guid(100)
+        ),
+    );
+    put(
+        "features/mapped-holder.ron",
+        format!(
+            "(key: \"mapped-holder\", blueprint: \"{}\", name: \"Mapped holder\")\n",
+            guid(106)
+        ),
+    );
+    put(
+        "features/baz.ron",
+        format!(
+            "(key: \"baz\", blueprint: \"{}\", name: \"Baz\")\n",
+            guid(114)
+        ),
+    );
+    put(
+        "selections/listed.ron",
+        format!(
+            "(key: \"listed\", blueprint: \"{}\", name: \"Listed\", feats: [\"steady-feat\"])\n",
+            guid(104)
+        ),
+    );
+    let tree = format!(
+        "{{\"$type\": \"0, PrerequisiteCondition\", \"Group\": \"All\", \"Condition\": {{\"Conditions\": [{{\"m_Feature\": \"!bp_{}\"}}, {{\"Inner\": {{\"m_Feature\": \"!bp_{}\"}}}}]}}}}",
+        guid(102),
+        guid(103)
+    );
+    let steady = [101, 109, 110, 111, 112, 113]
+        .iter()
+        .map(|n| requires(*n))
+        .chain([tree])
+        .collect::<Vec<_>>()
+        .join(", ");
+    let records = vec![
+        feature_record(100, "SteadyFeat", FEATURE, &steady),
+        feature_record(101, "HiddenTrickFeature", FEATURE, ""),
+        feature_record(102, "DeepRankUp2Feature", FEATURE, ""),
+        feature_record(103, "ListedMemberFeature", FEATURE, ""),
+        record(
+            104,
+            "ListedSelection",
+            SELECTION,
+            &format!(
+                "{{\"$type\": \"0, BlueprintFeatureSelection\", \"m_AllFeatures\": [\"!bp_{}\"]}}",
+                guid(103)
+            ),
+        ),
+        record(
+            108,
+            "UnmodelledSelection",
+            SELECTION,
+            &format!(
+                "{{\"$type\": \"0, BlueprintFeatureSelection\", \"m_AllFeatures\": [\"!bp_{}\"]}}",
+                guid(109)
+            ),
+        ),
+        feature_record(109, "UnmodelledPickFeature", FEATURE, ""),
+        feature_record(105, "TrickWrapperFeature", FEATURE, &adds(101)),
+        feature_record(106, "MappedHolderFeature", FEATURE, &adds(105)),
+        feature_record(107, "AboveMappedFeature", FEATURE, &adds(106)),
+        feature_record(110, "FooFeature", FEATURE, ""),
+        feature_record(111, "FooProgression", PROGRESSION, ""),
+        feature_record(112, "BarFeature", FEATURE, ""),
+        feature_record(113, "BazFeature", FEATURE, ""),
+    ];
+    let (_, dump) = crate::support::dump(&crate::support::binz(&records, 1));
+    (dir, dump)
+}
+
+fn write_carriers(
+    dir: &Path,
+    dump: &game_check::Dump,
+    only: Option<&[u32]>,
+    dry_run: bool,
+) -> Result<game_check::write::Outcome, WriteError> {
+    let only: Option<std::collections::BTreeSet<String>> =
+        only.map(|only| only.iter().map(|n| guid(*n)).collect());
+    run(
+        dump,
+        dir,
+        &[WriteArea::Carriers],
+        only.as_ref(),
+        dry_run,
+        &Facts::default(),
+        valid,
+    )
+}
+
+fn made(outcome: &game_check::write::Outcome) -> Vec<String> {
+    outcome
+        .created
+        .iter()
+        .map(|new| new.file.display().to_string())
+        .collect()
+}
+
+#[test]
+fn a_prerequisite_naming_an_unmapped_feature_makes_a_carrier() {
+    let (dir, dump) = carriers_world();
+    let outcome = write_carriers(dir.path(), &dump, None, false).unwrap();
+    assert_eq!(
+        read(dir.path(), "features/hidden-trick.ron"),
+        format!(
+            "(key: \"hidden-trick\", blueprint: \"{}\", name: \"Hidden Trick\")\n",
+            guid(101)
+        )
+    );
+    // A reference deeper inside a condition's tree counts, and digits are a word of their own.
+    assert_eq!(
+        read(dir.path(), "features/deep-rank-up-2.ron"),
+        format!(
+            "(key: \"deep-rank-up-2\", blueprint: \"{}\", name: \"Deep Rank Up 2\")\n",
+            guid(102)
+        )
+    );
+    assert!(outcome.unexpressed.is_empty());
+    assert!(outcome.changes.is_empty());
+    // The files read back as game data (`run`'s own check ran on them).
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    assert_eq!(data.features.len(), 2 + 8);
+}
+
+#[test]
+fn a_chain_up_to_an_entry_makes_carriers() {
+    let (dir, dump) = carriers_world();
+    let outcome = write_carriers(dir.path(), &dump, None, false).unwrap();
+    let files = made(&outcome);
+    // 105 adds 101 and is held by the entry 106: a carrier; 107 adds the entry, above the chain: not one.
+    assert!(
+        files.contains(&"features/trick-wrapper.ron".to_owned()),
+        "{files:?}"
+    );
+    assert!(
+        !files.iter().any(|f| f.contains("above-mapped")),
+        "{files:?}"
+    );
+    assert!(
+        !files.iter().any(|f| f.contains("mapped-holder")),
+        "{files:?}"
+    );
+    // Nothing else: the feat itself is mapped, the selection and its member are not carriers.
+    assert_eq!(files.len(), 8, "{files:?}");
+}
+
+#[test]
+fn a_selection_member_is_never_a_carrier() {
+    let (dir, dump) = carriers_world();
+    let outcome = write_carriers(dir.path(), &dump, None, false).unwrap();
+    assert!(
+        !made(&outcome).iter().any(|f| f.contains("listed-member")),
+        "{:?}",
+        made(&outcome)
+    );
+    assert!(!dir.path().join("features/listed-member.ron").exists());
+}
+
+#[test]
+fn keys_drop_the_suffix_unless_two_would_share_one() {
+    let (dir, dump) = carriers_world();
+    let outcome = write_carriers(dir.path(), &dump, None, false).unwrap();
+    let keys: Vec<(String, String)> = outcome
+        .created
+        .iter()
+        .map(|new| {
+            (new.at.key().unwrap().to_owned(), {
+                let text = read(dir.path(), &new.file.display().to_string());
+                text.split("name: \"")
+                    .nth(1)
+                    .unwrap()
+                    .trim_end_matches("\")\n")
+                    .to_owned()
+            })
+        })
+        .collect();
+    let keys: std::collections::BTreeMap<_, _> = keys.into_iter().collect();
+    assert_eq!(
+        keys.iter()
+            .map(|(k, n)| format!("{k}={n}"))
+            .collect::<Vec<_>>(),
+        [
+            "bar=Bar",
+            // `baz` is an entry's key already: the carrier keeps its suffix.
+            "baz-feature=Baz Feature",
+            "deep-rank-up-2=Deep Rank Up 2",
+            // Two assets share `foo`: each keeps its suffix.
+            "foo-feature=Foo Feature",
+            "foo-progression=Foo Progression",
+            "hidden-trick=Hidden Trick",
+            "trick-wrapper=Trick Wrapper",
+            "unmodelled-pick=Unmodelled Pick",
+        ]
+    );
+    // The keys don't depend on `--only`: the one asset keeps its suffix when the other isn't asked for.
+    let (dir, dump) = carriers_world();
+    let outcome = write_carriers(dir.path(), &dump, Some(&[110]), false).unwrap();
+    assert_eq!(made(&outcome), ["features/foo-feature.ron"]);
+}
+
+#[test]
+fn a_second_carriers_run_writes_nothing() {
+    let (dir, dump) = carriers_world();
+    write_carriers(dir.path(), &dump, None, false).unwrap();
+    let after = all_files(dir.path());
+    let again = write_carriers(dir.path(), &dump, None, false).unwrap();
+    assert!(again.created.is_empty(), "{:?}", made(&again));
+    assert!(again.applied.created.is_empty());
+    assert_eq!(all_files(dir.path()), after);
+}
+
+#[test]
+fn two_carriers_runs_on_two_copies_make_the_same_files() {
+    let ((one, dump), (two, _)) = (carriers_world(), carriers_world());
+    write_carriers(one.path(), &dump, None, false).unwrap();
+    write_carriers(two.path(), &dump, None, false).unwrap();
+    let relative = |dir: &Path| -> Vec<(PathBuf, String)> {
+        all_files(dir)
+            .into_iter()
+            .map(|(path, text)| (path.strip_prefix(dir).unwrap().to_owned(), text))
+            .collect()
+    };
+    assert_eq!(relative(one.path()), relative(two.path()));
+}
+
+#[test]
+fn only_takes_guids_and_a_dry_run_writes_none() {
+    let (dir, dump) = carriers_world();
+    let before = all_files(dir.path());
+    let dry = write_carriers(dir.path(), &dump, Some(&[101, 105]), true).unwrap();
+    assert_eq!(
+        made(&dry),
+        ["features/hidden-trick.ron", "features/trick-wrapper.ron"]
+    );
+    assert_eq!(dry.applied.created.len(), 2);
+    assert_eq!(all_files(dir.path()), before);
+    // A word that is no GUID, and both areas at once, are usage errors.
+    let bad: std::collections::BTreeSet<String> = ["steady-feat".to_owned()].into();
+    let facts = Facts::default();
+    let error = run(
+        &dump,
+        dir.path(),
+        &[WriteArea::Carriers],
+        Some(&bad),
+        true,
+        &facts,
+        valid,
+    )
+    .unwrap_err();
+    assert!(matches!(error, WriteError::Usage(_)), "{error}");
+    let one: std::collections::BTreeSet<String> = [guid(101)].into();
+    let areas = [WriteArea::Carriers, WriteArea::OptionLists];
+    let error = run(&dump, dir.path(), &areas, Some(&one), true, &facts, valid).unwrap_err();
+    assert!(matches!(error, WriteError::Usage(_)), "{error}");
+}
+
+#[test]
+fn a_member_of_a_list_no_entry_stands_for_is_still_a_carrier() {
+    let (dir, dump) = carriers_world();
+    let outcome = write_carriers(dir.path(), &dump, None, false).unwrap();
+    // 109 is listed by a selection (108) that has no entry and no row: nothing makes it a pick.
+    assert!(made(&outcome).contains(&"features/unmodelled-pick.ron".to_owned()));
+}
