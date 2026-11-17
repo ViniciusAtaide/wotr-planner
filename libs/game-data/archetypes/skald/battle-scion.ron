@@ -10,7 +10,7 @@
         (level: 3, features: ["skald/battle-scion/battle-prowess"], selections: ["skald/battle-scion/rage-power-or-teamwork-feat"]),
         (level: 6, features: ["skald/battle-scion/battle-prowess", "skald/song-of-strength"], selections: ["skald/battle-scion/rage-power-or-teamwork-feat"]),
         (level: 9, features: ["skald/battle-scion/battle-prowess", "skald/damage-reduction"], selections: ["skald/battle-scion/rage-power-or-teamwork-feat"]),
-        (level: 12, features: ["skald/battle-scion/battle-prowess"], selections: ["skald/battle-scion/rage-power-or-teamwork-feat", "skald/rogue-talents"]),
+        (level: 12, features: ["skald/battle-scion/battle-prowess"], selections: ["skald/battle-scion/rage-power-or-teamwork-feat", "rogue/skald-talents"]),
         (level: 15, features: ["skald/battle-scion/battle-prowess"], selections: ["skald/battle-scion/rage-power-or-teamwork-feat"]),
         (level: 18, features: ["skald/battle-scion/battle-prowess"], selections: ["skald/battle-scion/rage-power-or-teamwork-feat"]),
     ],

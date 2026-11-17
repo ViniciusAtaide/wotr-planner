@@ -4,7 +4,7 @@
 
 - `selections/bard/rogue-talents.ron` (`BardTalentSelection` 94e2cd84bf3a8e04f8609fe502892f4f, granted by
   `BardProgression` 8127f5ff40f5b484b8be98609358b9d2 at 2, 6, 10, 14, 18): 24 talents.
-- `selections/skald/rogue-talents.ron` (`SkaldTalentSelection` d2a8fde8985691045b90e1ec57e3cc57, `SkaldProgression` at
+- `selections/rogue/skald-talents.ron` (`SkaldTalentSelection` d2a8fde8985691045b90e1ec57e3cc57, `SkaldProgression` at
   2, 7, 12, 17): 21 talents.
 - `selections/skald/inciter/rogue-talents.ron` (`ProvocateurTalentSelection` aa88cb5263a54791b8d1e471bc192ad4,
   `ProvocateurArchetype` a1f5ab7eb78942f6889304acbd92e945 `AddFeatures` at 4, 9, 14, 19): 24 talents.
@@ -13,15 +13,13 @@
   of the rogue's 38 removed). The summaries are ours.
 - The rows of `classes/bard.ron`, `classes/skald.ron` and their archetypes that named `rogue/rogue-talents` name the
   copy of their class; `archetypes/skald/inciter.ron`'s four rows name the Inciter's.
-
+## Decisions
 ## Decisions
 
-- Selection keys follow the family's plan (306 slices, 306e); picks are carried by slot, so no alias (decision 5).
-- Consequences the game shares: Extra Rogue Talent is refused to a bard and a skald (its `needs_slot_of` names only
-  the rogue's selections; the game's Extra feat is met by the rogue's list alone, the comment of ticket 264's ignored test `the_extra_feats_the_game_refuses_to_an_underground_chemist_a_bard_a_skald_and_a_hexcrafter`), and a
-  Battle Scion's level-12 slots swap places (inference: the merged row orders its selections by key; `rogue/...` came before
-  `skald/battle-scion/...`, `skald/rogue-talents` comes after), so a link's two picks there no longer open: both are
-  listed in `tools/corpus/tests/links/306-refused.txt`.
+- The skald's copy is keyed `rogue/skald-talents`, not `skald/rogue-talents` as the slice plan has it (main session, fix round): `game_data.rs` `normalise` sorts each row's selections by key, and slot ids number them in that order. The Battle Scion's level-12 row holds this selection and `skald/battle-scion/rage-power-or-teamwork-feat`; `rogue/...` sorts before it as the old key did, `skald/rogue-talents` would not and swapped the two slots. Slice 306h meets the same sort for the skald's rage-power copy.
+- Picks are carried by slot, so no alias (decision 5).
+- Extra Rogue Talent gives a bard or a skald no pick: `ExtraRogueTalentSelection` 14d9089df87a43b696fa9451ca2f0a12 needs `RogueTalentSelection`, `SylvanTricksterTalentSelection` or `DarkLurkerRogueTalentSelection` (PrerequisiteFeature, Group Any), and its `needs_slot_of` names the rogue's selections. The feat's own prerequisite still reads the talents held, so the planner lets a bard take the feat itself; 306aa reworks `needs_slot_of`, S4 the prerequisite.
+
 
 ## Not modelled
 

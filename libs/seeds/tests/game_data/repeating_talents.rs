@@ -285,7 +285,7 @@ fn combat_trick_grants_its_slot_through_every_selection_offering_it() {
                 "rogue/underground-chemist/discovery",
                 "shifter/feyform-shifter/rogue-talent",
                 "skald/inciter/rogue-talents",
-                "skald/rogue-talents",
+                "rogue/skald-talents",
                 "slayer/slayer-talents",
             ]
             .map(String::from)

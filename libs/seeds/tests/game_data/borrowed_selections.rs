@@ -299,7 +299,7 @@ fn each_borrowing_class_picks_at_its_tables_levels() {
         ),
         (
             borrower("skald", None, 20),
-            "skald/rogue-talents",
+            "rogue/skald-talents",
             skald.clone(),
         ),
         // Game: BeastTamerArchetype 912b0495d9485124bb2c0e4aa6ac2efd removes the talents at 2 and 10
@@ -367,7 +367,7 @@ fn each_borrowing_class_picks_at_its_tables_levels() {
     ] {
         cases.push((
             borrower("skald", Some(archetype), 20),
-            "skald/rogue-talents",
+            "rogue/skald-talents",
             skald.clone(),
         ));
     }

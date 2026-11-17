@@ -1,5 +1,5 @@
 (
-    key: "skald/rogue-talents",
+    key: "rogue/skald-talents",
     blueprint: "d2a8fde8985691045b90e1ec57e3cc57",
     name: "Rogue Talents",
     summary: "A rogue talent from the skald's own list, taken at skald levels 2, 7, 12 and 17.",

@@ -244,3 +244,31 @@ fn every_s2_base_link_opens_the_same_or_through_an_heir_or_is_listed() {
     println!("S2's base links: {same} the same, {heirs} through an heir, {refused} refused");
     assert!(same + heirs + refused > 1_800, "{}", same + heirs + refused);
 }
+
+/// Ticket 306e: a Battle Scion's link from S2's base still opens with its picks. Its level-12 row holds the skald's
+/// talents and its own selection, numbered by key, and the talents' key keeps its place in that order.
+#[test]
+fn a_battle_scion_link_from_the_s2_base_still_opens() {
+    let (engine, data) = corpus::engine().expect("the game data loads");
+    let keys = LinkKeys::new(&data);
+    let mut scions = 0;
+    for line in S2.base.lines().filter(|line| line.contains("battle-scion")) {
+        let (name, link) = line.split_once('\t').expect("`name<TAB>link`");
+        let old = decode_build(link, &keys)
+            .map_or_else(|_| String::new(), |build| format!("{:?}", build.picks));
+        // A pick the skald's own list lacks may be refused (the game's list, listed in `306-refused.txt`); a rage
+        // power or teamwork feat at 12 never.
+        match fate(&engine, &data, &keys, link, &old) {
+            Fate::Same | Fate::Heirs(_) => {}
+            Fate::Refused(picks) => assert!(
+                picks
+                    .iter()
+                    .all(|(_, key)| key.starts_with("rogue/rogue-talents/")),
+                "{name}: {picks:?}"
+            ),
+            Fate::Changed(why) => panic!("{name}: {why}"),
+        }
+        scions += 1;
+    }
+    assert!(scions >= 5, "{scions}");
+}

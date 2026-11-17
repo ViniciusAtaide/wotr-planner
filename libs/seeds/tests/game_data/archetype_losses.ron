@@ -1627,7 +1627,7 @@
             (item: Feature("well-versed")),
             (item: Feat("scribe-scrolls")),
             (item: Selection("barbarian/rage-power"), at: [9, 15], why: "table has no Rage Power at these levels; its rows there show 9: Skald Talent; 15: nothing"),
-            (item: Selection("skald/rogue-talents")),
+            (item: Selection("rogue/skald-talents")),
         ],
     ),
     // Game: ArcaneEnforcerArchetype 23a5d0ca607f6094097d509b2b1f4a10

@@ -8,10 +8,10 @@
     levels: [
         (level: 3, features: ["skald/demon-dancer/fiendish-maw"]),
         (level: 6, features: ["skald/demon-dancer/fiend-totem", "skald/song-of-strength"]),
-        (level: 7, features: ["skald/demon-dancer/demonic-conquest", "skald/demon-dancer/fiendish-maw", "lore-master", "skald/raging-song-move-action"], selections: ["skald/rogue-talents"]),
+        (level: 7, features: ["skald/demon-dancer/demonic-conquest", "skald/demon-dancer/fiendish-maw", "lore-master", "skald/raging-song-move-action"], selections: ["rogue/skald-talents"]),
         (level: 9, features: ["skald/damage-reduction"]),
         (level: 10, features: ["dirge-of-doom", "skald/demon-dancer/fiend-totem-greater"]),
-        (level: 12, features: ["skald/demon-dancer/fiendish-maw"], selections: ["barbarian/rage-power", "skald/rogue-talents"]),
-        (level: 17, features: ["skald/demon-dancer/fiendish-maw"], selections: ["skald/rogue-talents"]),
+        (level: 12, features: ["skald/demon-dancer/fiendish-maw"], selections: ["barbarian/rage-power", "rogue/skald-talents"]),
+        (level: 17, features: ["skald/demon-dancer/fiendish-maw"], selections: ["rogue/skald-talents"]),
     ],
 )

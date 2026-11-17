@@ -23,13 +23,8 @@ full t60 bard/archaeologist 20 / empty
 full t60 bard/archaeologist 20 / empty / legend
 full t60 bard/chelaxian-diva 20 / empty
 full t60 bard/chelaxian-diva 20 / empty / legend
-full t60 skald/battle-scion 20 / empty
-full t60 skald/battle-scion 20 / empty / legend
-full t60 skald/battle-scion 20 / filled
-full t60 skald/battle-scion 20 / filled / legend
 full t60 skald/court-poet 20 / empty
 full t60 skald/court-poet 20 / empty / legend
 full t60 skald/herald-of-the-horn 20 / empty
 full t60 skald/herald-of-the-horn 20 / empty / legend
 t60 bard 3 extra rogue talent
-t60 skald/battle-scion 20 / filled

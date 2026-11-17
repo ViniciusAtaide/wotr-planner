@@ -100,7 +100,7 @@ fn the_bard_skald_and_inciter_talents_are_their_own_lists() {
     ]);
     for (key, lacks, offers) in [
         ("bard/rogue-talents", bard, 24),
-        ("skald/rogue-talents", skald, 21),
+        ("rogue/skald-talents", skald, 21),
         ("skald/inciter/rogue-talents", inciter, 24),
     ] {
         let own = talents(key);
@@ -112,5 +112,28 @@ fn the_bard_skald_and_inciter_talents_are_their_own_lists() {
         );
         // They own none: the rogue's list holds each one.
         assert!(selection(key).options.is_empty(), "{key}");
+    }
+}
+
+/// 306e: a bard and a skald get no pick from Extra Rogue Talent: the game's feat needs a rogue's, a Sylvan Trickster's or a
+/// Dark Lurker's talent selection, and their own are another feature. (306aa reworks the feat's `needs_slot_of`.)
+// Game: ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 has PrerequisiteFeature (Group Any) of
+// RogueTalentSelection c074a5d615200494b8f2a9c845799d93, SylvanTricksterTalentSelection
+// 290bbcc3c3bb92144b853fd8fb8ff452 and DarkLurkerRogueTalentSelection 1edbb68422c046f98a86f4726f6721b2; BardTalentSelection
+// 94e2cd84bf3a8e04f8609fe502892f4f and SkaldTalentSelection d2a8fde8985691045b90e1ec57e3cc57 are none of them.
+#[test]
+fn a_bard_and_a_skald_cant_take_extra_rogue_talent() {
+    let with_extra = |class: &str| {
+        let mut build = with_selections_filled(classes_build(&[class, class, class]));
+        build
+            .picks
+            .insert(general_slot(3), feat_pick_plain("extra-rogue-talent"));
+        with_pick(build, extra_slot(3, 0), &rogue_talent("fast-stealth"))
+    };
+    // A rogue's pick in the feat's slot stands; a bard's or a skald's is refused (the planner still lets them take
+    // the feat itself: its prerequisite reads the talents held, which 306aa/S4 write as the game's).
+    assert!(possible(&with_extra("rogue")));
+    for class in ["bard", "skald"] {
+        assert!(!possible(&with_extra(class)), "{class}");
     }
 }
