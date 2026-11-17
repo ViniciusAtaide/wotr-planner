@@ -1227,6 +1227,11 @@ fn an_unlisted_carrier_hit_and_a_stale_carrier_line_fail_the_check() {
         )),
         "{text}"
     );
+    assert!(
+        text.contains("cargo run -q -p game-check -- --carrier-audit --known-format > tools/game-check/carriers-known.txt.new && mv"),
+        "{text}"
+    );
+    assert!(!passing.text().contains("--known-format"));
 }
 
 /// 322: a line's ticket is the main session's to set (the hit's own owner, 307, or a slice that will remove it), so a

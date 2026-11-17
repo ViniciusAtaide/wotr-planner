@@ -46,6 +46,8 @@ step() {
 }
 
 step "guarded-files (since $(git rev-parse --short "$base" 2>/dev/null || echo "$base"))" scripts/guarded-files.sh "$base"
+# Passing, it may have printed the user's approvals: shown, for the queue's review.
+sed 's/^/  /' "$log"
 step guarded-files-test scripts/guarded-files-test.sh
 step fmt cargo fmt --all --check
 step css-classes scripts/css-classes.sh

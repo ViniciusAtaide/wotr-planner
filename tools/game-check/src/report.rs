@@ -312,6 +312,14 @@ impl Report {
             }
             self.failed = true;
         }
+        if !check.unlisted.is_empty() || !check.stale.is_empty() {
+            let _ = writeln!(
+                self.text,
+                "\nGive each new hit its ticket, then regenerate the list (its header), from the main checkout's root:\n  \
+                 cargo run -q -p game-check -- --carrier-audit --known-format > tools/game-check/carriers-known.txt.new \
+                 && mv tools/game-check/carriers-known.txt.new tools/game-check/carriers-known.txt"
+            );
+        }
         self
     }
 

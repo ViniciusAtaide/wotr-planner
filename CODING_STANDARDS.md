@@ -33,3 +33,4 @@ Read at review, by the reviewer (`.claude/agents/ticket-reviewer.md`). These are
   - An assertion is never made weaker: an exact reason stays an exact reason, not `.is_err()`.
   - A corpus generator changed to hold the Build count keeps what its Build tests; a swap that only keeps a Build closed is a finding.
   - A gold Build that turns impossible is a gold change for the user, even when reverting the written entries clears it; the Answer names the pick, the condition and the game's verdict.
+  - A `User approved:` line (`scripts/guarded-files.sh`, ticket 322) quotes the user's own words and is written by the main session, never by a builder; the reviewer checks it.

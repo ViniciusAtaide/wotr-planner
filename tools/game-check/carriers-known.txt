@@ -14,10 +14,11 @@
 # The main session regenerates this list at each data merge, after the game check names the hits that moved, from the
 # main checkout's root:
 #
-#   cargo run -q -p game-check -- --carrier-audit --known-format > tools/game-check/carriers-known.txt.new
-#   mv tools/game-check/carriers-known.txt.new tools/game-check/carriers-known.txt
+#   cargo run -q -p game-check -- --carrier-audit --known-format > tools/game-check/carriers-known.txt.new &&
+#       mv tools/game-check/carriers-known.txt.new tools/game-check/carriers-known.txt
 #
-# It keeps this header and each listed hit's ticket, drops the stale lines and lists each new hit with its own owner
+# Through a `.new` file, since a redirect onto the list would empty it before cargo embeds it; with `&&`, a failed
+# audit leaves the list as it was. It keeps this header and each listed hit's ticket, drops the stale lines and lists each new hit with its own owner
 # (`-> 307`); `git diff` then shows what the merge moved. A new hit is a write that refuses characters the game allows:
 # it gets its ticket (or 307's) before the merge is done. Seeded from the audit at ticket 322's base (04420d25).
 

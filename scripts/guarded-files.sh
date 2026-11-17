@@ -12,12 +12,20 @@
 # - libs/seeds/tests/game_data/gold.rs, a line that isn't blank or a `//` comment, inside
 #   - `fn jack()` or `fn enforcer()`, from that line to the next line `}` at the line's start: the gold Builds' picks,
 #     scores, skills and Mythic rank levels;
-#   - `const KNOWN_GAPS`, `const NAMES` or `const VALUES`, from that line to the next line `];` at its start: the known
-#     gaps, and the planner names each write-up name expects;
+#   - the comparison that decides a gold Build's pass, each from its line to the next line `}` at its start: `fn gold`,
+#     `expected`, `feat_names`, `held_names`, `picked`, `compare`, `level_class`, `check_line`,
+#     `check_bloodline_spell`, `second_bloodline_spells`, `start`, `unexplained_by`, `disagreements` and
+#     `unexplained`, and `impl Gains` and `impl Covers`;
+#   - `const NAMES` or `const VALUES`, from that line to the next line `];` at its start: the planner names each
+#     write-up name expects;
+#   - `const KNOWN_GAPS`, likewise, an added line only: a fix deletes its gap (CLAUDE.md, "Behaviour checks"), a new
+#     or changed gap needs the user;
 #   - an `assert!(`, `assert_eq!(` or `assert_ne!(`, from that line to the first line ending `);`: the tests' expected
-#     values and numbers.
+#     values and numbers;
+#   - an added `#[ignore` line, and a removed `#[test]` line: a test switched off.
 #   A removed and an added line whose code is the same, a trailing `//` comment aside, are no change (a citation added
 #   to a pick, a line moved).
+# - libs/seeds/tests/game_data/gold/ (the write-ups, `source.txt`, and their conversion, `<build>.ron`): any change.
 # - tools/game-check/user-facts.txt: a line ending `-> held`, a trailing `#` comment aside.
 # The approval: a line the diff adds under .scratch/wotr-planner/issues/ that starts `User approved:` (who decided,
 # when, and what).
@@ -27,6 +35,7 @@
 set -euo pipefail
 
 gold=libs/seeds/tests/game_data/gold.rs
+gold_dir=libs/seeds/tests/game_data/gold/
 facts=tools/game-check/user-facts.txt
 issues=.scratch/wotr-planner/issues/
 
@@ -61,15 +70,23 @@ show() {
     git show "$1:$2" 2>/dev/null || true
 }
 
-# The guarded line numbers of gold.rs's text on stdin, one a line (the regions the header names).
+# The guarded line numbers of gold.rs's text on stdin, one a line (the regions the header names), on side $1 (`old`, the
+# removed lines' side, or `new`, the added lines').
 guarded_lines() {
-    awk '
+    awk -v side="$1" '
         function mark() { if ($0 !~ /^[[:space:]]*$/ && $0 !~ /^[[:space:]]*\/\//) print NR }
+        side == "old" && /^[[:space:]]*#\[test\]/ { print NR }
+        side == "new" && /^[[:space:]]*#\[ignore/ { print NR }
         region == "fn" { mark(); if ($0 ~ /^}/) region = ""; next }
         region == "const" { mark(); if ($0 ~ /^\];/) region = ""; next }
+        region == "gaps" { if (side == "new") mark(); if ($0 ~ /^\];/) region = ""; next }
         region == "assert" { mark(); if ($0 ~ /\);[[:space:]]*$/) region = ""; next }
-        /^fn (jack|enforcer)\(\)/ { region = "fn"; mark(); next }
-        /^const (KNOWN_GAPS|NAMES|VALUES):/ { region = "const"; mark(); next }
+        /^fn (jack|enforcer|gold|expected|feat_names|held_names|picked|compare|level_class|check_line|check_bloodline_spell|second_bloodline_spells|start|unexplained_by|disagreements|unexplained)[(<]/ {
+            region = "fn"; mark(); next
+        }
+        /^impl(<[^>]*>)? (Gains|Covers)[<[:space:]{]/ { region = "fn"; mark(); next }
+        /^const (NAMES|VALUES):/ { region = "const"; mark(); next }
+        /^const KNOWN_GAPS:/ { region = "gaps"; if (side == "new") mark(); next }
         /assert(_eq|_ne)?!\(/ { mark(); if ($0 !~ /\);[[:space:]]*$/) region = "assert"; next }
     '
 }
@@ -82,6 +99,7 @@ changed_lines() {
             split($2, old, ","); split($3, new, ",")
             o = substr(old[1], 2) + 0; n = substr(new[1], 2) + 0; hunk = 1; next
         }
+        /^diff --git / { hunk = 0; next }
         !hunk { next }
         /^-/ { print "-" o "\t" substr($0, 2); o++; next }
         /^\+/ { print "+" n "\t" substr($0, 2); n++; next }
@@ -91,8 +109,8 @@ changed_lines() {
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-show "$old_rev" "$gold" | guarded_lines >"$tmp/old"
-show "$new_rev" "$gold" | guarded_lines >"$tmp/new"
+show "$old_rev" "$gold" | guarded_lines old >"$tmp/old"
+show "$new_rev" "$gold" | guarded_lines new >"$tmp/new"
 diff_of "$gold" | changed_lines >"$tmp/gold"
 # A removed and an added guarded line whose code is the same, trailing `//` comment and spaces aside, cancel: a citation
 # added to a pick, or a line moved, changes no value.
@@ -122,6 +140,8 @@ diff_of "$facts" | changed_lines | awk -F'\t' -v path="$facts" '
         if (text ~ /->[[:space:]]*held[[:space:]]*$/) print "  " path " " $0
     }
 ' >>"$tmp/hits"
+
+git diff --no-color --name-only "${range[@]}" -- "$gold_dir" | sed 's/^/  /; s/$/ changed/' >>"$tmp/hits"
 
 if [[ ! -s $tmp/hits ]]; then
     exit 0

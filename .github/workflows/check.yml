@@ -30,7 +30,7 @@ jobs:
 
       # Ticket 322: an expected value of the gold Builds or a held user fact changes only with the user's `User
       # approved:` line in the ticket's file. Against the merge base with the default branch: a pull request's
-      # commits; on the default branch itself, nothing.
+      # commits. A push to `main` checks nothing: there the merge base is HEAD itself, and the diff is empty.
       - name: guarded-files
         run: |
           scripts/guarded-files-test.sh
