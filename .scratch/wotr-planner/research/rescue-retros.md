@@ -28,3 +28,26 @@ The `subagent-rescue` skill appends one entry per rescue: the ticket, the minute
   - (applied: `scripts/pinning-tests.sh`, a cause seen twice: a mechanical fix) a script, `scripts/pinning-tests.sh <key>…`, that lists the test functions in `libs/seeds/tests/game_data/` naming a selection, feat or option key the slice touches, or the totals it moves (the feat count, the repeating feats, the `Requires` count). The research puts its output in the section's **Tests**, and the builder runs those filtered before the one full run.
   - (queued on ticket 306ab) `game-check --write option-lists`: list a selection named in `--only` that it skipped for holding no list, rather than skipping it silently.
   - (proposed) the form proof's `compare`: when the regenerated corpus loses Builds or holds Builds that no longer open, name them and the generator's line, so the slice updates the generator.
+
+## 2026-11-17: ticket 306k (the small splits: Aeon gaze, Elemental Witch, Nine-Tailed Heir, discoveries, angel), about 35 minutes at the check
+
+- **Verdict:** progressing; the watchdog fired on a builder two steps from its commit. Nothing to unblock.
+- **How the minutes split** (file times; the lane's base is 08:33, the Mac woke at 08:32 and didn't sleep after):
+  - 08:33 to 08:38: the form proof's `record` on the base (49 s of run, the rest compile);
+  - 08:38 to 08:53: the data edits and the writer (`lists.log`);
+  - 08:53 to 09:00: tests and the game check (`gc.txt`);
+  - 09:00 to 09:04: `record` on the tip, `compare`, the refused links listed;
+  - 09:04 on: the one full `seeds`/`corpus` run (`links` 45 s; `game_data` about 3 minutes), then the Answer and the commit.
+
+  All of it was work: no stall over a few minutes between writes, no sleep. Waiting was only the runs themselves, about 6 minutes of 35.
+- **`pinning-tests.sh` and filtered runs did cut the time.** Ten test files under `libs/seeds/tests/game_data/` were edited before the first full run started at 31 minutes; 306i and 306j each found their pins (11 and 15 failures) from a full run and iterated from there. 306i took 65 minutes, 306j 33 of work with two full runs; 306k reached its first full run at 31. That run still showed one pin the script missed: `pick_order::the_selections_outside_the_features_band_are_the_games` lists every selection with `band: Path`, and the new `sorcerer/nine-tailed-heir/bloodline` (`band: Path`) is not in it. The script searches for the keys a slice touches; a test that lists all entries of a kind names no new key. One failure instead of 11 or 15, but it costs a second 4-minute run.
+- **The estimate was the miss, not the builder:** `slices.md` says 20 minutes for five splits, a new feat, a new option, a census and a full run. The fixed costs alone (record, compare, the full run, the game check) are about 10 minutes.
+- **Seen in the census, for the reviewer:**
+  - 7 refused link lines where the section's Proof says 3 (2 Vivisectionist, 1 Underground Chemist): 6 Vivisectionist lines (t64 "discovery" and "talent only", sample and `full`) and 1 Underground Chemist (`full t49`). All are Extra Discovery, all listed in `306-refused.txt`; none is an Aeon link or a slot-order refusal (0 through an heir, 0 changed). The Answer should say why the count is 7.
+  - the regenerated corpus has 2,156 Builds, not 2,158 (it lost `full t64 vivisectionist talent only` and its `/ filled`), and 1,990 open, not 1,994: the generator still gives a Vivisectionist `extra-discovery`. The same cause as 306j's shaman.
+  - every offer status change (2,112 in 172 groups, all `-> BreaksLater`) sits in the 7 refused Builds; no other Build's offers changed status.
+- **Changes:**
+  - (declined: the user set the watchdog at 30 minutes; a medium-effort check is cheap) `slices.md` estimates for the remaining 306 slices: add 10 minutes of fixed cost per data slice, or move the watchdog to 45 minutes for a slice with a census, so it fires on a stall and not on a full run.
+  - (applied: research/306/decisions.md; ticket 306af for compare) the corpus generator follows the split: a slice that gives a class its own Extra feat updates `tools/corpus/src/builds/` in the same diff, and `compare` names the Builds the regenerated corpus lost with the generator's line (306j's proposal, still open).
+  - (applied: research/306/decisions.md) the research's Proof counts refusals in link lines (sample and `full`, each `/ filled` variant), the unit `306-refused.txt` and `compare` use, not in Builds.
+  - (applied) `scripts/pinning-tests.sh`: also list the tests that enumerate every entry holding a field the slice's new entries set (`band: Path` → `pick_order::the_selections_outside_the_features_band_are_the_games`), from a small table of field → test in the script.
