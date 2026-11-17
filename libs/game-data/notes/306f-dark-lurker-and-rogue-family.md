@@ -33,3 +33,5 @@
 `importer_lists::the_master_of_alls_skill_focus_checks_prerequisites`; un-ignored
 `borrowed_selections::a_feyform_shifters_rogue_talent_is_the_rogues_selection` and
 `data::an_underground_chemist_takes_a_discovery_at_10_only`.
+
+**A gap left (from the review):** the `Evasion` talent has no prerequisite in the data. The game's blueprint 576933720c440aa4d8d42b0c54b77e80 carries its own `PrerequisiteNoFeature` of Evasion, a feature's own condition, which the game check leaves out. A Dark Lurker who already has Evasion from a monk or ranger level is still offered the talent, where the game refuses it. Within the Dark Lurker alone it's refused anyway, since an option is taken once. 308 (prerequisites) writes a feature's own `NoFeature`.

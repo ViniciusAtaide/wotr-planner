@@ -13,3 +13,5 @@ A slice of [306](306-importer-selections.md), the importer's stage S2, cut to ab
 ## Done when
 
 Its section in `slices.md` is built and proved as written there, and the scoped checks pass.
+
+**Also from 306f (main session, 2026-11-16):** `rogue/sylvan-trickster/fey-tricks` is written here, not in 306f. The game's 64 include `HexChannelerChannelFeature` b40316f05d4772e4894688e6743602bd, which has no entry until this slice, so 306f left the selection whole. The planner offers 62 and also lacks one rogue talent the game lists. Un-ignore `a_sylvan_tricksters_fey_tricks_are_the_games_64`.
