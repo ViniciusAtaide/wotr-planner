@@ -84,19 +84,37 @@ Built on base `7e3a9a63`. The note is `libs/game-data/notes/308e-rogue-slayer-al
 - **Clear Mind (mine).** `stalwart-defender/defensive-powers/clear-mind` shares ClearMindFeature
   4a236ae23d5a4f76b3616ddfa337e724 with the rage power. StalwartDefenderDefensivePowerSelection
   2cd91c501bda80b47ac2df0d51b02973 doesn't list it (`option lists / in planner only`, 287). The writer gave it the
-  blueprint's barbarian, skald or shifter 8 or Primalist 8, which moves a planner-only option toward "not offered".
+  blueprint's barbarian, skald or shifter 8 or Primalist 8, which moves a planner-only option toward "not offered": a
+  Stalwart Defender can never take it now, as in the game. The data stays; 287 should remove the option (fix round,
+  main session).
 - **Summaries of the two Uncanny Dodges (mine):** they stated the old Eldritch-Scoundrel-only rule.
 - **The census log** for `compare` is the run's log less the five ranger rows (55 rows).
-- **Generators (mine): none changed, 2,156 Builds before and after, 1,990 open.** `targeted ranger10-slayer2` (ranger 10,
-  then the slayer's 2nd-level combat style talent) no longer opens: the game refuses that talent to a holder of
-  RangerStyleSelection2, which a ranger 2 holds (`option_follow_ups::a_ranger_10_slayer_2_cant_take_the_2nd_level_combat_style`).
-  `t60 sanctified 8 combat style` (the same talent at Sanctified Slayer 8) now opens: the base's upper slayer level is
-  gone. So `full targeted ranger10-slayer2` is lost and `full t60 sanctified 8 combat style` is new. Neither is a rename:
-  `generate.rs` makes a `full` copy only of a Build that opens. Making the ranger Build open again would have added a
-  copy (2,157), so it stays the game's refusal, as 306aa's Underground Chemist did.
-- **Older links (main session's rule, as 306s and 308d):** `support::without_discoveries_the_game_refuses_since_308e`
-  drops Nauseating Flesh only where its failure names nothing but level 12 of a class or the two archetypes.
-  `first_ascension::every_older_link_…` uses it (one older link takes it at alchemist 10).
+- **Generator (fix round, from the review): `targeted ranger10-slayer2` is now `targeted ranger5-slayer6`.** The old
+  Build (ranger 10, then the slayer's 2nd-level combat style talent) was closed and tested nothing: a ranger 10 holds
+  RangerStyleSelection2, 6 and 10, so the game refuses every slayer combat style talent to it
+  (`option_follow_ups::a_ranger_10_slayer_2_cant_take_the_2nd_level_combat_style` keeps that refusal). The new one is a
+  ranger 5 with Archery at ranger 2 who takes `slayer/slayer-talents/combat-style-feat-6` at slayer 6 (`selection(11,
+  0)`). The game opens it: SlayerTalentSelection6 43d1b15873e926848be2abf0ea3ad9a8 lists RangerStyleSelection6
+  61f82ba786fe05643beb3cd3910233a8, whose prerequisites are PrerequisiteFeature RangerStyleSelection2 (ranger 2 gives
+  it), PrerequisiteNoFeature itself (a ranger gets it at 6) and ranger, slayer or Sanctified Slayer 6 (`game-check
+  show`). It opens on the tip, with its `full` copy. The doc comment of `selections::targeted` says so.
+  - **Build count: 2,156 at the base (1,990 open), 2,157 now** (`compare`: `before: 2156 Builds`, `now: 2157
+    Builds`); by the lost and new Builds, 1,992 open (counted from them, not printed).
+    The brief asked to hold 2,156, which an open replacement can't: the base's 2,156 counted `full targeted
+    ranger10-slayer2`, and `t60 sanctified 8 combat style` (the 2nd-level talent at Sanctified Slayer 8) now opens, as
+    the game has it (the base's upper slayer level is gone), so its `full` copy is new. Holding 2,156 would mean
+    keeping the closed ranger Build, which the standard calls a finding, or dropping another Build. Lost: `targeted
+    ranger10-slayer2` and its `full` copy; new: `targeted ranger5-slayer6`, its `full` copy and `full t60 sanctified 8
+    combat style`; opened: `t60 sanctified 8 combat style`. For the main session.
+  - `306-refused.txt` is unchanged: it lists the base's links (`306-base.tsv`), and `targeted ranger10-slayer2`'s two
+    base links are still refused by the game. `links` passes.
+- **Older links (main session's rule, as 306s and 308d; tightened in the fix round):**
+  `support::without_discoveries_the_game_refuses_since_308e` drops Nauseating Flesh only in a Build that takes the
+  alchemist, in the `alchemist/discovery` slot kind, where the failure names alchemist 12 and nothing but the game's
+  alternatives (alchemist 12, fighter 12 with the Mutation Warrior, rogue 12 with the Underground Chemist). It returns
+  the slots it empties, and `first_ascension::every_older_link_…` asserts the whole list: exactly two older links, `full
+  alchemist` (demon) at alchemist 10 and `full alchemist alchemist/chirurgeon` (lich) at alchemist 2, each
+  `Selection { level, index: 0 }`. The first build's Answer said one link: it was two (the old helper took both).
 - **Tests re-pointed, not un-ignored:** Emboldening Strike, six advanced talents and the Archaeologist's Crippling Strike
   (`-> 307`, the carrier), Holy Water Jet (`-> 266`), the Razmiri Infiltrator (`-> 267`).
 
@@ -109,14 +127,16 @@ Built on base `7e3a9a63`. The note is `libs/game-data/notes/308e-rogue-slayer-al
   Every other pick is unchanged (2 combat style 2 Menacing, 6 combat style 6, 12 combat style 10, 14 Crippling Strike).
   The gold tests pass. No other gold change.
 
-**Proof** (`compare` against the base's record with offers, `FORM_PROOF_CENSUS`, `FORM_PROOF_OFFER_BUILDS_OUT`)
+User approved: the Enforcer gold build picks Uncanny Dodge at its level-8 slayer talent, and gap 173 goes (the user, 2026-11-17, "Yes, approve it").
 
-- **Census:** 1,803 lines in 87 Builds (builds.tsv 85, numbers 25, reopened sheet 310, reopened slots 134, sheets 824,
-  slots 425), 0 unattributed. Other differences: the 4 above (one lost and one new `full` copy, one Build closed, one
-  opened).
+**Proof** (`compare` against the base's record with offers, `FORM_PROOF_CENSUS`, `FORM_PROOF_OFFER_BUILDS_OUT`; rerun
+in the fix round)
+
+- **Census:** 1,798 lines in 87 Builds (builds.tsv 85, numbers 25, reopened sheet 310, reopened slots 134, sheets 824,
+  slots 420), 0 unattributed. Other differences: 7, the generator's above (the count, two lost, three new, one opened).
 - **Links:** 1,913 the same and 77 refused.
-- **Offers:** 156,877 statuses changed in 559 groups and 388 Builds. 83 groups (3,675 statuses) name a written option and
-  each moves toward the game:
+- **Offers:** 156,877 statuses changed in 559 groups and 388 Builds (the same 388 names as the first build's run). 83
+  groups (3,675 statuses) name a written option and each moves toward the game:
   - Uncanny Dodge and Improved Uncanny Dodge `Unmet → ok` (153 and 123 Builds): bard, skald, slayer 4 or 12, Feyform 4.
   - Combat style talent 2 `Unmet → ok` (68): no slayer level and no upper level. Talents 6 and 10 `→ Unmet` (54, 45):
     the style before and the level.
@@ -126,12 +146,35 @@ Built on base `7e3a9a63`. The note is `libs/game-data/notes/308e-rogue-slayer-al
     Evasion), the nocturnal abilities (7), Survivalist (20), Mystery Seeker, Cognatogen, Fast Bombs, Preserve Organs,
     Feral Mutagen, Potent Magic, Clear Mind and the fiendish companion (4): `→ Unmet`, each its blueprint's condition.
   - Extra Mercy `NoOptionLeft → ok` (1): the three mercies have no level now.
-  - Mythic Skill Focus and Toughness `ok → Unmet` (34, 5) name no written entry. They're in the regenerated `full` Builds
-    (inference, below).
-- The other 476 groups (153,202 statuses) are `→ BreaksLater` across almost every feat: Weapon Focus 70 Builds, Improved
-  Critical 65, and so on. **Inference:** they're in the `full`/`filled` Builds whose random fill drew differently once an
-  earlier option's status changed (291 of the 388 Builds are `full`, `filled` or `empty`). The census attributes every
-  line of theirs.
+  - Mythic Skill Focus and Toughness `ok → Unmet` (34, 5) name no written entry; none is in a Build that still opens
+    (below), so they're in the 77 refused ones.
+- **The 461 `ok → BreaksLater` groups (152,618 statuses) are the 77 refused links' Builds, measured, not inferred**
+  (the first build's "random redraws" was wrong). `compare` judges the old links' Builds: each base link decoded with
+  the tip's keys and walked on the tip. A one-off tool in the scratchpad (`offer-why`: base data from `git archive
+  7e3a9a63`, the tip's data, the base's `builds.tsv`) recomputed both sides for every Build:
+  - All 152,618 statuses are in 77 Builds, and the old link's Build of each of the 77 fails on the tip; 0 statuses are
+    in a Build that still opens. 77 is the link census's refused count.
+  - The mechanism: a picker's option is `BreaksLater` when the walk after taking it fails at a later choice
+    (`Engine::options`). In a Build whose later pick the game now refuses, every option of every slot before that pick
+    fails there, so all turn `ok → BreaksLater` and none the other way. The first changed slot of each is its first
+    slot with options, at level 1 (the race feat 61, the class selection 11, the general feat 3, the class feat 2).
+  - The first failing pick of the 77, each a written option whose new tree is the game's: Bane Blade level 15 29,
+    Nauseating Flesh 13, Swift Consume 8, Dimension Strike 5, Blasphemy 3, combat style talents 2, 6 and 10 2 each,
+    Enervation 2, Improved Evasion 2, Quickened Magic 2, Prescient Attack 2, Devoted Blade 2, Survivalist 1, Maximized
+    Magic 1, the fiendish companion 1.
+  - Weapon Focus: 70 Builds (33,322 statuses), all 70 refused, 69 among the census's 85 changed-pick Builds. Skill
+    Focus: 77 (6,946), all refused, 76 among the 85. The one not among them is `targeted ranger10-slayer2`: its picks
+    are the same on both sides and it fails at `Selection { level: 12, index: 0 }` (combat style talent 2:
+    `Not(Any([SelectionOption(combat-style-feat-2), Selection(ranger/combat-style-feat)]))`), the game's refusal; it
+    is the Build the generator now replaces.
+  - Two examples. `t60 magus/hexcrafter 20 / filled`: 2,834 statuses (Weapon Focus 672, Skill Focus 121); its old
+    link fails at `Selection { level: 9, index: 0 }`, `magus/magus-arcana/bane-blade-level-15` (`ClassLevel magus 15`,
+    has 9); first changed slot the level-1 race feat. `t63 slayer/bloodseeker NeutralEvil 20 / filled`: 2,498 (616,
+    121); fails at `Selection { level: 2, index: 0 }`, `slayer/bloodseeker/nocturnal-abilities/blasphemy` (`ClassLevel
+    slayer 16`, has 2); the same first slot.
+  - **No unnamed entry moves an offer.** In the 290 Builds that still open and whose offers changed, every changed
+    option is a written one (the 83 groups' keys, and `BreaksLater ↔ Unmet` of the same written options); the only
+    other key, Extra Mercy, moves because the three mercies lost their level.
 - **`306-refused.txt`:** 42 link lines in 6 new blocks:
   - 22: magus arcana below their level (bane-blade-level-15 at 3 to 9, devoted-blade-level-12 at 6, dimension-strike and
     ghost-blade-level-9 at 3 and 6);
@@ -168,14 +211,16 @@ Built on base `7e3a9a63`. The note is `libs/game-data/notes/308e-rogue-slayer-al
   - `repeats_from_the_header::the_selections_with_their_own_no_feature_are_taken_once` (the talents' shared NoFeature);
   - `negated_prerequisites::every_negated_prerequisite_…`: an option's own parenthesised name is set aside before the
     "no parenthesis" check;
-  - `gold`, `first_ascension`.
+  - `gold`, `first_ascension` (the fix round: `every_older_link_…` asserts the two Nauseating Flesh picks dropped,
+    `[("demon", Selection { level: 10, index: 0 }), ("lich", Selection { level: 2, index: 0 })]`).
 
-**Checks** (each once after the last source edit)
+**Checks** (each once after the fix round's last source edit)
 
 - `cargo test -p seeds -p corpus`: game_data 632 passed, 94 ignored; files 34; links 6; form_proof 22; self_checks 1.
 - `cargo test -p game-check`: 165 passed.
-- `check-data`: checked, prerequisites 1,447 compared, 1,029 agree.
-- `game-check`: exit 0, 0 not known, no stale line.
-- The second dry run of the same `--only`: "nothing to write".
+- `check-data`: checked (12 races … 93 gear).
+- `game-check`: exit 0; "Differences: 3482 in 188 groups; 0 not known in 0 groups, 3482 known in 188 groups", no
+  stale line; prerequisites 1,447 compared, 1,029 agree.
+- The second dry run of the same `--only` (first build): "nothing to write".
 - `cargo fmt --all --check` clean; `scripts/test-modules.sh`: test-modules OK.
 - No `libs/rules` change.

@@ -26,12 +26,16 @@
     not its discovery feature.
   - Blinding Strike refuses Blinding Critical; Improved Evasion needs Evasion (the class feature or the rogue talent,
     one blueprint); Swift Consume needs arcanist 1, so the Arcane Enforcer is refused it.
+  - The corpus's `targeted ranger10-slayer2` (the slayer's 2nd-level talent after ranger 10) is now
+    `targeted ranger5-slayer6`, which takes the 6th-level talent (RangerStyleSelection6
+    61f82ba786fe05643beb3cd3910233a8: RangerStyleSelection2, not itself, ranger or slayer 6), open in the game.
   - Fatigued, Shaken and Sickened mercies and Sudden Speed have no prerequisite (their slots' levels gate them).
   - The Stalwart Defender's Fearless Defense and Increased Damage Reduction accept the Stonelord paladin 8 and 12.
     Clear Mind is the rage power's blueprint (ClearMindFeature 4a236ae23d5a4f76b3616ddfa337e724: barbarian, skald or
     shifter 8, or a Primalist bloodrager 8), which StalwartDefenderDefensivePowerSelection
     2cd91c501bda80b47ac2df0d51b02973 doesn't list (its `option lists` line is 287's). Writing it narrows a planner-only
-    option toward "not offered" (decision mine).
+    option toward "not offered" (decision mine): a Stalwart Defender can never take it now, as in the game. 287
+    should remove the option.
   - The otherworldly companions name their alignments; the ranger's 6th-level style lists accept every planner entry of
     the 2nd-level blueprint (the Stormwalker's and the Nomad's bonus feats, the nested list).
 
