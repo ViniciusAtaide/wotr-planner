@@ -369,5 +369,3 @@ full t59 dark-elementalist 20 / filled / legend
 targeted living-deity-8
 full targeted living-deity-8
 targeted hellknight-pentamic-impossible
-
-full t60 sanctified 9 extra slayer talent

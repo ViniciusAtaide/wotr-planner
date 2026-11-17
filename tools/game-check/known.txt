@@ -281,6 +281,9 @@ option lists / in game only / pool mythic abilities -> 265
 prerequisites / * / mythic ability abundant-bane -> 307
 prerequisites / * / mythic ability abundant-ki-pool -> 307
 prerequisites / * / mythic ability bloodline-ascendance -> 306x
+# SanctifiedSlayerStudyTargetFeature (AddFacts) and TandemExecutionerStudyTargetFeature (AddFeatureOnClassLevel) grant
+# SlayerStudyTargetFeature, which the planner's two studied-target features don't.
+prerequisites / * / mythic ability defensive-study -> 307
 prerequisites / * / mythic ability domain-zealot -> 307
 prerequisites / * / mythic ability everlasting-judgement -> 307
 prerequisites / * / mythic ability greater-enduring-spells -> 265
@@ -986,7 +989,8 @@ progression rows / in planner only / archetype bard/flame-dancer -> 286
 progression rows / in planner only / archetype bard/thundercaller -> 286
 
 # 287, prestige classes. 308d wrote the classes' prerequisites the writer can express from the game; the class lines
-# left name their owner (a weapon proficiency 313, Skill Focus per skill 315), or stay 287's for a hand prerequisite.
+# left name their owner (a weapon proficiency 313, Skill Focus per skill 315, a carrier 307), or stay 287's for a hand
+# prerequisite.
 option lists / * / selection loremaster/secret -> 287
 option lists / * / selection stalwart-defender/defensive-powers -> 287
 option lists / * / selection student-of-war/know-your-enemy -> 287
@@ -994,6 +998,8 @@ prerequisites / * / class aldori-swordlord -> 313
 prerequisites / * / class arcane-trickster -> 287
 prerequisites / * / class dragon-disciple -> 287
 prerequisites / * / class loremaster -> 315
+# UnstoppableDwarf 109dca82e31a4b1093c501f8914ca1a8 grants Endurance (AddFacts), which the planner's subrace doesn't.
+prerequisites / * / class stalwart-defender -> 307
 prerequisites / * / class student-of-war -> 315
 prerequisites / * / selection option loremaster/secret/combat-feat -> 287
 prerequisites / * / selection option stalwart-defender/defensive-powers/clear-mind -> 287

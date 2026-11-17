@@ -74,9 +74,9 @@ fn not(inner: Prerequisite) -> Prerequisite {
 fn the_prestige_classes_name_no_character_level() {
     // Game: AssassinClass eb284ea8d40a2d045911f525eb96c43d, DuelistClass 4e0ea99612ae87a499c7fb0588e31828,
     // EldritchKnightClass de52b73972f0ed74c87f8f6a8e20b542, HellknightClass ed246f1680e667b47b7427d51e651059,
-    // HellknightSigniferClass ee6425d6392101843af35f756ce7fefd, MysticTheurgeClass 0920ea7e4fd7a404282e3d8b0ac41838,
-    // StalwartDefenderClass d5917881586ff1d4d96d5b7cebda9464 and WinterWitchClass eb24ca44debf6714aabe1af1fd905a07
-    // hold no PrerequisiteCharacterLevel.
+    // HellknightSigniferClass ee6425d6392101843af35f756ce7fefd, MysticTheurgeClass 0920ea7e4fd7a404282e3d8b0ac41838
+    // and WinterWitchClass eb24ca44debf6714aabe1af1fd905a07 hold no PrerequisiteCharacterLevel. The Stalwart Defender
+    // isn't written (its Endurance has a carrier the planner lacks, 307).
     for key in [
         "assassin",
         "duelist",
@@ -84,7 +84,6 @@ fn the_prestige_classes_name_no_character_level() {
         "hellknight",
         "hellknight-signifer",
         "mystic-theurge",
-        "stalwart-defender",
         "winter-witch",
     ] {
         assert!(
@@ -96,21 +95,11 @@ fn the_prestige_classes_name_no_character_level() {
     }
 }
 
-/// The Duelist needs Dodge, the Stalwart Defender Endurance and light or medium armour, and the Mystic Theurge 3
-/// ranks in each knowledge, as the game's classes say.
+/// The Duelist needs Dodge and the Mystic Theurge 3 ranks in each knowledge, as the game's classes say.
 #[test]
 fn the_prestige_classes_need_the_games_feats_and_ranks() {
     // Game: DuelistClass 4e0ea99612ae87a499c7fb0588e31828: PrerequisiteFeature Dodge 97e216dbb46ae3c4faef90cf6bbe6fd5.
     assert!(all_of(class_prerequisite("duelist")).contains(&has_feat("dodge")));
-    // Game: StalwartDefenderClass d5917881586ff1d4d96d5b7cebda9464: PrerequisiteFeature Endurance
-    // 54ee847996c25cd4ba8773d7b8555174 and PrerequisiteProficiency of Light or Medium armour, which holds with either
-    // (PrerequisiteProficiency.CheckInternal, WrathDecompiled 6ce4a6b).
-    let stalwart = all_of(class_prerequisite("stalwart-defender"));
-    assert!(stalwart.contains(&has_feat("endurance")));
-    assert!(stalwart.contains(&Prerequisite::Any(vec![
-        has_feat("armor-proficiency-light-armor"),
-        has_feat("armor-proficiency-medium-armor"),
-    ])));
     // Game: MysticTheurgeClass 0920ea7e4fd7a404282e3d8b0ac41838: PrerequisiteStatValue SkillKnowledgeArcana 3 and
     // SkillLoreReligion 3.
     let ranks: Vec<(&str, u8)> = all_of(class_prerequisite("mystic-theurge"))
@@ -221,23 +210,52 @@ fn impossible_domain_is_closed_to_a_faith_hunter() {
     assert!(at(&faith_hunter, 1).check(impossible_domain).is_err());
 }
 
-/// Defensive Study needs the slayer's own Studied Target, not the Sanctified Slayer's, the Tandem Executioner's or the
-/// swift one.
+/// A Sanctified Slayer and a Tandem Executioner may take Defensive Study at 1st level: each one's Studied Target grants
+/// the slayer's.
 #[test]
-fn defensive_study_needs_the_slayers_studied_target() {
+fn a_sanctified_slayer_and_a_tandem_executioner_may_take_defensive_study() {
     // Game: DefensiveStudy ec041312142ba1f48a0044521f68fc0a: PrerequisiteFeature SlayerStudyTargetFeature
-    // 09bdd9445ac38044389476689ae8d5a1 alone.
-    assert_eq!(
-        ability_prerequisite("defensive-study"),
-        &has_feature("studied-target")
-    );
+    // 09bdd9445ac38044389476689ae8d5a1, which passes on HasFact (PrerequisiteFeature.CheckInternal, WrathDecompiled
+    // 6ce4a6b). SanctifiedSlayerStudyTargetFeature 6d9d3fbc30564e64d966dba27cd6357a: AddFacts SlayerStudyTargetFeature;
+    // TandemExecutionerStudyTargetFeature 3dac0ae65dec4b619c035df07751b59d: AddFeatureOnClassLevel HunterClass 1
+    // SlayerStudyTargetFeature.
+    let defensive_study = ability_prerequisite("defensive-study");
+    for (class, archetype) in [
+        ("inquisitor", "inquisitor/sanctified-slayer"),
+        ("hunter", "hunter/tandem-executioner"),
+    ] {
+        let build = archetype_build(class, archetype, 1);
+        assert_eq!(at(&build, 1).check(defensive_study), Ok(()), "{archetype}");
+    }
+}
+
+/// An Unstoppable Dwarf may enter the Stalwart Defender without taking Endurance: the heritage grants it.
+#[test]
+fn an_unstoppable_dwarf_may_be_a_stalwart_defender_without_taking_endurance() {
+    // Game: StalwartDefenderClass d5917881586ff1d4d96d5b7cebda9464: PrerequisiteFeature Endurance
+    // 54ee847996c25cd4ba8773d7b8555174; UnstoppableDwarf 109dca82e31a4b1093c501f8914ca1a8: AddFacts Endurance.
+    let mut dwarf = build("fighter", 8);
+    dwarf.start.race = Some(rules::RaceKey::new("dwarf"));
+    dwarf.start.subrace = Some(rules::SubraceKey::new("dwarf/unstoppable-dwarf"));
+    let mut scores = rules::AbilityScores::default();
+    *scores.get_mut(rules::Ability::Dexterity) = 13;
+    dwarf.start.ability_scores = rules::PointBuy::try_from(scores).expect("in budget");
+    dwarf
+        .picks
+        .insert(general_slot(1), feat_pick_plain("toughness"));
+    dwarf.picks.insert(class_slot(1), feat_pick_plain("dodge"));
+    let state = at(&dwarf, 8);
+    assert!(!state.has_feat(&FeatKey::new("endurance")));
+    assert_eq!(state.check(class_prerequisite("stalwart-defender")), Ok(()));
 }
 
 /// Limitless Rage needs one of five rages, the Elemental Rampager's rampage and the Rageshaper's devastating form
 /// among them.
 #[test]
 fn limitless_rage_counts_the_rampage_and_the_devastating_form() {
-    // Game: LimitlessRage 5cb58e6e406525342842a073fb70d068: PrerequisiteFeaturesFromList, Amount 1, of five features.
+    // Game: LimitlessRage 5cb58e6e406525342842a073fb70d068: PrerequisiteFeaturesFromList, Amount 0, of five features,
+    // which passes on the first one held (PrerequisiteFeaturesFromList.CheckInternal, WrathDecompiled 6ce4a6b): at
+    // least one.
     assert_eq!(
         ability_prerequisite("limitless-rage"),
         &Prerequisite::AtLeast(

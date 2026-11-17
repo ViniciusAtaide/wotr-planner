@@ -2,14 +2,14 @@
 
 ## What the data says now
 
-- **24 entries** hold the game's prerequisites, written by `game-check --write prerequisites --only <the 24>` (308a's
-  writer; 308g's narrowing allowlist): 11 mythic abilities, one mythic feat, 8 prestige classes, the oracle and three
+- **22 entries** hold the game's prerequisites, written by `game-check --write prerequisites --only <24 entries>` (308a's
+  writer; 308g's narrowing allowlist): 10 mythic abilities, one mythic feat, 7 prestige classes, the oracle and three
   archetypes. The writer leaves an entry untouched when its compiled tree already equals the game's (Abundant Smite).
+  Defensive Study and the Stalwart Defender were written, then put back as they were (below).
 - **What moved, by pattern** (each toward the game):
-  - The prestige classes name no character level (none of the game's classes holds a PrerequisiteCharacterLevel). The
-    Duelist needs Dodge (DuelistClass 4e0ea99612ae87a499c7fb0588e31828), the Stalwart Defender Endurance and light or
-    medium armour (StalwartDefenderClass d5917881586ff1d4d96d5b7cebda9464; PrerequisiteProficiency holds with either),
-    the Mystic Theurge 3 ranks in Knowledge (Arcana) and Lore (Religion), not 5, and not the Magic Deceiver
+  - The prestige classes written name no character level (none of the game's classes holds a
+    PrerequisiteCharacterLevel). The Duelist needs Dodge (DuelistClass 4e0ea99612ae87a499c7fb0588e31828), the Mystic
+    Theurge 3 ranks in Knowledge (Arcana) and Lore (Religion), not 5, and not the Magic Deceiver
     (MysticTheurgeClass 0920ea7e4fd7a404282e3d8b0ac41838). The Signifer's feats are an `AtLeast(1, …)`
     (PrerequisiteFeaturesFromList) and the Winter Witch's the Winter Child's Ice in the Blood, the frost spirit, the
     winter patron or the Winter Child's domain.
@@ -28,8 +28,7 @@
   - Impossible Domain (ExtraDomain 213a8480d22206b45acbfa0619ca5aaf): DomainsSelection, DivineHunterDomainsSelection or
     FakeDivineSparkSelection. A Pentamic Faith Hellknight and a Faith Hunter are refused, and a Living Deity before
     arcanist 20 (the user, 2026-11-17: "Yes, as the game"; `research/308/decisions.md` item 1).
-  - Defensive Study needs the slayer's Studied Target alone (DefensiveStudy ec041312142ba1f48a0044521f68fc0a), not the
-    Sanctified Slayer's, the Tandem Executioner's or the swift one. Limitless Rage counts the Elemental Rampager's
+  - Limitless Rage counts the Elemental Rampager's
     rampage and the Rageshaper's devastating form beside the three rages (LimitlessRage
     5cb58e6e406525342842a073fb70d068). Weapon Focus (mythic) accepts the rogue talent's Weapon Focus (one blueprint,
     WeaponFocus 1e1f627d26ad36f43bbd26cc2bf8ac7e).
@@ -47,7 +46,7 @@
 
 | Owner | Entries |
 | --- | --- |
-| 307 | Abundant Bane, Abundant Ki Pool, Domain Zealot, Everlasting Judgement, Destiny Beyond Birth (carriers) |
+| 307 | Abundant Bane, Abundant Ki Pool, Domain Zealot, Everlasting Judgement, Destiny Beyond Birth, Defensive Study, Stalwart Defender (carriers) |
 | 306x | Bloodline Ascendance, Second Bloodline (the Seeker's bloodline; their Sage, Sylvan and Empyreal ones are 316's) |
 | 306p | School Tolerance |
 | 306o | the magus (EldritchScionClass) |
@@ -64,6 +63,19 @@
 only an alignment, but every other deity's feature and AtheismFeature refuse it (PrerequisiteNoArchetype; AsmodeusFeature
 a3a5ccc9c670e6f4ca4a686d23b89900), which the planner's deities don't hold until 267. Writing it would have let a Hag of
 Gyronna follow any deity. Its two allowlist lines are removed, so the writer leaves it whole (`-> 267`).
+
+**Defensive Study and the Stalwart Defender stay as they were** (308d's review and fix round): the game's prerequisite
+names a blueprint another of the game's features grants, which the planner's entry doesn't (307's carriers), so writing
+it refused a character the game allows:
+
+- DefensiveStudy ec041312142ba1f48a0044521f68fc0a names SlayerStudyTargetFeature 09bdd9445ac38044389476689ae8d5a1, which
+  SanctifiedSlayerStudyTargetFeature 6d9d3fbc30564e64d966dba27cd6357a (AddFacts) and TandemExecutionerStudyTargetFeature
+  3dac0ae65dec4b619c035df07751b59d (AddFeatureOnClassLevel HunterClass 1) grant. The base's `Any` of the four studied
+  targets is the game's in effect. Its four allowlist lines stay out: their evidence missed the grants.
+- StalwartDefenderClass d5917881586ff1d4d96d5b7cebda9464 names Endurance 54ee847996c25cd4ba8773d7b8555174, which
+  UnstoppableDwarf 109dca82e31a4b1093c501f8914ca1a8 grants (AddFacts); `subraces/dwarf/unstoppable-dwarf.ron` doesn't.
+  The writer doesn't count an added requirement as a narrowing, so a run naming `class stalwart-defender` writes it
+  again: leave it out until 307.
 
 ## Tests
 
