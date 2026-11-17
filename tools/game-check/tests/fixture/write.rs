@@ -8,7 +8,7 @@ use game_check::write::facts::Facts;
 use game_check::write::items::gear_stat;
 use game_check::write::span::Value;
 use game_check::write::{
-    Change, WriteArea, WriteError, apply, apply_with, entry_file, read_back, run,
+    Change, WriteArea, WriteError, apply, apply_with, atomic_write, entry_file, read_back, run,
 };
 use rules::DataAt;
 
@@ -1807,12 +1807,7 @@ fn a_failed_validation_removes_every_new_file() {
     assert_eq!(all_files(dir.path()), before, "files and folder gone");
     assert!(!dir.path().join("features").exists());
 
-    // A file that lands wrong, or one that does not parse as a feature, is a read-back failure and undone.
-    let wrong = apply_with(dir.path(), &[], &files, valid, |path, text| {
-        std::fs::write(path, text.replace("Planted", "Moved"))
-    })
-    .unwrap_err();
-    assert!(matches!(wrong, WriteError::ReadBack { .. }), "{wrong}");
+    // A file that does not parse as a feature, or whose key is not its stem, is a read-back failure and undone.
     let bad = [
         new_file("features/odd.ron", "(key: \"odd\", name: \"Odd\")\n"),
         new_file(
@@ -1850,4 +1845,60 @@ fn a_dry_run_lists_the_new_files_and_writes_none() {
     // The guards run in a dry run too.
     let taken = [new_file("gear/x.ron", &feature_text("x", BLUEPRINT_A))];
     assert!(game_check::write::plan(dir.path(), &[], &taken).is_err());
+}
+
+#[test]
+fn a_file_planted_after_the_plan_is_neither_replaced_nor_removed() {
+    let dir = data_copy();
+    let root = dir.path().to_owned();
+    let planted =
+        "(key: \"one\", blueprint: \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa9\", name: \"Planted\")\n";
+    let files = [
+        new_file("features/one.ron", &feature_text("one", BLUEPRINT_A)),
+        new_file("features/two.ron", &feature_text("two", BLUEPRINT_B)),
+    ];
+    let field = change(
+        "gear/cloak-of-test.ron",
+        "components",
+        components("GearStat(stat: AllSaves, value: 3, descriptor: Resistance)"),
+    );
+    let before_gear = read(&root, "gear/cloak-of-test.ron");
+    // The field file's write is the step between the plan and the new files: it plants `features/one.ron`.
+    let error = apply_with(
+        &root,
+        std::slice::from_ref(&field),
+        &files,
+        valid,
+        |path, text| {
+            std::fs::create_dir_all(root.join("features"))?;
+            std::fs::write(root.join("features/one.ron"), planted)?;
+            atomic_write(path, text)
+        },
+    )
+    .unwrap_err();
+    assert!(matches!(error, WriteError::Exists(_)), "{error}");
+    assert_eq!(
+        read(&root, "features/one.ron"),
+        planted,
+        "not replaced or removed"
+    );
+    assert!(!root.join("features/two.ron").exists());
+    assert_eq!(read(&root, "gear/cloak-of-test.ron"), before_gear);
+}
+
+#[test]
+fn two_new_files_a_case_insensitive_disk_would_merge_are_refused() {
+    let dir = data_copy();
+    let error = apply(
+        dir.path(),
+        &[],
+        &[
+            new_file("features/Foo.ron", &feature_text("Foo", BLUEPRINT_A)),
+            new_file("features/foo.ron", &feature_text("foo", BLUEPRINT_B)),
+        ],
+        valid,
+    )
+    .unwrap_err();
+    assert!(matches!(error, WriteError::Exists(_)), "{error}");
+    assert!(!dir.path().join("features").exists());
 }

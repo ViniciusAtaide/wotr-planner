@@ -358,7 +358,7 @@ pub fn apply_with(
             }
         }
         for new in &creating {
-            made.create(dir, new, &write)?;
+            made.create(dir, new)?;
             read_back_new(dir, new)?;
         }
         validate(dir).map_err(WriteError::Invalid)
@@ -765,13 +765,13 @@ pub fn plan(dir: &Path, changes: &[Change], new_files: &[NewFile]) -> Result<App
 /// share) and one [`creatable`] refuses. In path order.
 fn plan_new<'a>(dir: &Path, new_files: &'a [NewFile]) -> Result<Vec<&'a NewFile>, WriteError> {
     let mut sorted: Vec<&NewFile> = new_files.iter().collect();
-    sorted.sort_by(|a, b| a.file.cmp(&b.file));
+    sorted.sort_by_key(|new| (new.file.to_string_lossy().to_lowercase(), new.file.clone()));
     for (at, new) in sorted.iter().enumerate() {
         if new.file.starts_with("planner") {
             return Err(WriteError::Planner(new.file.clone()));
         }
         if dir.join(&new.file).symlink_metadata().is_ok()
-            || at > 0 && sorted[at - 1].file == new.file
+            || at > 0 && same_path(&sorted[at - 1].file, &new.file)
         {
             return Err(WriteError::Exists(new.file.clone()));
         }
@@ -785,6 +785,11 @@ fn plan_new<'a>(dir: &Path, new_files: &'a [NewFile]) -> Result<Vec<&'a NewFile>
     Ok(sorted)
 }
 
+/// Two paths a case-insensitive disk (macOS) would make one.
+fn same_path(a: &Path, b: &Path) -> bool {
+    a.to_string_lossy().to_lowercase() == b.to_string_lossy().to_lowercase()
+}
+
 /// What a run created, to take away again: the files in order, and the folders it made, outermost first.
 #[derive(Default)]
 struct Made {
@@ -793,14 +798,9 @@ struct Made {
 }
 
 impl Made {
-    /// Creates the new file's folders and writes the file; both are noted before they are made, so a failure
+    /// Creates the new file's folders and the file itself, whole; a folder is noted before it is made, so a failure
     /// half way is undone too.
-    fn create(
-        &mut self,
-        dir: &Path,
-        new: &NewFile,
-        write: &impl Fn(&Path, &str) -> io::Result<()>,
-    ) -> Result<(), WriteError> {
+    fn create(&mut self, dir: &Path, new: &NewFile) -> Result<(), WriteError> {
         let io = |error| WriteError::Io {
             file: new.file.clone(),
             error,
@@ -818,8 +818,18 @@ impl Made {
             self.folders.push(folder.clone());
             fs::create_dir(dir.join(folder)).map_err(io)?;
         }
+        // `create_new` fails on a path taken since the plan, which a rename would have replaced; the file is
+        // noted only once it is ours, so an undo never removes one that was not.
+        let mut open = fs::OpenOptions::new();
+        let mut handle = match open.write(true).create_new(true).open(dir.join(&new.file)) {
+            Ok(handle) => handle,
+            Err(error) if error.kind() == io::ErrorKind::AlreadyExists => {
+                return Err(WriteError::Exists(new.file.clone()));
+            }
+            Err(error) => return Err(io(error)),
+        };
         self.files.push(new.file.clone());
-        write(&dir.join(&new.file), &new.text).map_err(io)
+        io::Write::write_all(&mut handle, new.text.as_bytes()).map_err(io)
     }
 
     /// Removes what was created, files then folders (innermost first); the paths that couldn't be removed.
