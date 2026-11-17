@@ -148,6 +148,11 @@ fn run() -> Result<Outcome, String> {
                 "option-lists writes only the selections --only names (copies share their base list's blueprint: ticket 316)\n{USAGE}"
             ));
         }
+        if only.is_none() && areas.contains(&WriteArea::Carriers) {
+            return Err(format!(
+                "carriers writes only the GUIDs --only names until 307c's carriers-left.txt registry\n{USAGE}"
+            ));
+        }
         if only.is_some()
             && !areas.contains(&WriteArea::OptionLists)
             && !areas.contains(&WriteArea::Carriers)

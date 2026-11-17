@@ -2209,3 +2209,13 @@ fn a_member_of_a_list_no_entry_stands_for_is_still_a_carrier() {
     // 109 is listed by a selection (108) that has no entry and no row: nothing makes it a pick.
     assert!(made(&outcome).contains(&"features/unmodelled-pick.ron".to_owned()));
 }
+
+#[test]
+fn only_creates_a_carrier_another_ticket_owns() {
+    // 109 stands for a blueprint another ticket will own (a member of a list no entry stands for yet): nothing
+    // stops `--only` naming it until 307c's registry exists, so a slice names only its own GUIDs.
+    let (dir, dump) = carriers_world();
+    let outcome = write_carriers(dir.path(), &dump, Some(&[109]), false).unwrap();
+    assert_eq!(made(&outcome), ["features/unmodelled-pick.ron"]);
+    assert!(dir.path().join("features/unmodelled-pick.ron").is_file());
+}

@@ -57,3 +57,15 @@ fn option_lists_without_only_is_refused() {
         "{stderr}"
     );
 }
+
+#[test]
+fn carriers_without_only_is_refused_until_the_registry_exists() {
+    let (code, stderr) = game_check(&["--write", "carriers", "--dry-run"]);
+    assert_eq!(code, Some(2));
+    assert!(
+        stderr.contains(
+            "carriers writes only the GUIDs --only names until 307c's carriers-left.txt registry"
+        ),
+        "{stderr}"
+    );
+}
