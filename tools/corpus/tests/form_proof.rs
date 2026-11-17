@@ -1073,11 +1073,15 @@ enum LineKind {
     Link,
 }
 
+/// The corpus's generated Builds are named `full <own Build>`; only they redraw their picks.
+const GENERATED: &str = "full ";
+
 /// What a change-log field moves (ticket 306ae): the line kinds it moves directly, and whether it also regenerates the
 /// corpus's full Builds. A full Build's picks, ranks and ability increases come from a generator that draws from
 /// what the data offers, so a field that gates a pick (a base attack bonus a feat needs) or sizes a draw (the skill
 /// points) can change the Build itself; then every line of that Build is its consequence. A Build whose link, picks or
-/// slots did not change moves only through the direct kinds.
+/// slots did not change, and every Build that is not generated (a hand-made or bench Build never redraws), moves only
+/// through the direct kinds.
 struct FieldMoves {
     field: &'static str,
     kinds: &'static [LineKind],
@@ -1238,8 +1242,9 @@ impl Attribution {
             }
             let line = is.or(was).copied().unwrap_or("");
             let kind = classify(line);
+            let generated = build.starts_with(GENERATED);
             let moves = |row: &&&'static FieldMoves| {
-                row.kinds.contains(&kind) || (regenerated && row.regenerates)
+                row.kinds.contains(&kind) || (regenerated && generated && row.regenerates)
             };
             match fields.iter().find(moves) {
                 Some(row) => {
@@ -1499,7 +1504,7 @@ mod pieces {
         let (before, now) = ("L1\tS\tK\tp1\nL2\tS\tK\tp2", "L1\tS\tK\tp1\nL2\tS\tK\tp3");
         attribution.lines(
             "slots.txt",
-            "b",
+            "full b",
             (&feyspeaker, true),
             (before, now),
             slot_kind,
@@ -1513,8 +1518,23 @@ mod pieces {
             (before, now),
             slot_kind,
         );
-        attribution.lines("slots.txt", "b", (&other, true), (before, now), slot_kind);
-        assert_eq!(attribution.unattributed.len(), 2);
+        attribution.lines(
+            "slots.txt",
+            "full b",
+            (&other, true),
+            (before, now),
+            slot_kind,
+        );
+        // A hand-made Build never redraws: its changed slot is a real difference, though it holds a changed class.
+        attribution.lines(
+            "slots.txt",
+            "bench b",
+            (&feyspeaker, true),
+            (before, now),
+            slot_kind,
+        );
+        assert_eq!(attribution.unattributed.len(), 3);
+        assert!(attribution.unattributed[2].contains("bench b"));
     }
 
     #[test]
