@@ -1,7 +1,7 @@
 # The importer, stage 4: prerequisites from the game
 
 Type: build (data, through the importer)
-Status: open
+Status: open; sliced into 308a–308f for ranks 1 and 7 ([research/308/](../research/308/slices.md), 2026-11-17). The prerequisites naming an S3 carrier wait for a later queue.
 Blocked by: 306, 307
 Model: Opus to build: one bug touches hundreds of entries.
 Map: [WotR Build Planner](../map.md)

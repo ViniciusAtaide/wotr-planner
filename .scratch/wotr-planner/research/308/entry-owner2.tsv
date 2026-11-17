@@ -1,0 +1,1433 @@
+options:warpriest/blessings/luck	70654ee784fffa74489933a0d2047bbd	BLOCKED	 267 
+options:kineticist/wild-talents/fires-fury	641d15b6c3d3017409e352c558fb0090	BLOCKED	 S3-carrier(307e) 
+options:shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-buse-dragon	0a75184855e94ca98cd16b0e898605b3	WRITABLE	
+options:alchemist/discovery/cursed-bomb	bf8f80f3a492e7946924e1cd9c4b0867	WRITABLE	
+mythic-feats:stunning-fist-mythic	31b963575ee4a92409216ce534c99dd4	WRITABLE	
+mythic-abilities:mythical-beast	89096871a6fdadd43ad31f5046696727	BLOCKED	 story 
+options:trickster/improved-mythic-trick/trickery-ii	1b8271896e4a3e14389729f3df6a847e	WRITABLE	
+options:cavalier/order/order-of-the-star	80004ec12a45b4d40936207341797361	WRITABLE	
+options:cleric/domain/good	243ab3e7a86d30243bdfe79c83e6adb4	BLOCKED	 267 294 hand 
+prestige:hellknight	ed246f1680e667b47b7427d51e651059	WRITABLE	
+options:warpriest/blessings/destruction	dd5e75a02e4563e44a0931c6f46fb0a7	BLOCKED	 267 
+archetypes:cleric/demonbane-priest	2537d1312a462834aadbd1153a2a0d54	WRITABLE	
+mythic-feats:mythic-resolve	3ae0668ab9c707440b6b26d591f15147	WRITABLE	
+feats:improved-great-fortitude	f5db1cc7ad48d794f85252fa4a64157b	WRITABLE	
+archetypes:paladin/divine-hunter-paladin	fec08c1a3187da549abd6b85f27e4432	WRITABLE	
+options:barbarian/rage-power/diamond-soul-instinctual-warrior	d4c929bffb80464bbe6daf1471088bf8	WRITABLE	
+options:sorcerer/bloodline/arcane	4d491cf9631f7e9429444f4aed629791	BLOCKED	 S2-bloodlines(306x/y) 316 
+options:oracle/oracles-curse/blackened	ca1e4627a1ad8fc4f83158f6497d5c54	BLOCKED	 S2-curses(306w) 
+feats:allied-spellcaster	9093ceeefe9b84746a5993d619d7c86f	WRITABLE	
+options:paladin/mercy/poisoned	19f936eb38c3d224988e2a02cbe12878	WRITABLE	
+archetypes:wizard/spell-master	bb571f1b6cea462e99db7893685a0982	WRITABLE	
+mythic-feats:mythic-armor-focus-heavy-armor-endurance	b28a0e962e3c40ee84411cccef31d4d0	BLOCKED	 315 
+options:hunter/tandem-executioner/tandem-executioner-techniques/protective-duo	185d471608614a4a9a01ead064f1f69d	WRITABLE	
+options:slayer/bloodseeker/nocturnal-abilities/predatory-might	d5581be0f6124fac900e23398a694750	WRITABLE	
+options:shaman/hex/stone-stability	05b6b99b0f394284899eccd4728031b7	BLOCKED	 S3-carrier(307j) 
+feats:toppling-bash	cc198d726ac34b4599bd1b4d22a7f2b7	WRITABLE	
+options:trickster/improved-mythic-trick/athletics-ii	198b6abf58a36404f8189787a082fa02	WRITABLE	
+archetypes:warpriest/shieldbearer	d34dcc10e74961f44a81f72b54377b24	WRITABLE	
+options:kineticist/infusions/honed-infusion	cf531860c9fb44c09bda9d8904657314	WRITABLE	
+options:arcanist/greater-exploits/dancing-electricity	72eb96355ef5d0549b9965657f336e1a	WRITABLE	
+archetypes:hunter/wandering-marksman	0be343c549776574286730b33ae5c676	WRITABLE	
+options:oracle/revelations/ancestor/storm-of-souls	0edd5395810cf3441a093ca49efb858f	BLOCKED	 S2-mysteries(306v) 
+feats:spell-focus	16fa59cc9a72a6043b566b49184f53fe	WRITABLE	
+options:stalwart-defender/defensive-powers/roused-defense	f848ddcf71dd57243958eea7661be6ef	WRITABLE	
+prestige:loremaster	4a7c05adfbaf05446a6bf664d28fb103	BLOCKED	 315 
+options:rogue/rogue-talents/terrain-mastery	4cd06a915daa74f4094952f2b3314b3b	WRITABLE	
+classes:kineticist	42a455d9ec1ad924d889272429eb8391	WRITABLE	
+options:oracle/revelations/waves/punitive-transformation	504a1b83335abcb4eb1ba1227a1b9e06	BLOCKED	 S2-mysteries(306v) 
+options:arcanist/arcanist-exploits/dimensional-slide	687f9c86f8afea34097d84569b5abd07	WRITABLE	
+feats:extra-rage-power	0c7f01fbbe687bb4baff8195cb02fe6a	WRITABLE	
+archetypes:witch/ley-line-guardian	ee92a9813c04b1440a3af3c766b6b02d	WRITABLE	
+options:arcanist/arcanist-exploits/swift-consume	eaec53cbf34042f4e9f0d5451f9529d1	WRITABLE	
+options:arcanist/arcanist-exploits/shadow-veil	65397f429b0a3024e9c94a106d0eea35	WRITABLE	
+options:azata/superpowers/favorable-magic	afcee6925a6eadf43820d12e0d966ebe	WRITABLE	
+options:cleric/domain/death	710d8c959e7036448b473ffa613cdeba	BLOCKED	 267 294 
+options:rogue/rogue-talents/iron-guts	6087e0c9801b5eb48bf48d6e75116aad	WRITABLE	
+archetypes:magus/spell-dancer	1125145639129cf45b6b9b674cbd62b1	WRITABLE	
+options:ranger/combat-style-feat/two-handed-weapon-feats	f489d9f696c588d43907b879d89451be	WRITABLE	
+archetypes:bard/chelaxian-diva	985e74f9becb4ea492eb27726f5df872	WRITABLE	
+options:shaman/spirit/nature	379d33ef16e812146b5517601ab25e66	WRITABLE	
+options:loremaster/secret/wizard-feat	689959eef3e972e458b52598dcc2c752	WRITABLE	
+options:angel/improved-sword-of-heaven/abolish-disease	f02537712cd2af34c93ce979599f7b12	WRITABLE	
+feats:improved-unarmed-strike	7812ad3672a4b9a4fb894ea402095167	WRITABLE	
+options:shaman/hex/bone-ward	96a99ea4866da4b4cbd51b81f1a61a72	BLOCKED	 S3-carrier(307j) 
+mythic-abilities:corruptor	55c364c3f02e4fdc8a63125b5a4c256c	WRITABLE	
+options:slayer/bloodseeker/nocturnal-abilities/vampiric-shadow-shield	82bd9b37161b4b0493e91856eddfdd03	WRITABLE	
+options:stalwart-defender/defensive-powers/internal-fortitude	727fcc6ef87e568479ab9dc3a8a5dc6c	WRITABLE	
+options:trickster/mythic-trick/athletics-i	b7de8e5e4d67faf4791866966afc0a43	WRITABLE	
+options:witch/hex/hoarfrost	b26dea1fc351b3441a4706b10d250188	WRITABLE	
+options:hellknight/disciplines/wrack	813d9df0462ac8f43bcc4fb9e528659e	WRITABLE	
+options:shifter/shifter-aspect/horse-aspect	e8c3d7a903a6433bbcfb3d70c97451ce	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-charisma-damage	9213e20f726e4785bd42f1e3d7acc703	WRITABLE	
+feats:life-dominant-soul	8f58b4029511b5345981ffaf1da5ea2e	WRITABLE	
+options:rogue/rogue-talents/fast-stealth	97a6aa2b64dd21a4fac67658a91067d7	WRITABLE	
+feats:dragon-roar	3fca938ad6a5b8348a8523794127c5bc	WRITABLE	
+archetypes:ranger/stormwalker	a330c05e484d98748a462acd43654a3a	WRITABLE	
+classes:monk	e8f21e5b58e0569468e420ebea456124	WRITABLE	
+feats:shield-focus	ac57069b6bf8c904086171683992a92a	WRITABLE	
+options:rogue/rogue-talents/jump-up	9f2d35be63f68614b89c901db84dd750	WRITABLE	
+archetypes:shaman/wildland-shaman	bb14b164c2ce4e2bb05434a3218ff73d	WRITABLE	
+mythic-abilities:improved-abundant-casting	37046a54739ed4844b8e8307bbbeece2	WRITABLE	
+archetypes:fighter/defender-of-the-hearth	6c96dc1f5573487399336cd351ef8f2c	WRITABLE	
+mythic-feats:great-fortitude-mythic	8bc4dbea992b6bd489ac5b66fd41e380	WRITABLE	
+options:hunter/tandem-executioner/tandem-executioner-techniques/working-in-tandem	45c697a4418f4ad885e627006bf602b3	WRITABLE	
+options:witch/hex/fortune	0e4ebaf16c5958f4bbe6a8f50fe3afcd	WRITABLE	
+feats:ability-focus-bombs	f864101ab0cdb4b418c7d62d2b24eee5	WRITABLE	
+feats:discordant-voice	49a72b24ad604be481ad73994e14a34b	BLOCKED	 S3-carrier(307k) 
+feats:harmonic-spell	88c5ed03321d45b99a65a621c5963c65	WRITABLE	
+mythic-abilities:battle-meditation	3f12027f9152f484b8fde69d2c87c8cc	WRITABLE	
+archetypes:monk/quarterstaff-master	dde7724382ae4f63aa9786cb9b3b64b2	WRITABLE	
+mythic-abilities:abundant-bane	1af20285c6d179e41a0d1fec3868fe5f	BLOCKED	 S3-carrier(307i) 
+options:oracle/revelations/nature/animal-companion	0234d0dd1cead22428e71a2500afa2e1	BLOCKED	 S2-mysteries(306v) 
+options:slayer/bloodseeker/nocturnal-abilities/blood-healing	613a8f55cd2e4570a45cbac3b0feb912	WRITABLE	
+feats:fast-learner	7ad59ca648c14c0a92adec798d51eb6d	WRITABLE	
+options:cavalier/order/order-of-the-sword	e7c6d3b394fcbb44ab8dfe7e8646dfad	WRITABLE	
+feats:warrior-priest	b9bee4e4e15573546b76a8d942ce914b	WRITABLE	
+options:lich/skeleton-upgrade/skeletal-fighter-i	c871a3847e860504a806e1b21ab12a48	BLOCKED	 mythic-class(265/266) lich(266) S3-carrier(307g) 
+options:ranger/combat-style-feats-10/archery	7ef950ca681955d47bc4efbe77073e2c	WRITABLE	
+options:kineticist/infusions/extended-range	cb2d9e6355dd33940b2bef49e544b0bf	WRITABLE	
+feats:boon-companion	8fc01f06eab4dd946baa5bc658cac556	BLOCKED	 174 
+options:bloodrager/bloodline/undead	9f4ea90e9b9c27c48b541dbef184b3b7	BLOCKED	 S2-bloodlines(306x/y) 
+options:shaman/spirit/flame	50efeb23b314869409365c8061a4082d	WRITABLE	
+options:barbarian/rage-power/fiend-totem-lesser	76437492f801f054ba536473ad2fde79	BLOCKED	 S3-carrier(307l) 
+options:loremaster/secret/will-secret	96912c402154b5d438c2438f2ddaca2b	WRITABLE	
+options:kineticist/wild-talents/enduring-earth	14359e9c35a42ee48b8c31b4424a8d3f	BLOCKED	 S2-kineticist(306t) 
+feats:elemental-focus	bb24cc01319528849b09a3ae8eec0b31	WRITABLE	
+feats:armor-proficiency-heavy-armor	1b0f68188dcc435429fb87a022239681	WRITABLE	
+feats:dispel-synergy	f3e3e29608ba07844ab3cafc4c8e4343	WRITABLE	
+options:cleric/domain/law	a723d11a5ae5df0488775e31fac9117d	BLOCKED	 267 294 hand 
+archetypes:skald/herald-of-the-horn	72fa7b1c7a6ede44eb490080bf4a2f90	WRITABLE	
+options:oracle/oracles-curse/wolf-scarred-face	e8a1096467696d14288079c6393bb58c	BLOCKED	 S2-curses(306w) 
+options:lich/skeletal-champion/skeletal-marksman	0cebe3b375b6397438909ac9752d9792	WRITABLE	
+options:arcanist/greater-exploits/greater-spell-resistance	1eba9b432ef464349befcc7f5c428849	WRITABLE	
+options:kineticist/wild-talents/skilled-kineticist	fd13e9efee08db448974fe0263eb96c8	WRITABLE	
+mythic-abilities:ranging-shots	2b558167862b05d47b8472d176257f82	WRITABLE	
+options:hunter/divine-hunter/otherworldly-companion/otherworldly-companion-celestial	3db2fd3394613b4438d3c844a0c034ca	WRITABLE	
+feats:vital-strike	14a1fc1356df9f146900e1e42142fc9d	WRITABLE	
+options:rogue/rogue-talents/slow-reactions	7787030571e87704d9177401c595408e	WRITABLE	
+mythic-abilities:second-bloodrager-bloodline	b7f62628915bdb14d8888c25da3fac56	WRITABLE	
+archetypes:wizard/elemental-specialist	c4a866cef5134632a8a3ef5696f45a5b	WRITABLE	
+options:oracle/revelations/misfortune	8121fe70a7974970a8a560bd2267cc24	WRITABLE	
+options:sorcerer/bloodline/undead	a1a8bf61cadaa4143b2d4966f2d1142e	BLOCKED	 S2-bloodlines(306x/y) 316 
+mythic-feats:school-mastery	ac830015569352b458efcdfae00a948c	WRITABLE	
+archetypes:shaman/witch-doctor	96c2b16450cc98548a0e82f743fbee80	WRITABLE	
+mythic-feats:sorcerous-reflex	f6f9f99993f9a92438bd4ffbfbb71837	WRITABLE	
+options:fighter/armiger/order/order-of-the-nail	e506d5dee7944b50824054c6526c6532	WRITABLE	
+options:magus/magus-arcana/bane-blade-level-15	a2e0691dcfda2374e84d8bbf480e06a0	WRITABLE	
+archetypes:ranger/flamewarden	300917c3479d27d47b4b4b52b1762e8d	WRITABLE	
+options:loremaster/secret/reflex-secret	71aeb0210038d3642aa77e457346d41b	WRITABLE	
+feats:cleave	d809b6c4ff2aaff4fa70d712a70f7d7b	WRITABLE	
+archetypes:barbarian/flesheater	85c9d72cb20040a79542289dd5126694	WRITABLE	
+options:trickster/improved-mythic-trick/knowledge-world-ii	8b6fe337865492645892cc8db5dd0e01	WRITABLE	
+options:shaman/hex/entangling-curse	176ee8bedc899964a96ef1b7478dcce7	BLOCKED	 S3-carrier(307j) 
+archetypes:cleric/priest-of-balance	a4560e3fb5d247d68fb1a2738fcc0855	BLOCKED	 hand 
+options:azata/superpowers/marvelous-endurance	40c43d4d27ebde647b796f9faf4f0299	WRITABLE	
+feats:blinding-critical	787e56055e3ef864d9c78a3ec21e56be	WRITABLE	
+options:bloodrager/bloodline/serpentine	f5b06b67f04949f4c8d88fd3bbc0771e	BLOCKED	 S2-bloodlines(306x/y) 
+options:alchemist/discovery/blinding-bombs	c3da68b2222768b4f9352fefd29ad15c	WRITABLE	
+options:kineticist/wild-talents/tidal-wave	7c4bbfe3b089a8a4ebcd2401995230a4	BLOCKED	 S2-kineticist(306t) 
+feats:improved-precise-shot	46f970a6b9b5d2346b10892673fe6e74	WRITABLE	
+archetypes:druid/drovier	a6bf603aa4d666f4f86dab0289e2048c	WRITABLE	
+options:bloodrager/bloodline/elemental-earth	dafe58c4f0785e94e93c0f07901f1343	BLOCKED	 S2-bloodlines(306x/y) hand 
+options:barbarian/rage-power/daemon-totem	d673c30720e8e7c4bb0903dc3c9ab649	WRITABLE	
+archetypes:bard/flame-dancer	e7914f2adcdb8fc46af5b65d1e06c539	WRITABLE	
+options:loremaster/secret/combat-feat	90f105c8e31a6224ea319e6a810e4af8	BLOCKED	 S2-splits(306o/p) condition-tree 
+feats:armor-proficiency-light-armor	6d3728d4e9c9898458fe5e9532951132	WRITABLE	
+feats:greater-dirty-trick	52c6b07a68940af41b270b3710682dc7	WRITABLE	
+options:rogue/rogue-talents/slippery-mind	a14e8c1801911334f96d410f10eab7bf	WRITABLE	
+archetypes:monk/drunken-master	a8532f88b704413ba68f62e4e7ff84c1	WRITABLE	
+archetypes:witch/hex-channeler	191b4be2152fde541ac8984c7f36e91d	WRITABLE	
+feats:lingering-performance	17239b298065efc459cffe2220ecb559	BLOCKED	 S3-carrier(307k) 
+options:bloodrager/bloodline/draconic-white	c97cf6524b89d474989378d841c7cf5c	BLOCKED	 S2-bloodlines(306x/y) hand 
+options:rogue/rogue-talents/skill-mastery-lore	31b5f3e5093c8244abb32f6c7c775de1	WRITABLE	
+feats:extra-ki	231a2a603d0b437e939553e6da3e7247	BLOCKED	 S3-carrier(307k) 
+mythic-abilities:magic-nullification	3b17eb0294898cf409dc6afdb3d278cf	WRITABLE	
+options:lich/skeletal-champion/skeletal-assassin	d4583662450245446ae3a56e07232e6f	WRITABLE	
+options:kineticist/wild-talents/celerity	b182f559f572da342b54bece4404e4e7	BLOCKED	 S2-kineticist(306t) 
+archetypes:hunter/divine-hunter	f996f0a18e5d945459e710ee3a6dd485	BLOCKED	 hand 
+options:warpriest/blessings/nobility	f52af97d05e5de34ea6e0d1b0af740ea	BLOCKED	 267 
+classes:sorcerer	b3a505fb61437dc4097f43c3f8f9a4cf	WRITABLE	
+mythic-feats:improved-unarmed-strike-mythic	e086a07dae105244291fb11e05d0715f	WRITABLE	
+options:sorcerer/bloodline-feats/arcane	ff4fd877b4c801342ab8e880b734a6b9	BLOCKED	 S3-carrier(307f) 316 
+archetypes:bard/dirge-bard	f128f6cd9c140284caa244da069f250c	WRITABLE	
+options:oracle/revelations/waves/blizzard	d518226e0f83aaf40aed6466d0ab3fb0	BLOCKED	 S2-mysteries(306v) 
+options:kineticist/element/water	7ab8947ce2e19c44a9edcf5fd1466686	WRITABLE	
+archetypes:monk/student-of-stone	3b81e57a75299b74ab6b144e830864e9	WRITABLE	
+options:azata/superpowers/zippy-magic	30b4200f897ba25419ba3a292aed4053	WRITABLE	
+archetypes:warpriest/champion-of-the-faith	ad56b5819c4072345bff9aff6f1df13c	WRITABLE	
+archetypes:kineticist/dark-elementalist	f12f18ae8842425489d29f302e69134c	WRITABLE	
+options:fighter/armiger/order/order-of-the-godclaw	5636564c278583342aec54eb2b409029	WRITABLE	
+options:hunter/tandem-executioner/tandem-executioner-techniques/spellbane	c36f274c3f7443cba4fc8e559f1c7917	WRITABLE	
+options:ranger/combat-style-feat/two-weapon-combat-feats	019e68517c95c5447bff125b8a91c73f	WRITABLE	
+mythic-abilities:best-jokes	ec739ff2292290f43b20689ff32de112	WRITABLE	
+options:witch/elemental-witch/energy/electricity	1c630250f9dd41a784ec0da1f1361615	WRITABLE	
+options:shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-gold-dragon	f7161538989a4e9c9980b4dfb35fdd80	WRITABLE	
+mythic-feats:expanded-arsenal	f137089c48364014aa3ec3b92ccaf2e2	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-attacks-of-opportunity	653831e19515438b948764291689dc3a	WRITABLE	
+feats:diva-style	b46bf228d6b2427abd028e2fe7b84600	WRITABLE	
+feats:spell-chain	d8d641edc9a74a64809f56feff9495b6	WRITABLE	
+options:angel/improved-angelic-halo/flame-of-life	7ee3fe3528c7d7d429c5e1dd1c913c1b	WRITABLE	
+options:trickster/greater-mythic-trick/knowlege-world-iii	26691ec239c84568bd27b055a1528912	WRITABLE	
+options:shaman/hex/secret	1342b5bfb876e434797cdcf7311bccad	WRITABLE	
+archetypes:bloodrager/greenrager	5648585af75596f4a9fa3ae385127f57	WRITABLE	
+options:oracle/mystery/life	a5458a1c316d1f24e8d9770f4fc179fa	WRITABLE	
+options:azata/superpowers/life-bonding-friendship	cfad18f581584ac4ba066df067956477	BLOCKED	 S3-carrier(307g) 
+options:magus/magus-arcana/reach-magic	9d6546880b05e9a43bb6cc5e1d374c6a	WRITABLE	
+options:cleric/domain/repose	a2ab5a696d0dd134d94b2631151a15ee	BLOCKED	 267 294 
+options:barbarian/rage-power/celestial-totem-greater	774f79845d1683a43aa42ebd2a549497	WRITABLE	
+options:loremaster/secret/wizard-spell	f97986f19a595e2409cfe5d92bcf697c	WRITABLE	
+feats:precise-strike	5662d1b793db90c4b9ba68037fd2a768	WRITABLE	
+options:demon/demonic-aspect/aspect-of-babau	99a34a0fa0c3a154fbc5b11fe2d18009	WRITABLE	
+options:loremaster/secret/fortitude-secret	fae56e4e48847bf4b9d7152531777631	WRITABLE	
+options:warpriest/blessings/evil-domain	f38f3abf6ca3a07499a61f96e342bb16	BLOCKED	 267 hand 
+mythic-abilities:unrelenting-assault	b0db6bc8548257a40b055c37d7cbc3e0	WRITABLE	
+options:witch/hex/agony	de5f107ec5a340d4dbc333fd86a3cc06	WRITABLE	
+options:rogue/rogue-talents/weakening-wound	2b61127f29ba97942868e8677b7633e6	WRITABLE	
+mythic-abilities:leading-strike	dff1e0b0b0db0f442bb5c93997cf6a43	WRITABLE	
+options:bloodrager/bloodline/draconic-blue	17bbb6790ca500d4190b978cab5c4dfc	BLOCKED	 S2-bloodlines(306x/y) hand 
+options:lich/skeleton-upgrade/skeletal-barbarian-i	f8b516bea12d4a6daa5e72e2898d2467	BLOCKED	 mythic-class(265/266) lich(266) 
+options:oracle/revelations/bones/near-death	96649fb9694c1164caf7b836898685aa	BLOCKED	 S2-mysteries(306v) 
+options:oracle/revelations/flame/cinder-dance	6e67eae3081853544b191943f5ed4534	BLOCKED	 S2-mysteries(306v) 
+feats:blood-feaster	e78b4b66db382aa4199f5f2b7da6e5ea	WRITABLE	
+archetypes:druid/elemental-rampager	f815594bd1e3454182022d375bf70fd1	WRITABLE	
+mythic-abilities:elemental-barrage	da56a1b21032a374783fdf46e1a92adb	WRITABLE	
+options:hellknight/disciplines/fearsomeness	57625b7729cf4244b977c84496e81cd7	WRITABLE	
+options:barbarian/rage-power/lethal-stance	e4450dd9c06dc034fb7c0c08abcc202b	WRITABLE	
+feats:martial-weapons-proficiency	203992ef5b35c864390b4e4a1e200629	BLOCKED	 313 
+options:cleric/domain/weather	c18a821ee662db0439fb873165da25be	BLOCKED	 267 294 
+options:cleric/domain/protection	b750650400d9d554b880dbf4c8347b24	BLOCKED	 267 294 
+options:slayer/slayer-talents/painful-strike	052c82521039f7b4e978207eb533ead5	WRITABLE	
+options:magus/magus-arcana/quickened-magic-level-15	10a75ca624a7d3242a05003d22bc38f0	WRITABLE	
+options:hunter/tandem-executioner/tandem-executioner-techniques/piercing-cascade	3dad959870604d208b5ce1b19d3cf49d	WRITABLE	
+mythic-feats:weapon-specialization-mythic	d84ac5b1931bc504a98bfefaa419e34f	WRITABLE	
+mythic-feats:emergency-potion	977018f481c10eb41b0b085d43a7d423	WRITABLE	
+options:cleric/domain/war	8d454cbb7f25070419a1c8eaf89b5be5	BLOCKED	 267 294 
+options:monk/ki-power/poison	7368732975b40eb42aa83889fdfaa3f2	WRITABLE	
+options:alchemist/discovery/force-bombs	bfbaa0dd74b9909459e462cd8b091177	WRITABLE	
+feats:combat-mobility	2a6091b97ad940943b46262600eaeaeb	WRITABLE	
+options:kineticist/infusions/synaptic-infusion	53c80f136f2bf65409d358f28b0c5bb4	BLOCKED	 S3-carrier(307e) 
+feats:slayers-feint	39425a13df904e3cb0e3f6debfe65cab	BLOCKED	 315 
+feats:spell-specialization	f327a765a4353d04f872482ef3e48c35	BLOCKED	 S3-carrier(307l) 317 
+options:barbarian/rage-power/fiend-totem-greater	1105632657d94d940a43707a3a57b006	WRITABLE	
+options:kineticist/infusions/eruption	00f8e4b846c367141afcd133f4a1c816	BLOCKED	 S3-carrier(307e) 
+options:witch/hex/animal-skin	b8aab24af64e78a42970f476ecf86d4a	WRITABLE	
+options:trickster/mythic-trick/mobility-i	6079a3c329989a64cad3fbd4076d5fb9	WRITABLE	
+options:paladin/mercy/blinded	23c3fb906c6346440b4e7d92fc25319b	WRITABLE	
+mythic-feats:mythic-armor-focus-light-armor-endurance	3260cacb9fa64d3bba6f179cfb026abd	BLOCKED	 315 
+options:witch/hex/regenerative-sinew	407955f228e0f7946827d17f94c66a75	WRITABLE	
+options:arcanist/arcanist-exploits/sonic-blast	43b196f6cf6726648b9af5945ebaa765	WRITABLE	
+archetypes:skald/inciter	a1f5ab7eb78942f6889304acbd92e945	WRITABLE	
+options:kineticist/infusions/blade-whirlwind	80fdf049d396c33408a805d9e21a42e1	WRITABLE	
+options:kineticist/infusions/chilling-infusion	6ac87a3af9ccf014787c49745df75e6a	BLOCKED	 S3-carrier(307e) 
+options:cleric/domain/luck	8bd8cfad69085654b9118534e4aa215e	BLOCKED	 267 294 
+options:trickster/improved-mythic-trick/stealth-ii	0d1071f085c5c4f408cd2bf1ec4f6adc	WRITABLE	
+feats:armor-proficiency-light-barding	c62ba548b1a34b94b9802925b35737c2	BLOCKED	 174 
+mythic-feats:rapid-shot-mythic	e332694d67066f24da821f119201b5c7	WRITABLE	
+options:alchemist/discovery/greater-cognatogen	18eb29676492e844eb5a55d1c855ce69	WRITABLE	
+options:kineticist/wild-talents/tremor-sense	6e668702fdc53c343a0363813683346e	BLOCKED	 S2-kineticist(306t) 
+archetypes:sorcerer/sage-sorcerer	00b990c8be2117e45ae6514ee4ef561c	BLOCKED	 S2-bloodlines(306x/y) 
+archetypes:alchemist/preservationist	d218568445cf0524e889a2dfce97d76f	WRITABLE	
+feats:flaying-critical	a0e95a17fed549bcbf85a977811f6094	WRITABLE	
+options:lich/lich-powers/withering-life	715ba496673489045a74dfcbddf876c2	WRITABLE	
+feats:critical-mastery	fc85925cd241dd0408ab2f4cb171b7e3	WRITABLE	
+mythic-abilities:enduring-spells	2f206e6d292bdfb4d981e99dcf08153f	WRITABLE	
+options:alchemist/incense-synthesizer/incense-fog/incense-fog-clarifying-incense	c16dc187fd12ac54f83007ec4c0a676a	WRITABLE	
+options:sorcerer/bloodline-feats/fey	d7f233e417c490545b00f49c3940638c	BLOCKED	 S3-carrier(307f) 316 
+feats:persuasive	86d93a5891d299d4983bdc6ef3987afd	WRITABLE	
+options:slayer/bloodseeker/nocturnal-abilities/enervation	9b748f01f281406c8517e907cce551db	WRITABLE	
+feats:cornugon-smash	ceea53555d83f2547ae5fc47e0399e14	WRITABLE	
+feats:dispel-focus	c39576f8842e4505b14aa918b3a36a0a	WRITABLE	
+feats:elemental-fist	5d7c3a3eed0546a598e3d2a1c7e0026a	WRITABLE	
+feats:metamagic-reach-spell	46fad72f54a33dc4692d3b62eca7bb78	WRITABLE	
+options:slayer/bloodseeker/nocturnal-abilities/blasphemy	02f9d14328f64233aaa30f7b493de059	WRITABLE	
+options:warpriest/blessings/animal-domain	9d991f8374c3def4cb4a6287f370814d	BLOCKED	 267 
+archetypes:magus/eldritch-archer	44388c01eb4a29d4d90a25cc0574320d	WRITABLE	
+options:barbarian/rage-power/celestial-totem-lesser	aba61e0b0e66bf3439cc247ee89fddae	BLOCKED	 S3-carrier(307l) 
+feats:improved-lightning-reflexes	1e813eb8159b67a459b1c975027866e5	WRITABLE	
+options:warpriest/blessings/travel	87641a8efec53d64d853ecc436234dce	BLOCKED	 267 
+options:kineticist/infusions/pushing-infusion	fbb97f35a41b71c4cbc36c5f3995b892	BLOCKED	 S3-carrier(307e) 
+feats:greater-blind-fight	80a50d9744a40ac4c96e2cc6451a6703	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-energy-shield	bb283854ec4242babbf0463bc3050264	WRITABLE	
+archetypes:oracle/seeker	c539d65b7682c8d469e6f122922f1dee	WRITABLE	
+mythic-abilities:the-bigger-they-are	91a3a658f82ee5044a7c1eaaf756aa50	WRITABLE	
+options:ranger/combat-style-feats-10/menacing	7d5bd07830a5e2c478852bf8b860db2c	WRITABLE	
+options:barbarian/rage-power/reflexive-dodge	6a9319f42f742024680af38af54f5d6f	WRITABLE	
+feats:back-to-back	c920f2cd2244d284aa69a146aeefcb2c	WRITABLE	
+options:sorcerer/bloodline-feats/draconic	f4b011d090e8ae543b1441bd594c7bf7	BLOCKED	 S3-carrier(307f) 
+archetypes:alchemist/chirurgeon	063440d550b25524abcb8dc2590d0168	WRITABLE	
+archetypes:rogue/sylvan-trickster	490394869f666c141bf8647b1a365220	WRITABLE	
+mythic-abilities:boundless-healing	c8bbb330aaecaf54dbc7570200653f8c	WRITABLE	
+feats:coordinated-maneuvers	b186cea78dce3a04aacff0a81786008c	WRITABLE	
+feats:improved-iron-will	3ea2215150a1c8a4a9bfed9d9023903e	WRITABLE	
+options:arcanist/magic-deceiver/ways-of-the-deceiver/way-of-the-charlatan	3a30422ecd00418d857e0fcf30bf504f	WRITABLE	
+feats:extra-bloodrage	7624c6e46551720459cf5292da67d2f9	WRITABLE	
+options:paladin/mercy/fatigued	e5aa306af9b91974a9b2f2cbe702f562	WRITABLE	
+feats:ray-shield	e92cb7c4c900dcf4282def347af42b9c	WRITABLE	
+options:witch/hex/iceplant	9af6dc2697c8ef24eab8ce1c697b05c4	WRITABLE	
+options:trickster/mythic-trick/perception-i	8bc2f9b88a0cf704ea72d86c2a3e2aef	WRITABLE	
+options:trickster/greater-mythic-trick/persuasion-iii	9f677bc314b84cc388044c3786148fd9	WRITABLE	
+options:barbarian/rage-power/powerful-stance	bc64d8f695f6d6448b3863d253353e7f	WRITABLE	
+options:kineticist/wild-talents/expanded-defense	d741f298dfae8fc40b4615aaf83b6548	BLOCKED	 selection-possible 
+archetypes:magus/sword-saint	7d6678f2160018049814838af2ab4236	WRITABLE	
+mythic-abilities:kinetic-overcharge	4236ca275c6fa9b4a9945b2645262616	WRITABLE	
+archetypes:shifter/griffonheart-shifter	aed5b306ad734a6da5d5638edcb667c9	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-dulled-reactions	3cd072db976f468b85de017dd3c832be	WRITABLE	
+options:witch/patron/winter	e98d8d9f907c1814aa7376d6cdaac012	WRITABLE	
+options:angel/greater-sword-of-heaven/heavenly-host	131fc914b66b62c49b9f9b5f750998f5	WRITABLE	
+options:shaman/hex/fearful-gaze	89603c7a9ba690d46b95148b46a34f7d	BLOCKED	 S3-carrier(307j) 
+options:aeon/enforcing-gaze/enforcing-gaze-summoners-gaze	22b8e9508bce5474588e34168089ad69	WRITABLE	
+options:warpriest/blessings/strength	44f9162736a5c2040ae8ede853bc6639	BLOCKED	 267 
+options:kineticist/wild-talents/slick	1d42456e6113739499e1bda025e0ba03	BLOCKED	 S2-kineticist(306t) 
+feats:metamagic-extend-spell	f180e72e4a9cbaa4da8be9bc958132ef	WRITABLE	
+options:kineticist/wild-talents/healing-burst	c73b37aaa2b82b44686c56db8ce14e7f	WRITABLE	
+feats:critical-focus	8ac59959b1b23c347a0361dc97cc786d	WRITABLE	
+feats:focused-strike	f09b89812cc94b89a09069671002b899	WRITABLE	
+mythic-abilities:ever-ready	8161528d5b98b3e4a8a6a0ed327c3b6a	WRITABLE	
+feats:boar-ferocity	c450b2902b1f4ebdbdd5063260823b57	WRITABLE	
+feats:extra-hex-shaman	d0b4c8245d504b8c9c6d3fccc1f8c5b6	BLOCKED	 S2-splits(306o/p) 
+archetypes:cavalier/beast-rider	d287fbf2495ff2e4d88d5c49217bf173	WRITABLE	
+archetypes:arcanist/brown-fur-transmuter	ce63b2df8c6c12649b02c278e73d8bfa	WRITABLE	
+mythic-abilities:witch-wandering-hex	fb8490d1721bd5a4883c3b6559310351	WRITABLE	
+mythic-abilities:over-infused-blasts	7410cc35ae6aa9d4a82f1d23c081a1ac	WRITABLE	
+options:sorcerer/bloodline/arcane/school-power/illusion	8891303b67eb273428f1691864b08cf8	WRITABLE	
+options:sorcerer/bloodline/arcane/school-power/transmutation	8891303b67eb273428f1691864b08cf8	WRITABLE	
+options:sorcerer/bloodline/arcane/school-power/conjuration	8891303b67eb273428f1691864b08cf8	WRITABLE	
+options:sorcerer/bloodline/arcane/school-power/evocation	8891303b67eb273428f1691864b08cf8	WRITABLE	
+options:sorcerer/bloodline/arcane/school-power/necromancy	8891303b67eb273428f1691864b08cf8	WRITABLE	
+options:sorcerer/bloodline/arcane/school-power/abjuration	8891303b67eb273428f1691864b08cf8	WRITABLE	
+options:sorcerer/bloodline/arcane/school-power/enchantment	8891303b67eb273428f1691864b08cf8	WRITABLE	
+options:sorcerer/bloodline/arcane/school-power/divination	8891303b67eb273428f1691864b08cf8	WRITABLE	
+options:sorcerer/bloodline-feats/serpentine	76be9555a33d58a4bb419154540595df	BLOCKED	 S3-carrier(307f) 
+feats:shielded-caster	0b707584fc2ea724aa72c396c2230dc7	WRITABLE	
+options:cleric/domain/plant	467d2a1d2107da64395b591393baad17	BLOCKED	 267 294 
+feats:two-weapon-fighting	ac8aaf29054f5b74eb18f2af950e752d	WRITABLE	
+options:shaman/hex/chant	3f776576b5f27604a9dad54d361153af	WRITABLE	
+options:alchemist/incense-synthesizer/incense-fog/incense-fog-unsettling-fog	57a418cf996beeb4a9b1b3638cfc000e	WRITABLE	
+feats:disruptive	f3ef866a9da642c4b9f7dcd76c3567fe	BLOCKED	 S2-bloodlines(306x/y) 
+options:magus/magus-arcana/extended-magic	90101ec16ba183c4fb38fbb40a66502f	WRITABLE	
+feats:defensive-combat-training	479c7f3b0dba69a4bbcb43e101f3f7f9	WRITABLE	
+options:sorcerer/bloodline/draconic-blue	8a7f100c02d0b254d8f5f3affc8ef386	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+prestige:eldritch-knight	de52b73972f0ed74c87f8f6a8e20b542	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-wisdom-damage	1d33ad4b5ff64e5786d6c8f28742ca2a	WRITABLE	
+feats:arcane-armor-training	1a0298abacb6e0f45b7e28553e99e76c	WRITABLE	
+options:arcanist/magic-deceiver/ways-of-the-deceiver/fake-celebrity	fc120e8f61a84694adfd5ff5298be820	WRITABLE	
+archetypes:shaman/spirit-warden	a6ab54dbe2cc9314a8ad62863fbc64c4	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-damage	741cde744a64425e9feb6b1eaef53eba	WRITABLE	
+feats:metamagic-intensified-spell	8ad7fd39abea4722b39eb5a67d606a41	WRITABLE	
+feats:penetrating-strike	308cd7dc4f10efd428f531bbf4f2823d	WRITABLE	
+options:magus/magus-arcana/dimension-strike-level-9	cb6916027e3c25e4185de068249254dc	WRITABLE	
+options:cleric/domain/liberation	df2f14ced8710664ba7db914880c4a02	BLOCKED	 267 294 
+options:hunter/tandem-executioner/tandem-executioner-techniques/disrupted-focus	d5190eed73964203a02f331a3759461c	WRITABLE	
+options:arcanist/greater-exploits/hellfire-ray	7d56376148919f64e826bfc63fd2187d	WRITABLE	
+mythic-feats:trip-mythic	4cd2697479a5e0c489362533b8465afd	WRITABLE	
+options:shaman/hex/wind-ward	2a7f7b35e1a0fb44ba7f01e28fa7a535	BLOCKED	 S3-carrier(307j) 
+feats:diva-strike	3306f4c6913d4d429358b907cdb4ffd1	WRITABLE	
+options:fighter/armiger/order/order-of-the-chain	90eb2a2cec75a8f4fb79ed637c082f47	WRITABLE	
+options:sorcerer/bloodline/abyssal	d3a4cb7be97a6694290f0dcfbd147113	BLOCKED	 S2-bloodlines(306x/y) 316 
+feats:crane-style	0c17102f650d9044290922b0fad9132f	WRITABLE	
+feats:metamagic-persistent-spell	cd26b9fa3f734461a0fcedc81cafaaac	WRITABLE	
+options:trickster/improved-mythic-trick/knowledge-arcana-ii	7bbd9f681440a294382b527a554e419d	WRITABLE	
+options:rogue/rogue-talents/canny-observer	68a23a419b330de45b4c3789649b5b41	WRITABLE	
+options:bloodrager/bloodline/draconic-bronze	0cf41c61c8ac463478e5ba733fd26b40	BLOCKED	 S2-bloodlines(306x/y) hand 
+mythic-feats:toughness-mythic	d8df8f8ad7149824e8e60dd3453557d2	WRITABLE	
+options:bloodrager/bloodline/draconic-copper	53f189dce67466c4f9e60610e5d1c4ba	BLOCKED	 S2-bloodlines(306x/y) hand 
+options:arcanist/arcanist-exploits/force-strike	0142c6fa966c7da4f9d061bf07974955	WRITABLE	
+archetypes:wizard/scroll-savant	f43c78692a4e10d43a38bd6aedf53c1b	WRITABLE	
+options:kineticist/wild-talents/kinetic-healer	3ef666973adfa8f40af6c0679bd98ba5	BLOCKED	 S2-kineticist(306t) 
+classes:oracle	20ce9bf8af32bee4c8557a045ab499b1	WRITABLE	
+mythic-feats:mythic-tower-shield-fortress	f69f36e4a9bc410c8219094b18856e53	WRITABLE	
+feats:power-attack	9972f33f977fc724c838e59641b2fca5	WRITABLE	
+options:oracle/revelations/bones/armor-of-bones	b07a138d653a16146bc12d90637d5dd1	BLOCKED	 S2-mysteries(306v) 
+options:oracle/revelations/stone/stone-stability	4244aa481ad9a604db8442c02712c1e0	BLOCKED	 S2-mysteries(306v) 
+feats:extra-rage	1a54bbbafab728348a015cf9ffcf50a7	WRITABLE	
+options:shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-silver-dragon	e8db225fbc68426b8d7e216906c2968b	WRITABLE	
+archetypes:monk/zen-archer	2b1a58a7917084f49b097e86271df21c	WRITABLE	
+options:shaman/hex/iceplant	999e367bbabc42d46bf864d3f4bda86d	WRITABLE	
+feats:favored-enemy-spellcasting	0226d84afe68462da8a392798f1225b8	WRITABLE	
+options:arcanist/magic-deceiver/ways-of-the-deceiver/razmiri-infiltrator	cd96109ca30b45dcb6d7390945c8487d	BLOCKED	 267 
+options:warpriest/blessings/air-domain	e1ff99dc3aeaa064e8eecde51c1c4773	BLOCKED	 267 
+options:cleric/domain/trickery	cc2d330bb0200e840aeb79140e770198	BLOCKED	 267 294 
+archetypes:wizard/thassilonian-specialist	55a8ce15e30d71547a44c69bb2e8a84f	WRITABLE	
+mythic-abilities:abundant-ki-pool	e8752f9126d986748b10d0bdac693264	BLOCKED	 S3-carrier(307k) 
+mythic-abilities:impossible-domain	213a8480d22206b45acbfa0619ca5aaf	WRITABLE	
+options:monk/ki-power/restoration	64dea39d32b9400469ef84a8fb4b171d	WRITABLE	
+options:oracle/revelations/flame/molten-skin	5fd4d9ba38a9f8745b39fb8baee58337	BLOCKED	 S2-mysteries(306v) 
+options:bloodrager/bloodline/draconic-black	3d030a2fed2b5cf45919fc1e40629a9e	BLOCKED	 S2-bloodlines(306x/y) hand 
+options:warpriest/blessings/weather	4172d92c598de1d47aa2c0dd51c05e24	BLOCKED	 267 
+feats:murmurs-of-earth	94be54cd152d1c94396754de7bf0105f	WRITABLE	
+archetypes:slayer/imitator	5947427f10bc497dbc24f66129b43e5d	WRITABLE	
+options:wizard/school/conjurer	567801abe990faf4080df566fadcd038	BLOCKED	 S2-306p 
+archetypes:warpriest/proclaimer	aaf7ace9642192d4389eab95e6cd04fd	WRITABLE	
+feats:metamagic-bolster-spell	fbf5d9ce931f47f3a0c818b3f8ef8414	WRITABLE	
+archetypes:bard/thundercaller	3c67fb6458752a1419fb8cd4efaf8eaa	WRITABLE	
+options:arcanist/greater-exploits/burning-flame	9677876c5dbb6074780c392e68f5929c	WRITABLE	
+feats:spirited-charge	95ef0ff14771f2549897f300ce62c95c	WRITABLE	
+options:barbarian/rage-power/increased-damage-reduction	ddaee203ee4dcb24c880d633fbd77db6	WRITABLE	
+options:kineticist/wild-talents/flame-shield	733bbf836ec575b44b3c88b61a26282e	WRITABLE	
+classes:magus	45a4607686d96a1498891b3286121780	BLOCKED	 S2-splits(306o/p) 
+options:gold-dragon/improved-gold-dragon-breath/empowered-breath	d6fa1c8aead34a2ba2c18fc7a41a649c	WRITABLE	
+options:sorcerer/bloodline/elemental-fire	17cc794d47408bc4986c55265475c06f	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+feats:destructive-dispel	d298e64e14398e848a54db5a2619ba42	WRITABLE	
+options:rogue/rogue-talents/mystery-seeker	04f8c258a47a2de4faac28be313b1621	WRITABLE	
+options:kineticist/infusions/grappling-infusion	e2d70b95e80549b439d30df29a79cb58	WRITABLE	
+options:lich/lich-powers/decaying-touch	3eb8922c8a9e25048b6689322c5ae131	WRITABLE	
+archetypes:cleric/ecclesitheurge	472af8cb3de628f4a805dc4a038971bc	WRITABLE	
+archetypes:fighter/mutation-warrior	758e0061a077e54409a3bf0eb51511e5	WRITABLE	
+archetypes:cavalier/gendarme	48fd69254e9e5c540bd65101d3252184	WRITABLE	
+feats:extra-reservoir	29afc53efa4d469b9476760fa09576de	WRITABLE	
+feats:indomitable-mount	68e814f1f3ce55942a52c1dd536eaa5b	WRITABLE	
+feats:brew-potions	c0f8c4e513eb493408b8070a1de93fc0	BLOCKED	 174 
+archetypes:sorcerer/sylvan-sorcerer	711d5024ecc75f346b9cda609c3a1f83	BLOCKED	 S2-bloodlines(306x/y) 
+options:aeon/enforcing-gaze/enforcing-gaze-hit-points	bb6ac47cdff935d4e8ebf3ba8c5fdcda	WRITABLE	
+feats:stat-focus	0d1d80bd3820a78488412581da3ad9c7	WRITABLE	
+archetypes:barbarian/instinctual-warrior	adffdd8a99094a89823a79292a503ee9	WRITABLE	
+options:slayer/bloodseeker/nocturnal-abilities/wracking-ray	96089a505a5c4a0fb3ad0a88c9cc1d0a	WRITABLE	
+options:oracle/maneuver-mastery/dirty-trick	42f46ce3ecf00e549ad8a0bd0ef84919	WRITABLE	
+options:barbarian/rage-power/daemon-totem-greater	9a2f0ffe517d221459640a4ad85710d7	WRITABLE	
+options:oracle/maneuver-mastery/sunder-armor	f6331dc792c40eb4ab99a4ad36eb7b41	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-intelligence-damage	b9d4e9b01e744253a9e484994c86dedd	WRITABLE	
+options:oracle/oracles-curse/pranked	15631616e56ccf44ab8659e55c36185f	BLOCKED	 S2-curses(306w) 
+archetypes:druid/blight-druid	35a3b7bfc663ac74aa8bb50adfe70813	WRITABLE	
+classes:barbarian	f7d7eb166b3dd594fb330d085df41853	WRITABLE	
+mythic-abilities:second-mystery	277b0164740b97945a3f8022bd572f48	WRITABLE	
+options:oracle/revelations/battle/combat-healer	db1d9829383e78841a6f1145411a54b4	BLOCKED	 S2-mysteries(306v) 
+feats:blood-drinker	96983d50aca1d214e8adc57a39b41c25	WRITABLE	
+archetypes:ranger/demonslayer	fd8c915590dcc5b41b73b80c3c0da8ee	WRITABLE	
+feats:ironguts	90f7164ce17840c68c1ceadcf5d10297	WRITABLE	
+options:demon/demon-lord-aspect/aspect-of-socothbenoth	089746782a827754cbdaf18d5ea6a5a2	WRITABLE	
+options:cleric/domain/rune	6d4dac497c182754d8b1f49071cca3fd	BLOCKED	 267 294 
+options:oracle/mystery/bones	067b175d3df0d1a408efd7eee2b36b9b	WRITABLE	
+feats:rapid-shot	9c928dc570bb9e54a9649b3ebfe47a41	WRITABLE	
+feats:disarming-strike	3af3476f6034a924e96f3ffa198424b7	WRITABLE	
+options:shifter/shifter-aspect/tiger-aspect	ab2bffed0cc2447fae15ee4e0942578f	WRITABLE	
+archetypes:bloodrager/reformed-fiend	d55163eed9214367820654f0ebe0ff69	WRITABLE	
+options:rogue/rogue-talents/crippling-strike	b696bd7cb38da194fa3404032483d1db	WRITABLE	
+mythic-abilities:explosives-expert	8a551fcca93446f0adfbe5e57e5bc636	WRITABLE	
+options:trickster/improved-mythic-trick/persuasion-ii	420bd51aa7d96fc4a8d3cc3bd7cddaa1	WRITABLE	
+feats:extra-performance	0d3651b2cb0d89448b112e23214e744e	BLOCKED	 S3-carrier(307k) 
+options:barbarian/rage-power/fiend-totem	ce449404eeb4a7c499fbe0248056174f	WRITABLE	
+options:lich/lich-powers/eclipse-chill	731bebb09171d5748b6f08cbe88f8af7	WRITABLE	
+feats:outflank	422dab7309e1ad343935f33a4d6e9f11	WRITABLE	
+archetypes:sorcerer/seeker-sorcerer	7229db6fc0b07af4180e783eed43c4d9	WRITABLE	
+archetypes:arcanist/white-mage	5f2fa2e0d1cf1ca428af7e24c443d868	WRITABLE	
+options:shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-black-dragon	9395529a585147c08623e28ae236805f	WRITABLE	
+options:sorcerer/bloodline/elemental-earth	32393034410fb2f4d9c8beaa5c8c8ab7	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+feats:cautious-fighter	4a6fbe77a4a2ce24db0cd0b1e4d93db1	WRITABLE	
+options:cleric/domain/madness	9ebe166b9b901c746b1858029f13a2c5	BLOCKED	 267 294 
+feats:mounted-combat	f308a03bea0d69843a8ed0af003d47a9	WRITABLE	
+classes:cleric	67819271767a9dd4fbfd4ae700befea0	BLOCKED	 267 hand 
+options:trickster/improved-mythic-trick/lore-religion-ii	fd158d5f035346288776f18e76f6721e	WRITABLE	
+options:oracle/mystery/stone	7bb4bb3e7fd26f34e8ca035a27e03e85	WRITABLE	
+archetypes:magus/eldritch-scion	d078b2ef073f2814c9e338a789d97b73	WRITABLE	
+options:monk/ki-power/true-strike	98e18d4659f390d4d84c9cc2765ac9c3	WRITABLE	
+feats:snap-shot	7115a6c08bd101247b70d72a4ff99453	WRITABLE	
+mythic-abilities:ascendant-element	535d4e5d8a5664f4797560c280941782	WRITABLE	
+options:shaman/hex/fire-nimbus	24074b42608fff54f8e1a5b7fa4a7d29	BLOCKED	 S3-carrier(307j) 
+options:alchemist/discovery/preserve-organs	76b4bb8e54f3f5c418f421684c76ef4e	WRITABLE	
+mythic-feats:mythic-armor-focus-heavy-armor-assault	037c3fde2ad14767a92768c9aa6d6de2	BLOCKED	 315 
+prestige:duelist	4e0ea99612ae87a499c7fb0588e31828	WRITABLE	
+options:alchemist/incense-synthesizer/incense-fog/incense-fog-improved-incense	ccea52d8cc5f8d34d95196d0a885be06	WRITABLE	
+classes:skald	6afa347d804838b48bda16acb0573dc0	WRITABLE	
+feats:disarm	25bc9c439ac44fd44ac3b1e58890916f	WRITABLE	
+feats:shifters-multiattack	b5d998bd85a74b708516e24fa198874e	WRITABLE	
+options:ranger/combat-style-feats-6/two-weapon-combat	59d5445392ac62245a5ece9b01c05ee8	WRITABLE	
+options:shaman/spirit/battle	26e81d83d13dbf6448b10019c802612d	WRITABLE	
+feats:extra-discovery-vivisectionist	10287e7b8cee479e82ea88bd6d2d4dae	WRITABLE	
+options:oracle/revelations/waves/freezing-spells	bc2f6769fe042834db7120e3c8a50b47	BLOCKED	 S2-mysteries(306v) 
+options:warpriest/blessings/earth	73c37a22bc9a523409a47218d507acf6	BLOCKED	 267 
+feats:toughness	d09b20029e9abfe4480b356c92095623	WRITABLE	
+archetypes:hunter/colluding-scoundrel	34963fc6d87354c4fa85eb76f122c41c	WRITABLE	
+mythic-abilities:cleaving-shot	b3fb61cecd4de98419d82e465bc588f2	WRITABLE	
+feats:raking-claws	a1b262d2b1ef478994113fc941fa3a32	BLOCKED	 S3-carrier(307j) 
+feats:armor-proficiency-medium-barding	7213b7bd026d4414da2308df23715d8f	BLOCKED	 174 
+options:oracle/revelations/flame/burning-magic	125294de0a922c34db4cd58ca7a200ac	BLOCKED	 S2-mysteries(306v) 
+options:hunter/tandem-executioner/tandem-executioner-techniques/new-favorite-toy	85514caba3364033a12070bfecf39bf5	WRITABLE	
+options:barbarian/rage-power/perfect-self-instinctual-warrior	07777880a89d434c896660e4a521df92	WRITABLE	
+feats:coordinated-defense	992fd59da1783de49b135ad89142c6d7	WRITABLE	
+options:arcanist/arcanist-exploits/wooden-flesh	d84be1e69b0870543a959d43151f16e3	WRITABLE	
+archetypes:arcanist/magic-deceiver	5c77110cd0414e7eb4c2e485659c9a46	WRITABLE	
+mythic-abilities:unstoppable	74afc3465db56924c9618a42d84efab8	WRITABLE	
+feats:extra-mercy	8a49abed5be9473da1e1fd1e2457562e	WRITABLE	
+options:oracle/revelations/stone/touch-of-acid	9333c3106d4a6c24d8f22279194aeeff	BLOCKED	 S2-mysteries(306v) 
+feats:piranha-strike	6a556375036ac8b4ebd80e74d308d108	WRITABLE	
+archetypes:hunter/tandem-executioner	6d42902b472c4b84b146196fad4bd3c4	WRITABLE	
+options:barbarian/rage-power/beast-totem-greater	602d2684add008b4ba748af95c3f8b2e	WRITABLE	
+options:lich/skeleton-upgrade/skeletal-inquisitor-i	c237f25a4541d784b971d260c88f2f14	WRITABLE	
+archetypes:kineticist/elemental-engine	4a8324d676d642c99edcdda6988ca3b1	WRITABLE	
+options:oracle/revelations/battle/iron-skin	7b3f171fe4577474ead600758543cbef	BLOCKED	 S2-mysteries(306v) 
+options:trickster/improved-mythic-trick/perception-ii	e9298851786c5334dba1398e9635a83d	WRITABLE	
+options:sorcerer/bloodline-feats/abyssal	7781831170d794a4d8f147a1326c35fd	BLOCKED	 S3-carrier(307f) 
+options:barbarian/rage-power/celestial-totem	5156331dc888e9347ae6fc81ad3f3cec	WRITABLE	
+options:ranger/combat-style-feats-6/two-handed-weapon	83a4b2605333e004f875e2fd22f6be30	WRITABLE	
+options:witch/hex/ward	4649c74487a4b7d499aed2c5b02ae89d	WRITABLE	
+options:barbarian/rage-power/inspire-ferocity	32c4d277007aed74c905779cd04a6fed	WRITABLE	
+options:oracle/oracles-curse/wasting	1dddfbb862b6857478d13fcdd78911f4	BLOCKED	 S2-curses(306w) 
+classes:wizard	ba34257984f4c41408ce1dc2004e342e	WRITABLE	
+feats:two-weapon-feint	92c7e14b4da24549a9219e990b30d723	WRITABLE	
+mythic-abilities:beneficial-curse	2dda67424ee8e0b4d83ef01a73ca6bff	WRITABLE	
+options:bloodrager/bloodline/infernal	9aef64b53406f114cb43f898a3aec01e	BLOCKED	 S2-bloodlines(306x/y) 
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-dexterity-damage	12426fc8134046a9b92e584af950d7fd	WRITABLE	
+options:trickster/greater-mythic-trick/perception-iii	c785d2718021449f895a960c7840b4d0	WRITABLE	
+options:warpriest/blessings/good-domain	60a85144ed37e3a45b343d291dc48079	BLOCKED	 267 hand 
+archetypes:witch/keen-eyed-adventurer	d37f299738894b97bbc0808c1c44e6d2	WRITABLE	
+archetypes:bard/archaeologist	38384e0c1e99c2e42ac6ed70a04aca46	WRITABLE	
+options:arcanist/arcanist-exploits/potent-magic	995110cc948d5164a820403a9e903151	WRITABLE	
+options:oracle/revelations/battle/war-sight	84f5169d964185741b97e95a1f1f2a79	BLOCKED	 S2-mysteries(306v) 
+options:witch/patron/elements	67e85f52b1f020847aaa738d8999d4cd	WRITABLE	
+archetypes:bloodrager/spelleater	afe79636228fdd64ea8d9bf3644838a3	WRITABLE	
+classes:bloodrager	d77e67a814d686842802c9cfd8ef8499	WRITABLE	
+options:barbarian/rage-power/reckless-stance	cb502c65dab407b4e928f5d8355cafc9	WRITABLE	
+feats:volley-fire	c4b555225f565bb40a855c1bfeeff07e	WRITABLE	
+archetypes:shaman/spirit-hunter	39b2fd5000e5eb142bfde2afa6c83f76	WRITABLE	
+options:monk/ki-power/abundant-step	008466f45b3e2e64793b30f3d16e41c0	WRITABLE	
+options:shaman/hex/vortex-spells	d54e52f0e3d086f468ede43222e053e9	BLOCKED	 S3-carrier(307j) 
+options:alchemist/discovery/explosive-bombs	1d0e812131f345742adca6431d5bc4fe	WRITABLE	
+options:bloodrager/bloodline/elemental-air	777bc77d3dc652c488a20d1a7b0b95e5	BLOCKED	 S2-bloodlines(306x/y) hand 
+feats:shaitan-style	c5e2aa13b1b6470d8ec70a962ddabdbd	WRITABLE	
+feats:extended-aspects	88e0ca9a742b436ea48ce4845d178c8a	BLOCKED	 condition-tree 
+mythic-feats:piranha-strike-mythic	0d7884d730fa20a40a9d41bbba1ea4b5	WRITABLE	
+mythic-feats:power-attack-mythic	d3ff895f7a79a764f9e16c588c781ab5	WRITABLE	
+mythic-feats:mythic-armor-focus-medium-armor-assault	6c6b8ba0ad1141df9316ab0ee28cbb77	BLOCKED	 315 
+mythic-abilities:defensive-study	ec041312142ba1f48a0044521f68fc0a	WRITABLE	
+options:witch/patron/agility	08518b2a62446c74b9ae08ee73664047	WRITABLE	
+options:paladin/mercy/dazed	7df9329013baaec4fac20ae08bc1f849	WRITABLE	
+options:trickster/greater-mythic-trick/stealth-iii	74d23b6698554e36974711eacc386290	WRITABLE	
+options:warpriest/blessings/liberation	61061faf477d67b43b6dedb3e8f205d7	BLOCKED	 267 
+feats:extra-discovery	537965879fc24ad3948aaffa7a1a3a66	WRITABLE	
+feats:arcane-strike	0ab2f21a922feee4dab116238e3150b4	WRITABLE	
+options:shaman/hex/battle-master	840651aac9b854a4980ec19e2fced74f	WRITABLE	
+options:shaman/spirit/wind	eae7cee2a5da93442a7563dfeda33432	WRITABLE	
+archetypes:barbarian/pack-rager	3f0a548044dbad04b82535237584772b	WRITABLE	
+options:oracle/revelations/life/spirit-boost	8cf1bc6fe4d14304392496ff66023271	BLOCKED	 S2-mysteries(306v) 
+options:warpriest/blessings/chaos-domain	528e316f9f092954b9e38d3a82b1634a	BLOCKED	 267 hand 
+feats:bashing-finish	0b442a7b4aa598d4e912a4ecee0500ff	WRITABLE	
+options:witch/elemental-witch/energy/cold	8cb71f2cc612478ea00b03d180b9e22c	WRITABLE	
+options:alchemist/grand-discovery/fast-healing	318ce88da1832744c87fd15be5010dc0	WRITABLE	
+mythic-feats:extra-mythic-ability	8a6a511c55e67d04db328cc49aaad2b8	WRITABLE	
+feats:metamagic-selective-spell	85f3340093d144dd944fff9a9adfd2f2	WRITABLE	
+archetypes:rogue/dark-lurker	33eb002078e5437b8c25db4b80b4a4fe	WRITABLE	
+mythic-feats:improved-critical-mythic	8bc0190a4ec04bd489eec290aeaa6d07	BLOCKED	 hand 
+archetypes:fighter/armiger	fdee5f25a5d0fe0448d093b462435c0c	WRITABLE	
+mythic-abilities:throw-elixir	fd1f99a42ff74d74f95c50cfc632cd69	WRITABLE	
+options:hunter/tandem-executioner/tandem-executioner-techniques/push-and-bite	771263db65bf4158bf4a3dc80a619fdb	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-virulence	c0e30cfef3994c7e992dd8146139868f	WRITABLE	
+options:ranger/combat-style-feat/menacing-feats	1c5988e90e0657645972e7b28ba4ce8b	WRITABLE	
+feats:vulpine-pounce	cd258f1bce80ef54580f6b236c82608c	WRITABLE	
+archetypes:magus/bladebound	9b3915d38c7d4b6495415b38571e9d53	WRITABLE	
+options:oracle/revelations/ancestor/spirit-shield	899d6aa944ea9654fa829edcaedcf073	BLOCKED	 S2-mysteries(306v) 
+classes:warpriest	30b5e47d47a0e37438cc5a80c96cfb99	BLOCKED	 267 hand 
+options:hunter/tandem-executioner/tandem-executioner-techniques/make-it-bleed	731574bc1f784f7d835c1185c0a01c9c	WRITABLE	
+archetypes:witch/witch-of-the-veil	08045a390a764d71b2150fd122e05e19	WRITABLE	
+options:oracle/revelations/flame/heat-aura	44dbe8e30c013544d85976671009d79d	BLOCKED	 S2-mysteries(306v) 
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-constitution-damage	bee6b9ab7b8d433bb438b616ad5476b4	WRITABLE	
+options:oracle/oracles-curse/hellbound	9f08f0d1faf141c41a3d8205f1911e96	BLOCKED	 S2-curses(306w) 
+feats:shifters-edge	0e7ec9a341ca46fcaf4d49759e047c83	BLOCKED	 S3-carrier(307j) 
+options:rogue/rogue-talents/petrifying-strike	719d4539f7824eb99b8c6668e77820d2	WRITABLE	
+options:angel/improved-sword-of-heaven/everlasting-flame	0b082785884d35c4c8f252d93b8f3616	WRITABLE	
+feats:shaitan-skin	60d57680c3f64539b72423b3dbcd38cd	WRITABLE	
+feats:improved-critical	f4201c85a991369408740c6888362e20	BLOCKED	 313 
+options:paladin/mercy/diseased	3990a92ce97efa3439e55c160412ce14	WRITABLE	
+archetypes:slayer/spawn-slayer	f6e304de008939d46960a2ebb075e150	WRITABLE	
+options:kineticist/infusions/entangling-infusion	607539d018d03454aaac0a2c1522f7ac	BLOCKED	 S3-carrier(307e) 
+options:rogue/rogue-talents/dispelling-attack	1b92146b8a9830d4bb97ab694335fa7c	WRITABLE	
+options:witch/hex/slumber	498d7668a6086454cb2def921b89bd8f	WRITABLE	
+options:angel/improved-sword-of-heaven/grand-blessing	84f001f9aaaa73c479659edfa87f4782	WRITABLE	
+feats:shield-proficiency	cb8686e7357a68c42bdd9d4e65334633	WRITABLE	
+mythic-abilities:abundant-smite-smite-chaos	7e5b63faeca24474db0bfd019167dda4	WRITABLE	
+options:shifter/shifter-aspect/mammoth-aspect	f6d14c560a3d41edbaee68110bd21c62	WRITABLE	
+options:barbarian/rage-power/beast-totem-lesser	d99dfc9238a8a6646b32be09057c1729	BLOCKED	 S3-carrier(307l) 
+options:cleric/domain/charm	b5c056787d1bf544588ec3a150ed0b3b	BLOCKED	 267 294 
+mythic-feats:weapon-finesse-mythic	d791af1bc179e0e44a0ca1fa6c418993	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-drain-mind	204e7b65a5bc4ec4ba9714ae4d5216c8	WRITABLE	
+options:paladin/mercy/stunned	7775c915661f8fb449c38dd873524389	WRITABLE	
+options:lich/lich-powers/death-rush	ef847913c29a3cf44825eb30ae6f7c38	WRITABLE	
+feats:ambuscading-spells	2fb48bed3746431bb3080c34f11597da	WRITABLE	
+feats:dazzling-display	bcbd674ec70ff6f4894bb5f07b6f4095	WRITABLE	
+classes:druid	610d836f3a3a9ed42a4349b62f002e96	WRITABLE	
+options:rogue/rogue-talents/underhanded-trick	3a0068c5f38cfa445a20efc5b05286bd	WRITABLE	
+options:hellknight/disciplines/onslaught	ec7f3da71cdbfa74bbc91f783879f2cf	WRITABLE	
+feats:crane-riposte	59eb2a5507975244c893402d582bf77b	WRITABLE	
+archetypes:paladin/warrior-of-the-holy-light	cc70a9fdcd8781a4ca2f0e594f066964	WRITABLE	
+options:oracle/revelations/life/life-link	ef97c9bcc1c54ea7993ef8b2489c908a	BLOCKED	 S2-mysteries(306v) 
+feats:manyshot	adf54af2a681792489826f7fd1b62889	WRITABLE	
+prestige:stalwart-defender	d5917881586ff1d4d96d5b7cebda9464	WRITABLE	
+mythic-feats:disarm-mythic	0a6cfb36ad681df449d19b1bc9968941	WRITABLE	
+options:oracle/revelations/ancestor/blood-of-heroes	1b9eebdfa2ad9d44eb60446d465b0cfd	BLOCKED	 S2-mysteries(306v) 
+options:barbarian/rage-power/lethal-accuracy	bb79cb9706379934c9460e46fe8cd04e	WRITABLE	
+feats:pummeling-charge	c5a39c8f1a2d6824ca565e6c1e4075a5	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-erode-body	811e379c217b4caa9b229fed765c977d	WRITABLE	
+feats:shadowplay	caba7e4dc9b14206bbf667814cc1cb90	WRITABLE	
+archetypes:arcanist/nature-mage	26185cfb81b34e778ad370407300de9a	WRITABLE	
+options:oracle/revelations/nature/friend-to-animals	9a56368c28795544fbeb43fe70e1a40d	BLOCKED	 S2-mysteries(306v) 
+options:kineticist/wild-talents/jagged-flesh	94064ed53b1020247941ac70313b439d	WRITABLE	
+feats:accomplished-sneak-attacker	9f0187869dc23744292c0e5bb364464e	BLOCKED	 314 
+feats:armor-proficiency-heavy-barding	aed0b33e17a3b3d44a718852e87305bd	BLOCKED	 174 
+options:shaman/hex/draconic-resilience	35a5f29c23da9eb4e82fe6c0d39b53bf	WRITABLE	
+feats:bull-rush	b3614622866fe7046b787a548bbd7f59	WRITABLE	
+options:rogue/rogue-talents/improved-evasion	0d35d6c4d5eef8d4790d09bd9a874e57	WRITABLE	
+options:cleric/domain/strength	07854f99c8d029b4cbfdf6ae6c7bc452	BLOCKED	 267 294 
+options:oracle/revelations/stone/clobbering-strike	b830f7ed7a68fa349a08cccc35975bdd	BLOCKED	 S2-mysteries(306v) 
+options:demon/major-demonic-aspect/aspect-of-balor	45507637ea8b28948a21c9ecbfa664e4	WRITABLE	
+options:rogue/rogue-talents/focusing-attack-shaken	791f50e199d069d4f8e933996a2ce054	WRITABLE	
+archetypes:shifter/fiendflesh-shifter	f5d22b6b5a7940d49a4d494f67a91efa	WRITABLE	
+feats:extra-arcane-pool	42f96fc8d6c80784194262e51b0a1d25	WRITABLE	
+mythic-feats:mythic-buckler-flying-shield-style	874cd4a453cb44e595c6ee34e97feafd	WRITABLE	
+feats:slashing-grace	697d64669eb2c0543abb9c9b07998a38	BLOCKED	 313 
+feats:stealthy	c7e1d5ef809325943af97f093e149c4f	WRITABLE	
+feats:augment-summoning	38155ca9e4055bb48a89240a2055dcc3	WRITABLE	
+feats:crushing-blow	4153755355a0b9b4e956c9ca232c22cf	WRITABLE	
+mythic-abilities:archmage-armor	c3ef5076c0feb3c4f90c229714e62cd0	WRITABLE	
+options:oracle/revelations/wind/touch-of-electricity	44df0246a8d254e4fb41305135ae2692	BLOCKED	 S2-mysteries(306v) 
+options:sorcerer/bloodline/draconic-white	b0f79497a0d1f4f4b8293e82c8f8fa0c	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+prestige:mystic-theurge	0920ea7e4fd7a404282e3d8b0ac41838	WRITABLE	
+options:barbarian/rage-power/come-and-get-me	032402bde3fb47e39e6ebb6724ae9c22	WRITABLE	
+mythic-abilities:perfect-cavalry	97c71b36353340ae84eb4c16eda43926	WRITABLE	
+options:oracle/revelations/wind/lightning-breath	b7b19ce8776f81547ad3bfb6ac859045	BLOCKED	 S2-mysteries(306v) 
+options:hunter/tandem-executioner/tandem-executioner-techniques/vigilant-partners	4d64964f84a54a93864dc03821756226	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-strength-damage	ed39cb73232b4473934fe932bd7c0d58	WRITABLE	
+archetypes:arcanist/eldritch-font	2f35608fc073c04448a9c162a20852ce	WRITABLE	
+archetypes:cleric/separatist	67401c74ee094e82a2afd645a847f5cc	WRITABLE	
+options:wizard/school/abjurer	c451fde0aec46454091b70384ea91989	BLOCKED	 S2-306p 
+archetypes:ranger/freebooter	4fd9705f1aebf614f9500bb0e7341179	WRITABLE	
+options:shaman/hex/hypothermia	9b764fbd91bf92643a36d833762fd069	BLOCKED	 S3-carrier(307j) 
+options:oracle/revelations/life/channel	ade57ae9bbe55c142a012c2453b3088c	BLOCKED	 S2-mysteries(306v) 
+feats:double-slice	8a6a1920019c45d40b4561f05dcb3240	WRITABLE	
+archetypes:shifter/wild-effigy	c42d338616fa46ab9bcc67c94bca7609	WRITABLE	
+options:shaman/hex/nails	e87b3db81ab2e344fbe35a00a450d2d7	WRITABLE	
+options:shifter/shifter-aspect/boar-aspect	9ee4074cbae746ba96463c0b2a562226	WRITABLE	
+feats:spell-penetration	ee7dc126939e4d9438357fbd5980d459	WRITABLE	
+options:sorcerer/bloodline/draconic-bronze	7e0f57d8d00464441974e303b84238ac	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+feats:greater-spell-penetration	1978c3f91cfbbc24b9c9b0d017f4beec	WRITABLE	
+options:angel/greater-sword-of-heaven/overwhelming-flames	477fcaa2b00a1964da43472ddbc3c7de	WRITABLE	
+options:bloodrager/bloodline/elemental-water	5286db4f19f31eb44af99fb881c99517	BLOCKED	 S2-bloodlines(306x/y) hand 
+feats:trample	92db263bfb7445d4aa592a5d15128fc5	WRITABLE	
+archetypes:barbarian/beastskin-berserker	e791f31b7fd225645ae709958afe2e91	WRITABLE	
+options:stalwart-defender/defensive-powers/renewed-defense	325a007b2f633a1428ee1edfaf3e860c	WRITABLE	
+options:stalwart-defender/defensive-powers/fearless-defense	2c13bd43a7ed4844b9f4dcc919fd74f8	WRITABLE	
+feats:greater-elemental-focus	1c17446a3eb744f438488711b792ca4d	BLOCKED	 315 hand 
+options:kineticist/wild-talents/heat-adaptation	2825e3a53c76ad944a47c5c44fb6109f	BLOCKED	 S2-kineticist(306t) 
+options:ranger/combat-style-feats-10/two-weapon-combat	ee907845112b8aa4e907cf326e6142a6	WRITABLE	
+archetypes:shifter/rageshaper	41d5b44e421048d09d32623689173e11	WRITABLE	
+options:witch/hex/animal-servant	876ad8aecd1098243bbfbbe04567d0d5	WRITABLE	
+feats:deft-hands	ab5fbcd092c860d46a2e62d9dac272e8	WRITABLE	
+options:magus/magus-arcana/wand-mastery	1b94043744e83494c8a083319e1602f3	WRITABLE	
+options:oracle/revelations/battle/maneuver-mastery	89629bb513a70cb4596d1d780b95ea72	BLOCKED	 S2-mysteries(306v) 
+feats:diva-advance	d05cbf9cca8c4385a76bb6d65f65a717	WRITABLE	
+options:cleric/domain/magic	8f90e7129b0f3b742921c2c9c9bd64fc	BLOCKED	 267 294 
+options:slayer/bloodseeker/nocturnal-abilities/summon-dire-wolves	8de40e7babd44419b797cdf51e56e0e0	WRITABLE	
+options:cleric/domain/darkness	1e1b4128290b11a41ba55280ede90d7d	BLOCKED	 267 294 
+options:rogue/rogue-talents/trailblazer	5a5ad5a6ca394bf46a70a68902cf3fd7	WRITABLE	
+options:arcanist/greater-exploits/lingering-acid	479ab6000cc3e2041a46f6ab225ccb78	WRITABLE	
+options:lich/lich-powers/undead-mount	a46d64cfd32fc3749a5897657247a680	WRITABLE	
+archetypes:kineticist/psychokineticist	f2847dd4b12fffd41beaa3d7120d27ad	WRITABLE	
+options:rogue/rogue-talents/survivalist	9836ea18e56af8249bdda4a4b11ea78c	WRITABLE	
+options:arcanist/arcanist-exploits/spell-resistance	72d6f0a1d508738419b90f90ad1258fb	WRITABLE	
+classes:cavalier	3adc3439f98cb534ba98df59838f02c7	WRITABLE	
+options:kineticist/infusions/exploding-arrows	7c8ded7015114e4086b3dbdd16388b29	WRITABLE	
+options:arcanist/magic-deceiver/ways-of-the-deceiver/living-deity	464ffaf88140474a949618bec7955e78	BLOCKED	 267 hand 
+options:monk/ki-power/barkskin	7259ec579682c2f45a6444b9e64f122d	WRITABLE	
+options:witch/hex/major-ameliorating	cdd9fb3ef0ceb704bb453b2431a2b44b	WRITABLE	
+options:wizard/school/necromancer	e9450978cc9feeb468fb8ee3a90607e3	BLOCKED	 S2-306p 
+options:rogue/rogue-talents/skill-mastery-stealth-and-trickery	84ba86c9cc1ef9e489dab1ad03e3ba17	WRITABLE	
+options:witch/hex/restless-slumber	0a31b4aba2b3bc24c85636cb8bdba1d9	WRITABLE	
+options:alchemist/discovery/grand-cognatogen	af4a320648eb5724889d6ff6255090b2	WRITABLE	
+options:sorcerer/bloodline/celestial	aa79c65fa0e11464d9d100b038c50796	BLOCKED	 S2-bloodlines(306x/y) 316 
+archetypes:shifter/dragonblood-shifter	2d5b06e413a9408cbd5bb999b5a4cc4a	WRITABLE	
+archetypes:bloodrager/hag-riven	61edfe08d9e04a11844e5fcc01da3602	WRITABLE	
+options:lich/lich-powers/deadly-magic	47a8a7fa7d4198f449db71cdbe4b8d3e	WRITABLE	
+archetypes:cleric/crusader	6bfb7e74b530f3749b590286dd2b9b30	WRITABLE	
+archetypes:sorcerer/nine-tailed-heir	65a630aa291f65047b90a2af5df75d83	WRITABLE	
+options:ranger/combat-style-feat/archery-feats	3cf94df3f1cf9a443a880bc1ae9be3c6	WRITABLE	
+feats:extra-arcanist-exploit	0a7065e13f4449fa81bfb33199bf7f6a	WRITABLE	
+mythic-abilities:greater-enduring-spells	13f9269b3b48ae94c896f0371ce5e23c	WRITABLE	
+archetypes:alchemist/metamorph	ac242ddeaa05af449bfc5230231fab84	WRITABLE	
+prestige:assassin	eb284ea8d40a2d045911f525eb96c43d	WRITABLE	
+mythic-feats:mythic-armor-focus-light-armor-assault	48168449f8ba465fab2843ba2dada063	BLOCKED	 315 
+archetypes:ranger/espionage-expert	7888187acfd26b7499cf255b0d6dcb0e	WRITABLE	
+archetypes:skald/court-poet	5e63586bebd229649bdafe0fde4caaec	WRITABLE	
+options:witch/hex/delicious-fright	3d9c7a1ab0b57ab4d951c45f1f438136	WRITABLE	
+feats:extra-bombs	54c57ce67fa1d9044b1b3edc459e05e2	WRITABLE	
+options:cleric/domain/destruction	269ff0bf4596f5248864bc2653a2f0e0	BLOCKED	 267 294 
+options:slayer/slayer-talents/trapfinding	e3c12938c2f93544da89824fbe0933a5	WRITABLE	
+feats:acrobatic-spellcaster	7ba4b4023a7748669098c479dd9e8de6	BLOCKED	 315 
+options:barbarian/rage-power/beast-totem	c085888db293f2741b881cc989a2ab14	WRITABLE	
+feats:lightning-reflexes	15e7da6645a7f3d41bdad7c8c4b9de1e	WRITABLE	
+feats:missile-shield	5ffcd225924514348ac71730179b5b24	WRITABLE	
+archetypes:fighter/dragonheir-scion	8dff97413c63c1147be8a5ca229abefc	BLOCKED	 S2-bloodlines(306x/y) 
+mythic-abilities:spellcasters-onslaught	a4d2dc95084d4769b2f9dfa90d0f4297	WRITABLE	
+options:kineticist/infusions/magnetic-infusion	d6b95ac99e3004b499d750835864e053	BLOCKED	 S3-carrier(307e) 
+feats:greater-bull-rush	72ba6ad46d94ecd41bad8e64739ea392	WRITABLE	
+feats:greater-weapon-specialization	7cf5edc65e785a24f9cf93af987d66b3	BLOCKED	 hand 
+options:wizard/school/diviner	d7d18ce5c24bd324d96173fdc3309646	BLOCKED	 S2-306p 
+feats:extra-channel	cd9f19775bd9d3343a31a065e93f0c47	WRITABLE	
+options:shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-copper-dragon	ccfa68636d4a48b195e2422fda823779	WRITABLE	
+options:shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-bronze-dragon	945a4ada761e45f8a973dd25862fbc21	WRITABLE	
+options:alchemist/discovery/nauseating-flesh	de112af9600e0e446af0c7ef0707e1c8	WRITABLE	
+options:oracle/revelations/stone/shard-explosion	650b9b5efa60c5d4ea25faad3d346fcf	BLOCKED	 S2-mysteries(306v) 
+archetypes:magus/armored-battlemage	67ec8dcae6fb3d3439e5ae874ddc7b9b	WRITABLE	
+feats:improved-elven-immunities	12a62aa4876a4c6b95e8acca7a6f8369	BLOCKED	 S3-carrier(307l) 
+options:monk/ki-power/sudden-speed	96d96f5b6f71004418e7a7e42a81c94d	WRITABLE	
+options:witch/patron/healing	a3e4ef40ad99f4d47af15cc5f16afc97	WRITABLE	
+feats:cleaving-finish	59bd93899149fa44687ff4121389b3a9	WRITABLE	
+options:hunter/tandem-executioner/tandem-executioner-techniques/timely-warning	58929ea3bc1541b980f99aefe335434d	WRITABLE	
+feats:metamagic-quicken-spell	ef7ece7bb5bb66a41b256976b27f424e	WRITABLE	
+archetypes:slayer/arcane-enforcer	23a5d0ca607f6094097d509b2b1f4a10	WRITABLE	
+mythic-feats:mythic-armor-focus-light-armor-avoidance	40be409a44084b2998eda225dd9c544a	BLOCKED	 315 
+options:ranger/combat-style-feats-6/menacing	a9998f05a0472bb4f8950304fe26ec0c	WRITABLE	
+options:bloodrager/primalist/primal-choices/rage-powers	8eb5c34bb8471a0438e7eb3994de3b92	WRITABLE	
+archetypes:rogue/master-of-all	bd4e70bfb89a452b876713d61b9b8eb2	WRITABLE	
+mythic-abilities:school-tolerance	e8209281e6c44451af98ada20d3b7cbe	BLOCKED	 S2-306p 
+archetypes:cavalier/ghost-rider	c0503d9864b94134ab1237a2bf2d38a0	BLOCKED	 story 
+mythic-abilities:always-a-chance	d57301613ad6a5140b2fdac40fa368e3	WRITABLE	
+options:paladin/mercy/nauseated	a0cacf71d872d2a42ae3deb6bf977962	WRITABLE	
+options:oracle/revelations/bones/resist-life	f7f37cff49bfc9b49a45d9f4fbb8aec3	BLOCKED	 S2-mysteries(306v) 
+options:witch/hex/misfortune	4e3dfdf000cc24d4fb96fd04e4e5cd0f	WRITABLE	
+options:shaman/hex/fury	f562d3e6445a1cc4796435c356e677d3	WRITABLE	
+options:warpriest/blessings/death-domain	6d11e8b00add90c4f93c2ad6d12885f7	BLOCKED	 267 
+feats:extra-rogue-talent	14d9089df87a43b696fa9451ca2f0a12	WRITABLE	
+feats:point-blank-master	05a3b543b0a0a0346a5061e90f293f0b	BLOCKED	 313 
+options:gold-dragon/improved-gold-dragon-breath/rejuvenating-breath	ef3690c36872422d9bfadeb276b5c3fe	BLOCKED	 S3-carrier(307g) mythic-class(265/266) hand 
+mythic-abilities:rupture-restraints	99631ee151e86684db2b5f33dddfb7a2	WRITABLE	
+options:arcanist/arcanist-exploits/armored-mask	585f02be2202e1f4289e04e84cd787e5	WRITABLE	
+options:oracle/revelations/wind/vortex-spells	cd9791a958181544a8b71346ec0722db	BLOCKED	 S2-mysteries(306v) 
+options:witch/patron/mercy	cad7c2fdabeb9574f95f4b9ffee20afe	WRITABLE	
+options:rogue/rogue-talents/focusing-attack-sickened	79475c263e538c94f8e23907bd570a35	WRITABLE	
+archetypes:wizard/arcane-bomber	17b26d5302cd3e243a281a0beec6256b	WRITABLE	
+options:gold-dragon/improved-gold-dragon-breath/spellbane-breath	34b85b2c587545d383804455525c53b2	WRITABLE	
+options:alchemist/incense-synthesizer/incense-fog/incense-fog-thick-fog	9e920c1457a19a04caa583e320022cc0	WRITABLE	
+options:arcanist/arcanist-exploits/energy-shield	a652a4f9f77e9fc4fafe15fa2ef9dcfe	WRITABLE	
+options:shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-brass-dragon	c8cbf8d8bef54355bd90088738112ca3	WRITABLE	
+options:lich/skeletal-champion/skeletal-executioner	f984e621943c532478d9df0e79c49a78	WRITABLE	
+options:cleric/domain/evil	a8936d29b6051a1418682da1878b644e	BLOCKED	 267 294 hand 
+mythic-abilities:brutality-incarnate	3ac26dec060aa67409171e6e631a2942	WRITABLE	
+options:warpriest/blessings/trickery	a8e7abcad0cf8384b9f12c3b075b5cae	BLOCKED	 267 
+options:kineticist/wild-talents/aerial-adaptation	c8719b3c5c0d4694cb13abcc3b7e893b	BLOCKED	 S2-kineticist(306t) 
+options:witch/hex/aura-of-purity	3459664f16e56124f95ec4c9f9856d06	WRITABLE	
+feats:sculpting-the-river	57c3ea6b05da4226aaeeb21da04e82ea	WRITABLE	
+options:paladin/mercy/staggered	19250e5a12db1fc448970b81e0f38922	WRITABLE	
+options:witch/hex/evil-eye	a977bcfb36169d447914f084793cac2c	WRITABLE	
+feats:deadly-aim	f47df34d53f8c904f9981a3ee8e84892	WRITABLE	
+archetypes:alchemist/reanimator	5faf2921393d422d94467174d029e4cd	WRITABLE	
+options:wizard/elemental-specialist/focused-element/electricity	4bd021d45673492482a1db7a61581e9d	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-erode-mind	046b40d2d753429991d60495386d9d9d	WRITABLE	
+feats:greater-two-weapon-fighting	c126adbdf6ddd8245bda33694cd774e8	WRITABLE	
+archetypes:kineticist/overwhelming-soul	aa11888104d17f7459851e8d559ffa98	WRITABLE	
+feats:dragon-ferocity	2a681cb9fcaab664286cb36fff761245	WRITABLE	
+mythic-abilities:mythic-inspiration	69fad80df0d44dfea19aef513db959c2	WRITABLE	
+options:shifter/shifter-aspect/wolf-aspect	ddf5d65742c842d79f74ac0d5cfbedf5	WRITABLE	
+feats:tiring-critical	12c1b556df3b667458ae200bfb38ccb8	WRITABLE	
+feats:discerning-eye	c4b818bdcea845c9ae8cf277251d70d9	WRITABLE	
+options:kineticist/infusions/kinetic-blade	9ff81732daddb174aa8138ad1297c787	WRITABLE	
+feats:weapon-specialization	31470b17e8446ae4ea0dacd6c5817d86	BLOCKED	 hand 
+feats:dragon-style	87ec6541cddfa394ab540dd13399d319	WRITABLE	
+options:demon/demon-lord-aspect/aspect-of-nocticula	d48e0039bcfde694d8691418d12ebea1	WRITABLE	
+feats:boar-style	0641368c74334671aaaf32a2730587be	WRITABLE	
+options:trickster/mythic-trick/knowledge-world-i	06983a66bd6bac04db3996cd3064d9f0	WRITABLE	
+options:demon/major-demonic-aspect/aspect-of-vavakia	3df57316028799448aa1b18cad1ad939	WRITABLE	
+options:druid/nature-bond/animal-companion	571f8434d98560c43935e132df65fe76	WRITABLE	
+options:rogue/rogue-talents/focusing-attack-confused	955ff81c596c1c3489406d03e81e6087	WRITABLE	
+archetypes:druid/winter-child	9f835c539f6e4a96a7b64461f4267d06	WRITABLE	
+options:hunter/tandem-executioner/tandem-executioner-techniques/prey-of-choice	6b8eb3870131434da4391533a99c149d	WRITABLE	
+options:witch/hex/beasts-gift	54b4c7e9280cd104b9569f5e420b9aa8	WRITABLE	
+options:loremaster/secret/rogue-secret	4b7018b1ed4b27140a5e7adfacaaf9c6	WRITABLE	
+archetypes:paladin/divine-scion	5ce3a2f8eae64cf2ba83865711e53e27	WRITABLE	
+options:hellknight/disciplines/tracker	0ba3efd3cd8bdbc4c867260139c4826d	WRITABLE	
+options:kineticist/infusions/fragmentation	88ae936abf296894695a282f49214718	BLOCKED	 S3-carrier(307e) 
+feats:tandem-trip	d26eb8ab2aabd0e45a4d7eec0340bbce	WRITABLE	
+feats:shifters-rush	4ddc88f422a84f76a952e24bec7b53e1	BLOCKED	 new-carrier(307) 
+archetypes:arcanist/unlettered-arcanist	44f3ba33839a87f48a66b2b9b2f7c69b	WRITABLE	
+options:alchemist/discovery/holy-bombs	1747eefb19e4e6649be836c5ae4ccc60	WRITABLE	
+feats:stunning-critical	7fb3023bda2f42728e76cf269f5a2fa0	WRITABLE	
+feats:fencing-grace	47b352ea0f73c354aba777945760b441	BLOCKED	 313 
+feats:improved-improved-critical	56f94badbba018b4b8277ce6e2e79e72	BLOCKED	 hand 
+options:trickster/mythic-trick/knowledge-arcana-i	c7bb946de7454df4380c489a8350ba38	WRITABLE	
+archetypes:arcanist/phantasmal-mage	e9d0ee69305049fe8400a066010dbcd1	WRITABLE	
+options:warpriest/blessings/repose	64a416082927673409deb330af04d6d2	BLOCKED	 267 
+feats:improved-initiative	797f25d709f559546b29e7bcb181cc74	WRITABLE	
+options:arcanist/magic-deceiver/ways-of-the-deceiver/time-manipulator	4796db76ba4b4baeb010c52c26ed3be5	WRITABLE	
+options:witch/patron/deception	3a4214e3c2eab3c40bc491d7abea7045	WRITABLE	
+archetypes:barbarian/armored-hulk	48277b221b6ba6e40affb1e9b49faf36	WRITABLE	
+options:fighter/armiger/order/order-of-the-gate	475a3716ef4756849acf7c0c855dbe31	WRITABLE	
+feats:shield-master	dbec636d84482944f87435bd31522fcc	WRITABLE	
+options:gold-dragon/improved-gold-dragon-breath/mind-clearing-breath	a9ce14a6601c4bd1aea5d29d41e9162d	WRITABLE	
+options:witch/patron/insanity	eafc47304da734a4d922ae663d82f1e5	WRITABLE	
+feats:breadth-of-experience	351bfb6ce48d441da02cc141e7f19ed8	WRITABLE	
+classes:rogue	299aa766dee3cbf4790da4efb8c72484	WRITABLE	
+options:ranger/combat-style-feat/weapon-and-shield-feats	2d54cc761ab82604f93d82b4b358cf7e	WRITABLE	
+options:barbarian/rage-power/scent	6e5d57a733d1eea46a9022a304f2c728	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-damage-reduction	f102b11d85a11d14c811569c0ffcaa6e	WRITABLE	
+options:oracle/revelations/life/safe-cure	3fa75c1a809882a4697db75daf8803e3	BLOCKED	 S2-mysteries(306v) 
+options:trickster/greater-mythic-trick/lore-nature-iii	b88ca3a5476ebcc4ea63d5c1e92ce222	WRITABLE	
+feats:extra-hex	b6054088b4ab4be286724127cbf48b35	BLOCKED	 S2-splits(306o/p) 
+options:magus/magus-arcana/wand-wielder	5826562b74d529e41af2d60feeca093d	WRITABLE	
+options:cleric/domain/undead	4f0332ac85174cdcb47e2d866a7948c3	BLOCKED	 267 294 
+classes:fighter	48ac8db94d5de7645906c7d0ad3bcfbd	WRITABLE	
+options:kineticist/infusions/flash-infusion	37f3cfca29073e142a80c3b8e7c54b05	BLOCKED	 S3-carrier(307e) 
+options:magus/magus-arcana/prescient-attack-level-6	a3909a7293533fe49a2d7cfe051f17e4	WRITABLE	
+classes:arcanist	52dbfd8505e22f84fad8d702611f60b7	WRITABLE	
+options:kineticist/infusions/rending-arrows	8896ac251d394dceaf650793aa85e177	WRITABLE	
+options:cleric/domain/fire	881b2137a1779294c8956fe5b497cc35	BLOCKED	 267 294 
+options:oracle/revelations/stone/acid-skin	bc1cbe328e1cd214698e6da7fbd9400f	BLOCKED	 S2-mysteries(306v) 
+options:alchemist/incense-synthesizer/incense-fog/incense-fog-neutralizing-incense	6dd6caccd12ff6a4d9c12d36980e1906	WRITABLE	
+options:witch/patron/strength	850ac8a2bc65d814db9f3fea871c18bb	WRITABLE	
+feats:seize-the-moment	1191ef3065e6f8e4f9fbe1b7e3c0f760	WRITABLE	
+options:oracle/revelations/bones/deaths-touch	1a25afc333021a64cbe9f23ef8c5ebd8	BLOCKED	 S2-mysteries(306v) 
+options:azata/superpowers/supersonic-speed	505456aa17dd18a4e8bd8172811a4fdc	WRITABLE	
+options:trickster/improved-mythic-trick/reuse-magic-device	1383f21534d8b6a45bdbdc8ddce7a187	WRITABLE	
+feats:arcane-armor-mastery	453f5181a5ed3a445abfa3bcd3f4ac0c	WRITABLE	
+feats:shield-bash	121811173a614534e8720d7550aae253	BLOCKED	 313 
+options:hunter/divine-hunter/otherworldly-companion/otherworldly-companion-fiendish	4d7607a0155af7d43b49b785f2051e21	WRITABLE	
+options:shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-white-dragon	5ed93a0d8f3a48beb869feb44589b9f9	WRITABLE	
+options:barbarian/rage-power/internal-fortitude	c6ceaa9bb284fae4c908658a05aa5f4d	WRITABLE	
+options:alchemist/grand-discovery/true-mutagen	15bac762b599b7e42824c333717d79d9	WRITABLE	
+options:alchemist/discovery/choking-bomb	b3c6cb76d5b11cf4c8314d7b1c7b9b8b	WRITABLE	
+options:kineticist/element/earth	c6816ad80a3df9c4ea7d3b012b06bacd	WRITABLE	
+archetypes:cavalier/knight-of-the-wall	112dd0e61f95c3a459ac0a565472e685	WRITABLE	
+options:oracle/revelations/waves/wintry-touch	a63e315828427a54492724e06c0bd969	BLOCKED	 S2-mysteries(306v) 
+options:bloodrager/bloodline/celestial	05a141717bbce594a8a763c227f4ee2f	BLOCKED	 S2-bloodlines(306x/y) 316 
+options:cleric/domain/ice	2108d8e7019e4c1faa094d2d6725e936	BLOCKED	 267 294 
+classes:witch	1b9873f1e7bfe5449bc84d03e9c8e3cc	WRITABLE	
+options:paladin/mercy/exhausted	25641bda25467224e930e8c70eaf9a83	WRITABLE	
+feats:extra-bane-weapon	756dc2f7340b0b34285a1dc367ff7359	WRITABLE	
+options:arcanist/arcanist-exploits/holy-water-jet	3ff84c64d01075d4cbc3dc274c48a4bf	BLOCKED	 mythic-class(265/266) 
+options:sorcerer/bloodline-feats/infernal	f19d9bfcbc1e3ea42bda754a03c40843	BLOCKED	 S3-carrier(307f) 
+archetypes:oracle/wind-whisperer	77769e43e63647c2b32298efcc577aca	WRITABLE	
+options:lich/lich-powers/indestructible-bones	42274a4428cb43b40acf771a7f5ddfac	WRITABLE	
+options:alchemist/discovery/feral-mutagen	fd5f7b37ab4301c48a88cc196ee5f0ce	WRITABLE	
+feats:stunning-fist	a29a582c3daa4c24bb0e991c596ccb28	WRITABLE	
+options:cleric/domain/murder	3b75b9afcb5a485aab990f12c1a22e64	BLOCKED	 267 294 
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-contagiousness	738a731ca6be428c9d49f0335da36312	WRITABLE	
+options:kineticist/infusions/burning-infusion	228ec37705a5e5240be3ff5622c4476f	BLOCKED	 S3-carrier(307e) 
+feats:greater-spell-focus	5b04b45b228461c43bad768eb0f7c7bf	BLOCKED	 hand 
+options:oracle/revelations/battle/weapon-mastery	0a4c3556355747241b2d3dcc0a88ec10	BLOCKED	 S2-mysteries(306v) 
+archetypes:bard/tranquil-whisperer	bed077eaa12834b4495cf481ee721810	WRITABLE	
+archetypes:shaman/unsworn-shaman	556590a43467a27459ac1a80324c9f9f	WRITABLE	
+prestige:aldori-swordlord	90e4d7da3ccd1a8478411e07e91d5750	BLOCKED	 313 
+options:bloodrager/primalist/primal-choices/bloodline-ability	2140040bf367e8b4a9c6a632820becbe	WRITABLE	
+options:gold-dragon/improved-gold-dragon-breath/disrupting-breath	eb26e9df19a54ae2a634828f1cb7a708	WRITABLE	
+options:alchemist/incense-synthesizer/incense-fog/incense-fog-increased-range	1cd39502119e97f4caa72e7e53ce5ee9	WRITABLE	
+options:lich/lich-powers/tainted-sneak-attack	e6ce101a94ac9034b8b55c546e74b9dd	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-attack	e0cc4134510b074468b3d1185970c697	WRITABLE	
+mythic-abilities:dimensional-retribution	939f49ad995ee8d4fad03ad0c7f655d1	WRITABLE	
+options:shaman/hex/protective-luck	f0db7409313e50c41ab1bfe36584a4e1	WRITABLE	
+options:oracle/mystery/ancestor	9936554e9372dab4a874c1dd165fb6f8	WRITABLE	
+options:paladin/mercy/sickened	7ee2ef06226a4884f80b7647a2aa2dee	WRITABLE	
+mythic-feats:defensive-combat-training-mythic	479ee593a2a9cad4db68468c39a623ba	WRITABLE	
+options:alchemist/discovery/mummification	daf854d84d442e941aa3a2fdc041b37c	WRITABLE	
+classes:paladin	bfa11238e7ae3544bbeb4d0b92e897ec	BLOCKED	 267 
+mythic-abilities:mythic-charge	3d1a968428c9b3d4d9d4d27e656b65a8	WRITABLE	
+archetypes:bard/beast-tamer	912b0495d9485124bb2c0e4aa6ac2efd	WRITABLE	
+options:barbarian/rage-power/daemon-totem-lesser	45102fd7aab96f94d81ec80768549e12	BLOCKED	 S3-carrier(307l) 
+options:wizard/elemental-specialist/focused-element/acid	161027c9337d4f51a2c9b3ce4b797c7c	WRITABLE	
+options:witch/patron/endurance	8fe0a14c90d3ea94a833d087b8a09bb9	WRITABLE	
+feats:tower-shield-proficiency	6105f450bb2acbd458d277e71e19d835	WRITABLE	
+options:oracle/revelations/nature/natures-whispers	3d2cd23869f0d98458169b88738f3c32	BLOCKED	 S2-mysteries(306v) 
+options:shifter/shifter-aspect/lizard-aspect	534e48fa35914f1d93f8813ff4213729	WRITABLE	
+options:kineticist/wild-talents/aerial-evasion	871e6b0bb9d050743b98b78990ae1cff	BLOCKED	 S2-kineticist(306t) 
+archetypes:fighter/titan-fighter	88a9dbb92a674ed995bae800896795f5	WRITABLE	
+options:oracle/revelations/nature/erosion-touch	b459fee5bc4b33449bb883b0ac5a01d8	BLOCKED	 S2-mysteries(306v) 
+options:slayer/bloodseeker/nocturnal-abilities/slow	8adca4a181cc444da922b5c861f3a86b	WRITABLE	
+archetypes:bloodrager/primalist	4d588290ed0736e4f8cd3f4c3beacd69	WRITABLE	
+feats:stumbling-bash	1fc8c07a82d749a1a35b6992ad359788	WRITABLE	
+options:loremaster/secret/cleric-spell	904ce918c85c9f947910340b956fb877	WRITABLE	
+options:oracle/oracles-curse/plagued	8be8108c3bdac5d4cbad2e54e581d830	BLOCKED	 S2-curses(306w) 
+feats:skill-focus	c9629ef9eebb88b479b2fbc5e836656a	WRITABLE	
+options:rogue/rogue-talents/skill-focus	c9629ef9eebb88b479b2fbc5e836656a	WRITABLE	
+options:kineticist/wild-talents/skill-focus	c9629ef9eebb88b479b2fbc5e836656a	WRITABLE	
+options:slayer/bloodseeker/nocturnal-abilities/cone-of-blood	a485f2e1a232435e986aea1f74c8e159	WRITABLE	
+options:hellknight/disciplines/shackle	089be9f194bc4be458b1ac269e47d9cb	WRITABLE	
+options:oracle/oracles-curse/powerless-prophecy	88c89ab44a36a67438347e257f70c8fe	BLOCKED	 S2-curses(306w) 
+options:kineticist/infusions/pure-flame-infusion	1dfd9b8e1439e4a4ab4b6b11f5ea676a	BLOCKED	 S3-carrier(307e) 
+archetypes:skald/battle-singer	db942e7040084ea289c6be2bfeb3d0a8	WRITABLE	
+options:alchemist/discovery/shock-bomb	e1e0928b6ab2ae44fafb05b725b82b4f	WRITABLE	
+feats:magical-tail	5114829572da5a04f896a8c5b67be413	WRITABLE	
+archetypes:witch/stigmatized-witch	c5f6e53e71059fb4d802ce81a277a12d	WRITABLE	
+archetypes:hunter/divine-hound	339659f6b09b4136bf8c2b2c3df87c65	WRITABLE	
+options:oracle/revelations/flame/firestorm	3fdc528f56566984fbbe0baaef0027a2	BLOCKED	 S2-mysteries(306v) 
+options:angel/improved-sword-of-heaven/abolish-undeath	317c795278362f84581f7cf35023a19f	WRITABLE	
+options:shaman/hex/misfortune	e7fe4ed2a56a4454396d5dfda9e58a18	WRITABLE	
+options:demon/major-demonic-aspect/aspect-of-vrolikai	0ed608f1a0695cd4cb80bf6d415ab295	WRITABLE	
+archetypes:warpriest/mantis-zealot	fc403240fdca4a52a413578169ea7117	WRITABLE	
+mythic-feats:skill-focus-mythic	a224819b9492019428c220754208ba3a	BLOCKED	 315 hand 
+options:witch/hex/death-curse	b7cd7ba71151e354d9c8a1bff959d789	WRITABLE	
+options:shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-green-dragon	c855de152eda4f029a97c022bdc3a87f	WRITABLE	
+archetypes:inquisitor/sacred-huntsmaster	46eb929c8b6d7164188eb4d9bcd0a012	WRITABLE	
+archetypes:sorcerer/geomancer	a0e56a59ad0b44b8add84185da6bb845	WRITABLE	
+archetypes:alchemist/vivisectionist	68cbcd9fbf1fb1d489562f829bb97e38	WRITABLE	
+options:kineticist/infusions/dazzling-infusion	037460f7ae3e21943b237007f2b1a5d5	BLOCKED	 S3-carrier(307e) 
+feats:shake-it-off	6337b37f2a7c11b4ab0831d6780bce2a	WRITABLE	
+options:rogue/rogue-talents/double-debilitation	dd699394df0ef8847abba26038333f02	WRITABLE	
+mythic-abilities:greater-abundant-casting	db5be78901afbfa4e8ea5b399a88b92d	WRITABLE	
+options:angel/improved-sword-of-heaven/bestow-the-divine	432c96835aee50341a4ff0b364cdb85a	WRITABLE	
+options:warpriest/blessings/sun	ba825e3c77acaec4386e00f691f8f3be	BLOCKED	 267 
+feats:advanced-weapon-training	3aa4cbdd4af5ba54888b0dc7f07f80c4	WRITABLE	
+options:rogue/rogue-talents/confounding-blades	ce72662a812b1f242849417b2c784b5e	WRITABLE	
+options:oracle/revelations/wind/spark-skin	279637adc9719db4c93352f71366eba8	BLOCKED	 S2-mysteries(306v) 
+options:shifter/shifter-aspect/spider-aspect	e3c2c68adaa344aca0354750044611a2	WRITABLE	
+options:alchemist/discovery/feral-wings	78197196e096c6e4eaed5c62fa108b52	WRITABLE	
+archetypes:cleric/herald-caller	c4a02990f15c0bb4d8749a90a5ed46b3	WRITABLE	
+mythic-feats:lightning-reflexes-mythic	4e56fcc942a9f0645a2e01c071453647	WRITABLE	
+options:trickster/mythic-trick/persuasion-i	4eefa883f5908a347a0b0a891fb859dd	WRITABLE	
+options:druid/nature-bond/domain	5edfe84c93823d04f8c40ca2b4e0f039	WRITABLE	
+options:magus/magus-arcana/enduring-blade-level-6	7a73bf165e8eda6478b4419f857d1ab5	WRITABLE	
+archetypes:fighter/two-handed-fighter	84643e02a764bff4a9c1aba333a53c89	WRITABLE	
+options:cavalier/order/order-of-the-lion	0066e5b8e6883794aab1451f4c182982	WRITABLE	
+options:barbarian/rage-power/deadly-accuracy	c841ffa13d39ce442a408f57feb3cb8e	WRITABLE	
+options:shifter/shifter-aspect/wolverine-aspect	4fc5f64d13ce4c0e8258a83ff63c50af	WRITABLE	
+options:alchemist/discovery/spontaneous-healing	2bc1ee626a69667469ab5c1698b99956	WRITABLE	
+options:shaman/spirit/life	f9ee5a9146561ba4bac4cb8a7126f85c	WRITABLE	
+archetypes:wizard/shadowcaster	9e1211f2c3db4d0c8313013df72d7187	WRITABLE	
+options:monk/ki-power/scorching-ray	16612cc8d88ef83458d05fd063709af7	WRITABLE	
+options:bloodrager/bloodline/draconic-gold	ffcb3d0a1a45d8048a691eda9f0219b9	BLOCKED	 S2-bloodlines(306x/y) hand 
+feats:clustered-shots	f7de245bb20f12f47864c7cb8b1d1abb	WRITABLE	
+options:barbarian/rage-power/deflect-arrows-instinctual-warrior	d971bbb15f354621ac37fd51d0ab9044	WRITABLE	
+feats:greater-snap-shot	67b09c86234cecc4c8309f22f7d33973	WRITABLE	
+classes:bard	772c83a25e2268e448e841dcd548235f	WRITABLE	
+classes:alchemist	0937bec61c0dabc468428f496580c721	WRITABLE	
+options:demon/major-demonic-aspect/aspect-of-coloxus	04f5985258e1d594280b5e02916a6326	WRITABLE	
+feats:combat-casting	06964d468fde1dc4aa71a92ea04d930d	WRITABLE	
+options:shaman/spirit/frost	44c130a12d49ebf4a95945feffe5aae7	WRITABLE	
+options:magus/magus-arcana/empowered-magic-level-6	4cab1e1a9d8e68f41a48777196c65501	WRITABLE	
+options:oracle/revelations/nature/life-leech	5efbf89a8bf2ab34a883810fd0fcc216	BLOCKED	 S2-mysteries(306v) 
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-vulnerable-host	04606edc79f44ce591acd22a5783dbd3	WRITABLE	
+feats:improved-improved-improved-critical-improved	319c882ab3cc51544ad2f3f43633d5b1	BLOCKED	 hand 
+options:warpriest/blessings/magic	1754ff61a0805714fa2b89c8c1bb87ad	BLOCKED	 267 
+feats:shatter-defenses	61a17ccbbb3d79445b0926347ec07577	WRITABLE	
+options:barbarian/rage-power/purity-of-body-instinctual-warrior	a4418aa778cb4ebd965d78af19becced	WRITABLE	
+options:gold-dragon/improved-gold-dragon-breath/annihilating-breath	e8b9aad5295c49539f1bbf901d314964	BLOCKED	 S3-carrier(307g) mythic-class(265/266) hand 
+options:alchemist/discovery/precise-bomb	5c396342f614dd644a48c3af08d79701	WRITABLE	
+options:arcanist/arcanist-exploits/flame-arc	421a868f5c675764b9c1e919629e5fdb	WRITABLE	
+options:oracle/maneuver-mastery/bull-rush	485bfaffc5d906241ac2fb4529175279	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-relativity-of-space	24856f367261454b8d5070da0e774053	WRITABLE	
+feats:elven-spirit	191a6ee9ccf849f8b34d34ad93b7af06	WRITABLE	
+options:angel/improved-angelic-halo/unfailing-beacon	6cc656805710b8247b27bbfc696e2cac	WRITABLE	
+options:angel/improved-angelic-halo/solar-winds	066213b574290694c815f3b2a491839f	WRITABLE	
+options:bloodrager/bloodline/draconic-brass	56e22cb1dde3f5a4297d45744ca19043	BLOCKED	 S2-bloodlines(306x/y) hand 
+archetypes:slayer/deliverer	738c5666f8ef46c45942df9100a0d254	BLOCKED	 hand 
+options:slayer/slayer-talents/combat-style-feat-2	c6d0da9124735a44f93ac31df803b9a9	WRITABLE	
+options:lich/lich-powers/weapon-of-death	8d28d96d3fad9d640b1b55f76ee11885	WRITABLE	
+feats:aldori-dueling-mastery	c3a66c1bbd2fb65498b130802d5f183a	BLOCKED	 313 
+options:oracle/revelations/life/lifesense	17e537c174c7f0f4c9422c5ab5e3c2b8	BLOCKED	 S2-mysteries(306v) 
+options:bloodrager/bloodline/elemental-fire	12f7b4c5d603f3744b2b1def28c0a4fa	BLOCKED	 S2-bloodlines(306x/y) hand 
+options:sorcerer/bloodline/draconic-copper	b522759a265897b4f8f7a1a180a692e4	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+options:sorcerer/bloodline/fey	e8445256abbdc45488c2d90373f7dae8	BLOCKED	 S2-bloodlines(306x/y) 316 
+options:angel/improved-angelic-halo/blinding-light	67b80136595b60245b787d688f47b346	WRITABLE	
+options:fighter/armiger/order/order-of-the-pyre	603944646bb64a34d8a9e526301398ee	WRITABLE	
+options:alchemist/discovery/grand-mutagen	6f5cb651e26bd97428523061b07ffc85	WRITABLE	
+feats:shield-wall	8976de442862f82488a4b138a0a89907	WRITABLE	
+options:trickster/greater-mythic-trick/athletics-iii	e45bf795c4f84c3b8a83c011f8580491	WRITABLE	
+archetypes:monk/sohei	fad7c56737ed12e42aacc330acc86428	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-withering	a9184917ef1c4b358ba03da5f6b03931	WRITABLE	
+options:trickster/greater-mythic-trick/trickery-iii	64131f0ac1e2497a806856461bdcfe4e	WRITABLE	
+mythic-feats:destiny-beyond-birth	325f078c584318849bfe3da9ea245b9d	BLOCKED	 none 
+mythic-abilities:limitless-rage	5cb58e6e406525342842a073fb70d068	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-addle-mind	c49f6f28f7e44b45b954784cbe7be738	WRITABLE	
+options:sorcerer/bloodline/draconic-gold	6c67ef823db8d7d45bb0ef82f959743d	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+options:oracle/revelations/waves/icy-skin	cdeba08f8137cb141a9aa2f6fe55f99c	BLOCKED	 S2-mysteries(306v) 
+options:demon/demonic-aspect/aspect-of-succubus	709ae9be4d75f094f84f26bccb07351d	WRITABLE	
+feats:simple-weapon-proficiency	e70ecf1ed95ca2f40b754f1adb22bbdd	BLOCKED	 313 
+feats:weapon-focus	1e1f627d26ad36f43bbd26cc2bf8ac7e	BLOCKED	 313 
+options:rogue/rogue-talents/weapon-focus	1e1f627d26ad36f43bbd26cc2bf8ac7e	BLOCKED	 313 
+options:barbarian/rage-power/swift-foot	7df32d4e9bd2cdc48b0f69b03a57754a	WRITABLE	
+options:kineticist/wild-talents/kinetic-restoration	ed01d50910ae67b4dadc050f16d93bdf	WRITABLE	
+options:kineticist/infusions/rare-metal-infusion	6700ce7f56ddc30488e45b049f4ee475	BLOCKED	 S3-carrier(307e) 
+options:sorcerer/bloodline/serpentine	739c1e842bf77994baf963f4ad964379	BLOCKED	 S2-bloodlines(306x/y) 316 
+mythic-abilities:enforced-vigor	29d7f1e36132b874084402c207847ad1	WRITABLE	
+options:demon/demonic-aspect/aspect-of-kalavakus	4f94ea9a5c2779a458263976dfa02340	WRITABLE	
+options:alchemist/grand-discovery/awakened-intellect	d5378cb816b0c7a4cb47500e6ccf8702	WRITABLE	
+archetypes:shifter/feyform-shifter	1cdfc7d306d1430eac19427539b62091	WRITABLE	
+options:demon/demon-lord-aspect/aspect-of-kabriri	043932e79c20f1547b3f20499df7dd7a	WRITABLE	
+feats:dreadful-carnage	fc37b70e3d064a147a3a99db4a86ee12	WRITABLE	
+archetypes:sorcerer/crossblooded	e66a112ab57f69e418f1f11d5d2f3248	WRITABLE	
+mythic-abilities:distracting-shots	ad686f07a3deaf94ba91f97369156000	WRITABLE	
+options:sorcerer/bloodline-feats/undead	a29b72a804f7cb243b01e99c42452636	BLOCKED	 S3-carrier(307f) 
+options:slayer/bloodseeker/nocturnal-abilities/blood-jet	9f8e0804d4974db0877bf236348d5411	WRITABLE	
+options:demon/demon-lord-aspect/aspect-of-pazuzu	fd126181b5886e54e88d9f7ed09d077b	WRITABLE	
+options:demon/demon-lord-aspect/aspect-of-areshkagal	a4e7223c6d8a7b941b9464ae73b59bcc	WRITABLE	
+options:witch/patron/ancestors	b9c4e782706099f42a2ebc901acf492d	WRITABLE	
+feats:trip	0f15c6f70d8fb2b49aa6cc24239cc5fa	WRITABLE	
+archetypes:hunter/forester	74ee8172df6782f4792ea0f8647dea34	WRITABLE	
+options:lich/skeleton-upgrade/skeletal-magus-i	1192b090d635b74448eceb313435d437	WRITABLE	
+archetypes:inquisitor/living-grimoire	b68b52e5e802426d989a3d4f8c986761	WRITABLE	
+options:shaman/hex/ward-of-flame	c95e1ccf872844b44a47378f761689be	BLOCKED	 S3-carrier(307j) 
+options:warpriest/blessings/law-domain	9c49504e2e4c66d4aa341348356b47a8	BLOCKED	 267 hand 
+mythic-feats:extra-feat	e10c4f18a6c8b4342afe6954bde0587b	WRITABLE	
+archetypes:rogue/rowdy	4dbc4b7f2d5149ce83854bffa72035ce	WRITABLE	
+feats:energized-wild-shape	92df031ed2cb4153950853d6a3b9813e	BLOCKED	 new-carrier(307) 
+options:sorcerer/bloodline/elemental-water	7c692e90592257a4e901d12ae6ec1e41	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+feats:endurance	54ee847996c25cd4ba8773d7b8555174	WRITABLE	
+archetypes:paladin/martyr	4d9a864eae278744aafa7ff23f2a6466	WRITABLE	
+options:wizard/cruromancer/blood-infusion/commanding-infusion	52ab0f623a2446758c0f22fedc2bda70	WRITABLE	
+options:wizard/school/illusionist	24d5402c0c1de48468b563f6174c6256	BLOCKED	 S2-306p 
+options:kineticist/infusions/bowling-infusion	b3bd080eed83a9940abd97e4aa2a7341	BLOCKED	 S3-carrier(307e) 
+feats:frightful-shape	8e8a34c754d649aa9286fe8ee5cc3f10	BLOCKED	 new-carrier(307) 
+feats:improved-blind-fight	4f1a78b02ac71bd4fa7d6e011d6f8ce0	WRITABLE	
+options:arcanist/arcanist-exploits/lightning-lance	0536c9db9535bdf4d81748dbb14dfc26	WRITABLE	
+archetypes:inquisitor/tactical-leader	639b74fd2f48d474e965c596b1649095	WRITABLE	
+feats:metamagic-heighten-spell	2f5d1e705c7967546b72ad8218ccf99c	WRITABLE	
+options:cleric/domain/chaos	5a5d19c246961484a97e1e5dded98ab2	BLOCKED	 267 294 hand 
+archetypes:skald/battle-scion	71d41dd6309ea994886908c34c87ccd9	WRITABLE	
+options:monk/ki-power/diamond-body	a8819b70975701b4e874b2f9862aac24	WRITABLE	
+options:lich/skeleton-upgrade/skeletal-bard-i	0bc53f33005d08146b916b1c400998d6	WRITABLE	
+options:warpriest/blessings/madness	a99916a8aad2414f970072db7b760c48	BLOCKED	 267 
+options:bloodrager/bloodline/draconic-red	34209f220733fc444a039df1b1076b0b	BLOCKED	 S2-bloodlines(306x/y) hand 
+options:shaman/hex/beckoning-chill	905a9eccb9fa73e4da1d3e86bcb1e421	BLOCKED	 S3-carrier(307j) 
+archetypes:oracle/dual-cursed-oracle	4a6eb63858244f7ea4ed950a7e798a70	WRITABLE	
+feats:sunder-armor	9719015edcbf142409592e2cbaab7fe1	WRITABLE	
+options:oracle/revelations/battle/battlecry	9a67248ce68bd5f47a36d240ff8196e4	BLOCKED	 S2-mysteries(306v) 
+options:slayer/bloodseeker/nocturnal-abilities/sense-vitals	903e9775fc044b98be76833e7cfd3af8	WRITABLE	
+options:demon/demon-lord-aspect/aspect-of-deskari	60f57fe80fa1986478f474c0fb5e90ac	WRITABLE	
+archetypes:hunter/urban-hunter	f1341c61c77092643ae63d7cb52f83f8	WRITABLE	
+options:slayer/bloodseeker/nocturnal-abilities/summon-bloody-bones-beast	28294c00a938435b86f6468c49ef3969	WRITABLE	
+options:witch/hex/protective-luck	ddfc51eaa495acb40a01b92a2dd4ab73	WRITABLE	
+feats:exotic-weapon-proficiency	9a01b6815d6c3684cb25f30b8bf20932	BLOCKED	 313 
+prestige:dragon-disciple	72051275b1dbb2d42ba9118237794f7c	BLOCKED	 S3-carrier(307f) hand 
+feats:natural-charmer	0ebbc4a0ecf03844384a177e9f1f9a11	WRITABLE	
+feats:diehard	86669ce8759f9d7478565db69b8c19ad	BLOCKED	 S3-carrier(307l) 
+archetypes:rogue/knife-master	9e94d1847e6f331478e5a714659220ce	WRITABLE	
+options:barbarian/rage-power/rolling-dodge	abfaa9ad598093f45ac6ac1db58f9a40	WRITABLE	
+archetypes:paladin/divine-guardian	5693945afac189a469ef970eac8f71d9	WRITABLE	
+options:oracle/revelations/life/enhanced-cures	973a22b02c793ca49b48652e3d70ae80	BLOCKED	 S2-mysteries(306v) 
+mythic-abilities:powerful-shadows	6a9448ec047c642408af6debb8536c38	WRITABLE	
+mythic-feats:iron-will-mythic	952147d43befd5b4ba853f24cd1368ee	WRITABLE	
+options:wizard/school/enchanter	252363458703f144788af49ef04d0803	BLOCKED	 S2-306p 
+archetypes:warpriest/feral-champion	f68ca492c9c15e241ab73735fbd0fb9f	BLOCKED	 267 
+feats:pummeling-bully	bdf58317985383540920c723db07aa3b	WRITABLE	
+mythic-feats:vital-strike-mythic	e07bcb271ecefec44be314e1c807c798	WRITABLE	
+options:oracle/mystery/battle	6b8e676943cb91648b21b7ca72fbb833	WRITABLE	
+options:kineticist/infusions/fan-of-flames	fde466d2c24705641bcd97d04a323566	BLOCKED	 S3-carrier(307e) 
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-muscle-feebleness	c6c6c70d65e94606932f13904dddec41	WRITABLE	
+feats:extra-wild-talent	0f73730cf1b44ee882671e55d5f6e471	WRITABLE	
+feats:great-cleave	cc9c862ef2e03af4f89be5088851ea35	WRITABLE	
+feats:lunge	d41d5bd9a775d7245929256d58a3e03e	WRITABLE	
+options:sorcerer/bloodline-feats/celestial	101a87c6744a3f242836e657cd7f643e	BLOCKED	 S3-carrier(307f) 316 
+archetypes:cavalier/standard-bearer	07db3fec753209546a792a7942288998	WRITABLE	
+archetypes:cavalier/fearsome-leader	13cc5ccd5cef4c98a5806f033e19a8bb	WRITABLE	
+mythic-abilities:inspirational-leader	ffa9a8b8ea27b2a48b3638e20673a687	WRITABLE	
+options:oracle/revelations/battle/battlefield-clarity	c0c2b21d83dd2514c98ae8d3684ad981	BLOCKED	 S2-mysteries(306v) 
+options:hellknight/disciplines/censor	b4f4cfaaad1ea9d4d95fbf2ca135f654	WRITABLE	
+options:sorcerer/bloodline/draconic-brass	5f9ecbee67db8364985e9d0500eb25f1	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+feats:metamagic-empower-spell	a1de1e4f92195b442adb946f0e2b9d4e	WRITABLE	
+options:rogue/rogue-talents/opportunist	5bb6dc5ce00550441880a6ff8ad4c968	WRITABLE	
+feats:iron-will	175d1577bb6c9a04baf88eec99c66334	WRITABLE	
+archetypes:barbarian/mad-dog	063da4c77fa59454a9828c9ece407ea1	WRITABLE	
+options:oracle/revelations/bones/spirit-walk	87bdea524911cfa4dacfe7243abe8b51	BLOCKED	 S2-mysteries(306v) 
+options:demon/major-demonic-aspect/aspect-of-omox	daf030c7563b2664eb1031d91eaae7ab	WRITABLE	
+options:shaman/hex/ameliorating	8e19da021854b9b4e805f0e919663894	WRITABLE	
+mythic-feats:spell-penetration-mythic	51b6b22ff184eef46a675449e837365d	WRITABLE	
+options:oracle/revelations/ancestor/spirit-of-the-warrior	b63f198db73edbc4b84d863cb681f5bc	BLOCKED	 S2-mysteries(306v) 
+options:witch/hex/ameliorating	3cdd3660fb69f3e4db0160fa97dfa85d	WRITABLE	
+feats:extra-lay-on-hands	a2b2f20dfb4d3ed40b9198e22be82030	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-new-strain	505648df95f5489fa13ddbd1af9473fd	WRITABLE	
+options:cleric/domain/nobility	8480f2d1ca764774895ee6fd610a568e	BLOCKED	 267 294 
+options:slayer/slayer-talents/vanguard-tactician	c67db0b6ede802b43a6cf00136b1a5e6	WRITABLE	
+options:bloodrager/bloodline/abyssal	55d5bbf4b5ae1744ab26c71be98067f9	BLOCKED	 S2-bloodlines(306x/y) 
+archetypes:inquisitor/faith-hunter	ac87f40932cfd324c90b441f93857c40	WRITABLE	
+feats:arcane-spirit	e55e2c96ae974bc9ac9fda8b3a56e432	WRITABLE	
+mythic-abilities:master-shapeshifter	934670ef88b281b4da5596db8b00df2f	WRITABLE	
+options:kineticist/infusions/deadly-earth	061f5d7e659432b478668b70f6d4caae	BLOCKED	 S3-carrier(307e) 
+options:trickster/mythic-trick/lore-religion-i	04177c4ddec20ae4ca04388f9cf23518	WRITABLE	
+feats:staggering-critical	055fb8dcaf6be334ca13172bafa9e782	WRITABLE	
+options:rogue/rogue-talents/skill-mastery-knowledge	4b104a7319393494ca8d449a3b38a45f	WRITABLE	
+archetypes:ranger/sable-company-marine	475117e837fa461589005a5339f653a0	WRITABLE	
+options:monk/ki-power/diamond-soul	01182bcee8cb41640b7fa1b1ad772421	WRITABLE	
+options:fighter/armiger/order/order-of-the-scourge	552f196e7a10bea4b9a5e7cb0147c89f	WRITABLE	
+options:cleric/domain/community	b8bbe42616d61ac419971b7910d79fc8	BLOCKED	 267 294 
+archetypes:cavalier/disciple-of-the-pike	4c4c3f9df00a5e04680d172a290111c4	WRITABLE	
+mythic-abilities:second-bloodline	3cf2ab2c320b73347a7c21cf0d0995bd	BLOCKED	 S2-bloodlines(306x/y) 316 
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-stiffened-limbs	4a590791161145de8cf8d27cdefb8705	WRITABLE	
+feats:perfect-strike	7477e2e0b72f4ce4fb674f4b21d5e81d	WRITABLE	
+options:cleric/domain/travel	d169dd2de3630b749a2363c028bb6e7b	BLOCKED	 267 294 
+classes:slayer	c75e0971973957d4dbad24bc7957e4fb	WRITABLE	
+options:kineticist/wild-talents/foxfire	14c699ccd0564e04a9587b1845d16014	BLOCKED	 S2-kineticist(306t) 
+feats:intimidating-prowess	d76497bfc48516e45a0831628f767a0f	WRITABLE	
+options:rogue/rogue-talents/intimidating-prowess	d76497bfc48516e45a0831628f767a0f	WRITABLE	
+mythic-abilities:favorite-metamagic	503fb196aa222b24cb6cfdc9a284e838	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-combat-maneuvers	dbabd88e7cd24b619dbf413ae7ce0033	WRITABLE	
+archetypes:inquisitor/judge	0e5e91c17f114d358910e0da4ae29b50	WRITABLE	
+archetypes:slayer/executioner	8040e66d2724c754f85dd3026a1f0cee	WRITABLE	
+options:oracle/revelations/flame/fire-breath	5b664b58c911bc944b1572fccf0e7f5f	BLOCKED	 S2-mysteries(306v) 
+options:sorcerer/bloodline/draconic-black	7bd143ead2d6c3a409aad6ee22effe34	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+options:sorcerer/bloodline-feats/elemental	d2a4b74ee7e43a648b51d0f36db2aa34	BLOCKED	 S3-carrier(307f) 
+archetypes:bloodrager/bloodrider	9a8b323e5559dab45a23e0dc0b8e9c52	WRITABLE	
+options:bloodrager/bloodline/arcane	aeff0a749e20ffe4b9e2846eae29c386	BLOCKED	 S2-bloodlines(306x/y) 316 
+feats:wings	d9bd0fde6deb2e44a93268f2dfb3e169	BLOCKED	 S3-carrier(307f) 
+options:shifter/shifter-aspect/bear-aspect	73ef2c330ff14e4bb2f5b7300622c552	WRITABLE	
+options:oracle/revelations/ancestor/phantom-touch	60a1be62a0edf274580a1cdc5250293e	BLOCKED	 S2-mysteries(306v) 
+mythic-feats:bull-rush-mythic	50f13705c167bfa43ad4e1a7da95c491	WRITABLE	
+feats:hammer-the-gap	7b64641c76ff4a744a2bce7f91a20f9a	WRITABLE	
+options:paladin/mercy/confused	d306e052d2f85b24cb5082951459045e	WRITABLE	
+options:oracle/oracles-curse/lame	3d319da9614c76a41a095a4467c3233f	BLOCKED	 S2-curses(306w) 
+options:oracle/revelations/fortune	16935c4660ee4c7da976b5f6cafb43dd	WRITABLE	
+options:lich/lich-powers/fear-control	16c499797605dd244a365fc73f475e11	WRITABLE	
+feats:weapon-finesse	90e54424d682d104ab36436bd527af09	WRITABLE	
+options:shaman/hex/ward	41f4d078eb70c7b4e9dc54ad0e3630fb	WRITABLE	
+options:shaman/spirit/bones	65b5e7f17a1b928418fc9e8a6b55eafa	WRITABLE	
+feats:focused-shot	f979ed68d1e74d21962edc66f0a1d169	WRITABLE	
+options:demon/demonic-aspect/aspect-of-incubus	64c6b4e233e718d429dab47eb3a25ac6	WRITABLE	
+options:magus/magus-arcana/ghost-blade-level-9	8896f327c59569c4eaf129bf35b96c1f	WRITABLE	
+options:wizard/school/invoker	f8019b7724d72a241a97157bc37f1c3b	BLOCKED	 S2-306p 
+feats:dirty-trick	ed699d64870044b43bb5a7fbe3f29494	WRITABLE	
+archetypes:skald/demon-dancer	9c46c4e4303e5da40b63faa6df18e2c2	WRITABLE	
+mythic-feats:mythic-light-shield-deflection	baae60e30c1f45cd889ea41459205a84	WRITABLE	
+options:oracle/revelations/stone/mighty-pebble	b29d13f63f371664e9ae25bd65e5c463	BLOCKED	 S2-mysteries(306v) 
+archetypes:wizard/exploiter-wizard	6d2027b4eec590c41adb5caeb7bb026d	WRITABLE	
+options:shaman/hex/slumber	894ef7374b805dd43b97603371b7ef10	WRITABLE	
+feats:boar-shred	bfd867bce95e420e82b3c96abb133876	WRITABLE	
+options:cleric/domain/water	e63d9133cebf2cf4788e61432a939084	BLOCKED	 267 294 
+options:sorcerer/bloodline/elemental-air	cd788df497c6f10439c7025e87864ee4	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+options:oracle/revelations/ancestor/sacred-council	a8ae26103124a1c409279392b8f56238	BLOCKED	 S2-mysteries(306v) 
+archetypes:barbarian/invulnerable-rager	a2ccb759dc6f1f94d9aae8061509bf87	WRITABLE	
+archetypes:druid/defender-of-the-true-world	782c46afacd88d448afba6178471a744	WRITABLE	
+options:azata/superpowers/incredible-might	eef8d23a7e4acfe4d834a5de844c8c7c	WRITABLE	
+archetypes:shaman/possessed-shaman	7939ff57cc2ce104693ea2f5afa595b6	WRITABLE	
+archetypes:kineticist/kinetic-sharpshooter	e0684d0a6ef44cae9d095f5318618a85	WRITABLE	
+options:witch/hex/vulnerability-curse	e049c31708d932f4c8e7a366b1cd44a2	WRITABLE	
+options:kineticist/infusions/chain-arrows	0ff81c5691c64c4aa8b2ecc35c885901	WRITABLE	
+options:demon/major-demonic-aspect/aspect-of-shadow-demon	18d0dafd5a1f8c043b5f01539f7b096c	WRITABLE	
+options:wizard/school/transmuter	b6a604dab356ac34788abf4ad79449ec	BLOCKED	 S2-306p 
+options:kineticist/infusions/detonation	77c24cc95ce319c44a0e5fc6ff466d5b	BLOCKED	 S3-carrier(307e) 
+feats:combat-reflexes	0f8939ae6f220984e8fb568abbdfba95	WRITABLE	
+feats:furys-fall	0fc1ed8532168f74a9441bd17ad59e66	WRITABLE	
+options:alchemist/incense-synthesizer/incense-fog/incense-fog-toxic-incense	8241699d20232084380fec8152434f2a	WRITABLE	
+options:kineticist/infusions/wall	c684335918896ce4ab13e96cec929796	WRITABLE	
+options:trickster/greater-mythic-trick/use-magic-device-iii	9d1446e4947544429a64e5fa20906ebf	WRITABLE	
+options:arcanist/arcanist-exploits/ice-missile	84a2204fa1a5c4d43979dc7dd0ea5f11	WRITABLE	
+feats:dodge	97e216dbb46ae3c4faef90cf6bbe6fd5	WRITABLE	
+options:rogue/rogue-talents/wearying-strike	b4befb0a9b58e0e4687942661c55198d	WRITABLE	
+mythic-feats:sunder-armor-mythic	3b19ac096f4de324daf40590e274102a	WRITABLE	
+options:rogue/rogue-talents/improved-uncanny-dodge	e821c61b2711cea4cb993725b910e7e8	WRITABLE	
+options:shaman/hex/evil-eye	890cd9309dc515c4199d811c36760d17	WRITABLE	
+feats:armor-proficiency-medium-armor	46f4fb320f35704488ba3d513397789d	WRITABLE	
+archetypes:shifter/weretouched	a30313b4b01a4049ae2f50884917e443	WRITABLE	
+options:bloodrager/bloodline/draconic-green	69b27eb6bd71ac747a2fac8399c27c3a	BLOCKED	 S2-bloodlines(306x/y) hand 
+options:witch/elemental-witch/energy/fire	97e4fe7723b749849f182186764c23a4	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-area-effects	39d8ae51c0034adbb8394210c51901e2	WRITABLE	
+archetypes:kineticist/blood-kineticist	365b50dba54efb74fa24c07e9b7a838c	WRITABLE	
+options:wizard/elemental-specialist/focused-element/fire	089e7f52b4ff45df856f0eda3e6c56af	WRITABLE	
+options:alchemist/discovery/fast-bombs	128c5fccec5ca724281a4907b1f0ac83	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-drain-body	9fa32da6d8dd4d618da704bbbd020506	WRITABLE	
+options:barbarian/rage-power/fearless-rage	2f59c85adec695b418a66242f2ba08b8	WRITABLE	
+options:barbarian/rage-power/clear-mind	4a236ae23d5a4f76b3616ddfa337e724	WRITABLE	
+options:stalwart-defender/defensive-powers/clear-mind	4a236ae23d5a4f76b3616ddfa337e724	WRITABLE	
+options:arcanist/arcanist-exploits/acid-jet	c3705e3054dcba44c93a5f8b603e8631	WRITABLE	
+options:oracle/revelations/flame/form-of-flame	9c8997f740d5a634fb19ac32e0517180	BLOCKED	 S2-mysteries(306v) 
+options:aeon/enforcing-gaze/enforcing-gaze-temporal-jump	72514d0dcd054d1f8bb9abd4ddb9711c	WRITABLE	
+options:kineticist/infusions/foxfire-infusion	ae21c5369252ec74aa1fee89f1bc1b21	BLOCKED	 S3-carrier(307e) 
+feats:raging-brutality	c002fad1506842abb2da5bcedacc358e	WRITABLE	
+archetypes:bloodrager/mixed-blood-rager	10d92d54d19e4a59b5bbd4259ec0974f	WRITABLE	
+options:angel/improved-sword-of-heaven/abolish-guile	ebcda8f579e7d494a8befda94279968f	WRITABLE	
+options:alchemist/discovery/infusion	57d5077b301ade749b840b0ea9230bb9	WRITABLE	
+options:paladin/mercy/shaken	c4732ca5b0af7214a98f9b4dafe87da9	WRITABLE	
+options:shaman/hex/flame-curse	dec5607ab6ea68d4aac0772049e80be7	BLOCKED	 S3-carrier(307j) 
+options:kineticist/infusions/cyclone	f2fa7541f18b8af4896fbaf9f2a21dfe	BLOCKED	 S3-carrier(307e) 
+feats:greater-penetrating-strike	eb6eb946c68ef094f89c7633f5bfdc9b	WRITABLE	
+feats:metamagic-completely-normal-spell	094b6278f7b570f42aeaa98379f07cf2	WRITABLE	
+options:barbarian/rage-power/diamond-body-instinctual-warrior	39d6ef0cb9794afbb5af3cae7288029d	WRITABLE	
+options:warpriest/blessings/water	0f457943bb99f9b48b709c90bfc0467e	BLOCKED	 267 
+options:oracle/mystery/flame	3b68909df737cd4458509d7f3a9c3706	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-muscle-atrophy	a24615f1002f4dd78cc1ae8bc4087a45	WRITABLE	
+options:cavalier/order/order-of-the-cockatrice	4e2fb051c9c4c144dbad08d994906f99	WRITABLE	
+options:rogue/rogue-talents/unbalancing-trick	f3aeaba4f6506824ab393b03d28faa50	WRITABLE	
+options:shaman/hex/healing-hex	3fb96b69065bcc643a696c6ba908d588	WRITABLE	
+mythic-feats:dazzling-display-mythic	885a1e422b3033b47a654343704ccafc	WRITABLE	
+options:shaman/spirit/waves	2196e093593903f4ebc36467ccbf1d9a	WRITABLE	
+options:gold-dragon/improved-gold-dragon-breath/decaying-breath	c606a6897125480ebde14b63bb8fb18e	BLOCKED	 S3-carrier(307g) mythic-class(265/266) hand 
+archetypes:warpriest/cult-leader	cd2d419961bb019438b77d4aecc2fc04	WRITABLE	
+options:alchemist/discovery/greater-mutagen	76c61966afdd82048911f3d63c6fe0bc	WRITABLE	
+options:warpriest/blessings/fire	2368212fa3856d74589e924d3e2074d8	BLOCKED	 267 
+feats:arcane-focus	f12795ec2c204d428738bbe1bfcad8fb	WRITABLE	
+mythic-feats:point-blank-shot-mythic	b651baa5f6faba646b7e3082929dfaf5	WRITABLE	
+mythic-abilities:ascendant-summons	fcdd46e2ead3d904cb9311c56112ce5f	WRITABLE	
+options:kineticist/infusions/spray	b5852e8287f12d34ca6f84fcc7019f07	BLOCKED	 S3-carrier(307e) 
+feats:precise-shot	8f3d1e6b4be006f4d896081f2f889665	WRITABLE	
+options:rogue/rogue-talents/blinding-strike	fd01c15d9e74cd247b1fdbd6eb4d4713	WRITABLE	
+options:arcanist/magic-deceiver/ways-of-the-deceiver/magic-inventor	a0c82ce4664a4adf82b676b1603bcf35	WRITABLE	
+prestige:arcane-trickster	9c935a076d4fe4d4999fd48d853e3cf3	BLOCKED	 314 hand 
+mythic-feats:improved-initiative-mythic	25f4cb387ba4ab94d944fdef3da9ab97	WRITABLE	
+mythic-feats:mythic-armor-focus-medium-armor-avoidance	b152e7fdfc6a452c8c47dd76de83e1aa	BLOCKED	 315 
+options:lich/skeletal-champion/skeletal-vanguard	048456cce79943f4c9c9eec1aa5ce9a0	WRITABLE	
+archetypes:sorcerer/overwhelming-mage	734917ec8b8542378c1d35519439d67f	WRITABLE	
+prestige:winter-witch	eb24ca44debf6714aabe1af1fd905a07	WRITABLE	
+options:witch/hex/lay-to-rest	5c7e243dde95aed4699e1b3492a73055	WRITABLE	
+options:angel/improved-angelic-halo/burning-bright	1faccd51363ce0c4798e3f74c4fa2d8e	WRITABLE	
+options:magus/magus-arcana/maximized-magic-level-12	6c44c7fe4cf35644ea5ed25e48aa6db6	WRITABLE	
+archetypes:oracle/possessed-oracle	09035bb5dbb714645bb08ea7db47884c	WRITABLE	
+archetypes:shaman/prophet-of-pestilence	bcd758a75fb54651a7f668fe2661a307	WRITABLE	
+options:stalwart-defender/defensive-powers/increased-damage-reduction	d10496e92d0799a40bb3930b8f4fda0d	WRITABLE	
+options:kineticist/infusions/spindle	c4f4a62a325f7c14dbcace3ce34782b5	WRITABLE	
+options:rogue/rogue-talents/emboldening-strike	ba6bea8c93c64764ab7e5bbdb88fb9a6	WRITABLE	
+archetypes:alchemist/grenadier	6af888a7800b3e949a40f558ff204aae	WRITABLE	
+mythic-abilities:emergency-help	22ce17c5253183b42845a5bfc54f8afa	WRITABLE	
+options:witch/hex/cackle	36f2467103d4635459d412fb418276f4	WRITABLE	
+archetypes:fighter/aldori-defender	d80a67a264f206e4b8d2fcf7e560d48f	WRITABLE	
+options:witch/elemental-witch/energy/acid	8006c9d043724f34b2745b3e5a5c2ef1	WRITABLE	
+options:monk/ki-power/spit-venom	35012509f410a4b478d76922f8db5b96	WRITABLE	
+options:ranger/combat-style-feats-6/weapon-and-shield	10d8245011456224cb6358f640364e26	WRITABLE	
+options:witch/hex/life-giver	c7eb5151b6a670e47bf4713c0934e144	WRITABLE	
+options:demon/demonic-aspect/aspect-of-nabasu	cadc545dd171fb54ab4e62f8f4e0b670	WRITABLE	
+options:trickster/mythic-trick/stealth-i	4e1948fed4201cf46b88836457c3bad8	WRITABLE	
+options:cavalier/order/order-of-the-shroud	14db025afc38fe44b9c4d6f355c032e6	WRITABLE	
+archetypes:monk/sensei	f8767821ec805bf479706392fcc3394c	WRITABLE	
+archetypes:magus/hexcrafter	79ccf7a306a5d5547bebd97299f6fc89	WRITABLE	
+mythic-abilities:thundering-blows	8081c981b95ad9f49a421e7345c8c6f6	WRITABLE	
+options:kineticist/infusions/torrent	2aad85320d0751340a0786de073ee3d5	BLOCKED	 S3-carrier(307e) 
+feats:improved-vital-strike	52913092cd018da47845f36e6fbe240f	WRITABLE	
+feats:blind-fight	4e219f5894ad0ea4daa0699e28c37b1d	WRITABLE	
+feats:greater-shield-focus	afd05ca5363036c44817c071189b67e1	WRITABLE	
+options:oracle/revelations/wind/thunderburst	55e42ed24a0806140bccdcea79459f6a	BLOCKED	 S2-mysteries(306v) 
+archetypes:shifter/child-of-the-manticore	1a51b5856d3b48d78b3e967dc5f20bd6	WRITABLE	
+mythic-feats:mythic-armor-focus-medium-armor-endurance	4243c96836bf4b54aa4b36e1ab0c7fb1	BLOCKED	 315 
+mythic-feats:dirty-trick-mythic	06816910f76f55c4fbad0d19a0c37bcc	WRITABLE	
+mythic-abilities:full-reservoir	b3f5fd67399a2a54ea4ddd97206b4c82	WRITABLE	
+options:monk/ki-power/cold-ice-strike	bd0eea84b4ff6994a96b119a3cee8357	WRITABLE	
+archetypes:cavalier/cavalier-of-the-paw	8d95dc9edd5740aeadb5906198a9925a	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-caster-level	911be6cfed6bb71449cbf6d1173f4dc2	WRITABLE	
+mythic-abilities:second-spirit	2faa80662a56ab644aec2f875a68597f	BLOCKED	 condition-tree 
+options:cleric/domain/earth	08bbcbfe5eb84604481f384c517ac800	BLOCKED	 267 294 
+archetypes:paladin/hospitaler	fcdb27e1a6cef834ea1d7fab7c6e2b61	WRITABLE	
+archetypes:slayer/stygian-slayer	598f461cd7885304e8bae040122cb249	WRITABLE	
+options:hunter/tandem-executioner/tandem-executioner-techniques/elusive-pair	14b1834ec5a04927bd3db04821f54bf7	WRITABLE	
+feats:pummeling-style	c36562b8e7ae12d408487ba8b532d966	WRITABLE	
+options:oracle/maneuver-mastery/trip	86f1c6ea242b6c74e81e370e4ffad4d1	WRITABLE	
+options:witch/hex/nails	6a9a6cd57f30ffb4784625742c2f1756	WRITABLE	
+options:shaman/hex/fortune	64ed6d1a539434c469c69011e8df7163	WRITABLE	
+options:alchemist/incense-synthesizer/incense-fog/incense-fog-sacred-incense	a3c58f42ba0e324469381c027a1950a4	WRITABLE	
+feats:improved-snap-shot	c3453e7e215c1f149b938be27ac754c6	WRITABLE	
+mythic-feats:mythic-brew-potions	a155dc95e3fb2d44481c76bc4aea26b9	WRITABLE	
+feats:scribe-scrolls	a8a385bf53ee3454593ce9054375a2ec	WRITABLE	
+options:arcanist/greater-exploits/icy-tomb	0e7d6f931f7649f46a10820c0d7b240f	WRITABLE	
+options:lich/lich-powers/death-of-elements	2743491c52185344fba589754590d909	WRITABLE	
+options:alchemist/discovery/breath-weapon-bomb	c186762d98c6a96459cc9302c6f49258	WRITABLE	
+feats:improved-cleaving-finish	ffa1b373190af4f4db7a5501904a1983	WRITABLE	
+options:angel/greater-sword-of-heaven/anti-demon	249ff73e41a85b84eabbf254870a7499	WRITABLE	
+options:cleric/domain/scalykind	67034c0985b240e5ad6e41e905461951	BLOCKED	 267 294 
+mythic-feats:destructive-shockwave	263a65c1e92dd964192ba7d41a76b4e3	WRITABLE	
+archetypes:sorcerer/empyreal-sorcerer	aa00d945f7cf6c34c909a29a25f2df38	BLOCKED	 S2-bloodlines(306x/y) 
+options:kineticist/element/fire	3d8d3d6678b901444a07984294a1bc24	WRITABLE	
+options:azata/superpowers/all-skilled	f3bc6f9c855b2fb4e9aea364b8163aca	WRITABLE	
+feats:extra-arcana	00727883edf145e2a6bce9ad176ecfd8	BLOCKED	 S2-splits(306o/p) 
+feats:exhausting-critical	7c492212d25d8f04fbd43eb99d780b1e	WRITABLE	
+options:rogue/rogue-talents/weapon-snatcher	ffced614e1f95e34d99df77debbc4207	WRITABLE	
+options:slayer/slayer-talents/combat-style-feat-10	78177315fc63b474ea3cbb8df38fafcd	WRITABLE	
+archetypes:monk/traditional-monk	8f3242d209994884bbb6c0999660f4df	WRITABLE	
+archetypes:paladin/stonelord	cf0f99b3cd7444a48681b1c1c4aa2a41	WRITABLE	
+archetypes:rogue/thug	b5f0b25e1519d27479018353b51fd349	WRITABLE	
+options:trickster/greater-mythic-trick/knowledge-arcana-iii	5e26c673173e423881e318d2f0ae84f0	WRITABLE	
+options:shaman/hex/aura-of-purity	558e9265731aa9f4b9d6c269d827a2a3	WRITABLE	
+feats:alertness	1c04fe9a13a22bc499ffac03e6f79153	WRITABLE	
+archetypes:paladin/tortured-crusader	f91ea9596e6f42f8a23803c1b3e976b4	WRITABLE	
+options:demon/demonic-aspect/aspect-of-vrock	38a54d808e7e1d8479d309a7e8b0ab3e	WRITABLE	
+feats:point-blank-shot	0da0c194d6e1d43419eb8d990b28e0ab	WRITABLE	
+archetypes:druid/feyspeaker	da69747aa3dd0044ebff5f3d701cdde3	WRITABLE	
+mythic-feats:deadly-aim-mythic	ec661a003088c174ca3d477b51d35e03	WRITABLE	
+options:ranger/combat-style-feats-10/two-handed-weapon	f96ad7f1fe7e62c4d8f7540d0f4c7313	WRITABLE	
+mythic-abilities:everlasting-judgement	4a6dc772c9a7fe742a65820007107f03	BLOCKED	 S3-carrier(307i) 
+archetypes:druid/primal-druid	c1c86e2997fd4257a13ef5601b5dc6dd	WRITABLE	
+archetypes:inquisitor/sanctified-slayer	19b4a243d9a4bd34887d03c3dea03ced	WRITABLE	
+options:angel/improved-sword-of-heaven/abolish-poison	b35e4f149f17d924c97fbd27e30e948b	WRITABLE	
+options:oracle/revelations/nature/spirit-of-nature	a5ab3559cb7921a4a8c288110be248ec	BLOCKED	 S2-mysteries(306v) 
+options:demon/demonic-aspect/aspect-of-schir	90f1347b3f40dc94aa254235cb8bcda2	WRITABLE	
+options:oracle/mystery/nature	69579bfe28e15b942af0722021d8725c	WRITABLE	
+options:witch/patron/transformation	23ea5ade326f80b488164f75580c03af	WRITABLE	
+options:trickster/mythic-trick/infuse-magic-device	647c848dd47b93d42bd3000bce93dff6	WRITABLE	
+feats:superior-summoning	0477936c0f74841498b5c8753a8062a3	WRITABLE	
+archetypes:cleric/angelfire-apostle	857bc9fadf70f294795a9cba974a48b8	BLOCKED	 hand 
+options:oracle/revelations/battle/skill-at-arms	ba63899cf42ba8a459742078a526e7ec	BLOCKED	 S2-mysteries(306v) 
+archetypes:warpriest/disenchanter	384a9d0c3f1b0634ba183b77d75618c0	WRITABLE	
+options:shaman/hex/metal-curse	ea8e9fef24350684d82b38fec2cc3139	BLOCKED	 S3-carrier(307j) 
+options:oracle/mystery/wind	7c1fdd831af747b47bb2cce0051f309b	WRITABLE	
+feats:razortusk	86af486a0d92427280c46127a216c85a	WRITABLE	
+feats:natural-spell	c806103e27cce6f429e5bf47067966cf	BLOCKED	 S3-carrier(307j) 
+options:trickster/greater-mythic-trick/lore-religion-iii	eb196db561554341a571acb3216fc1dc	WRITABLE	
+options:slayer/bloodseeker/nocturnal-abilities/vampiric-touch	f707fbd648224498b2d8c36a56045dfe	WRITABLE	
+options:alchemist/discovery/cognatogen	e3f460ea61fcc504183c7d6818bbbf7a	WRITABLE	
+options:sorcerer/bloodline/draconic-red	8c6e5b3cf12f71e43949f52c41ae70a8	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+options:hellknight/disciplines/command	989e1392aa908e8469a853f94c77f8f0	WRITABLE	
+options:lich/lich-powers/negative-energy-mastery	588a9725462266441993dfa94d8da578	WRITABLE	
+options:alchemist/discovery/dispelling-bombs	92085b99a3fd6e34b85f0e2bb67a17ba	WRITABLE	
+mythic-feats:mythic-heavy-shield-aggressive-block	6449dd91423645ddb2f9eb86aaeabfcf	WRITABLE	
+mythic-abilities:expose-vulnerability	8ce3c4b3c1ad24f4dbb6cb4c72e1ec53	WRITABLE	
+feats:steel-soul	8bc16857824564d4e9400bbfcdd957fb	BLOCKED	 S3-carrier(307l) 
+options:alchemist/discovery/frost-bomb	92cfb5ab50e2d9948b0577ba94b56bb2	WRITABLE	
+options:slayer/bloodseeker/nocturnal-abilities/haste	b2d8de6d91e1426a9cac33e1091f53c0	WRITABLE	
+options:barbarian/rage-power/animal-fury	25954b1652bebc2409f9cb9d5728bceb	WRITABLE	
+options:rogue/rogue-talents/uncanny-dodge	ca5274d057152fa45b7527cad0927840	WRITABLE	
+feats:selective-channel	fd30c69417b434d47b6b03b9c1f568ff	BLOCKED	 S3-carrier(307j) S3-carrier(307l) new-carrier(307) 
+options:paladin/mercy/frightened	7687aa3764cb651448a50016e1758069	WRITABLE	
+options:bloodrager/bloodline/fey	a6e8fae8a6d6e374a9af2893840be4ac	BLOCKED	 S2-bloodlines(306x/y) 316 
+options:lich/lich-powers/magic-devourer	5e89a8a186bed88488356e8c58dfed50	WRITABLE	
+options:slayer/bloodseeker/nocturnal-abilities/predatory-prowess	845bc5d567a94b95bebac28bd77dbf93	WRITABLE	
+mythic-abilities:last-stand	d25326011c45a5942bc12f5d4401d4ae	WRITABLE	
+archetypes:rogue/underground-chemist	b4f5741d42c4cb04abf5ab3fe33f6fc5	WRITABLE	
+mythic-feats:shield-focus-mythic	502434c044c16304a92901a0b25d5216	WRITABLE	
+options:kineticist/wild-talents/kinetic-revivification	0377fcf4c10871f4187809d273af7f5d	WRITABLE	
+feats:mounted-shield	e5bee904e6724fc44aae8887dcefae51	WRITABLE	
+options:kineticist/element/air	2bd0d44953a536f489082534c48f8e31	WRITABLE	
+feats:echoes-of-stone	70d3ac68dad02074791f58c8ba09d42f	WRITABLE	
+options:oracle/revelations/waves/fluid-nature	e248a57686c53be4cb49b082057850f3	BLOCKED	 S2-mysteries(306v) 
+options:aeon/enforcing-gaze/enforcing-gaze-concentration	2eae9b2c25a969641a2cf230acdca478	WRITABLE	
+options:gold-dragon/improved-gold-dragon-breath/scorching-breath	0cc6e15e961b4bb9b4328002cbc57388	WRITABLE	
+feats:shaitan-earthblast	204a749f60f443e29fbb9e8f6da0a14d	WRITABLE	
+options:gold-dragon/improved-gold-dragon-breath/enlightening-breath	0351c6c95adc48b3b39073167094cd19	BLOCKED	 S3-carrier(307g) mythic-class(265/266) hand 
+mythic-abilities:any-means-necessary	a0a814897cd33ed4ea6ffca4b0e1197a	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-defenseless-host	ffca115b5870415db2ac83f7a4f5f26f	WRITABLE	
+options:trickster/improved-mythic-trick/mobility-ii	d6bf5da423ddc7d4cb9cf46c5dbb7eb3	WRITABLE	
+options:cleric/domain/air	750bfcd133cd52f42acbd4f7bc9cc365	BLOCKED	 267 294 
+archetypes:oracle/divine-herbalist	204117c48168f2a41a8e155419e6e880	WRITABLE	
+options:trickster/improved-mythic-trick/lore-nature-ii	9c437a5ba123619448322642ffbdc9e1	WRITABLE	
+options:shaman/hex/air-barrier	4b5b0f429730a984fb56fc3e34e5231e	BLOCKED	 S3-carrier(307j) 
+archetypes:alchemist/incense-synthesizer	6faf49766d8156c419d08f556a40374f	WRITABLE	
+options:magus/magus-arcana/hasted-assault-level-9	85c05a8120e3e9f4e8ae01625038809a	WRITABLE	
+archetypes:skald/hunt-caller	67daa4f4f2b62f54cb3ec56bdc85dea6	WRITABLE	
+options:trickster/mythic-trick/trickery-i	90bc71f1d8482184a9ede0bda4773d94	WRITABLE	
+options:shaman/hex/bone-lock	e506667113c93f94a962a90adedcdb03	BLOCKED	 S3-carrier(307j) 
+options:warpriest/blessings/protection	c6a3fa9d8d7f942499e4909cd01ca22d	BLOCKED	 267 
+feats:agile-maneuvers	197306972c98bb843af738dc7529a7ac	WRITABLE	
+mythic-abilities:abundant-casting	cf594fa8871332a4ba861c6002480ec2	WRITABLE	
+options:angel/greater-sword-of-heaven/speed-of-light	826e402bae1aca242bfe9919da8d94d7	WRITABLE	
+feats:greater-vital-strike	e2d1fa11f6b095e4fb2fd1dcf5e36eb3	WRITABLE	
+mythic-feats:weapon-focus-mythic	74eb201774bccb9428ba5ac8440bf990	WRITABLE	
+mythic-feats:spell-focus-mythic	41fa2470ab50ff441b4cfbb2fc725109	BLOCKED	 hand 
+classes:inquisitor	f1a70d9e1b0b41e49874e1fa9052a1ce	BLOCKED	 267 hand 
+options:oracle/revelations/waves/ice-armor	a1cd9835c6699534ca124fab239fdf1c	BLOCKED	 S2-mysteries(306v) 
+options:sorcerer/bloodline/draconic-green	7181be57d1cc3bc40bc4b552e4e4ce24	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+mythic-abilities:domain-zealot	2de64f6a1f2baee4f9b7e52e3f046ec5	BLOCKED	 new-carrier(307) S3-carrier(307g) 
+options:shaman/hex/friend-to-animals	0d92799cecf414249a23ad82f7e9901a	BLOCKED	 S3-carrier(307j) 
+feats:improved-two-weapon-fighting	9af88f3ed8a017b45a6837eab7437629	WRITABLE	
+archetypes:oracle/purifier	c9df67160a77ecd4a97928f2455545d7	WRITABLE	
+options:shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-staggered-body	d21a465f09454de5ad8515847c83fbaa	WRITABLE	
+options:demon/demonic-aspect/aspect-of-brimorak	28f08ce20ee81b24abfd49404e4b9577	WRITABLE	
+options:warpriest/blessings/healing-domain	f3881a1a7b44dc74c9d76907c94e49f2	BLOCKED	 267 
+feats:armor-focus	76d4885a395976547a13c5d6bf95b482	BLOCKED	 hand 
+options:monk/ki-power/wholeness-of-body	e9c8117e70e168345b3f4c01538936e5	WRITABLE	
+options:lich/skeleton-upgrade/skeletal-cleric-i	4033008a4c7fc814aad708e80cf50c37	WRITABLE	
+options:cleric/domain/animal	23d2f87aa54c89f418e68e790dba11e0	BLOCKED	 267 294 
+options:angel/improved-angelic-halo/piercing-rays	0042d02f5a4d9374e94b5e9d4c2d36b3	WRITABLE	
+options:trickster/mythic-trick/lore-nature-i	cb232b9ed5c216242a667e95527ad8e1	WRITABLE	
+options:barbarian/rage-power/crippling-blows	0eec6efbb7f66e148817c9f51b804f08	WRITABLE	
+options:hellknight/disciplines/pentamic-faith	b9750875e9d7454e85347d739a1bc894	WRITABLE	
+options:warpriest/blessings/darkness-domain	3ed6cd88caecec944b837f57b9be176f	BLOCKED	 267 
+options:paladin/mercy/paralyzed	62582b4636218d74db34606f872c9c05	WRITABLE	
+mythic-feats:two-weapon-fighting-mythic	c6afbb8c1a36a704a8041f35498f41a4	WRITABLE	
+options:kineticist/wild-talents/elemental-whispers	f02525006521bee4eb90ab26b7b9db24	WRITABLE	
+feats:ironhide	07a8059e18fd42eea61567cb11365a9d	WRITABLE	
+feats:final-feint	32429740d6a5470aaaa02f20d61e43d3	WRITABLE	
+options:sorcerer/bloodline/infernal	e76a774cacfb092498177e6ca706064d	BLOCKED	 S2-bloodlines(306x/y) 316 
+mythic-feats:mythic-sneak-attack	d0a53bf03b978634890e5ebab4a90ecb	BLOCKED	 314 
+options:monk/zen-archer/way-of-the-bow/bow	2e659493076249f49821925b9b7dc389	WRITABLE	
+feats:improved-improved-improved-critical	006a966007802a0478c9e21007207aac	BLOCKED	 hand 
+feats:sickening-critical	4c7205d859a1e114895e798af383d76a	WRITABLE	
+feats:great-fortitude	79042cb55f030614ea29956177977c52	WRITABLE	
+feats:greater-disarm	63d8e3a9ab4d72e4081a7862d7246a79	WRITABLE	
+mythic-feats:flawless-attacks	d1683a4035c05c64b9e42993f19be24b	WRITABLE	
+options:witch/hex/healing-hex	47b6e7bd155d2434ebde6ca21a61cf32	WRITABLE	
+options:paladin/mercy/cursed	445c696bead5140459909ffbed14750e	WRITABLE	
+archetypes:slayer/vanguard	67bbc0dcd471ea0428a362f6e94f3a51	WRITABLE	
+options:sorcerer/bloodline/draconic-silver	c7d2f393e6574874bb3fc728a69cc73a	BLOCKED	 S2-bloodlines(306x/y) 316 hand 
+mythic-feats:mythic-armor-focus-heavy-armor-avoidance	9b83bd09e7154b5f9c22a172efaaef4e	BLOCKED	 315 
+options:oracle/revelations/bones/soul-siphon	226c053a75fd7c34cab1b493f5847787	BLOCKED	 S2-mysteries(306v) 
+options:rogue/rogue-talents/combat-trick	c5158a6622d0b694a99efb1d0025d2c1	WRITABLE	
+options:gold-dragon/improved-gold-dragon-breath/overwhelming-breath	9266dd19a70f44068929107484dc1250	WRITABLE	
+options:witch/patron/shadow	f48bfffe3618c274dbd42dfff8d0df56	WRITABLE	
+feats:stony-step	c542b083d72f19944a4c6bdf640fc099	WRITABLE	
+classes:ranger	cda0615668a6df14eb36ba19ee881af6	WRITABLE	
+options:oracle/oracles-curse/demonic	a565a4eb482424548ad2bcc1b6f6ff61	BLOCKED	 S2-curses(306w) 
+options:barbarian/rage-power/renewed-vigor	aad496a7c9bee224cbd01a3cf8e42061	WRITABLE	
+feats:feint	c610310d31414edabcedf0c8a6fe32c4	WRITABLE	
+options:cleric/domain/sun	c85c8791ee13d4c4ea10d93c97a19afc	BLOCKED	 267 294 
+options:bloodrager/bloodline/hag	c5d57f425eec48beb1f43719e92db1c1	WRITABLE	
+options:ranger/combat-style-feats-10/weapon-and-shield	b2e73b554839a314a8c716dbf33fcfc3	WRITABLE	
+options:oracle/maneuver-mastery/disarm	8142f89d36cc52243ad1cfd48ce8f655	WRITABLE	
+options:oracle/mystery/waves	e2f8bd7c45dfb954c8c42b168505c783	WRITABLE	
+options:shaman/hex/hampering-hex	36f07f59f983cd042ae0c8c91e4dcea6	BLOCKED	 S3-carrier(307j) 
+options:barbarian/rage-power/protect-vitals	efd53fe2887c3a54d86b99f4bba61dd6	WRITABLE	
+options:angel/improved-sword-of-heaven/guide-the-faithful	3b27bebe971f9484f93f72e3d05182ee	WRITABLE	
+options:alchemist/incense-synthesizer/incense-fog/incense-fog-rallying-incense	c5f14b5981ec3994c80def79b6f5a77a	WRITABLE	
+feats:greater-sunder-armor	54d824028117e884a8f9356c7c66149b	WRITABLE	
+archetypes:slayer/bloodseeker	11e473bfb29c42f580b9a801b6771788	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-power-of-law	8c84573701184f6db5b7b7543ee64227	WRITABLE	
+archetypes:oracle/enlightened-philosopher	4f2698f04fa63e34b8153fa3a9795649	WRITABLE	
+archetypes:kineticist/kinetic-knight	7d61d9b2250260a45b18c5634524a8fb	WRITABLE	
+classes:hunter	34ecd1b5e1b90b9498795791b0855239	WRITABLE	
+options:witch/hex/channel	b40316f05d4772e4894688e6743602bd	WRITABLE	
+feats:crane-wing	af0aae1b973114f47a19ea532237b5fc	WRITABLE	
+options:rogue/rogue-talents/evasion	576933720c440aa4d8d42b0c54b77e80	WRITABLE	
+options:rogue/rogue-talents/hunters-surprise	6209197fed619cf41910f9aaceaf7d51	WRITABLE	
+archetypes:bloodrager/steelblood	32a5dff92373a9641b43e97d453b9369	WRITABLE	
+classes:shifter	a406d6ebea5c46bba3160246be03e96f	WRITABLE	
+options:shaman/hex/battle-ward	6f60723288b405c48af821cf995e4389	BLOCKED	 S3-carrier(307j) 
+options:barbarian/rage-power/wrecking-blows	5bccc86dd1f187a4a99f092dc054c755	WRITABLE	
+archetypes:oracle/lone-strider	8f205adfab73b3c4c8c93d251a3cef02	WRITABLE	
+prestige:hellknight-signifer	ee6425d6392101843af35f756ce7fefd	WRITABLE	
+mythic-feats:dodge-mythic	3812d9ca1377c014c97fb3ac421ba9e6	WRITABLE	
+options:slayer/slayer-talents/slayer-camouflage	fd374a48fd0f5e94a841cc3bf408c432	WRITABLE	
+options:fighter/armiger/order/order-of-the-rack	9ff89287e89287c4498d551d88221447	WRITABLE	
+options:shaman/hex/intimidating-display	2eacbef4be7c6434e9cfaa9632fdc429	WRITABLE	
+options:cleric/domain/knowledge	28edbdbefca579b4ab4992e98af71981	BLOCKED	 267 294 
+options:arcanist/arcanist-exploits/arcane-barrier	0652d31817917cb46b1c6e0710dedda5	WRITABLE	
+options:alchemist/discovery/enhance-potion	2673ccdd6df742d42a8c94977c76a984	WRITABLE	
+options:cleric/domain/glory	f0a61a043bcdf0f4c8efc59962afafb8	BLOCKED	 267 294 
+options:alchemist/incense-synthesizer/incense-fog/incense-fog-greater-sacred-incense	13b74d2110f8a2c43a71ae100074dbde	WRITABLE	
+options:loremaster/secret/druid-spell	6b73ba9d8a718fb419a484c6e1b92c6d	WRITABLE	
+archetypes:inquisitor/monster-tactician	cdaabf4b146c9ba42ab7d05abe3b48c4	WRITABLE	
+classes:shaman	145f1d3d360a7ad48bd95d392c81b38e	WRITABLE	
+feats:frightening-ambush	805fd6181a104bf0aca9ae79ef220c16	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-normalize-size	c90b37a7f4894ac5a27f506aba5760b5	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-primordial-magic	da5cbbd3b9a14a86b90555e7d3ed4451	WRITABLE	
+options:kineticist/infusions/unraveling-infusion	79339d57d491d824ba0aa4ed0c114b2f	BLOCKED	 S3-carrier(307e) 
+options:magus/magus-arcana/arcane-accuracy	2eacbdbf1c4f4134aa7fea99ab8763dc	WRITABLE	
+archetypes:witch/elemental-witch	d7c7cdbc760041fabaedc1623a53a431	WRITABLE	
+archetypes:ranger/nomad	9f147dbae4a34cda9f0e6091dc1a4a7c	WRITABLE	
+archetypes:fighter/tower-shield-specialist	a599da9a8a6b9e54083b0a4d2a25db59	WRITABLE	
+options:oracle/revelations/wind/invisibility	1f72e7cdcc07d994bac4fb65fc341971	BLOCKED	 S2-mysteries(306v) 
+options:monk/ki-power/quivering-palm	25d1247bb1a66b74081095085e169eb1	WRITABLE	
+options:oracle/revelations/flame/touch-of-flame	7551135fc3779744396b229b38dca152	BLOCKED	 S2-mysteries(306v) 
+options:trickster/greater-mythic-trick/mobility-iii	6db3651d9af54f28b5a3a5570f49f349	WRITABLE	
+feats:greater-weapon-focus	09c9e82965fb4334b984a1e9df3bd088	BLOCKED	 hand 
+feats:deflect-arrows	2c61fdbf242866f4e93c3e1477fb96b5	WRITABLE	
+prestige:student-of-war	46b1fe9759ea01f4d883b23d8f0aecbb	BLOCKED	 315 
+archetypes:witch/hagbound	96e4c06b6add0a64a8ad8976f9c38c37	WRITABLE	
+options:wizard/elemental-specialist/focused-element/cold	15beef5d93954cb8991acb9745c9150a	WRITABLE	
+options:bloodrager/bloodline/draconic-silver	df182ceef2330d74b9bd7bfdb23d144b	BLOCKED	 S2-bloodlines(306x/y) hand 
+options:alchemist/discovery/tanglefoot-bombs	b3c99d01b29d836498595c1cfadc07aa	WRITABLE	
+feats:deceitful	231a37321e26551489503e4e1d99e681	WRITABLE	
+feats:greater-dispel-focus	d0cf79c8e0a44325b00dc8fa6ad37d7c	WRITABLE	
+feats:greater-trip	4cc71ae82bdd85b40b3cfe6697bb7949	WRITABLE	
+archetypes:wizard/cruromancer	8789dcfc6f8e4fe49d80b90472ea6993	WRITABLE	
+feats:history-of-terrors	9e4c7d08f67f4496ba42c2cdb00609a7	WRITABLE	
+options:alchemist/discovery/extend-potion	1db8e126b77e71d4d89dcfa50fe87e93	WRITABLE	
+archetypes:rogue/eldritch-scoundrel	57f93dd8423c97c49989501281296c4a	WRITABLE	
+options:slayer/slayer-talents/combat-style-feat-6	61f82ba786fe05643beb3cd3910233a8	WRITABLE	
+feats:extra-slayer-talent	53f7237f5b1447bb851ba68045a00e41	BLOCKED	 S3-carrier(307i) 
+options:witch/patron/devotion	facb0ed7d8e52b04cacf351bea430ce9	WRITABLE	
+archetypes:magus/arcane-rider	2dff80a045794cb9b5452fe7b66b79d7	WRITABLE	
+options:monk/ki-power/shout	474870c516601a444857f41e7b219557	WRITABLE	
+options:witch/hex/major-healing	be5eaf086444acf459d844ca6f44d1f6	WRITABLE	
+options:shaman/spirit/stone	acff6b0cf279a31439010afea01df912	WRITABLE	
+options:barbarian/rage-power/guarded-stance	efb97e482f53f064dab85a9eeaf01085	WRITABLE	
+feats:ranged-feint	a2e947d6be234abba7c3ac0bd5dc9b1d	WRITABLE	
+options:shifter/shifter-aspect/dinosaur-aspect	b8ba81c46d904603b8fe4d3c361c5d5e	WRITABLE	
+options:aeon/enforcing-gaze/enforcing-gaze-save-dc	7d3707bec182f5d428c444d7b7ead812	WRITABLE	
+archetypes:witch/hag-of-gyronna	411fa458481e44f0855d47a19358874b	WRITABLE	
+options:rogue/rogue-talents/familiar	363cab72f77c47745bf3a8807074d183	WRITABLE	
+options:magus/magus-arcana/devoted-blade-level-12	4be0bb10e110a35419e406da767bd1e3	WRITABLE	
+mythic-abilities:bloodline-ascendance	ce85aee1726900641ab53ede61ac5c19	BLOCKED	 S2-bloodlines(306x/y) 316 
+options:oracle/revelations/wind/air-barrier	7e9743e4be4aad9438a58988cfe521bb	BLOCKED	 S2-mysteries(306v) 
+feats:throw-anything	65c538dcfd91930489ad3ab18ad9204b	WRITABLE	
+options:cleric/domain/healing	b0a26ee984b6b6945b884467aa2f1baa	BLOCKED	 267 294 
+feats:combat-expertise	4c44724ffa8844f4d9bedb5bb27d144a	WRITABLE	
+options:wizard/school/universalist	0933849149cfc9244ac05d6a5b57fd80	WRITABLE	
+options:kineticist/infusions/cloud	3c53ee4965a13d74e81b37ae34f0861b	BLOCKED	 S3-carrier(307e) 
+feats:metamagic-piercing-spell	c101ad6879a94204a780506f7a554865	WRITABLE	
+options:cleric/domain/artifice	6454b37f50e10ae41bca83aaaa81ffc2	BLOCKED	 267 294 
+archetypes:shaman/shadow-shaman	5086aef2b76c433584160f7b49aef95b	WRITABLE	
+options:kineticist/wild-talents/cold-adaptation	1ff5d6e76b7c2fa48be555b77d1ad8b2	BLOCKED	 S2-kineticist(306t) 
+archetypes:monk/scaled-fist	5868fc82eb11a4244926363983897279	WRITABLE	
+mythic-abilities:abundant-arcane-pool	8acebba92ada26043873cae5b92cef7b	WRITABLE	
+options:shifter/dragonblood-shifter/greater-wyrmshifter/breath-weapon-red-dragon	c9e329f4ad974c2e890bd27ca0eaa62d	WRITABLE	
+options:alchemist/discovery/acid-bomb	1ee30ffd28843b84282b04e5d4e8bc7b	WRITABLE	
+options:ranger/combat-style-feats-6/archery	6c799d09d5b93f344b9ade0e0c765c2d	WRITABLE	
+feats:metamagic-maximise-spell	7f2b282626862e345935bbea5e66424b	WRITABLE	
+mythic-feats:mythic-channeling	0e8d5acbc4a937f4a9566001df959bea	WRITABLE	
