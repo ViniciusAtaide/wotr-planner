@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use super::Change;
+use super::{Change, NewFile};
 use crate::Report;
 
 /// The log: a header, then `entry`, `field`, `old`, `new`, `findings removed`, `fact`, a row per change in entry then
@@ -13,6 +13,7 @@ use crate::Report;
 /// the same group, shows `-`. `fact` is `applied <ticket>` when the registry of the user's facts has the change applied, else `-`.
 pub fn tsv(
     changes: &[Change],
+    created: &[NewFile],
     facts: &BTreeMap<(String, &'static str), String>,
     before: &Report,
     after: &Report,
@@ -21,6 +22,15 @@ pub fn tsv(
     let mut sorted: Vec<&Change> = changes.iter().collect();
     sorted.sort_by_key(|change| (change.at.to_string(), change.field));
     let mut out = String::from("entry\tfield\told\tnew\tfindings removed\tfact\n");
+    // A created file has no old value; its new one is its key and blueprint, and no finding is read for it.
+    let mut made: Vec<(String, String)> = created
+        .iter()
+        .map(|new| (new.at.to_string(), new_cell(new)))
+        .collect();
+    made.sort();
+    for (entry, new) in made {
+        out.push_str(&format!("{entry}\t(new file)\t-\t{new}\t-\t-\n"));
+    }
     for change in sorted {
         let entry = change.at.to_string();
         let removed: Vec<&str> = before
@@ -44,6 +54,27 @@ pub fn tsv(
         ));
     }
     out
+}
+
+/// A created file's new cell: `<key> <blueprint>`, read from its text.
+fn new_cell(new: &NewFile) -> String {
+    let field = |name: &str| {
+        let span = super::span::field_span(&new.text, name)?;
+        Some(
+            new.text[span]
+                .trim_end_matches(',')
+                .split_once(':')?
+                .1
+                .trim()
+                .trim_matches('"')
+                .to_owned(),
+        )
+    };
+    format!(
+        "{} {}",
+        field("key").unwrap_or_default(),
+        field("blueprint").unwrap_or_default()
+    )
 }
 
 /// A cell on one line.

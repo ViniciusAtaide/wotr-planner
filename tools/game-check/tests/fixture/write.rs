@@ -1,6 +1,7 @@
 //! Applying changes (ticket 293b): the write fixture's tree reads as game data, a change writes only its field, a
 //! planner file is refused with nothing written, and a failed check puts every file back.
 
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use game_check::write::facts::Facts;
@@ -72,6 +73,7 @@ fn applying_a_change_writes_only_its_field() {
             "components",
             components(new),
         )],
+        &[],
         |path| {
             seeds::read_game_data_files(path)
                 .map(|_| ())
@@ -107,6 +109,7 @@ fn a_planner_file_is_refused_and_nothing_is_written() {
                 components("Y"),
             ),
         ],
+        &[],
         |_| Ok(()),
     )
     .unwrap_err();
@@ -117,6 +120,7 @@ fn a_planner_file_is_refused_and_nothing_is_written() {
     let error = apply(
         dir.path(),
         &[change("gear/nothing.ron", "components", components("X"))],
+        &[],
         |_| Ok(()),
     )
     .unwrap_err();
@@ -134,6 +138,7 @@ fn a_failed_validation_restores_every_file() {
             change(files[0], "components", components("A")),
             change(files[1], "components", components("B")),
         ],
+        &[],
         |path| {
             // The files are written when the check runs.
             let text = std::fs::read_to_string(path.join(files[1])).unwrap();
@@ -254,6 +259,7 @@ fn a_field_the_importer_does_not_own_is_refused_before_any_write() {
                 change("gear/cloak-of-test.ron", "components", components("A")),
                 change("gear/headband-of-test.ron", field, components("B")),
             ],
+            &[],
             |_| Ok(()),
         )
         .unwrap_err();
@@ -269,6 +275,7 @@ fn a_field_the_importer_does_not_own_is_refused_before_any_write() {
             file: PathBuf::from("progression.ron"),
             ..change("", "mythic_ascensions", components("A"))
         }],
+        &[],
         |_| Ok(()),
     )
     .unwrap_err();
@@ -286,6 +293,7 @@ fn a_write_that_lands_wrong_is_a_read_back_failure_and_every_file_is_restored() 
             change("gear/cloak-of-test.ron", "components", components("A")),
             change("gear/headband-of-test.ron", "components", components("B")),
         ],
+        &[],
         |_| Ok(()),
         |path, text| std::fs::write(path, text.replace("[B]", "[C]")),
     )
@@ -304,6 +312,7 @@ fn a_write_that_fails_is_an_io_error_and_every_file_is_restored() {
             change("gear/cloak-of-test.ron", "components", components("A")),
             change("gear/headband-of-test.ron", "components", components("B")),
         ],
+        &[],
         |_| Ok(()),
         |path, text| {
             if path.ends_with("headband-of-test.ron") {
@@ -330,6 +339,7 @@ fn a_restore_that_fails_names_the_files_left_written() {
             "components",
             components("A"),
         )],
+        &[],
         |path| {
             // The folder turns read-only, so the file can't be put back.
             std::fs::set_permissions(path.join("gear"), std::fs::Permissions::from_mode(0o555))
@@ -359,6 +369,7 @@ fn two_changes_to_one_field_apply_in_order_and_the_later_wins() {
             change("gear/cloak-of-test.ron", "components", components("A")),
             change("gear/cloak-of-test.ron", "components", components("B")),
         ],
+        &[],
         |_| Ok(()),
     )
     .unwrap();
@@ -388,7 +399,7 @@ fn a_write_that_parses_but_breaks_a_data_rule_is_rejected_by_the_real_check() {
         old: String::new(),
         new: String::new(),
     };
-    let error = apply(dir.path(), &[stoic], |path| {
+    let error = apply(dir.path(), &[stoic], &[], |path| {
         let now = problems(path)?;
         match now.iter().find(|problem| !known.contains(problem)) {
             Some(new) => Err(new.clone()),
@@ -716,7 +727,7 @@ fn items_with_log(dir: &Path) -> (Vec<(PathBuf, String)>, String) {
     let before = report_of(dir);
     let outcome = write_items(dir);
     let after = report_of(dir);
-    let log = game_check::write::log::tsv(&outcome.changes, &outcome.facts, &before, &after);
+    let log = game_check::write::log::tsv(&outcome.changes, &[], &outcome.facts, &before, &after);
     (all_files(dir), log)
 }
 
@@ -850,6 +861,7 @@ fn an_applied_fact_is_written_and_logged_with_its_ticket() {
     assert!(read(dir.path(), "gear/cloak-of-test.ron").contains("value: 3"));
     let log = game_check::write::log::tsv(
         &outcome.changes,
+        &[],
         &outcome.facts,
         &before,
         &report_of(dir.path()),
@@ -1619,4 +1631,223 @@ fn a_skill_points_value_out_of_range_is_listed_not_skipped() {
         "archetype warden/stoic",
         "skill points",
     );
+}
+
+fn feature_text(key: &str, blueprint: &str) -> String {
+    format!(
+        "(key: \"{key}\", blueprint: \"{blueprint}\", name: \"Planted {key}\", summary: \"\", guide: None)\n"
+    )
+}
+
+fn new_file(file: &str, text: &str) -> game_check::write::NewFile {
+    let key = Path::new(file).file_stem().unwrap().to_str().unwrap();
+    game_check::write::NewFile {
+        at: DataAt::Feature(rules::FeatureKey::new(key)),
+        file: PathBuf::from(file),
+        text: text.to_owned(),
+        kind: "carrier",
+    }
+}
+
+fn valid(path: &Path) -> Result<(), String> {
+    seeds::read_game_data_files(path)
+        .map(|_| ())
+        .map_err(|e| e.to_string())
+}
+
+const BLUEPRINT_A: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa1";
+const BLUEPRINT_B: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa2";
+
+#[test]
+fn a_new_file_is_written_whole_and_read_back() {
+    let dir = data_copy();
+    let text = feature_text("hidden-trick", BLUEPRINT_A);
+    let file = new_file("features/hidden-trick.ron", &text);
+    // A field change in the same run lands too, and the new file's folder doesn't exist yet.
+    assert!(!dir.path().join("features").exists());
+    let applied = apply(
+        dir.path(),
+        &[change(
+            "gear/cloak-of-test.ron",
+            "components",
+            components("GearStat(stat: AllSaves, value: 3, descriptor: Resistance)"),
+        )],
+        std::slice::from_ref(&file),
+        valid,
+    )
+    .unwrap();
+    assert_eq!(
+        applied.created,
+        [PathBuf::from("features/hidden-trick.ron")]
+    );
+    assert_eq!(applied.files, [PathBuf::from("gear/cloak-of-test.ron")]);
+    assert_eq!(read(dir.path(), "features/hidden-trick.ron"), text);
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    assert!(
+        data.features
+            .iter()
+            .any(|feature| feature.key.as_str() == "hidden-trick")
+    );
+    // The log has one row for it: `(new file)`, old `-`, new its key and blueprint.
+    let (_, dump) = crate::support::dump(&crate::support::binz(&crate::support::records(), 2));
+    let report = game_check::check(
+        &crate::support::dump(&crate::support::binz(&crate::support::records(), 2)).0,
+        &dump,
+        &data,
+        &game_check::Known::parse("").unwrap(),
+    )
+    .unwrap();
+    let log = game_check::write::log::tsv(
+        &[],
+        std::slice::from_ref(&file),
+        &BTreeMap::new(),
+        &report,
+        &report,
+    );
+    assert_eq!(
+        log.lines().nth(1).unwrap(),
+        format!("feature hidden-trick\t(new file)\t-\thidden-trick {BLUEPRINT_A}\t-\t-")
+    );
+}
+
+#[test]
+fn an_existing_file_is_never_replaced_by_a_new_one() {
+    let dir = data_copy();
+    std::fs::create_dir(dir.path().join("features")).unwrap();
+    let held = "(key: \"held\", blueprint: \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa9\", name: \"Held\")\n";
+    std::fs::write(dir.path().join("features/held.ron"), held).unwrap();
+    let before = all_files(dir.path());
+    let error = apply(
+        dir.path(),
+        &[],
+        &[
+            new_file("features/fresh.ron", &feature_text("fresh", BLUEPRINT_A)),
+            new_file("features/held.ron", &feature_text("held", BLUEPRINT_B)),
+        ],
+        valid,
+    )
+    .unwrap_err();
+    assert!(matches!(error, WriteError::Exists(_)), "{error}");
+    assert_eq!(all_files(dir.path()), before, "nothing written");
+    // Two new files with one path are refused too.
+    let twice = new_file("features/fresh.ron", &feature_text("fresh", BLUEPRINT_A));
+    let error = apply(dir.path(), &[], &[twice.clone(), twice], valid).unwrap_err();
+    assert!(matches!(error, WriteError::Exists(_)), "{error}");
+    assert_eq!(all_files(dir.path()), before);
+}
+
+#[test]
+fn a_new_file_under_planner_or_outside_features_is_refused() {
+    let dir = data_copy();
+    let before = all_files(dir.path());
+    let fresh = new_file("features/fresh.ron", &feature_text("fresh", BLUEPRINT_A));
+    let error = apply(
+        dir.path(),
+        &[],
+        &[
+            fresh.clone(),
+            new_file("planner/features/x.ron", &feature_text("x", BLUEPRINT_B)),
+        ],
+        valid,
+    )
+    .unwrap_err();
+    assert!(matches!(error, WriteError::Planner(_)), "{error}");
+    for outside in [
+        "gear/x.ron",
+        "feats/x.ron",
+        "features/deep/x.ron",
+        "features/x.txt",
+    ] {
+        let error = apply(
+            dir.path(),
+            &[],
+            &[
+                fresh.clone(),
+                new_file(outside, &feature_text("x", BLUEPRINT_B)),
+            ],
+            valid,
+        )
+        .unwrap_err();
+        assert!(
+            matches!(
+                error,
+                WriteError::NotOwned {
+                    field: "(new file)",
+                    ..
+                }
+            ),
+            "{outside}: {error}"
+        );
+    }
+    assert_eq!(all_files(dir.path()), before, "nothing written");
+    assert!(game_check::write::creatable(Path::new("features/x.ron")));
+    assert!(!game_check::write::creatable(Path::new("gear/x.ron")));
+}
+
+#[test]
+fn a_failed_validation_removes_every_new_file() {
+    let dir = data_copy();
+    let before = all_files(dir.path());
+    let files = [
+        new_file("features/one.ron", &feature_text("one", BLUEPRINT_A)),
+        new_file("features/two.ron", &feature_text("two", BLUEPRINT_B)),
+    ];
+    let field = change(
+        "gear/cloak-of-test.ron",
+        "components",
+        components("GearStat(stat: AllSaves, value: 3, descriptor: Resistance)"),
+    );
+    let error = apply(dir.path(), std::slice::from_ref(&field), &files, |path| {
+        // The new files are on the disk when the check runs.
+        assert!(path.join("features/two.ron").is_file());
+        Err("a planted failure".to_owned())
+    })
+    .unwrap_err();
+    assert!(matches!(error, WriteError::Invalid(_)), "{error}");
+    assert_eq!(all_files(dir.path()), before, "files and folder gone");
+    assert!(!dir.path().join("features").exists());
+
+    // A file that lands wrong, or one that does not parse as a feature, is a read-back failure and undone.
+    let wrong = apply_with(dir.path(), &[], &files, valid, |path, text| {
+        std::fs::write(path, text.replace("Planted", "Moved"))
+    })
+    .unwrap_err();
+    assert!(matches!(wrong, WriteError::ReadBack { .. }), "{wrong}");
+    let bad = [
+        new_file("features/odd.ron", "(key: \"odd\", name: \"Odd\")\n"),
+        new_file(
+            "features/other.ron",
+            &feature_text("not-other", BLUEPRINT_A),
+        ),
+    ];
+    for file in bad {
+        let error = apply(dir.path(), &[], std::slice::from_ref(&file), valid).unwrap_err();
+        assert!(matches!(error, WriteError::ReadBack { .. }), "{error}");
+        assert_eq!(all_files(dir.path()), before, "{}", file.file.display());
+    }
+    assert!(!dir.path().join("features").exists());
+}
+
+#[test]
+fn a_dry_run_lists_the_new_files_and_writes_none() {
+    let dir = data_copy();
+    let before = all_files(dir.path());
+    let files = [
+        new_file("features/two.ron", &feature_text("two", BLUEPRINT_B)),
+        new_file("features/one.ron", &feature_text("one", BLUEPRINT_A)),
+    ];
+    let planned = game_check::write::plan(dir.path(), &[], &files).unwrap();
+    assert_eq!(
+        planned.created,
+        [
+            PathBuf::from("features/one.ron"),
+            PathBuf::from("features/two.ron")
+        ]
+    );
+    assert!(planned.files.is_empty());
+    assert_eq!(all_files(dir.path()), before);
+    assert!(!dir.path().join("features").exists());
+    // The guards run in a dry run too.
+    let taken = [new_file("gear/x.ron", &feature_text("x", BLUEPRINT_A))];
+    assert!(game_check::write::plan(dir.path(), &[], &taken).is_err());
 }
