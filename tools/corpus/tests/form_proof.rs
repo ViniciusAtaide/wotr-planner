@@ -61,6 +61,14 @@
 //!   Build whose link or slots changed. `compare` prints `census <field>: N lines in N Builds (per file)` and each
 //!   unattributed line (the first `FORM_PROOF_SHOWN`), and fails on any. A log field `FIELDS` lacks is refused: the
 //!   stage adds its row, with what the field moves. It replaces a per-ticket classifier.
+//!
+//!   With the offers recorded too, `compare` sizes the change (ticket 322): for each log entry, the option statuses
+//!   that went from an open kind to `Unmet` or `BreaksLater` in Builds whose old link isn't refused (`census narrowing
+//!   <entry>: N statuses … in N Builds (<before> -> <now> N, …)`, the most first, then how many entries narrowed none);
+//!   and every status change split into those on options the log names (the pick's key is a log entry's), those in
+//!   Builds whose links are refused (the link census's), and the rest, each named (`ELSE <Build>: <key>: <before> ->
+//!   <now>`, the first `FORM_PROOF_SHOWN`). A census line attributes every line of a Build holding the entry, so it
+//!   can't tell a move toward the game from one away: this says how many picks the change refuses, and where.
 //! - **Unset, `record` and `compare` print a skip line and pass**, so `cargo test --release -p corpus -- --ignored`
 //!   passes.
 //!
@@ -753,6 +761,8 @@ struct OfferChanges {
     only_after: u64,
     changes: BTreeMap<(String, String, String), u64>,
     builds: BTreeMap<String, BTreeSet<String>>,
+    /// With the census: every change, split by why (ticket 322).
+    split: Option<StatusSplit>,
 }
 
 impl OfferChanges {
@@ -775,6 +785,9 @@ impl OfferChanges {
                     .entry(key.clone())
                     .or_default()
                     .insert(name.to_owned());
+                if let Some(split) = &mut self.split {
+                    split.change(name, &key, was, &offer.kind);
+                }
                 let change = (key, was.to_owned(), offer.kind.clone());
                 *self.changes.entry(change).or_default() += 1;
             }
@@ -817,6 +830,105 @@ impl OfferChanges {
             let names: Vec<&str> = changed.iter().map(|name| name.as_str()).collect();
             std::fs::write(file, names.join("\n"))
                 .expect("FORM_PROOF_OFFER_BUILDS_OUT is writable");
+        }
+        if let Some(split) = &self.split {
+            text.push_str(&split.report());
+        }
+        text
+    }
+}
+
+/// The status kinds that refuse a pick: a status that goes to one narrows who may take the option.
+const REFUSING: [&str; 2] = ["Unmet", "BreaksLater"];
+
+/// A log entry's narrowing: (kind before, kind now) → options, and the Builds.
+type Narrowing = (BTreeMap<(String, String), u64>, BTreeSet<String>);
+
+/// Every offer status that changed, split by why (ticket 322, with `FORM_PROOF_CENSUS`): on an option the change log
+/// names (its pick's key is a log entry's), else in a Build whose old link is refused (the link census's), else
+/// neither, each named. And per log entry, the statuses that went from an open kind to a refusing one in Builds whose
+/// link isn't refused: the size of the narrowing, which the census's line counts don't show.
+struct StatusSplit {
+    log: BTreeSet<String>,
+    refused: BTreeSet<String>,
+    narrowed: BTreeMap<String, Narrowing>,
+    named: u64,
+    in_refused: u64,
+    /// `Build: pick key: before -> now` of each other change.
+    rest: Vec<String>,
+}
+
+impl StatusSplit {
+    fn new(log: BTreeSet<String>, refused: BTreeSet<String>) -> Self {
+        Self {
+            log,
+            refused,
+            narrowed: BTreeMap::new(),
+            named: 0,
+            in_refused: 0,
+            rest: Vec::new(),
+        }
+    }
+
+    /// One option of `build` whose status went from `was` to `now`; `key` is its pick's key.
+    fn change(&mut self, build: &str, key: &str, was: &str, now: &str) {
+        let named = self.log.contains(key);
+        let refused = self.refused.contains(build);
+        if named && !refused && REFUSING.contains(&now) && !REFUSING.contains(&was) {
+            let (kinds, builds) = self.narrowed.entry(key.to_owned()).or_default();
+            *kinds.entry((was.to_owned(), now.to_owned())).or_default() += 1;
+            builds.insert(build.to_owned());
+        }
+        if named {
+            self.named += 1;
+        } else if refused {
+            self.in_refused += 1;
+        } else {
+            self.rest.push(format!("{build}: {key}: {was} -> {now}"));
+        }
+    }
+
+    /// Each narrowed log entry, the most statuses first, with its kinds; the split; and the first `FORM_PROOF_SHOWN`
+    /// changes neither the log nor a refused link accounts for.
+    fn report(&self) -> String {
+        let mut text = String::new();
+        let mut narrowed: Vec<_> = (self.narrowed.iter())
+            .map(|(entry, (kinds, builds))| (kinds.values().sum::<u64>(), entry, kinds, builds))
+            .collect();
+        narrowed.sort_unstable_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(b.1)));
+        for (count, entry, kinds, builds) in narrowed {
+            let kinds: Vec<String> = (kinds.iter())
+                .map(|((was, now), n)| format!("{was} -> {now} {n}"))
+                .collect();
+            writeln!(
+                text,
+                "census narrowing {entry}: {count} statuses to Unmet or BreaksLater in {} Builds ({})",
+                builds.len(),
+                kinds.join(", ")
+            )
+            .unwrap();
+        }
+        writeln!(
+            text,
+            "census narrowing: {} other log entries narrowed no status",
+            self.log.len() - self.narrowed.len()
+        )
+        .unwrap();
+        let most = std::env::var("FORM_PROOF_SHOWN")
+            .ok()
+            .and_then(|n| n.parse().ok())
+            .unwrap_or(SHOWN);
+        writeln!(
+            text,
+            "census statuses: {} changed: {} on options the log names, {} in Builds whose links are refused, {} else",
+            self.named + self.in_refused + self.rest.len() as u64,
+            self.named,
+            self.in_refused,
+            self.rest.len()
+        )
+        .unwrap();
+        for line in self.rest.iter().take(most) {
+            writeln!(text, "  ELSE {line}").unwrap();
         }
         text
     }
@@ -901,7 +1013,14 @@ fn write_offers(out: &Path) -> String {
 
 /// The offers record in `dir` against this tree's offers for `builds`, a Build at a time. The record may hold Builds
 /// `builds` doesn't (an old link that no longer decodes); it must hold every Build of `builds`, in the same order.
-fn compare_offers(engine: &Engine, builds: &[Named], threads: usize, dir: &Path) -> OfferChanges {
+/// `split`, with the census, splits each change by why.
+fn compare_offers(
+    engine: &Engine,
+    builds: &[Named],
+    threads: usize,
+    dir: &Path,
+    split: Option<StatusSplit>,
+) -> OfferChanges {
     let kinds: Vec<String> = std::fs::read_to_string(dir.join(KINDS_FILE))
         .expect("the offers record has its kinds table")
         .lines()
@@ -911,7 +1030,10 @@ fn compare_offers(engine: &Engine, builds: &[Named], threads: usize, dir: &Path)
     let mut reader = OffersReader {
         input: BufReader::with_capacity(1 << 20, file),
     };
-    let mut changes = OfferChanges::default();
+    let mut changes = OfferChanges {
+        split,
+        ..OfferChanges::default()
+    };
     offers_pass(engine, builds, threads, |(name, _), now| {
         let before = loop {
             match reader.next_build().unwrap() {
@@ -1106,7 +1228,10 @@ fn compare() {
 
     // The offers: every option's status kind at every slot of the old links' Builds, against the record, streamed.
     let changes = if before_dir.join(OFFERS_FILE).exists() {
-        let changes = compare_offers(&engine, &builds, threads, &before_dir);
+        // With the census, each change is split by why, and each logged entry's narrowing sized (ticket 322).
+        let split = (attribution.as_ref())
+            .map(|a| StatusSplit::new(a.log.keys().cloned().collect(), census.refused.clone()));
+        let changes = compare_offers(&engine, &builds, threads, &before_dir, split);
         println!("{}", changes.report());
         Some(changes)
     } else {
@@ -1401,7 +1526,8 @@ impl Attribution {
 struct LinkCensus {
     same: usize,
     heirs: usize,
-    refused: usize,
+    /// The Builds whose links are refused.
+    refused: BTreeSet<String>,
     /// The links that open as another Build, by Build and how.
     changed: Vec<(String, String)>,
     /// `name<TAB>slot<TAB>key<TAB>kind` of each heir (`key` is `old=>new`) and each refused pick.
@@ -1414,7 +1540,7 @@ impl LinkCensus {
             "links: {} the same, {} through an heir, {} refused, {} changed",
             self.same,
             self.heirs,
-            self.refused,
+            self.refused.len(),
             self.changed.len()
         )
     }
@@ -1434,7 +1560,7 @@ fn link_census(engine: &Engine, data: &GameData, keys: &LinkKeys, before: &[Entr
                 }
             }
             Fate::Refused(picks) => {
-                census.refused += 1;
+                census.refused.insert(e.name.clone());
                 for (slot, key) in picks {
                     writeln!(census.lines, "{}\t{slot}\t{key}\trefused", e.name).unwrap();
                 }
@@ -2035,6 +2161,75 @@ mod pieces {
         let report = changes.report();
         assert!(
             report.contains("1 extra-feat: Taken -> ok (1 Builds)"),
+            "{report}"
+        );
+    }
+
+    /// 322: with the census, each status change is split: on an option the log names (Extra Feat, `extra-feat`), in
+    /// a Build whose old link is refused (`refused`), or else, named. Per log entry, the statuses that went to `Unmet`
+    /// or `BreaksLater` in Builds whose link isn't refused size the narrowing.
+    #[test]
+    fn the_census_splits_the_status_changes_and_sizes_each_logged_entrys_narrowing() {
+        const MISSED: &str = r#"Feat { feat: FeatKey("missed-feat"), parameter: None }"#;
+        let before = [
+            (
+                "x",
+                vec![
+                    offer("S1", EXTRA, "ok"),
+                    offer("S2", EXTRA, "ok"),
+                    offer("S3", EXTRA, "Unmet"),
+                    offer("S4", OTHER, "Unmet"),
+                ],
+            ),
+            ("y", vec![offer("S1", EXTRA, "ok")]),
+            (
+                "refused",
+                vec![offer("S1", EXTRA, "ok"), offer("S2", MISSED, "ok")],
+            ),
+        ];
+        let (found, kinds) = recorded(&before);
+        let now = [
+            // Two narrowings of the logged feat, one widening of it, and a change the log doesn't account for.
+            vec![
+                offer("S1", EXTRA, "Unmet"),
+                offer("S2", EXTRA, "BreaksLater"),
+                offer("S3", EXTRA, "ok"),
+                offer("S4", OTHER, "Taken"),
+            ],
+            vec![offer("S1", EXTRA, "Unmet")],
+            // The refused link's Build: its logged feat is named, not a narrowing; the other is the refusal's.
+            vec![
+                offer("S1", EXTRA, "Unmet"),
+                offer("S2", MISSED, "BreaksLater"),
+            ],
+        ];
+        let log: BTreeSet<String> = ["extra-feat", "quiet-feat"].map(str::to_owned).into();
+        let refused: BTreeSet<String> = ["refused".to_owned()].into();
+        let mut changes = OfferChanges {
+            split: Some(StatusSplit::new(log, refused)),
+            ..OfferChanges::default()
+        };
+        for ((name, options), now) in found.iter().zip(&now) {
+            changes.build(name, options, &kinds, now);
+        }
+        let split = changes.split.as_ref().unwrap();
+        assert_eq!((split.named, split.in_refused), (5, 1));
+        assert_eq!(split.rest, ["x: rogue/x: Unmet -> Taken"]);
+        let report = changes.report();
+        assert!(
+            report.contains(
+                "census narrowing extra-feat: 3 statuses to Unmet or BreaksLater in 2 Builds (ok -> BreaksLater 1, ok -> Unmet 2)\n"
+            ),
+            "{report}"
+        );
+        assert!(
+            report.contains("census narrowing: 1 other log entries narrowed no status\n"),
+            "{report}"
+        );
+        assert!(
+            report.contains(
+                "census statuses: 7 changed: 5 on options the log names, 1 in Builds whose links are refused, 1 else\n  ELSE x: rogue/x: Unmet -> Taken\n"
+            ),
             "{report}"
         );
     }

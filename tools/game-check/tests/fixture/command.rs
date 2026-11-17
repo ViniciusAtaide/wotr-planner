@@ -59,6 +59,16 @@ fn option_lists_without_only_is_refused() {
 }
 
 #[test]
+fn known_format_goes_with_the_carrier_audit() {
+    let (code, stderr) = game_check(&["--known-format"]);
+    assert_eq!(code, Some(2));
+    assert!(
+        stderr.contains("--known-format goes with --carrier-audit"),
+        "{stderr}"
+    );
+}
+
+#[test]
 fn carriers_without_only_is_refused_until_the_registry_exists() {
     let (code, stderr) = game_check(&["--write", "carriers", "--dry-run"]);
     assert_eq!(code, Some(2));

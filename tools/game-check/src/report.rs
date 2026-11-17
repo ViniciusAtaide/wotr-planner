@@ -7,6 +7,7 @@ use std::fmt::Write as _;
 use rules::BlueprintGuid;
 
 use crate::Pins;
+use crate::carriers_known::CarrierCheck;
 use crate::known::Known;
 
 /// What the check compares, in the order the report lists them.
@@ -275,6 +276,49 @@ impl Report {
                 let _ = writeln!(self.text, "  {line}");
             }
             self.failed = true;
+        }
+        self
+    }
+
+    /// The report with the carrier audit's hits against `carriers-known.txt` (ticket 322): their count, then each hit
+    /// the list doesn't name and each line no hit matches, failing it as an unknown difference and a stale
+    /// `known.txt` line do.
+    pub fn with_carriers(mut self, check: &CarrierCheck) -> Report {
+        let listed = check.hits - check.unlisted.len();
+        if check.unlisted.is_empty() {
+            let _ = writeln!(
+                self.text,
+                "\nCarrier hits (ticket 322): {listed}, each listed in carriers-known.txt."
+            );
+        } else {
+            let _ = writeln!(
+                self.text,
+                "\nCarrier hits (ticket 322): {}, {listed} listed in carriers-known.txt.",
+                check.hits
+            );
+            let _ = writeln!(self.text, "\nCarrier hits carriers-known.txt doesn't list:");
+            for hit in &check.unlisted {
+                let _ = writeln!(self.text, "  {hit}");
+            }
+            self.failed = true;
+        }
+        if !check.stale.is_empty() {
+            let _ = writeln!(
+                self.text,
+                "\ncarriers-known.txt lines that match no carrier hit:"
+            );
+            for line in &check.stale {
+                let _ = writeln!(self.text, "  {line}");
+            }
+            self.failed = true;
+        }
+        if !check.unlisted.is_empty() || !check.stale.is_empty() {
+            let _ = writeln!(
+                self.text,
+                "\nGive each new hit its ticket, then regenerate the list (its header), from the main checkout's root:\n  \
+                 cargo run -q -p game-check -- --carrier-audit --known-format > tools/game-check/carriers-known.txt.new \
+                 && mv tools/game-check/carriers-known.txt.new tools/game-check/carriers-known.txt"
+            );
         }
         self
     }

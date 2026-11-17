@@ -5,10 +5,11 @@
 //!   main checkout when that has none (a worktree).
 //! - `--data`: the game data; by default `seeds::game_data_dir()`.
 //!
-//! The report goes to stdout, the run's time to stderr. Exit status: 0 when every difference is known
-//! (`known.txt`), 1 when one isn't, a known line matches none, or a line of `prerequisite-narrowing.txt` matches no
-//! narrowing the prerequisites writer would make (ticket 308g), 2 when the dump is refused, a blueprint's JSON
-//! doesn't parse, or nothing could be read.
+//! The report goes to stdout, the run's time to stderr. It ends with the carrier audit's hits (see `--carrier-audit`)
+//! against `carriers-known.txt` (ticket 322). Exit status: 0 when every difference is known (`known.txt`) and every
+//! carrier hit listed, 1 when one isn't, a known or listed line matches none, or a line of
+//! `prerequisite-narrowing.txt` matches no narrowing the prerequisites writer would make (ticket 308g), 2 when the dump
+//! is refused, a blueprint's JSON doesn't parse, or nothing could be read.
 //!
 //! `game-check --write <area>[,<area>...] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]` (ticket 293): brings
 //! the data's text to the game's values for the areas named (`items`, `class-tables`, `option-lists`, `carriers`; `--only` limits `option-lists` to the selections named and `carriers` to the GUIDs named, never both at once; `carriers` creates the `features/` entries of the hidden features a prerequisite names and of the chains that hold them, ticket 307b; `carrier-grants` adds to an existing feature, feat or option the grants of a carrier its blueprint makes, and to an option the row its progression gives, ticket 307m: `--only` takes the GUIDs of the carriers a dry run may count beside the existing ones; `prerequisites` writes each feat's, option's, mythic ability's and feat's, class's and archetype's `Requires` from the game, ticket 308a: `--only` takes the report's entry names, `feat extra-hex`, a trailing `*` a prefix, `selection option rogue/*`, and the area then runs alone), changing only the fields the importer owns and
@@ -33,7 +34,9 @@
 //!
 //! `game-check --carrier-audit [--data <dir>] [--binz <file>]` (ticket 308h): the prerequisites writer's carrier guard
 //! over every entry, one line a hit, `<entry> | holds: <gap>` for the tree the data holds and `<entry> | left whole:
-//! <gap>` for the game's tree the writer now leaves whole, then the count. It exits 0, or 2 as a lookup does.
+//! <gap>` for the game's tree the writer now leaves whole, then the count. With `--known-format` it prints
+//! `carriers-known.txt` written again from the hits instead (its header, then each hit with its listed ticket or its
+//! own owner), which the main session saves over the file at each data merge. It exits 0, or 2 as a lookup does.
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -42,7 +45,7 @@ use std::time::Instant;
 use game_check::write::facts::Facts;
 use game_check::write::prerequisites::{self, Narrowings};
 use game_check::write::{WriteArea, log, run_with as write};
-use game_check::{Known, Library, Pins, Report, binz, check, default_dump};
+use game_check::{Known, KnownCarriers, Library, Pins, Report, binz, check, default_dump};
 
 fn main() -> ExitCode {
     let start = Instant::now();
@@ -73,7 +76,7 @@ enum Outcome {
     Written(String),
 }
 
-const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--only <key>[,<key>...]] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items, class-tables, option-lists, carriers, carrier-grants, prerequisites; --only takes selection keys for option-lists, GUIDs for carriers and carrier-grants, never both, and entry names for prerequisites alone: `feat extra-hex`, `selection option rogue/*`)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>\n       game-check --carrier-audit [--data <dir>] [--binz <file>]";
+const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--only <key>[,<key>...]] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items, class-tables, option-lists, carriers, carrier-grants, prerequisites; --only takes selection keys for option-lists, GUIDs for carriers and carrier-grants, never both, and entry names for prerequisites alone: `feat extra-hex`, `selection option rogue/*`)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>\n       game-check --carrier-audit [--known-format] [--data <dir>] [--binz <file>]";
 
 fn run() -> Result<Outcome, String> {
     let mut binz_path = None;
@@ -82,6 +85,7 @@ fn run() -> Result<Outcome, String> {
     let mut log_path = None;
     let mut dry_run = false;
     let mut carrier_audit = false;
+    let mut known_format = false;
     let mut only: Option<std::collections::BTreeSet<String>> = None;
     let mut words = Vec::new();
     let mut args = std::env::args().skip(1);
@@ -97,6 +101,7 @@ fn run() -> Result<Outcome, String> {
             "--log" => log_path = Some(value(&mut args)?),
             "--dry-run" => dry_run = true,
             "--carrier-audit" => carrier_audit = true,
+            "--known-format" => known_format = true,
             "--only" => {
                 let list = args
                     .next()
@@ -112,6 +117,9 @@ fn run() -> Result<Outcome, String> {
             _ if arg.starts_with("--") => return Err(format!("{USAGE}; not {arg}")),
             _ => words.push(arg),
         }
+    }
+    if known_format && !carrier_audit {
+        return Err(format!("--known-format goes with --carrier-audit\n{USAGE}"));
     }
     if write_areas.is_some() && !words.is_empty() {
         return Err(format!(
@@ -148,6 +156,11 @@ fn run() -> Result<Outcome, String> {
         let read = seeds::read_game_data_files(&data_dir).map_err(|error| error.to_string())?;
         let dump = binz::read(&binz_path, &pins).map_err(|error| error.to_string())?;
         let hits = prerequisites::audit(&dump, &read);
+        if known_format {
+            return KnownCarriers::regenerate_embedded(&hits)
+                .map(Outcome::Lookup)
+                .map_err(|error| error.to_string());
+        }
         let mut text: String = hits.iter().map(|hit| format!("{hit}\n")).collect();
         text.push_str(&format!("{} carrier hits\n", hits.len()));
         return Ok(Outcome::Lookup(text));
@@ -210,8 +223,18 @@ fn run() -> Result<Outcome, String> {
     let dump = binz::read(&binz_path, &pins).map_err(|error| error.to_string())?;
     let narrowings = Narrowings::embedded().map_err(|error| error.to_string())?;
     let stale = prerequisites::stale(&dump, &read, &narrowings);
+    // The carrier guard over every entry (308h), against the list (322): a carrier gap later data reopens fails here.
+    let carriers = KnownCarriers::embedded()
+        .map_err(|error| error.to_string())?
+        .compare(&prerequisites::audit(&dump, &read));
     check(&pins, &dump, &data, &known)
-        .map(|report| Outcome::Report(report.with_stale_narrowings(&stale)))
+        .map(|report| {
+            Outcome::Report(
+                report
+                    .with_stale_narrowings(&stale)
+                    .with_carriers(&carriers),
+            )
+        })
         .map_err(|error| error.to_string())
 }
 

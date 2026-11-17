@@ -11,6 +11,7 @@ use rules::GameData;
 
 mod areas;
 pub mod binz;
+pub mod carriers_known;
 mod dump;
 pub mod known;
 pub mod lookup;
@@ -19,6 +20,7 @@ mod planner;
 mod report;
 pub mod write;
 
+pub use carriers_known::{CarrierCheck, KnownCarriers};
 pub use dump::Dump;
 pub use known::Known;
 pub use lookup::Library;
