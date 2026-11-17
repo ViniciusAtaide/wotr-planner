@@ -99,3 +99,24 @@ full t64 vivisectionist discovery / feat
 full t64 vivisectionist discovery / filled
 full t64 vivisectionist talent only
 full t64 vivisectionist talent only / filled
+
+full magus 
+full magus  / legend
+full magus magus/arcane-rider
+full magus magus/arcane-rider / legend
+full magus magus/armored-battlemage
+full magus magus/armored-battlemage / legend
+full magus magus/sword-saint
+full magus magus/sword-saint / legend
+full warpriest warpriest/champion-of-the-faith
+full warpriest warpriest/champion-of-the-faith / legend
+full warpriest warpriest/feral-champion
+full warpriest warpriest/feral-champion / legend
+full warpriest warpriest/proclaimer
+full warpriest warpriest/proclaimer / legend
+full t60 witch 1 hexcrafter 6 / filled
+full t64 hexcrafter arcana thrice / before
+full t64 hexcrafter arcana thrice / before / legend
+full t64 hexcrafter 20 / filled
+full t64 hexcrafter 20 / filled / legend
+full t64 hexcrafter hexes only

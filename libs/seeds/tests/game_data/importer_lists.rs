@@ -669,3 +669,144 @@ fn the_heir_the_vivisectionists_extra_discovery_and_the_angel_have_the_games_lis
             .contains("angel/greater-sword-of-heaven/anti-demon")
     );
 }
+
+fn levels_naming<'a>(
+    rows: impl IntoIterator<Item = (u8, &'a [rules::FeatureSelectionKey])>,
+    key: &str,
+) -> Vec<u8> {
+    rows.into_iter()
+        .filter(|(_, names)| names.iter().any(|name| name.as_str() == key))
+        .map(|(level, _)| level)
+        .collect()
+}
+
+/// The feats a feat list holds.
+fn feat_keys(list: &rules::FeatureSelection) -> BTreeSet<String> {
+    list.feats.iter().map(|feat| feat.to_string()).collect()
+}
+
+fn class_rows(key: &str) -> Vec<(u8, &'static [rules::FeatureSelectionKey])> {
+    class(key)
+        .levels
+        .iter()
+        .map(|row| (row.level, row.selections.as_slice()))
+        .collect()
+}
+
+fn archetype_rows(key: &str) -> Vec<(u8, &'static [rules::FeatureSelectionKey])> {
+    DATA.archetypes
+        .iter()
+        .find(|archetype| archetype.key.as_str() == key)
+        .unwrap_or_else(|| panic!("no archetype {key}"))
+        .levels
+        .iter()
+        .map(|row| (row.level, row.selections.as_slice()))
+        .collect()
+}
+
+/// 306l: the magus's, the Arcane Rider's and the warpriest's bonus feats are three lists of their own, each the game's
+/// less the four members the planner has no feat for yet (Advanced Weapon Training 2 to 4 and Bleeding Critical).
+// Game: the `m_AllFeatures` of MagusFeatSelection 66befe7b24c42dd458952e3c47c93563 (181), ArcaneRiderFeatSelection
+// 8e627812dc034b9db12fa396fdc9ec75 (182 entries, one listed twice: the magus's 181) and
+// WarpriestFeatSelection 303fd456ddb14437946e344bad9a893b (155; the magus's less its spell and metamagic feats), each
+// with `IgnorePrerequisites` false. MagusProgression 5, 11 and 17 grant the first; ArcaneRiderArchetype
+// 2dff80a045794cb9b5452fe7b66b79d7 `AddFeatures` the second at 5, 11 and 17 and `RemoveFeatures` the first at those
+// levels; WarpriestProgression 062b215705430ad47b7174c1e75d285e grants the third at 3, 6, 9, 12, 15 and 18.
+#[test]
+fn the_magus_arcane_rider_and_warpriest_bonus_feats_are_their_own() {
+    let list = |key: &str| {
+        let list = selection(key);
+        assert!(!list.ignores_prerequisites, "{key} checks prerequisites");
+        feat_keys(list)
+    };
+    let magus = list("magus/bonus-feats");
+    let rider = list("magus/arcane-rider/bonus-feats");
+    let warpriest = list("warpriest/bonus-feats");
+    assert_eq!(magus.len(), 181 - 4);
+    assert_eq!(rider.len(), 182 - 1 - 4);
+    assert_eq!(warpriest.len(), 155 - 4);
+    for (key, guid) in [
+        ("magus/bonus-feats", "66befe7b24c42dd458952e3c47c93563"),
+        (
+            "magus/arcane-rider/bonus-feats",
+            "8e627812dc034b9db12fa396fdc9ec75",
+        ),
+        ("warpriest/bonus-feats", "303fd456ddb14437946e344bad9a893b"),
+    ] {
+        assert_eq!(
+            selection(key).blueprint.as_ref().map(|guid| guid.as_str()),
+            Some(guid)
+        );
+    }
+    // The rider's list is the magus's: the game lists TricksterImprovedImprovedImprovedCriticalImproved
+    // 319c882ab3cc51544ad2f3f43633d5b1 twice.
+    assert_eq!(magus, rider);
+    // The warpriest's has none of the magus's spell and metamagic feats; the magus's has Spell Penetration and Combat
+    // Casting (MagusFeatSelection `m_AllFeatures`: SpellPenetration ee7dc126939e4d9438357fbd5980d459, CombatCasting
+    // 06964d468fde1dc4aa71a92ea04d930d).
+    for key in [
+        "spell-penetration",
+        "combat-casting",
+        "metamagic-quicken-spell",
+    ] {
+        assert!(magus.contains(key), "{key} is in the magus's list");
+        assert!(!warpriest.contains(key), "{key} is not in the warpriest's");
+    }
+    assert!(warpriest.is_subset(&magus));
+    // Neither is the general list: Alertness (not in any of the three) is a feat, not a bonus feat.
+    assert!(!magus.contains("alertness") && !warpriest.contains("alertness"));
+
+    let magus_levels = [5, 11, 17];
+    assert_eq!(
+        levels_naming(class_rows("magus"), "magus/bonus-feats"),
+        magus_levels
+    );
+    assert_eq!(
+        levels_naming(class_rows("warpriest"), "warpriest/bonus-feats"),
+        [3, 6, 9, 12, 15, 18]
+    );
+    assert_eq!(
+        levels_naming(class_rows("magus"), "feats"),
+        Vec::<u8>::new()
+    );
+    assert_eq!(
+        levels_naming(class_rows("warpriest"), "combat-feats"),
+        Vec::<u8>::new()
+    );
+    // ArcaneRiderArchetype's own list at 5, 11 and 17; the other archetypes that replace the magus's row keep the magus's
+    // list (BladeboundArchetype 9b3915d3… adds MagusFeatSelection at 17; the rest keep what MagusProgression gives).
+    assert_eq!(
+        levels_naming(
+            archetype_rows("magus/arcane-rider"),
+            "magus/arcane-rider/bonus-feats"
+        ),
+        magus_levels
+    );
+    for (key, levels) in [
+        ("magus/armored-battlemage", vec![5, 17]),
+        ("magus/bladebound", vec![17]),
+        ("magus/eldritch-scion", vec![11]),
+        ("magus/hexcrafter", vec![11]),
+        ("magus/spell-dancer", vec![17]),
+        ("magus/sword-saint", vec![11]),
+    ] {
+        assert_eq!(
+            levels_naming(archetype_rows(key), "magus/bonus-feats"),
+            levels,
+            "{key}"
+        );
+    }
+    for (key, levels) in [
+        ("warpriest/champion-of-the-faith", vec![12]),
+        ("warpriest/cult-leader", vec![6, 18]),
+        ("warpriest/feral-champion", vec![9, 15]),
+        ("warpriest/mantis-zealot", vec![18]),
+        ("warpriest/shieldbearer", vec![12]),
+    ] {
+        assert_eq!(
+            levels_naming(archetype_rows(key), "warpriest/bonus-feats"),
+            levels,
+            "{key}"
+        );
+    }
+}

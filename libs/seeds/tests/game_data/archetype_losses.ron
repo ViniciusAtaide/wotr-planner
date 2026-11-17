@@ -870,6 +870,7 @@
     (
         archetype: "magus/arcane-rider",
         loses: [
+            (item: Selection("magus/bonus-feats"), replaced_by: [Selection("magus/arcane-rider/bonus-feats")]),
             (item: Feature("arcane-heavy-armor")),
             (item: Feature("arcane-medium-armor")),
             (item: Feature("magus/improved-spell-recall")),
@@ -902,7 +903,7 @@
     (
         archetype: "magus/bladebound",
         loses: [
-            (item: Selection("feats"), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Weapon +2, Changeable Gist) and has one at 11 and 17 only; the overview says it gains fewer magus arcana and bonus feats"),
+            (item: Selection("magus/bonus-feats"), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Weapon +2, Changeable Gist) and has one at 11 and 17 only; the overview says it gains fewer magus arcana and bonus feats"),
             (item: Selection("magus/magus-arcana"), at: [3, 9, 12], waits_on: "ticket 283", why: "the game removes Magus Arcana at 3, 9 and 12"),
             (item: Feature("magus/true-magus"), waits_on: "ticket 283", why: "the game removes True Magus at 20"),
         ],
@@ -949,7 +950,7 @@
             (item: Feature("arcane-weapon-5")),
             (item: Feat("armor-proficiency-heavy-armor")),
             (item: Feat("armor-proficiency-medium-armor")),
-            (item: Selection("feats"), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Movement, Spell Dance (II)) and has one at 11 and 17 only; the overview is silent on it, the table settles it"),
+            (item: Selection("magus/bonus-feats"), at: [5], why: "table has no bonus magus feat at 5 (its row shows Arcane Movement, Spell Dance (II)) and has one at 11 and 17 only; the overview is silent on it, the table settles it"),
         ],
     ),
     // Game: SwordSaintArchetype 7d6678f2160018049814838af2ab4236: own copies stand for the base features the game keeps (equivalent model)
@@ -1779,7 +1780,7 @@
             (item: Feat("armor-proficiency-medium-armor")),
             (item: Feat("martial-weapons-proficiency")),
             (item: Feat("shield-proficiency"), count: 0, waits_on: "ticket 268", why: "the game's own proficiencies grant shields"),
-            (item: Selection("combat-feats"), at: [3, 9, 12, 15], why: "table has no combat bonus feats at these levels; its rows there show 3: Sneak Attack; 9: nothing; 12: Hide in Plain Sight, Sacred Weapon +3; 15: nothing"),
+            (item: Selection("warpriest/bonus-feats"), at: [3, 9, 12, 15], why: "table has no combat bonus feats at these levels; its rows there show 3: Sneak Attack; 9: nothing; 12: Hide in Plain Sight, Sacred Weapon +3; 15: nothing"),
             (item: Selection("warpriest/weapon-focus")),
         ],
     ),
@@ -1788,7 +1789,7 @@
         archetype: "warpriest/disenchanter",
         loses: [
             (item: Feature("warpriest/channel-energy")),
-            (item: Selection("combat-feats")),
+            (item: Selection("warpriest/bonus-feats")),
         ],
     ),
     // Game: FeralChampionArchetype f68ca492c9c15e241ab73735fbd0fb9f
@@ -1809,7 +1810,7 @@
             (item: Feat("armor-proficiency-heavy-armor")),
             (item: Feat("armor-proficiency-medium-armor")),
             (item: Feat("shield-proficiency")),
-            (item: Selection("combat-feats"), at: [3, 9, 12], why: "table has no combat bonus feats at these levels; its rows there show 3: Deadly Fascination; 9: nothing; 12: Saber Fighting, Sacred Weapon +3"),
+            (item: Selection("warpriest/bonus-feats"), at: [3, 9, 12], why: "table has no combat bonus feats at these levels; its rows there show 3: Deadly Fascination; 9: nothing; 12: Saber Fighting, Sacred Weapon +3"),
             (item: Selection("warpriest/weapon-focus")),
             (item: Selection("warpriest/blessings"), count: 0, waits_on: "ticket 268", why: "the game keeps both blessings"),
         ],

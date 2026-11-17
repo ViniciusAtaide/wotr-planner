@@ -14,7 +14,7 @@
         (level: 12, features: ["magus/bladebound/independent-ego", "magus/bladebound/sharpening-the-black-blade"]),
         (level: 13, features: ["arcane-heavy-armor", "arcane-weapon-4", "magus/bladebound/black-blade"], feats: ["armor-proficiency-heavy-armor"]),
         (level: 15, features: ["magus/bladebound/sharpening-the-black-blade"], selections: ["magus/magus-arcana"]),
-        (level: 17, features: ["arcane-weapon-5", "magus/bladebound/black-blade"], selections: ["feats"]),
+        (level: 17, features: ["arcane-weapon-5", "magus/bladebound/black-blade"], selections: ["magus/bonus-feats"]),
         (level: 18, features: ["magus/bladebound/sharpening-the-black-blade"]),
         (level: 19, features: ["magus/bladebound/life-drinker", "magus/greater-spell-access"]),
     ],
