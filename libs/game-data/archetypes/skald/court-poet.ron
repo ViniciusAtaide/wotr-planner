@@ -6,7 +6,7 @@
     summary: "Skald whose song raises allies' Intelligence and Charisma and their spell damage instead of granting rage; no rage powers.",
     guide: "skald#court-poet",
     levels: [
-        (level: 1, features: ["skald-bardic-knowledge", "skald/court-poet/insightful-contemplation", "skald/raging-song", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], selections: ["magic-feats"]),
+        (level: 1, features: ["skald-bardic-knowledge", "skald/court-poet/insightful-contemplation", "skald/raging-song", "skald/skald-proficiencies"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "scribe-scrolls", "shield-proficiency", "simple-weapon-proficiency"], selections: ["skald/bonus-feat"]),
         (level: 2, features: ["skald/court-poet/handling-the-crowd"], selections: ["rogue/skald-talents"]),
         (level: 3),
         (level: 4, features: ["skald/court-poet/insightful-contemplation", "skald/court-poet/insightful-spell", "uncanny-dodge"]),

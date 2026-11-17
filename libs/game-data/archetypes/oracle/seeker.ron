@@ -8,8 +8,8 @@
     levels: [
         (level: 1, features: ["oracle/additional-spells", "oracle/seeker/seekers-trapfinding"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "shield-proficiency", "simple-weapon-proficiency"], selections: ["oracle/mystery", "oracle/oracles-curse", "oracle/revelations"]),
         (level: 3),
-        (level: 5, selections: ["magic-feats"]),
-        (level: 10, selections: ["magic-feats"]),
-        (level: 15, selections: ["magic-feats"]),
+        (level: 5, selections: ["oracle/seeker/bonus-feats"]),
+        (level: 10, selections: ["oracle/seeker/bonus-feats"]),
+        (level: 15, selections: ["oracle/seeker/bonus-feats"]),
     ],
 )

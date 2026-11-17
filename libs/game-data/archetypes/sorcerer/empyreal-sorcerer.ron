@@ -7,7 +7,7 @@
     guide: "sorcerer#empyreal-sorcerer",
     casting_ability: Wisdom,
     levels: [
-        (level: 1, features: ["sorcerer/empyreal-sorcerer/cantrips", "sorcerer/empyreal-sorcerer/empyreal-arcana", "sorcerer/empyreal-sorcerer/lore-religion", "heavenly-fire", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], selections: ["sorcerer/empyreal-sorcerer/bloodline", "magic-feats"]),
+        (level: 1, features: ["sorcerer/empyreal-sorcerer/cantrips", "sorcerer/empyreal-sorcerer/empyreal-arcana", "sorcerer/empyreal-sorcerer/lore-religion", "heavenly-fire", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], selections: ["sorcerer/empyreal-sorcerer/bloodline", "sorcerer/bonus-feat"]),
         (level: 3, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-bless"]),
         (level: 5, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-resist-energy"]),
         (level: 7, features: ["sorcerer/empyreal-sorcerer/bloodline-spell-protection-from-energy"], selections: ["sorcerer/bloodline-feats"]),

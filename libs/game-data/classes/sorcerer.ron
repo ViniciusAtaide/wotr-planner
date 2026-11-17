@@ -13,7 +13,7 @@ Class(
     class_skills: ["knowledge-arcana", "persuasion", "use-magic-device"],
     spontaneous: true,
     levels: [
-        (level: 1, arcane_spell_level: 1, feats: ["simple-weapon-proficiency"], selections: ["sorcerer/bloodline", "magic-feats"]),
+        (level: 1, arcane_spell_level: 1, feats: ["simple-weapon-proficiency"], selections: ["sorcerer/bloodline", "sorcerer/bonus-feat"]),
         (level: 2, arcane_spell_level: 1),
         (level: 3, arcane_spell_level: 1),
         (level: 4, arcane_spell_level: 2),

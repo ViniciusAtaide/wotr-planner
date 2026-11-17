@@ -245,6 +245,21 @@ fn every_s2_base_link_opens_the_same_or_through_an_heir_or_is_listed() {
     assert!(same + heirs + refused > 1_800, "{}", same + heirs + refused);
 }
 
+/// The Magic feats the skald's level-1 bonus feat no longer offers (306n): the game's SkaldFeatSelection
+/// 0a1999535b4f77b4d89f689a385e5ec9 holds 26 of the planner's 35.
+const SKALD_BONUS_FEAT_LACKS: [&str; 10] = [
+    "acrobatic-spellcaster",
+    "arcane-armor-mastery",
+    "arcane-armor-training",
+    "arcane-strike",
+    "brew-potions",
+    "destructive-dispel",
+    "dispel-synergy",
+    "favored-enemy-spellcasting",
+    "metamagic-completely-normal-spell",
+    "scribe-scrolls",
+];
+
 /// The twelve rage powers the game's Battle Prowess list lacks (ticket 306h's review): a Battle Scion's refused pick of
 /// any other rage power is a bug.
 // Game: BattleProwessSelection 29b480a26a88f9e47a10d8c9fab84ee6 offers 21 of RagePowerSelection
@@ -283,7 +298,8 @@ fn a_battle_scion_link_from_the_s2_base_still_opens() {
                 picks
                     .iter()
                     .all(|(_, key)| key.starts_with("rogue/rogue-talents/")
-                        || BATTLE_PROWESS_LACKS.contains(&key.as_str())),
+                        || BATTLE_PROWESS_LACKS.contains(&key.as_str())
+                        || SKALD_BONUS_FEAT_LACKS.contains(&key.as_str())),
                 "{name}: {picks:?}"
             ),
             Fate::Changed(why) => panic!("{name}: {why}"),

@@ -136,3 +136,37 @@ full cavalier cavalier/gendarme / legend
 full cavalier cavalier/knight-of-the-wall
 full cavalier cavalier/knight-of-the-wall / legend
 full option cavalier cavalier/order/order-of-the-sword
+
+full oracle oracle/seeker
+full oracle oracle/seeker / legend
+full skald 
+full skald  / legend
+full skald skald/battle-scion
+full skald skald/battle-scion / legend
+full skald skald/battle-singer
+full skald skald/battle-singer / legend
+full skald skald/herald-of-the-horn
+full skald skald/herald-of-the-horn / legend
+full sorcerer sorcerer/sage-sorcerer
+full sorcerer sorcerer/sage-sorcerer / legend
+full sorcerer sorcerer/seeker-sorcerer
+full sorcerer sorcerer/seeker-sorcerer / legend
+full option sorcerer sorcerer/bloodline/abyssal
+full option sorcerer sorcerer/bloodline/celestial
+full option sorcerer sorcerer/bloodline/draconic-black
+full option sorcerer sorcerer/bloodline/draconic-blue
+full option sorcerer sorcerer/bloodline/draconic-brass
+full option sorcerer sorcerer/bloodline/draconic-red
+full option sorcerer sorcerer/bloodline/draconic-white
+full option sorcerer sorcerer/bloodline/elemental-air
+full option sorcerer sorcerer/bloodline/fey
+full option seeker serpentine
+full cleanup sorcerer/seeker-sorcerer sorcerer/bloodline/celestial
+full cleanup sorcerer/seeker-sorcerer sorcerer/bloodline/draconic-blue
+full cleanup sorcerer/seeker-sorcerer sorcerer/bloodline/draconic-copper
+full cleanup sorcerer/seeker-sorcerer sorcerer/bloodline/draconic-green
+full cleanup sorcerer/seeker-sorcerer sorcerer/bloodline/serpentine
+full cleanup sorcerer/seeker-sorcerer sorcerer/bloodline/undead
+full decision geomancer abyssal
+full t60 skald/court-poet 20 / empty
+full t60 skald/court-poet 20 / empty / legend
