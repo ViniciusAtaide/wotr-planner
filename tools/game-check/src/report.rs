@@ -263,6 +263,22 @@ impl Report {
         Report { text, failed }
     }
 
+    /// The report with the lines of `prerequisite-narrowing.txt` that match no narrowing
+    /// ([`stale`](crate::write::prerequisites::stale)) listed, failing it as a stale `known.txt` line does.
+    pub fn with_stale_narrowings(mut self, stale: &[String]) -> Report {
+        if !stale.is_empty() {
+            let _ = writeln!(
+                self.text,
+                "\nprerequisite-narrowing.txt lines that match no narrowing:"
+            );
+            for line in stale {
+                let _ = writeln!(self.text, "  {line}");
+            }
+            self.failed = true;
+        }
+        self
+    }
+
     pub fn text(&self) -> &str {
         &self.text
     }

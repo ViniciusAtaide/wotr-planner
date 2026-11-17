@@ -6,7 +6,8 @@
 //! - `--data`: the game data; by default `seeds::game_data_dir()`.
 //!
 //! The report goes to stdout, the run's time to stderr. Exit status: 0 when every difference is known
-//! (`known.txt`), 1 when one isn't or a known line matches none, 2 when the dump is refused, a blueprint's JSON
+//! (`known.txt`), 1 when one isn't, a known line matches none, or a line of `prerequisite-narrowing.txt` matches no
+//! narrowing the prerequisites writer would make (ticket 308g), 2 when the dump is refused, a blueprint's JSON
 //! doesn't parse, or nothing could be read.
 //!
 //! `game-check --write <area>[,<area>...] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]` (ticket 293): brings
@@ -35,7 +36,7 @@ use std::process::ExitCode;
 use std::time::Instant;
 
 use game_check::write::facts::Facts;
-use game_check::write::prerequisites::Narrowings;
+use game_check::write::prerequisites::{self, Narrowings};
 use game_check::write::{WriteArea, log, run_with as write};
 use game_check::{Known, Library, Pins, Report, binz, check, default_dump};
 
@@ -175,10 +176,17 @@ fn run() -> Result<Outcome, String> {
         )
         .map(Outcome::Written);
     }
-    let data = seeds::check_game_data_files(&data_dir).map_err(|error| error.to_string())?;
+    // As the files hold it for the narrowing allowlist's stale lines, which the writer reads; checked for the rest.
+    let read = seeds::read_game_data_files(&data_dir).map_err(|error| error.to_string())?;
+    let data = read
+        .clone()
+        .checked()
+        .map_err(|problems| seeds::Error::Invalid(problems).to_string())?;
     let dump = binz::read(&binz_path, &pins).map_err(|error| error.to_string())?;
+    let narrowings = Narrowings::embedded().map_err(|error| error.to_string())?;
+    let stale = prerequisites::stale(&dump, &read, &narrowings);
     check(&pins, &dump, &data, &known)
-        .map(Outcome::Report)
+        .map(|report| Outcome::Report(report.with_stale_narrowings(&stale)))
         .map_err(|error| error.to_string())
 }
 
