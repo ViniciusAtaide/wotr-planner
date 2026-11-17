@@ -10,7 +10,7 @@
 //! doesn't parse, or nothing could be read.
 //!
 //! `game-check --write <area>[,<area>...] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]` (ticket 293): brings
-//! the data's text to the game's values for the areas named (`items`, `class-tables`, `option-lists`; `--only` limits `option-lists` to the selections named), changing only the fields the importer owns and
+//! the data's text to the game's values for the areas named (`items`, `class-tables`, `option-lists`, `carriers`; `--only` limits `option-lists` to the selections named and `carriers` to the GUIDs named, never both at once; `carriers` creates the `features/` entries of the hidden features a prerequisite names and of the chains that hold them, ticket 307b), changing only the fields the importer owns and
 //! keeping every other byte. It prints, per area, the fields written and the files touched, then what it left
 //! unwritten. `--dry-run` plans and runs the guards and writes nothing. `--log` writes one TSV row per change (not with
 //! `--dry-run`, which has no report after). Exit status: 0 when it wrote or had nothing to write, 2 when a guard
@@ -67,7 +67,7 @@ enum Outcome {
     Written(String),
 }
 
-const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--only <key>[,<key>...]] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items, class-tables, option-lists)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>";
+const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--only <key>[,<key>...]] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items, class-tables, option-lists, carriers; --only takes selection keys for option-lists and GUIDs for carriers, never both)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>";
 
 fn run() -> Result<Outcome, String> {
     let mut binz_path = None;
@@ -148,9 +148,17 @@ fn run() -> Result<Outcome, String> {
                 "option-lists writes only the selections --only names (copies share their base list's blueprint: ticket 316)\n{USAGE}"
             ));
         }
-        if only.is_some() && !areas.contains(&WriteArea::OptionLists) {
+        if only.is_none() && areas.contains(&WriteArea::Carriers) {
             return Err(format!(
-                "--only limits the option-lists area: --write must name it\n{USAGE}"
+                "carriers writes only the GUIDs --only names until 307c's carriers-left.txt registry\n{USAGE}"
+            ));
+        }
+        if only.is_some()
+            && !areas.contains(&WriteArea::OptionLists)
+            && !areas.contains(&WriteArea::Carriers)
+        {
+            return Err(format!(
+                "--only limits the option-lists area (selection keys) or the carriers area (GUIDs): --write must name one\n{USAGE}"
             ));
         }
         return write_run(

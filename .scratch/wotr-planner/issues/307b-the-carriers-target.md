@@ -1,7 +1,7 @@
 # Importer S3, 307b: the carriers target
 
 Type: build (the importer, stage S3)
-Status: open
+Status: resolved
 Blocked by: 307a
 Model: Sonnet to build.
 Map: [WotR Build Planner](../map.md)
@@ -13,3 +13,29 @@ A slice of [307](307-importer-carriers.md), the importer's stage S3 (the carrier
 ## Done when
 
 Its section in `slices.md` is built and proved as written there. S3 is a form change, so its census must be empty. The scoped checks pass.
+
+## Answer
+
+Built as the section of [slices.md](../research/307/slices.md) says, with the differences named below. No data changed (the target is not run on the real data), so no note file and no form proof.
+
+**What was built** (`tools/game-check/`)
+- `src/dump.rs`: `Dump::iter`.
+- `src/write/carriers.rs` (new): `changes(ctx, only) -> (Vec<NewFile>, Vec<Unexpressed>)`. Candidates (a): every `!bp_` reference, at any depth, inside a `Prerequisite*` component of an entry the prerequisites area compares (feats, options, mythic abilities and feats, classes, archetypes), unmapped and of a feature type. (c): the reverse of the vocabulary's grants (`AddFacts`, `AddFeatureOnClassLevel`, `AddFeatureIfHasFact`, `AddFeatureOnApply`, `LevelEntries`, an archetype's `AddFeatures`) walked up from each (a) until a mapped blueprint, an archetype or a class's `m_Progression`. Keys (`short_key`, `words`): the asset name less one trailing `Feature`/`Selection`/`Progression`, kebab-case with digits as words; a key two candidates or an existing feature would share keeps its suffix; computed over the whole set before `--only`; a key still taken is listed in `unexpressed`. The file is `(key, blueprint, name)` through `span::ron_text`, the name the key's words capitalised.
+- `src/write/mod.rs`: `WriteArea::Carriers` (`"carriers"`, area prerequisites, kind `carrier`); `run` routes it; `--only` for carriers takes 32 lowercase hex GUIDs, never together with option-lists (`WriteError::Usage`).
+- `src/main.rs`: `--only` allowed with carriers; USAGE and the doc header.
+
+**Decisions** (builder, where the section is silent, each an inference): a *pick* is a member of the list of a selection that has an entry or that a progression's or archetype's rows grant, and a selection those rows grant; a pick is never an (a) seed and nothing is walked up from it, but a chain can still reach one (the kineticist's `AirBlastProgression`, `ElectricBlastProgression`, `ColdBlastProgression`, `WaterBlastProgression` are listed by selections nothing models; ticket 307's research class `final-cited.tsv` counts them). A class's own progression and an archetype end a walk and are not candidates. The section's "any `m_AllFeatures`" would have dropped those four. A GUID in `--only` that is no candidate is ignored (a second run stays idempotent).
+
+**Tests** (`tests/fixture/write.rs`, on a world built in the test): `a_prerequisite_naming_an_unmapped_feature_makes_a_carrier`, `a_chain_up_to_an_entry_makes_carriers`, `a_selection_member_is_never_a_carrier`, `a_member_of_a_list_no_entry_stands_for_is_still_a_carrier`, `keys_drop_the_suffix_unless_two_would_share_one`, `a_second_carriers_run_writes_nothing`, `two_carriers_runs_on_two_copies_make_the_same_files`, `only_takes_guids_and_a_dry_run_writes_none`. No game fact: the fixture's blueprints are invented; the real data's check is the dry run.
+
+**Dry run** (`game-check --write carriers --dry-run` on main's data): 301 files. Against `final-cited.tsv`'s 70 prerequisite and 10 chain carriers, 77 are listed and the 3 missing are chain carriers above row seeds (`MentalOverflowProgression`, `AeonFifthLevelImmunities`, `AeonSeventhLevelImmunities`: 307c adds the row seeds). The other 224 are carriers the section's later pieces leave out or that other tickets own: 37 deity features (267) and 2 domain ones (294) the prerequisites name, the chains above them, the S2-pending members of selections that have no entry yet (bloodrager second bloodlines, animal-companion progressions: until 306 merges), and the 12 the registry of 307c leaves out. The research told these apart by the ticket of the finding that named them, which the writer cannot read: 307c's `carriers-left.txt` has to carry the 267/294 ones too (it is a count, not a defect of this slice).
+
+**Checks:** the check's report is byte-identical to the base's (no `libs/` change; only the timing line on stderr differs).
+
+**Guard (review):** `--write carriers` without `--only` is a usage error ("carriers writes only the GUIDs --only names until 307c's carriers-left.txt registry"; test `command::carriers_without_only_is_refused_until_the_registry_exists`), so no run creates the 224 carriers other tickets own; 307c lifts it when the registry lands. `--only` with a GUID another ticket owns still creates it (`write::only_creates_a_carrier_another_ticket_owns`): the registry is 307c's to stop that, so the D slices must name only their own GUIDs from `research/307/final-cited.tsv`. The dry-run count above was taken before the guard, with the full set.
+
+**Review fixes** (second round, after the review of `ef0d5db1`):
+- *The walk reached pickable and orphan progressions.* From `BlueFlameBlastFeature` it climbed to `BlueFlameBlastProgression` cdf2a117e8a2ccc4ebabd2fcee1e4d09, and likewise for the other ten composite blasts and `BlizzardBlasttProgression`, which made 12 researched keys long. The review's rule alone (never climb to a member of any `m_AllFeatures`) does not drop them, because none of these progressions is a member of a list: they are orphans, only the game's actions grant them (`refs` on `BlueFlameBlastProgression` lists nothing). The walk now adds a parent only where it is **held** (a grant path leads up from it to a mapped blueprint, an archetype or a class's progression) and it is no member of any selection's `m_AllFeatures`, with one exception, the four basic blast progressions the research counts (`AirBlastProgression` 6f1d86ae…, `ColdBlastProgression` dbb1159b…, `ElectricBlastProgression` ba7767cb…, `WaterBlastProgression` e4027e0f…; held only through the selections nothing models, a constant in `carriers.rs`). (The review said "the four"; `final-cited.tsv` has six basic blast progressions: Fire and Earth are held by entries and need no exception.) Test `a_chain_walk_climbs_only_to_a_blueprint_that_is_held_and_no_pick`, on a composite-blast-shaped world: the orphan progression and a listed, held one are not planned, the feature is `blue-flame-blast`.
+- *Keys depended on what was written.* The clash count now includes every feature an entry maps (by its blueprint's name), so a later run for `FooProgression` gets `foo-progression` after `FooFeature` was written as `foo-feature`. Test `a_run_in_pieces_keys_as_one_run_does`: two runs (feature, then progression) leave the same files as one.
+- *`--only`'s GUID check* has its test, `only_refuses_a_value_that_is_no_guid` (not hex, too short, too long, uppercase).
+- *Dry run on main's data* with `--only` the 80 prerequisite and chain GUIDs of `final-cited.tsv` plans 77 files whose keys equal `keys.tsv`'s; the 3 missing are the chain carriers above row seeds named above (`MentalOverflowProgression`, `AeonFifthLevelImmunities`, `AeonSeventhLevelImmunities`), 307c's.

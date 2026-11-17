@@ -13,3 +13,7 @@ A slice of [307](307-importer-carriers.md), the importer's stage S3 (the carrier
 ## Done when
 
 Its section in `slices.md` is built and proved as written there. S3 is a form change, so its census must be empty. The scoped checks pass.
+
+## Note from 307b's review
+
+The dry run's other-ticket carriers (about 224) include about 100 members of selections nothing models yet (bloodline, domain and deity progressions). `carriers-left.txt` will carry many lines unless 306 and 267/294 merge first.

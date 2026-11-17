@@ -12,6 +12,7 @@
 //! field the importer doesn't own, and a refused span before it writes anything; then it writes each file, reads it
 //! back, runs the caller's check of the whole folder, and on any failure puts every written file's bytes back.
 
+pub mod carriers;
 pub mod facts;
 pub mod items;
 pub mod log;
@@ -562,6 +563,8 @@ pub enum WriteArea {
     ClassTables,
     /// A selection's feats or mythic abilities, and whether its picks ignore prerequisites.
     OptionLists,
+    /// The hidden features a prerequisite names, and the chains that hold them, as new `features/` files.
+    Carriers,
 }
 
 impl WriteArea {
@@ -571,6 +574,7 @@ impl WriteArea {
             "items" => Some(WriteArea::Items),
             "class-tables" => Some(WriteArea::ClassTables),
             "option-lists" => Some(WriteArea::OptionLists),
+            "carriers" => Some(WriteArea::Carriers),
             _ => None,
         }
     }
@@ -580,6 +584,7 @@ impl WriteArea {
             WriteArea::Items => "items",
             WriteArea::ClassTables => "class-tables",
             WriteArea::OptionLists => "option-lists",
+            WriteArea::Carriers => "carriers",
         }
     }
 
@@ -589,6 +594,7 @@ impl WriteArea {
             WriteArea::Items => crate::Area::Items,
             WriteArea::ClassTables => crate::Area::ClassTables,
             WriteArea::OptionLists => crate::Area::OptionLists,
+            WriteArea::Carriers => crate::Area::Prerequisites,
         }
     }
 
@@ -605,6 +611,7 @@ impl WriteArea {
                 "class skills differ (the user's facts)",
             ],
             WriteArea::OptionLists => &["list"],
+            WriteArea::Carriers => &[carriers::KIND],
         }
     }
 }
@@ -642,7 +649,14 @@ pub fn run(
     if !stale.is_empty() {
         return Err(WriteError::StaleFacts(stale));
     }
-    if let Some(unknown) = only.and_then(|only| {
+    let lists = areas.contains(&WriteArea::OptionLists);
+    let carriers = areas.contains(&WriteArea::Carriers);
+    if only.is_some() && lists && carriers {
+        return Err(WriteError::Usage(
+            "--only takes selection keys for option-lists and GUIDs for carriers: not both areas at once".to_owned(),
+        ));
+    }
+    if let Some(unknown) = only.filter(|_| lists).and_then(|only| {
         only.iter().find(|key| {
             !data
                 .selections
@@ -654,13 +668,21 @@ pub fn run(
             "--only names no selection: {unknown}"
         )));
     }
+    if let Some(unknown) = only.filter(|_| carriers).and_then(|only| {
+        only.iter().find(|guid| {
+            guid.len() != 32 || !guid.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+        })
+    }) {
+        return Err(WriteError::Usage(format!(
+            "--only names no GUID (32 lowercase hex digits): {unknown}"
+        )));
+    }
     let planner = crate::planner::Planner::new(&data);
     let ctx = crate::areas::Ctx {
         dump,
         planner: &planner,
     };
-    // No area plans a file yet; the carriers target (307b) will.
-    let created: Vec<NewFile> = Vec::new();
+    let mut created: Vec<NewFile> = Vec::new();
     let mut changes = Vec::new();
     let mut unexpressed = Vec::new();
     let mut to_the_user = Vec::new();
@@ -670,6 +692,11 @@ pub fn run(
             WriteArea::Items => items::changes(&ctx),
             WriteArea::ClassTables => tables::changes(&ctx, facts),
             WriteArea::OptionLists => selections::changes(&ctx, only),
+            WriteArea::Carriers => {
+                let (files, left) = carriers::changes(&ctx, only);
+                created.extend(files);
+                (Vec::new(), left)
+            }
         };
         for change in more {
             let entry = change.at.to_string();

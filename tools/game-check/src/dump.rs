@@ -67,6 +67,11 @@ impl Dump {
         self.blueprints.is_empty()
     }
 
+    /// Every blueprint, in GUID order.
+    pub fn iter(&self) -> impl Iterator<Item = (&BlueprintGuid, &Blueprint)> {
+        self.blueprints.iter()
+    }
+
     pub fn get(&self, guid: &BlueprintGuid) -> Option<&Blueprint> {
         self.blueprints.get(guid)
     }
