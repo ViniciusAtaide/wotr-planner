@@ -18,9 +18,7 @@
 # a and its list of entries with several): a selection the planner shares where the game keeps one per class, and the
 # blueprints an entry's primary leaves out.
 progression rows / a selection the game keeps separate -> 293
-mythic ranks / a selection the game keeps separate -> 293
 option lists / * / selection warpriest/blessings -> 293
-option lists / * / selection aeon/enforcing-gaze -> 293
 option lists / * / selection kineticist/element/air/wild-talent-feats -> 293
 option lists / * / selection kineticist/element/earth/wild-talent-feats -> 293
 option lists / * / selection kineticist/element/fire/wild-talent-feats -> 293
@@ -338,6 +336,7 @@ prerequisites / * / feat extra-arcanist-exploit -> 264
 prerequisites / * / feat extra-bombs -> 264
 prerequisites / * / feat extra-channel -> 264
 prerequisites / * / feat extra-discovery -> 264
+prerequisites / * / feat extra-discovery-vivisectionist -> 264
 prerequisites / * / feat extra-hex -> 264
 prerequisites / * / feat extra-ki -> 264
 prerequisites / * / feat extra-lay-on-hands -> 264
@@ -392,7 +391,6 @@ mythic ranks / * / mythic path swarm-that-walks -> 266
 mythic ranks / a further rank in planner only / mythic path aeon -> 266
 mythic ranks / in game only / mythic path aeon -> 266
 mythic ranks / in planner only / mythic path aeon -> 266
-option lists / * / selection angel/greater-sword-of-heaven -> 266
 option lists / * / selection devil/hells-decree -> 266
 option lists / * / selection devil/hells-seal -> 266
 option lists / * / selection lich/skeleton-upgrade -> 266
@@ -862,6 +860,9 @@ progression rows / * / archetype witch/ley-line-guardian -> 278
 progression rows / * / archetype witch/stigmatized-witch -> 278
 progression rows / * / class shaman -> 278
 progression rows / in planner only / archetype witch/elemental-witch -> 278
+prerequisites / * / selection option witch/elemental-witch/energy/acid -> 278
+prerequisites / * / selection option witch/elemental-witch/energy/electricity -> 278
+prerequisites / * / selection option witch/elemental-witch/energy/fire -> 278
 
 # 279, monk rows and lists.
 option lists / * / selection monk/scaled-fist/bonus-feats-1 -> 279

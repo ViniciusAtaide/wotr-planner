@@ -1,0 +1,1 @@
+(key: "witch/elemental-witch/energy/electricity", blueprint: "1c630250f9dd41a784ec0da1f1361615", name: "Electricity Ray", summary: "The Elemental Ray deals electricity damage.", guide: "witch#elemental-ray", levels: [(level: 1, features: ["witch/elemental-witch/elemental-ray"])])

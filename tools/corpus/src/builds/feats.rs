@@ -133,12 +133,12 @@ pub(super) fn extra_feats(engine: &Engine) -> Vec<Named> {
     out
 }
 
-/// Extra Discovery and Extra Arcana on the archetypes that borrow discoveries and arcana: a Vivisectionist 5 with
-/// Extra Discovery at 3 and 5, a Hexcrafter 7 with Extra Arcana at 7, a Hexcrafter 19 with it at 7, 13 and 19, and a
+/// Extra Discovery (Vivisectionist) and Extra Arcana on the archetypes that borrow discoveries and arcana: a Vivisectionist 5 with
+/// Extra Discovery (Vivisectionist) at 3 and 5, a Hexcrafter 7 with Extra Arcana at 7, a Hexcrafter 19 with it at 7, 13 and 19, and a
 /// plain alchemist 3 and magus 3 with theirs, each before, with the feat and filled; a Vivisectionist and a Hexcrafter
 /// 20, empty and filled; a Vivisectionist 3 holding only a rogue talent and a Hexcrafter 7 holding only hexes, each
-/// with the feat; and Builds no sheet holds: Extra Discovery on a Vivisectionist 1, Extra Arcana on a Hexcrafter 5,
-/// Extra Discovery on a rogue 2 / Vivisectionist 1. Each fixed one also filled. Chaotic neutral humans.
+/// with the feat; and Builds no sheet holds: Extra Discovery (Vivisectionist) on a Vivisectionist 1, Extra Arcana on a Hexcrafter 5,
+/// Extra Discovery (Vivisectionist) on a rogue 2 / Vivisectionist 1. Each fixed one also filled. Chaotic neutral humans.
 pub(super) fn borrowed_extra_feats(engine: &Engine) -> Vec<Named> {
     let viv = Some("alchemist/vivisectionist");
     let hex = Some("magus/hexcrafter");
@@ -147,7 +147,7 @@ pub(super) fn borrowed_extra_feats(engine: &Engine) -> Vec<Named> {
         (
             "vivisectionist discovery",
             human(&only("alchemist", viv, 5)),
-            "extra-discovery",
+            "extra-discovery-vivisectionist",
             &[3, 5],
         ),
         (
@@ -205,7 +205,7 @@ pub(super) fn borrowed_extra_feats(engine: &Engine) -> Vec<Named> {
                 human(&only("alchemist", viv, 3)),
                 vec![
                     (selection(2, 0), option("rogue/rogue-talents/fast-stealth")),
-                    (general(3), feat("extra-discovery")),
+                    (general(3), feat("extra-discovery-vivisectionist")),
                 ],
             ),
         ),
@@ -224,7 +224,7 @@ pub(super) fn borrowed_extra_feats(engine: &Engine) -> Vec<Named> {
             "vivisectionist 1 discovery",
             with(
                 human(&only("alchemist", viv, 1)),
-                vec![(general(1), feat("extra-discovery"))],
+                vec![(general(1), feat("extra-discovery-vivisectionist"))],
             ),
         ),
         (
@@ -243,7 +243,7 @@ pub(super) fn borrowed_extra_feats(engine: &Engine) -> Vec<Named> {
                 human(&[("rogue", None, 2), ("alchemist", viv, 1)]),
                 vec![
                     (selection(2, 0), option("rogue/rogue-talents/fast-stealth")),
-                    (general(3), feat("extra-discovery")),
+                    (general(3), feat("extra-discovery-vivisectionist")),
                 ],
             ),
         ),

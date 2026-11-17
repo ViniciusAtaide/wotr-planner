@@ -5,8 +5,10 @@
     summary: "At ranks 8 and 10, add a stronger improvement to Sword of Heaven on top of the earlier ones.",
     guide: "angel#greater-sword-of-heaven",
     options: [
+        "angel/greater-sword-of-heaven/anti-demon",
         "angel/greater-sword-of-heaven/heavenly-host",
         "angel/greater-sword-of-heaven/overwhelming-flames",
         "angel/greater-sword-of-heaven/speed-of-light",
     ],
+    shared_options: ["angel/improved-sword-of-heaven/abolish-disease", "angel/improved-sword-of-heaven/abolish-guile", "angel/improved-sword-of-heaven/abolish-poison", "angel/improved-sword-of-heaven/abolish-undeath", "angel/improved-sword-of-heaven/bestow-the-divine", "angel/improved-sword-of-heaven/everlasting-flame", "angel/improved-sword-of-heaven/grand-blessing", "angel/improved-sword-of-heaven/guide-the-faithful"],
 )

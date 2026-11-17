@@ -92,3 +92,10 @@ full shaman shaman/spirit-hunter
 full shaman shaman/spirit-hunter / legend
 full t62 shaman 6 wandering hex filled
 full t63 shaman/prophet-of-pestilence NeutralEvil 20 / empty
+t64 vivisectionist discovery / filled
+t64 vivisectionist talent only / filled
+full t49 underground chemist discovery / feat
+full t64 vivisectionist discovery / feat
+full t64 vivisectionist discovery / filled
+full t64 vivisectionist talent only
+full t64 vivisectionist talent only / filled

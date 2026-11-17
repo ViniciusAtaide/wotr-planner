@@ -393,3 +393,279 @@ fn the_shamans_hexes_are_their_own_and_open_old_links_through_aliases() {
             .any(|key| key.as_str() == "magus/hexcrafter/hex")
     );
 }
+
+/// The blueprint GUIDs of an option list's options, sorted.
+fn guids(key: &str) -> Vec<String> {
+    let mut found: Vec<String> = keys(selection(key))
+        .into_iter()
+        .map(|option| {
+            DATA.options
+                .iter()
+                .find(|candidate| candidate.key.as_str() == option)
+                .unwrap_or_else(|| panic!("no option {option}"))
+                .blueprint
+                .as_ref()
+                .unwrap_or_else(|| panic!("{option} has no blueprint"))
+                .as_str()
+                .to_owned()
+        })
+        .collect();
+    found.sort();
+    found
+}
+
+/// A sorted list of GUIDs, for comparing a list with the game's.
+fn sorted(guids: &[&str]) -> Vec<String> {
+    let mut list: Vec<String> = guids.iter().map(ToString::to_string).collect();
+    list.sort();
+    list
+}
+
+/// 306k: the Aeon's three gaze lists are the game's, one per tier of its progression: ranks 3 and 4 take the first,
+/// 5 to 7 the second, 8 to 10 the third.
+// Game: the `m_Features` of AeonGazeFirstSelection 7e468a5266235454e9dcefee315ee6d5 (8), AeonGazeSecondSelection
+// 7d498e034d18ca94baea19d7edee7403 (16) and AeonGazeThirdSelection 0bec49f67ecb49a5826fcfefb9408a35 (17); AeonProgression
+// 34b9484b0d5ce9340ae51d2bf9518bbe grants the first at its levels 1 and 2, the second at 3, 4 and 5, the third at 6, 7
+// and 8 (Aeon level 1 is mythic rank 3). The second adds HP 2eae…, concentration, summoner's gaze 22b8e950…,
+// relativity of space, primordial magic, normalize size, area effects and power of law to the first's eight; the third
+// adds the temporal jump 72514d0dcd054d1f8bb9abd4ddb9711c.
+#[test]
+fn the_aeons_three_gaze_lists_are_the_games() {
+    let first = [
+        "f102b11d85a11d14c811569c0ffcaa6e",
+        "7d3707bec182f5d428c444d7b7ead812",
+        "911be6cfed6bb71449cbf6d1173f4dc2",
+        "741cde744a64425e9feb6b1eaef53eba",
+        "dbabd88e7cd24b619dbf413ae7ce0033",
+        "bb283854ec4242babbf0463bc3050264",
+        "653831e19515438b948764291689dc3a",
+        "e0cc4134510b074468b3d1185970c697",
+    ];
+    let second_only = [
+        "bb6ac47cdff935d4e8ebf3ba8c5fdcda",
+        "2eae9b2c25a969641a2cf230acdca478",
+        "22b8e9508bce5474588e34168089ad69",
+        "24856f367261454b8d5070da0e774053",
+        "da5cbbd3b9a14a86b90555e7d3ed4451",
+        "c90b37a7f4894ac5a27f506aba5760b5",
+        "39d8ae51c0034adbb8394210c51901e2",
+        "8c84573701184f6db5b7b7543ee64227",
+    ];
+    let second: Vec<&str> = first.iter().chain(&second_only).copied().collect();
+    let mut third = second.clone();
+    third.push("72514d0dcd054d1f8bb9abd4ddb9711c");
+    assert_eq!(guids("aeon/enforcing-gaze"), sorted(&first));
+    assert_eq!(guids("aeon/enforcing-gaze-2"), sorted(&second));
+    assert_eq!(guids("aeon/enforcing-gaze-3"), sorted(&third));
+    let path = DATA
+        .mythic_paths
+        .iter()
+        .find(|path| path.key.as_str() == "aeon")
+        .expect("aeon");
+    for (rank, selection) in [
+        (3, "aeon/enforcing-gaze"),
+        (4, "aeon/enforcing-gaze"),
+        (5, "aeon/enforcing-gaze-2"),
+        (6, "aeon/enforcing-gaze-2"),
+        (7, "aeon/enforcing-gaze-2"),
+        (8, "aeon/enforcing-gaze-3"),
+        (9, "aeon/enforcing-gaze-3"),
+        (10, "aeon/enforcing-gaze-3"),
+    ] {
+        let row = path
+            .ranks
+            .iter()
+            .find(|row| row.rank == rank)
+            .expect("rank");
+        assert_eq!(
+            row.selections
+                .iter()
+                .map(|key| key.as_str())
+                .collect::<Vec<_>>(),
+            [selection],
+            "rank {rank}"
+        );
+    }
+    // What each rank's picker offers: the tier's list, the temporal jump from rank 8.
+    let build = mythic("aeon", 20);
+    let area_effects = "aeon/enforcing-gaze/enforcing-gaze-area-effects";
+    let temporal_jump = "aeon/enforcing-gaze/enforcing-gaze-temporal-jump";
+    assert_eq!(offered_at(&build, &path_selection(4)).len(), 8);
+    assert!(!offered_at(&build, &path_selection(4)).contains(area_effects));
+    assert_eq!(offered_at(&build, &path_selection(5)).len(), 16);
+    assert!(offered_at(&build, &path_selection(5)).contains(area_effects));
+    assert!(!offered_at(&build, &path_selection(7)).contains(temporal_jump));
+    assert_eq!(offered_at(&build, &path_selection(8)).len(), 17);
+    assert!(offered_at(&build, &path_selection(10)).contains(temporal_jump));
+    // A Devil that was an Aeon loses the gaze picks of every tier.
+    let devil = DATA
+        .mythic_paths
+        .iter()
+        .find(|path| path.key.as_str() == "devil")
+        .expect("devil");
+    let dropped: Vec<&str> = devil
+        .switch
+        .as_ref()
+        .expect("a switch rule")
+        .dropped_selections
+        .iter()
+        .map(|key| key.as_str())
+        .collect();
+    assert_eq!(
+        dropped,
+        [
+            "aeon/enforcing-gaze",
+            "aeon/enforcing-gaze-2",
+            "aeon/enforcing-gaze-3"
+        ]
+    );
+}
+
+/// 306k: an Elemental Witch picks one of four rays at 1, and the sheet keeps the Elemental Ray feature.
+// Game: ElementalWitchArchetype d7c7cdbc760041fabaedc1623a53a431 `AddFeatures` ElementaWitchEnergySelection
+// 9ec1bf2087874390a9d9be62884a0027 at 1 (its `m_Features`: ElementalWitchAcidRayFeature
+// 8006c9d043724f34b2745b3e5a5c2ef1, ColdRay 8cb71f2cc612478ea00b03d180b9e22c, ElectricityRay
+// 1c630250f9dd41a784ec0da1f1361615, FireRay 97e4fe7723b749849f182186764c23a4) and ElementaWitchEnergySelection11
+// edbb5084c34a486fb39d38cc75f2f994, a feature, at 11.
+#[test]
+fn the_elemental_witch_picks_one_of_four_rays() {
+    let energy = selection("witch/elemental-witch/energy");
+    assert_eq!(
+        energy.blueprint.as_ref().map(|guid| guid.as_str()),
+        Some("9ec1bf2087874390a9d9be62884a0027")
+    );
+    assert_eq!(
+        guids("witch/elemental-witch/energy"),
+        sorted(&[
+            "8006c9d043724f34b2745b3e5a5c2ef1",
+            "8cb71f2cc612478ea00b03d180b9e22c",
+            "1c630250f9dd41a784ec0da1f1361615",
+            "97e4fe7723b749849f182186764c23a4",
+        ])
+    );
+    let build = archetype_build("witch", "witch/elemental-witch", 11);
+    let offers = offered(&build, 1);
+    assert_eq!(offers.len(), 4);
+    assert!(offers.values().all(|status| status.is_ok()));
+    let picked = with_pick(
+        build,
+        selection_slot(1),
+        "witch/elemental-witch/energy/fire",
+    );
+    assert!(possible(&picked));
+    assert!(holds(
+        &at(&picked, 1),
+        "witch/elemental-witch/elemental-ray"
+    ));
+    // The row names the selection in place of the feature, which the 11th level's row still grants.
+    let archetype = DATA
+        .archetypes
+        .iter()
+        .find(|archetype| archetype.key.as_str() == "witch/elemental-witch")
+        .expect("elemental witch");
+    let row = |level: u8| {
+        archetype
+            .levels
+            .iter()
+            .find(|row| row.level == level)
+            .unwrap()
+    };
+    assert_eq!(
+        row(1)
+            .selections
+            .iter()
+            .map(|key| key.as_str())
+            .collect::<Vec<_>>(),
+        ["witch/elemental-witch/energy"]
+    );
+    assert!(
+        !row(1)
+            .features
+            .iter()
+            .any(|key| key.as_str() == "witch/elemental-witch/elemental-ray")
+    );
+    assert!(
+        row(11)
+            .features
+            .iter()
+            .any(|key| key.as_str() == "witch/elemental-witch/elemental-ray")
+    );
+}
+
+/// 306k: the Nine-Tailed Heir's bloodline is its own selection with the sorcerer's 21 bloodlines, the Extra Discovery
+/// of a Vivisectionist its own feat, and the Greater Sword of Heaven lists the game's 12.
+// Game: NineTailedHeirBloodlineSelection 7c813fb495d74246918a690ba86f9c86 (21 `m_AllFeatures`, the sorcerer's
+// SorcererBloodlineSelection 24bef8d1bee12274686f6da6ccbc8914's; NineTailedHeirArchetype
+// 65a630aa291f65047b90a2af5df75d83 `AddFeatures` it at 1 and `RemoveFeatures` the sorcerer's);
+// ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae (25, needs VivsectionistDiscoverySelection
+// 67f499218a0e22944abab6fe1c9eaeee); ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 (28, needs
+// DiscoverySelection cd86c437488386f438dcc9ae727ea2a6); AngelSwordAntiDemonFeature 249ff73e41a85b84eabbf254870a7499
+// is in AngelGreaterSwordOfHeavenSelection e0ce40968bf0007408b11089a10f36cf (12 `m_AllFeatures`).
+#[test]
+fn the_heir_the_vivisectionists_extra_discovery_and_the_angel_have_the_games_lists() {
+    assert_eq!(
+        keys(selection("sorcerer/nine-tailed-heir/bloodline")),
+        keys(selection("sorcerer/bloodline"))
+    );
+    assert_eq!(keys(selection("sorcerer/bloodline")).len(), 21);
+    let heir = DATA
+        .archetypes
+        .iter()
+        .find(|archetype| archetype.key.as_str() == "sorcerer/nine-tailed-heir")
+        .expect("heir");
+    let row = heir.levels.iter().find(|row| row.level == 1).unwrap();
+    assert!(
+        row.selections
+            .iter()
+            .any(|key| key.as_str() == "sorcerer/nine-tailed-heir/bloodline")
+    );
+    assert!(
+        !row.selections
+            .iter()
+            .any(|key| key.as_str() == "sorcerer/bloodline")
+    );
+
+    let extra = feat("extra-discovery-vivisectionist");
+    assert_eq!(
+        extra.blueprint.as_ref().map(|guid| guid.as_str()),
+        Some("10287e7b8cee479e82ea88bd6d2d4dae")
+    );
+    assert_eq!(
+        extra.selection.as_ref().map(|key| key.as_str()),
+        Some("alchemist/vivisectionist/extra-discovery")
+    );
+    assert_eq!(
+        keys(selection("alchemist/vivisectionist/extra-discovery")).len(),
+        25
+    );
+    assert_eq!(keys(selection("alchemist/extra-discovery")).len(), 28);
+    assert!(
+        !selection("alchemist/extra-discovery")
+            .needs_slot_of
+            .iter()
+            .any(|key| key.as_str() == "alchemist/vivisectionist/medical-discovery")
+    );
+
+    let greater = guids("angel/greater-sword-of-heaven");
+    assert_eq!(
+        greater,
+        sorted(&[
+            "ebcda8f579e7d494a8befda94279968f",
+            "249ff73e41a85b84eabbf254870a7499",
+            "f02537712cd2af34c93ce979599f7b12",
+            "b35e4f149f17d924c97fbd27e30e948b",
+            "317c795278362f84581f7cf35023a19f",
+            "432c96835aee50341a4ff0b364cdb85a",
+            "0b082785884d35c4c8f252d93b8f3616",
+            "131fc914b66b62c49b9f9b5f750998f5",
+            "3b27bebe971f9484f93f72e3d05182ee",
+            "84f001f9aaaa73c479659edfa87f4782",
+            "477fcaa2b00a1964da43472ddbc3c7de",
+            "826e402bae1aca242bfe9919da8d94d7",
+        ])
+    );
+    assert!(
+        keys(selection("angel/greater-sword-of-heaven"))
+            .contains("angel/greater-sword-of-heaven/anti-demon")
+    );
+}

@@ -160,7 +160,7 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
         .collect();
     // Game: DragonLevel2FeatSelection a21acdafc0169f5488a9bd3256e2e65b (IgnorePrerequisites; its list, which the data
     // holds as every feat, is the game check's)
-    assert_eq!(every, [("gold-dragon/dragon-feats", true, 262)]);
+    assert_eq!(every, [("gold-dragon/dragon-feats", true, 263)]);
     let one_choice: Vec<_> = feat_lists()
         .filter(|list| list.feats.len() < 2)
         .map(|list| {

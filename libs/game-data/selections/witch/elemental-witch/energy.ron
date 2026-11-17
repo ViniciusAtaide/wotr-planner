@@ -1,0 +1,14 @@
+(
+    key: "witch/elemental-witch/energy",
+    blueprint: "9ec1bf2087874390a9d9be62884a0027",
+    name: "Elemental Ray",
+    summary: "The energy type of the Elemental Witch's at-will ray: acid, cold, electricity or fire.",
+    guide: "witch#elemental-ray",
+    option_levels: ["witch"],
+    options: [
+        "witch/elemental-witch/energy/acid",
+        "witch/elemental-witch/energy/cold",
+        "witch/elemental-witch/energy/electricity",
+        "witch/elemental-witch/energy/fire",
+    ],
+)

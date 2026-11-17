@@ -6,7 +6,7 @@
     summary: "Witch limited to the Elements or Winter patron who gains an at-will elemental ray.",
     guide: "witch#elemental-witch",
     levels: [
-        (level: 1, features: ["witch-cantrips", "witch/elemental-witch/elemental-patron", "witch/elemental-witch/elemental-ray", "witch/familiar"], feats: ["simple-weapon-proficiency"]),
+        (level: 1, features: ["witch-cantrips", "witch/elemental-witch/elemental-patron", "witch/familiar"], feats: ["simple-weapon-proficiency"], selections: ["witch/elemental-witch/energy"]),
         (level: 10, features: ["major-hexes"]),
         (level: 11, features: ["witch/elemental-witch/elemental-ray"]),
         (level: 14),

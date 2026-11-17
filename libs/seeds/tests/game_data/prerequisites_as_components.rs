@@ -134,7 +134,8 @@ fn a_blueprint_entry_holds_its_prerequisite_as_requires_components() {
     // Ticket 306g: the two slayer talent options that follow the game hold one each (the Vanguard's extra use, and
     // Painful Strike's five archetypes).
     // Ticket 306j: Extra Hex (Shaman) and the Hex Channeler's channel hold one each.
-    assert_eq!((moved, fields), (634, 62));
+    // Ticket 306k: Extra Discovery (Vivisectionist) holds one.
+    assert_eq!((moved, fields), (635, 62));
 
     // The planner-made entries keep what they hold: their fields, and no `Requires`.
     let planner_requires = (files.feats.iter())

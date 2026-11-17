@@ -1725,10 +1725,12 @@
             (item: Selection("sorcerer/bloodline-feats")),
         ],
     ),
-    // Game: NineTailedHeirArchetype 65a630aa291f65047b90a2af5df75d83: the game swaps in its own bloodline selection (equivalent model; its option list is the game check's)
+    // Game: NineTailedHeirArchetype 65a630aa291f65047b90a2af5df75d83: the game swaps in its own bloodline selection, which the data holds as its own selection (ticket 306k)
     (
         archetype: "sorcerer/nine-tailed-heir",
-        loses: [],
+        loses: [
+            (item: Selection("sorcerer/bloodline"), replaced_by: [Selection("sorcerer/nine-tailed-heir/bloodline")]),
+        ],
     ),
     // Game: OverwhelimgMageArchetype 734917ec8b8542378c1d35519439d67f
     (

@@ -1,0 +1,1 @@
+(key: "witch/elemental-witch/energy/cold", blueprint: "8cb71f2cc612478ea00b03d180b9e22c", name: "Cold Ray", summary: "The Elemental Ray deals cold damage.", guide: "witch#elemental-ray", levels: [(level: 1, features: ["witch/elemental-witch/elemental-ray"])])
