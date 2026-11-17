@@ -216,7 +216,6 @@ fn the_borrowed_selections_offer_the_guides_lists() {
 // Game: FeyformShifterShifterArchetype 1cdfc7d306d1430eac19427539b62091 adds RogueTalentSelection
 // c074a5d615200494b8f2a9c845799d93 at 8 and 14
 #[test]
-#[ignore = "waits on ticket 276: the game gives the Feyform Shifter the rogue's own talent selection, 38 options"]
 fn a_feyform_shifters_rogue_talent_is_the_rogues_selection() {
     assert_eq!(
         keys(any_selection(FEYFORM_TALENT)),
