@@ -33,7 +33,14 @@ const EXTRA_PICKS: [(&str, &[&str]); 9] = [
             "shifter/feyform-shifter/rogue-talent",
         ],
     ), // Game: ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 (RogueTalentSelection, SylvanTricksterTalentSelection 290bbcc3c3bb92144b853fd8fb8ff452 or DarkLurkerRogueTalentSelection 1edbb68422c046f98a86f4726f6721b2; FeyformShifterShifterArchetype 1cdfc7d306d1430eac19427539b62091 adds RogueTalentSelection)
-    ("extra-slayer-talent", &["slayer/slayer-talents"]), // Game: ExtraSlayerTalentSelection 53f7237f5b1447bb851ba68045a00e41
+    (
+        "extra-slayer-talent",
+        &[
+            "slayer/slayer-talents",
+            "slayer/slayer-talents-10",
+            "slayer/slayer-talents-6",
+        ],
+    ), // Game: ExtraSlayerTalentSelection 53f7237f5b1447bb851ba68045a00e41
     ("extra-wild-talent", &["kineticist/wild-talents"]), // Game: ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471 (WildTalentSelection 5c883ae0cd6d7d5448b7a420f51f8459)
 ];
 
@@ -341,7 +348,7 @@ fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
             )),
             "extra-slayer-talent",
             9,
-            "slayer/slayer-talents",
+            "slayer/slayer-talents-6",
         ),
         // Ticket 64: the Vivisectionist's Medical Discovery.
         // Game: VivisectionistArchetype 68cbcd9fbf1fb1d489562f829bb97e38 (VivsectionistDiscoverySelection
@@ -387,9 +394,9 @@ fn slot_selection<'a>(feat_key: &str, had: &'a str) -> &'a str {
         .filter(|selection| selection.has_list());
     match own {
         Some(own) => {
-            assert_eq!(
-                own.needs_slot_of,
-                BTreeSet::from([rules::FeatureSelectionKey::new(had)])
+            assert!(
+                own.needs_slot_of
+                    .contains(&rules::FeatureSelectionKey::new(had))
             );
             own.key.as_str()
         }

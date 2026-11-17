@@ -115,14 +115,14 @@ fn the_own_list_extra_feats_list_the_selection_they_stand_for() {
     // b8bf3d5023f2d8c428fdf6438cecaea7 list the same 22; ExtraMercySelection 8a49abed5be9473da1e1fd1e2457562e and
     // SelectionMercy 02b187038a8dce545bb34bbfb346428d the same 15; ExtraSlayerTalentSelection
     // 53f7237f5b1447bb851ba68045a00e41 and ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471 their own (41, 40),
-    // which the planner's slayer talents and wild talents stand for (293 writes the game's).
+    // which the planner's wild talents stand for (293 writes the game's); the slayer's own list is written (306g) and
+    // `the_slayers_extra_talent_list_is_the_games_41` pins it.
     for (extra, base) in [
         (
             "arcanist/extra-arcanist-exploit",
             "arcanist/arcanist-exploits",
         ),
         ("paladin/extra-mercy", "paladin/mercy"),
-        ("slayer/extra-slayer-talent", "slayer/slayer-talents"),
         ("kineticist/extra-wild-talent", "kineticist/wild-talents"),
     ] {
         let (extra_selection, base_selection) = (any_selection(extra), any_selection(base));

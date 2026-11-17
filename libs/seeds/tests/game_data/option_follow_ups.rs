@@ -744,7 +744,7 @@ fn a_ranger_10s_style_slot_offers_the_10th_level_list() {
 /// A ranger 10 / slayer 2 can't take the slayer's 2nd-level combat style talent: he holds the ranger's
 /// RangerStyleSelection2 already.
 #[test]
-#[ignore = "waits on ticket 276: the game refuses the talent to a ranger who holds the stage-2 style"]
+#[ignore = "waits on stage S4 (the prerequisites writer): the talent's option does not yet read the ranger's style as held (known.txt, 276)"]
 fn a_ranger_10_slayer_2_cant_take_the_2nd_level_combat_style() {
     let mut keys = vec!["ranger"; 10];
     keys.extend(["slayer", "slayer"]);

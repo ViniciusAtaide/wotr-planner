@@ -67,7 +67,6 @@ option lists / * / selection bloodrager/second-bloodline -> 293
 option lists / * / selection kineticist/extra-wild-talent -> 293
 option lists / * / selection mythic/extra-mythic-ability -> 293
 option lists / * / selection oracle/beneficial-curse -> 293
-option lists / * / selection slayer/extra-slayer-talent -> 293
 
 # From 304 (the progression header, decision Q4): the nested lists' gates. The game opens a bloodline's feat list
 # with the bloodline's requisite feature, which any bloodline of its kind grants (a bloodrager's, the Sage's, the
@@ -742,7 +741,6 @@ progression rows / * / class ranger -> 275
 # 276, rogue and slayer talents and rows.
 option lists / * / selection rogue/sylvan-trickster/fey-tricks -> 276
 option lists / * / selection slayer/imitator/imitation -> 276
-option lists / * / selection slayer/slayer-talents -> 276
 prerequisites / * / selection option rogue/rogue-talents/blinding-strike -> 276
 prerequisites / * / selection option rogue/rogue-talents/confounding-blades -> 276
 prerequisites / * / selection option rogue/rogue-talents/crippling-strike -> 276

@@ -1,0 +1,10 @@
+(
+    key: "slayer/slayer-talents-6",
+    blueprint: "43d1b15873e926848be2abf0ea3ad9a8",
+    name: "Slayer Talents",
+    summary: "From 2nd level, a rogue talent (slayer level counts as rogue level), a Ranger combat style feat, Trapfinding or Slayer Camouflage.",
+    guide: "slayer#slayer-talents",
+    option_levels: ["inquisitor", "slayer"],
+    options: [],
+    shared_options: ["rogue/rogue-talents/blinding-strike", "rogue/rogue-talents/canny-observer", "rogue/rogue-talents/combat-trick", "rogue/rogue-talents/confounding-blades", "rogue/rogue-talents/crippling-strike", "rogue/rogue-talents/dispelling-attack", "rogue/rogue-talents/double-debilitation", "rogue/rogue-talents/familiar", "rogue/rogue-talents/fast-stealth", "rogue/rogue-talents/focusing-attack-confused", "rogue/rogue-talents/focusing-attack-shaken", "rogue/rogue-talents/focusing-attack-sickened", "rogue/rogue-talents/hunters-surprise", "rogue/rogue-talents/improved-evasion", "rogue/rogue-talents/improved-uncanny-dodge", "rogue/rogue-talents/iron-guts", "rogue/rogue-talents/jump-up", "rogue/rogue-talents/mystery-seeker", "rogue/rogue-talents/opportunist", "rogue/rogue-talents/skill-mastery-knowledge", "rogue/rogue-talents/skill-mastery-lore", "rogue/rogue-talents/skill-mastery-stealth-and-trickery", "rogue/rogue-talents/slippery-mind", "rogue/rogue-talents/slow-reactions", "rogue/rogue-talents/survivalist", "rogue/rogue-talents/terrain-mastery", "rogue/rogue-talents/trailblazer", "rogue/rogue-talents/unbalancing-trick", "rogue/rogue-talents/uncanny-dodge", "rogue/rogue-talents/underhanded-trick", "rogue/rogue-talents/weakening-wound", "rogue/rogue-talents/wearying-strike", "slayer/slayer-talents/combat-style-feat-2", "slayer/slayer-talents/combat-style-feat-6", "slayer/slayer-talents/painful-strike", "slayer/slayer-talents/slayer-camouflage", "slayer/slayer-talents/trapfinding", "slayer/slayer-talents/vanguard-tactician"],
+)
