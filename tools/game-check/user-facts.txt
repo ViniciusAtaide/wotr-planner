@@ -67,3 +67,8 @@ option lists / * / selection slayer/slayer-talents -> applied 276
 option lists / * / selection slayer/slayer-talents-6 -> applied 276
 option lists / * / selection slayer/slayer-talents-10 -> applied 276
 option lists / * / selection slayer/extra-slayer-talent -> applied 276
+
+# 276 (the user, 2026-11-15, "Apply the game's"): the rogue talents Uncanny Dodge and Improved Uncanny Dodge take the
+# game's prerequisites, written by the prerequisites target (308a), applied.
+prerequisites / * / selection option rogue/rogue-talents/uncanny-dodge -> applied 276
+prerequisites / * / selection option rogue/rogue-talents/improved-uncanny-dodge -> applied 276

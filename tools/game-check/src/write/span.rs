@@ -119,6 +119,40 @@ pub const OPTION_FIELDS: &[&str] = &[
     "components",
 ];
 
+/// The fields of a mythic ability in the order `rules::MythicAbility` declares them.
+pub const MYTHIC_ABILITY_FIELDS: &[&str] = &[
+    "key",
+    "blueprint",
+    "name",
+    "group",
+    "summary",
+    "guide",
+    "prerequisite",
+    "features",
+    "selection",
+    "plain_feature",
+    "parameter",
+    "ranks",
+    "components",
+];
+
+/// The fields of a mythic feat in the order `rules::MythicFeat` declares them.
+pub const MYTHIC_FEAT_FIELDS: &[&str] = &[
+    "key",
+    "blueprint",
+    "name",
+    "group",
+    "summary",
+    "guide",
+    "parameter",
+    "ranks",
+    "removes_racial_penalty",
+    "selection",
+    "requires_proficiency",
+    "prerequisite",
+    "components",
+];
+
 /// The fields of a feature selection in the order `rules::FeatureSelection` declares them
 /// (`libs/rules/src/game_data.rs`).
 pub const SELECTION_FIELDS: &[&str] = &[

@@ -278,7 +278,6 @@ prerequisites / * / feat improved-snap-shot -> 263
 prerequisites / * / feat ironguts -> 263
 prerequisites / * / feat lingering-performance -> 263
 prerequisites / * / feat manyshot -> 263
-prerequisites / * / feat metamagic-completely-normal-spell -> 263
 prerequisites / * / feat murmurs-of-earth -> 263
 prerequisites / * / feat natural-spell -> 263
 prerequisites / * / feat point-blank-master -> 263
@@ -291,15 +290,11 @@ prerequisites / * / feat rapid-shot -> 263
 prerequisites / * / feat selective-channel -> 263
 prerequisites / * / feat shaitan-earthblast -> 263
 prerequisites / * / feat shaitan-skin -> 263
-prerequisites / * / feat shield-bash -> 263
-prerequisites / * / feat shield-focus -> 263
-prerequisites / * / feat shield-wall -> 263
 prerequisites / * / feat shifters-edge -> 263
 prerequisites / * / feat shifters-rush -> 263
 prerequisites / * / feat slashing-grace -> 263
 prerequisites / * / feat spell-chain -> 263
 prerequisites / * / feat spell-specialization -> 263
-prerequisites / * / feat stat-focus -> 263
 prerequisites / * / feat steel-soul -> 263
 prerequisites / * / feat sunder-armor -> 263
 prerequisites / * / feat trip -> 263
@@ -311,9 +306,6 @@ prerequisites / missing in planner / feat improved-improved-improved-critical-im
 prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-heavy-barding -> 263
 prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-light-barding -> 263
 prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-medium-barding -> 263
-prerequisites / not in game / feat improved-improved-critical -> 263
-prerequisites / not in game / feat improved-improved-improved-critical -> 263
-prerequisites / not in game / feat improved-improved-improved-critical-improved -> 263
 
 # 264, the Extra feats' prerequisites and picks.
 prerequisites / * / feat extra-arcana -> 264
@@ -718,7 +710,6 @@ prerequisites / * / selection option rogue/rogue-talents/confounding-blades -> 2
 prerequisites / * / selection option rogue/rogue-talents/crippling-strike -> 276
 prerequisites / * / selection option rogue/rogue-talents/dispelling-attack -> 276
 prerequisites / * / selection option rogue/rogue-talents/emboldening-strike -> 276
-prerequisites / * / selection option rogue/rogue-talents/evasion -> 308
 prerequisites / * / selection option rogue/rogue-talents/focusing-attack-confused -> 276
 prerequisites / * / selection option rogue/rogue-talents/focusing-attack-shaken -> 276
 prerequisites / * / selection option rogue/rogue-talents/focusing-attack-sickened -> 276
@@ -1108,3 +1099,14 @@ class tables / class skills differ (the user's facts) / class stalwart-defender 
 mapping / selection or not / selection option monk/zen-archer/way-of-the-bow/bow -> 316
 mapping / selection or not / selection option oracle/revelations/battle/weapon-mastery -> 316
 mapping / selection or not / selection option shaman/hex/battle-master -> 316
+
+# 308 (308a, the writer's prerequisites target): the check now compares a PrerequisiteProficiency or
+# PrerequisiteNotProficient of armour only as the planner's proficiency feats. Armor Focus's hand prerequisite is 315's;
+# the five proficiency feats' own NotProficient and Shield Master's shield proficiency are the writer's run (308c).
+prerequisites / missing in planner / feat armor-focus -> 315
+prerequisites / missing in planner / feat armor-proficiency-heavy-armor -> 308
+prerequisites / missing in planner / feat armor-proficiency-light-armor -> 308
+prerequisites / missing in planner / feat armor-proficiency-medium-armor -> 308
+prerequisites / missing in planner / feat shield-master -> 308
+prerequisites / missing in planner / feat shield-proficiency -> 308
+prerequisites / missing in planner / feat tower-shield-proficiency -> 308

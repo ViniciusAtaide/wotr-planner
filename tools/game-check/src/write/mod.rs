@@ -16,6 +16,7 @@ pub mod carriers;
 pub mod facts;
 pub mod items;
 pub mod log;
+pub mod prerequisites;
 pub mod selections;
 pub mod span;
 pub mod tables;
@@ -29,8 +30,8 @@ use std::path::{Path, PathBuf};
 use rules::{DataAt, GameData};
 
 use span::{
-    ARCHETYPE_FIELDS, CLASS_FIELDS, FEAT_FIELDS, FEATURE_FIELDS, GEAR_FIELDS, OPTION_FIELDS,
-    SELECTION_FIELDS, SpanError, Value,
+    ARCHETYPE_FIELDS, CLASS_FIELDS, FEAT_FIELDS, FEATURE_FIELDS, GEAR_FIELDS,
+    MYTHIC_ABILITY_FIELDS, MYTHIC_FEAT_FIELDS, OPTION_FIELDS, SELECTION_FIELDS, SpanError, Value,
 };
 
 /// One field of one entry's file to write, or to remove when `value` is `None`.
@@ -213,6 +214,11 @@ fn declared(file: &Path) -> &'static [&'static str] {
         Some("features") => FEATURE_FIELDS,
         Some("feats") => FEAT_FIELDS,
         Some("options") => OPTION_FIELDS,
+        Some("mythic") => match subfolder(file) {
+            Some("abilities") => MYTHIC_ABILITY_FIELDS,
+            Some("feats") => MYTHIC_FEAT_FIELDS,
+            _ => &[],
+        },
         _ => &[],
     }
 }
@@ -254,6 +260,8 @@ fn owned(file: &Path) -> &'static [&'static str] {
         // an option's rows. It only adds: the read-back refuses a change beyond the field.
         Some("features" | "feats") => &["components"],
         Some("options") => &["components", "levels"],
+        // The prerequisites target (ticket 308a): a mythic ability's or a mythic feat's `Requires`.
+        Some("mythic") if matches!(subfolder(file), Some("abilities" | "feats")) => &["components"],
         _ => &[],
     }
 }
@@ -275,6 +283,15 @@ fn folder(file: &Path) -> Option<&str> {
     file.components()
         .next()
         .and_then(|part| part.as_os_str().to_str())
+}
+
+/// The second component of a path whose file is below it: `abilities` of `mythic/abilities/<key>.ron`.
+fn subfolder(file: &Path) -> Option<&str> {
+    let mut parts = file.components();
+    let (_, Some(second), Some(_)) = (parts.next(), parts.next(), parts.next()) else {
+        return None;
+    };
+    second.as_os_str().to_str()
 }
 
 /// Writes `text` to `path` through a temp file in the same folder and a rename over it, so a kill in the middle
@@ -577,6 +594,8 @@ pub enum WriteArea {
     Carriers,
     /// The grants an existing entry's blueprint makes of a carrier, as components and option rows (ticket 307m).
     CarrierGrants,
+    /// An entry's `Requires` components, from its blueprint's `Prerequisite*` components (ticket 308a).
+    Prerequisites,
 }
 
 impl WriteArea {
@@ -588,6 +607,7 @@ impl WriteArea {
             "option-lists" => Some(WriteArea::OptionLists),
             "carriers" => Some(WriteArea::Carriers),
             "carrier-grants" => Some(WriteArea::CarrierGrants),
+            "prerequisites" => Some(WriteArea::Prerequisites),
             _ => None,
         }
     }
@@ -599,6 +619,7 @@ impl WriteArea {
             WriteArea::OptionLists => "option-lists",
             WriteArea::Carriers => "carriers",
             WriteArea::CarrierGrants => "carrier-grants",
+            WriteArea::Prerequisites => "prerequisites",
         }
     }
 
@@ -608,7 +629,9 @@ impl WriteArea {
             WriteArea::Items => crate::Area::Items,
             WriteArea::ClassTables => crate::Area::ClassTables,
             WriteArea::OptionLists => crate::Area::OptionLists,
-            WriteArea::Carriers | WriteArea::CarrierGrants => crate::Area::Prerequisites,
+            WriteArea::Carriers | WriteArea::CarrierGrants | WriteArea::Prerequisites => {
+                crate::Area::Prerequisites
+            }
         }
     }
 
@@ -627,6 +650,7 @@ impl WriteArea {
             WriteArea::OptionLists => &["list"],
             WriteArea::Carriers => &[carriers::KIND],
             WriteArea::CarrierGrants => &[carriers::GRANT_KIND],
+            WriteArea::Prerequisites => &[prerequisites::KIND],
         }
     }
 }
@@ -647,8 +671,10 @@ pub struct Outcome {
 }
 
 /// Plans the changes of `areas` from the data under `dir` and the dump, and [`apply`]s them, or with `dry_run` only
-/// [`plan`]s them (the guards run, nothing is written). `only` limits the option-lists area to the selections it names. The data is read with
-/// `seeds::read_game_data_files`, the model as the files hold it, not compiled.
+/// [`plan`]s them (the guards run, nothing is written). `only` limits the option-lists area to the selections it
+/// names, the carriers areas to GUIDs, and the prerequisites area, run alone, to the entries it names as the report
+/// does (`feat extra-hex`; a trailing `*` takes every entry the rest begins: `selection option rogue/*`). The data is
+/// read with `seeds::read_game_data_files`, the model as the files hold it, not compiled.
 pub fn run(
     dump: &crate::Dump,
     dir: &Path,
@@ -671,6 +697,19 @@ pub fn run(
         return Err(WriteError::Usage(
             "--only takes selection keys for option-lists and GUIDs for carriers and carrier-grants: not both at once".to_owned(),
         ));
+    }
+    if only.is_some() && areas.contains(&WriteArea::Prerequisites) && areas.len() > 1 {
+        return Err(WriteError::Usage(
+            "--only takes entry names for prerequisites, which then runs alone".to_owned(),
+        ));
+    }
+    if let Some(unknown) = only
+        .filter(|_| areas.contains(&WriteArea::Prerequisites))
+        .and_then(|only| prerequisites::unmatched(&data, only))
+    {
+        return Err(WriteError::Usage(format!(
+            "--only names no entry the prerequisites area writes: {unknown}"
+        )));
     }
     if let Some(unknown) = only.filter(|_| lists).and_then(|only| {
         only.iter().find(|key| {
@@ -717,6 +756,7 @@ pub fn run(
                 (Vec::new(), left)
             }
             WriteArea::CarrierGrants => carriers::attachments(&ctx, &created, dry_run, only),
+            WriteArea::Prerequisites => prerequisites::changes(&ctx, only),
         };
         for change in more {
             let entry = change.at.to_string();
