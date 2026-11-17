@@ -343,8 +343,7 @@ pub fn possible(build: &Build) -> bool {
 /// character isn't proficient with (`RequireProficiency`, which `BlueprintParametrizedFeature.CanSelect` checks,
 /// WrathDecompiled 6ce4a6b): those make the link stale. So do a Build's feats that fail only on base attack bonus
 /// when it holds `druid/feyspeaker`, whose Half progression is the game's `BABLow`
-/// 0538081888b2d8c41893d25d098dee99 (ticket 293l); no other Build gets that. A feat the game's fighter list lacks
-/// ([`THE_FIGHTERS_LIST_LACKS`]) in a class slot is refused too (ticket 306s). Panics when any other choice fails.
+/// 0538081888b2d8c41893d25d098dee99 (ticket 293l); no other Build gets that. Panics when any other choice fails.
 pub fn without_unproficient_picks(mut build: Build) -> Build {
     let feyspeaker = build
         .class_choices
@@ -364,12 +363,25 @@ pub fn without_unproficient_picks(mut build: Build) -> Build {
             ) if feyspeaker => {
                 build.picks.remove(&slot);
             }
-            (rules::Choice::Slot(slot), Issue::NotAllowed)
-                if THE_FIGHTERS_LIST_LACKS.contains(&build.picks[&slot].key()) =>
-            {
+            (choice, issue) => panic!("{choice:?} fails: {issue:?}"),
+        }
+    }
+    build
+}
+
+/// A Build without the picks of a `combat-feats` slot that the game's fighter list lacks ([`THE_FIGHTERS_LIST_LACKS`],
+/// ticket 306s): those make an older link's Build impossible. A pick of such a feat in any other slot (a wizard's, a
+/// teamwork slot, Extra Feat's) is left in, and so is every other kind of failure.
+pub fn without_picks_the_fighters_list_lacks(mut build: Build) -> Build {
+    let sheet = engine().evaluate(&build);
+    for failure in engine().failures(&build) {
+        if let (rules::Choice::Slot(slot), Issue::NotAllowed) = (failure.choice, failure.issue) {
+            let in_combat_feats = sheet
+                .slot(&slot)
+                .is_some_and(|found| found.kind == feat_kind("combat-feats"));
+            if in_combat_feats && THE_FIGHTERS_LIST_LACKS.contains(&build.picks[&slot].key()) {
                 build.picks.remove(&slot);
             }
-            (choice, issue) => panic!("{choice:?} fails: {issue:?}"),
         }
     }
     build
