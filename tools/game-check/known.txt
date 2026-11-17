@@ -307,7 +307,10 @@ prerequisites / * / mythic feat mythic-armor-focus-medium-armor-avoidance -> 315
 prerequisites / * / mythic feat mythic-armor-focus-medium-armor-endurance -> 315
 prerequisites / * / mythic feat mythic-sneak-attack -> 314
 
-# 266, the mythic paths' ranks and options.
+# 266, the mythic paths' ranks and options. 308f wrote the Aeon's gazes' prerequisites from the game (none: their lists
+# gate them by rank). Life-Bonding Friendship names LifeBondingFriendshipFeature 5b63a6690ebbaa4459df3e04fe094cbd,
+# which no entry maps (307's carriers); the Gold Dragon's breaths keep their hand prerequisites, and the Lich's
+# skeletal upgrades name the Lich's mythic class levels.
 mythic ranks / * / mythic path angel -> 266
 mythic ranks / * / mythic path azata -> 266
 mythic ranks / * / mythic path demon -> 266
@@ -320,16 +323,7 @@ mythic ranks / in planner only / mythic path aeon -> 266
 option lists / * / selection devil/hells-decree -> 266
 option lists / * / selection devil/hells-seal -> 266
 option lists / * / selection lich/skeleton-upgrade -> 266
-prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-area-effects -> 266
-prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-concentration -> 266
-prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-hit-points -> 266
-prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-normalize-size -> 266
-prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-power-of-law -> 266
-prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-primordial-magic -> 266
-prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-relativity-of-space -> 266
-prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-summoners-gaze -> 266
-prerequisites / * / selection option aeon/enforcing-gaze/enforcing-gaze-temporal-jump -> 266
-prerequisites / * / selection option azata/superpowers/life-bonding-friendship -> 266
+prerequisites / * / selection option azata/superpowers/life-bonding-friendship -> 307
 prerequisites / * / selection option gold-dragon/improved-gold-dragon-breath/annihilating-breath -> 266
 prerequisites / * / selection option gold-dragon/improved-gold-dragon-breath/decaying-breath -> 266
 prerequisites / * / selection option gold-dragon/improved-gold-dragon-breath/enlightening-breath -> 266
@@ -453,47 +447,31 @@ progression rows / in game only / class warpriest -> 268
 progression rows / in planner only / archetype warpriest/shieldbearer -> 268
 progression rows / in planner only / class warpriest -> 268
 
-# 269, barbarian rows and rage powers.
-prerequisites / * / selection option barbarian/rage-power/beast-totem -> 269
-prerequisites / * / selection option barbarian/rage-power/beast-totem-greater -> 269
-prerequisites / * / selection option barbarian/rage-power/beast-totem-lesser -> 269
-prerequisites / * / selection option barbarian/rage-power/celestial-totem -> 269
-prerequisites / * / selection option barbarian/rage-power/celestial-totem-greater -> 269
-prerequisites / * / selection option barbarian/rage-power/celestial-totem-lesser -> 269
-prerequisites / * / selection option barbarian/rage-power/clear-mind -> 269
-prerequisites / * / selection option barbarian/rage-power/come-and-get-me -> 269
-prerequisites / * / selection option barbarian/rage-power/crippling-blows -> 269
-prerequisites / * / selection option barbarian/rage-power/daemon-totem -> 269
-prerequisites / * / selection option barbarian/rage-power/daemon-totem-greater -> 269
-prerequisites / * / selection option barbarian/rage-power/daemon-totem-lesser -> 269
-prerequisites / * / selection option barbarian/rage-power/deadly-accuracy -> 269
-prerequisites / * / selection option barbarian/rage-power/deflect-arrows-instinctual-warrior -> 269
-prerequisites / * / selection option barbarian/rage-power/diamond-soul-instinctual-warrior -> 269
-prerequisites / * / selection option barbarian/rage-power/fearless-rage -> 269
-prerequisites / * / selection option barbarian/rage-power/fiend-totem -> 269
-prerequisites / * / selection option barbarian/rage-power/fiend-totem-greater -> 269
-prerequisites / * / selection option barbarian/rage-power/fiend-totem-lesser -> 269
-prerequisites / * / selection option barbarian/rage-power/increased-damage-reduction -> 269
-prerequisites / * / selection option barbarian/rage-power/internal-fortitude -> 269
-prerequisites / * / selection option barbarian/rage-power/lethal-accuracy -> 269
-prerequisites / * / selection option barbarian/rage-power/protect-vitals -> 269
-prerequisites / * / selection option barbarian/rage-power/purity-of-body-instinctual-warrior -> 269
-prerequisites / * / selection option barbarian/rage-power/reflexive-dodge -> 269
-prerequisites / * / selection option barbarian/rage-power/renewed-vigor -> 269
-prerequisites / * / selection option barbarian/rage-power/rolling-dodge -> 269
-prerequisites / * / selection option barbarian/rage-power/wrecking-blows -> 269
+# 269, barbarian rows and rage powers. 308f wrote the rage powers' prerequisites from the game; the four Lesser totems
+# name SpiritTotemLesserFeature bd63d3ea0e030cf4c930db9ba5eaf931, which no entry maps (307's carriers), and keep their
+# hand exclusion of the other lines.
+prerequisites / * / selection option barbarian/rage-power/beast-totem-lesser -> 307
+prerequisites / * / selection option barbarian/rage-power/celestial-totem-lesser -> 307
+prerequisites / * / selection option barbarian/rage-power/daemon-totem-lesser -> 307
+prerequisites / * / selection option barbarian/rage-power/fiend-totem-lesser -> 307
 progression rows / * / archetype barbarian/flesheater -> 269
 progression rows / * / archetype barbarian/mad-dog -> 269
 progression rows / * / archetype barbarian/pack-rager -> 269
 progression rows / a further rank in planner only / archetype barbarian/instinctual-warrior -> 269
 
-# 270, the kineticist's blasts and infusions.
+# 270, the kineticist's blasts and infusions. 308f wrote the infusions' prerequisites from the game; those left name a
+# blast (AirBlastFeature cb09e292ad9acc3428fa0dfdcbb83883, …), which the planner's vocabulary can't hold yet
+# (research/307/decisions.md item 3), as does Fire's Fury. The air, earth and fire elements stay as they were (306t):
+# their blueprints (ElementalFocusAir 2bd0d44953a536f489082534c48f8e31, …) refuse the Blood Kineticist
+# (PrerequisiteNoArchetype BloodKineticistArchetype 365b50dba54efb74fa24c07e9b7a838c), but the planner's Expanded
+# Element offers the same entries for the game's SecondaryElementAir 659c39542b728c04b83e969c834782a9 and the other
+# second and third elements, which refuse no archetype: writing it refused a Blood Kineticist's expanded air (308f).
 option lists / * / selection kineticist/blood-kineticist/element -> 270
 option lists / * / selection kineticist/expanded-element -> 270
 option lists / * / selection kineticist/kinetic-knight/element -> 270
-prerequisites / * / selection option kineticist/element/air -> 270
-prerequisites / * / selection option kineticist/element/earth -> 270
-prerequisites / * / selection option kineticist/element/fire -> 270
+prerequisites / * / selection option kineticist/element/air -> 306t
+prerequisites / * / selection option kineticist/element/earth -> 306t
+prerequisites / * / selection option kineticist/element/fire -> 306t
 prerequisites / * / selection option kineticist/infusions/bowling-infusion -> 270
 prerequisites / * / selection option kineticist/infusions/burning-infusion -> 270
 prerequisites / * / selection option kineticist/infusions/chilling-infusion -> 270
@@ -504,46 +482,36 @@ prerequisites / * / selection option kineticist/infusions/deadly-earth -> 270
 prerequisites / * / selection option kineticist/infusions/detonation -> 270
 prerequisites / * / selection option kineticist/infusions/entangling-infusion -> 270
 prerequisites / * / selection option kineticist/infusions/eruption -> 270
-prerequisites / * / selection option kineticist/infusions/exploding-arrows -> 270
-prerequisites / * / selection option kineticist/infusions/extended-range -> 270
 prerequisites / * / selection option kineticist/infusions/fan-of-flames -> 270
 prerequisites / * / selection option kineticist/infusions/flash-infusion -> 270
 prerequisites / * / selection option kineticist/infusions/foxfire-infusion -> 270
 prerequisites / * / selection option kineticist/infusions/fragmentation -> 270
-prerequisites / * / selection option kineticist/infusions/kinetic-blade -> 270
 prerequisites / * / selection option kineticist/infusions/magnetic-infusion -> 270
 prerequisites / * / selection option kineticist/infusions/pure-flame-infusion -> 270
 prerequisites / * / selection option kineticist/infusions/pushing-infusion -> 270
 prerequisites / * / selection option kineticist/infusions/rare-metal-infusion -> 270
-prerequisites / * / selection option kineticist/infusions/rending-arrows -> 270
-prerequisites / * / selection option kineticist/infusions/spindle -> 270
 prerequisites / * / selection option kineticist/infusions/spray -> 270
 prerequisites / * / selection option kineticist/infusions/synaptic-infusion -> 270
 prerequisites / * / selection option kineticist/infusions/torrent -> 270
 prerequisites / * / selection option kineticist/infusions/unraveling-infusion -> 270
-prerequisites / * / selection option kineticist/infusions/wall -> 270
+prerequisites / * / selection option kineticist/wild-talents/fires-fury -> 270
 
-# 271, the kineticist's wild talents and rows.
+# 271, the kineticist's wild talents and rows. 308f wrote the talents' prerequisites from the game; those left name an
+# element's secondary or tertiary feature (SecondaryElementAir 659c39542b728c04b83e969c834782a9, …) or the Kinetic
+# Knight's focus, which no entry maps (306t). Expanded Defense's PrerequisiteSelectionPossible has no line: the check
+# doesn't read it.
 option lists / * / selection kineticist/wild-talents -> 271
-prerequisites / * / selection option kineticist/wild-talents/aerial-adaptation -> 271
-prerequisites / * / selection option kineticist/wild-talents/aerial-evasion -> 271
-prerequisites / * / selection option kineticist/wild-talents/celerity -> 271
-prerequisites / * / selection option kineticist/wild-talents/cold-adaptation -> 271
-prerequisites / * / selection option kineticist/wild-talents/elemental-whispers -> 271
-prerequisites / * / selection option kineticist/wild-talents/enduring-earth -> 271
-prerequisites / * / selection option kineticist/wild-talents/fires-fury -> 271
-prerequisites / * / selection option kineticist/wild-talents/flame-shield -> 271
-prerequisites / * / selection option kineticist/wild-talents/foxfire -> 271
-prerequisites / * / selection option kineticist/wild-talents/healing-burst -> 271
-prerequisites / * / selection option kineticist/wild-talents/heat-adaptation -> 271
-prerequisites / * / selection option kineticist/wild-talents/jagged-flesh -> 271
-prerequisites / * / selection option kineticist/wild-talents/kinetic-healer -> 271
-prerequisites / * / selection option kineticist/wild-talents/kinetic-revivification -> 271
-prerequisites / * / selection option kineticist/wild-talents/skill-focus -> 271
-prerequisites / * / selection option kineticist/wild-talents/skilled-kineticist -> 271
-prerequisites / * / selection option kineticist/wild-talents/slick -> 271
-prerequisites / * / selection option kineticist/wild-talents/tidal-wave -> 271
-prerequisites / * / selection option kineticist/wild-talents/tremor-sense -> 271
+prerequisites / * / selection option kineticist/wild-talents/aerial-adaptation -> 306t
+prerequisites / * / selection option kineticist/wild-talents/aerial-evasion -> 306t
+prerequisites / * / selection option kineticist/wild-talents/celerity -> 306t
+prerequisites / * / selection option kineticist/wild-talents/cold-adaptation -> 306t
+prerequisites / * / selection option kineticist/wild-talents/enduring-earth -> 306t
+prerequisites / * / selection option kineticist/wild-talents/foxfire -> 306t
+prerequisites / * / selection option kineticist/wild-talents/heat-adaptation -> 306t
+prerequisites / * / selection option kineticist/wild-talents/kinetic-healer -> 306t
+prerequisites / * / selection option kineticist/wild-talents/slick -> 306t
+prerequisites / * / selection option kineticist/wild-talents/tidal-wave -> 306t
+prerequisites / * / selection option kineticist/wild-talents/tremor-sense -> 306t
 progression rows / a further rank in game only / archetype kineticist/blood-kineticist -> 271
 progression rows / a further rank in game only / archetype kineticist/dark-elementalist -> 271
 progression rows / a further rank in game only / archetype kineticist/elemental-engine -> 271
@@ -694,44 +662,33 @@ progression rows / * / archetype shifter/weretouched -> 277
 progression rows / * / archetype shifter/wild-effigy -> 277
 progression rows / * / class druid -> 277
 
-# 278, witch and shaman hexes and rows.
+# 278, witch and shaman hexes and rows. 308f wrote the hexes' and the plague mutations' prerequisites from the game.
+# The shaman hexes left name a spirit's wandering feature (ShamanWindSpiritWanderingFeature
+# cc05b2fff3e20c64e968f490a5160c08, …), which the vocabulary can't hold yet (321); Battle Master stays 278's and the
+# Hexcrafter's 13 hexes 283's (their rows; see 308a's fix round below). The Elemental Witch's three rays need
+# WitchElementsPatronProgression 67e85f52b1f020847aaa738d8999d4cd, which the game's Elemental Witch picks in
+# ElementalWitchPatronSelection 3172b6960c774e19ad029c5e4a96d3e4 and the planner's holds as a feature
+# (`witch/elemental-witch/elemental-patron`), never as `witch/patron/elements`: writing them refused every ray but
+# cold, so 308f left them as they were (278's rows).
 option lists / * / selection shaman/wildland-shaman/spirit -> 316
-prerequisites / * / selection option shaman/hex/air-barrier -> 278
+prerequisites / * / selection option shaman/hex/air-barrier -> 321
 prerequisites / * / selection option shaman/hex/battle-master -> 278
-prerequisites / * / selection option shaman/hex/battle-ward -> 278
-prerequisites / * / selection option shaman/hex/beckoning-chill -> 278
-prerequisites / * / selection option shaman/hex/bone-lock -> 278
-prerequisites / * / selection option shaman/hex/bone-ward -> 278
-prerequisites / * / selection option shaman/hex/entangling-curse -> 278
-prerequisites / * / selection option shaman/hex/fearful-gaze -> 278
-prerequisites / * / selection option shaman/hex/fire-nimbus -> 278
-prerequisites / * / selection option shaman/hex/flame-curse -> 278
-prerequisites / * / selection option shaman/hex/friend-to-animals -> 278
-prerequisites / * / selection option shaman/hex/hampering-hex -> 278
-prerequisites / * / selection option shaman/hex/hypothermia -> 278
-prerequisites / * / selection option shaman/hex/iceplant -> 278
-prerequisites / * / selection option shaman/hex/intimidating-display -> 278
-prerequisites / * / selection option shaman/hex/metal-curse -> 278
-prerequisites / * / selection option shaman/hex/stone-stability -> 278
-prerequisites / * / selection option shaman/hex/vortex-spells -> 278
-prerequisites / * / selection option shaman/hex/ward-of-flame -> 278
-prerequisites / * / selection option shaman/hex/wind-ward -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-addle-mind -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-contagiousness -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-defenseless-host -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-drain-body -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-drain-mind -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-dulled-reactions -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-erode-body -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-erode-mind -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-muscle-atrophy -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-muscle-feebleness -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-new-strain -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-staggered-body -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-stiffened-limbs -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-virulence -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-vulnerable-host -> 278
-prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-withering -> 278
+prerequisites / * / selection option shaman/hex/battle-ward -> 321
+prerequisites / * / selection option shaman/hex/beckoning-chill -> 321
+prerequisites / * / selection option shaman/hex/bone-lock -> 321
+prerequisites / * / selection option shaman/hex/bone-ward -> 321
+prerequisites / * / selection option shaman/hex/entangling-curse -> 321
+prerequisites / * / selection option shaman/hex/fearful-gaze -> 321
+prerequisites / * / selection option shaman/hex/fire-nimbus -> 321
+prerequisites / * / selection option shaman/hex/flame-curse -> 321
+prerequisites / * / selection option shaman/hex/friend-to-animals -> 321
+prerequisites / * / selection option shaman/hex/hampering-hex -> 321
+prerequisites / * / selection option shaman/hex/hypothermia -> 321
+prerequisites / * / selection option shaman/hex/metal-curse -> 321
+prerequisites / * / selection option shaman/hex/stone-stability -> 321
+prerequisites / * / selection option shaman/hex/vortex-spells -> 321
+prerequisites / * / selection option shaman/hex/ward-of-flame -> 321
+prerequisites / * / selection option shaman/hex/wind-ward -> 321
 prerequisites / * / selection option witch/hex/agony -> 283
 prerequisites / * / selection option witch/hex/animal-servant -> 283
 prerequisites / * / selection option witch/hex/animal-skin -> 283
@@ -739,7 +696,6 @@ prerequisites / * / selection option witch/hex/beasts-gift -> 283
 prerequisites / * / selection option witch/hex/death-curse -> 283
 prerequisites / * / selection option witch/hex/delicious-fright -> 283
 prerequisites / * / selection option witch/hex/hoarfrost -> 283
-prerequisites / * / selection option witch/hex/iceplant -> 278
 prerequisites / * / selection option witch/hex/lay-to-rest -> 283
 prerequisites / * / selection option witch/hex/life-giver -> 283
 prerequisites / * / selection option witch/hex/major-ameliorating -> 283
@@ -956,7 +912,9 @@ progression rows / in planner only / archetype bard/thundercaller -> 286
 
 # 287, prestige classes. 308d wrote the classes' prerequisites the writer can express from the game; the class lines
 # left name their owner (a weapon proficiency 313, Skill Focus per skill 315, a carrier 307), or stay 287's for a hand
-# prerequisite. 308e wrote the defensive powers' prerequisites from the game.
+# prerequisite. 308e wrote the defensive powers' prerequisites from the game, 308f Pentamic Faith's. The Loremaster's
+# combat feat names LoremasterTricksterCombatFeatSelection 0ce1432869c74b778ab48890edf2021d (306o) beside a condition
+# tree (308, decision 3).
 option lists / * / selection loremaster/secret -> 287
 option lists / * / selection stalwart-defender/defensive-powers -> 287
 option lists / * / selection student-of-war/know-your-enemy -> 287

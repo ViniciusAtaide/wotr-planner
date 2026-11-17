@@ -417,3 +417,72 @@ full targeted ranger10-slayer2
 full t49 sylvan trickster fey trick / feat
 
 full t86 hunter/divine-hunter desna / empty
+
+t49 barbarian rage power / filled
+t49 barbarian rage power twice / filled
+t55 barbarian extra rage power / filled
+full t49 barbarian rage power / feat
+full t49 barbarian rage power / filled
+full t49 barbarian rage power twice / filled
+full t55 barbarian extra rage power / filled
+
+t65 celestial barbarian 6
+t65 celestial barbarian 6 / filled
+full barbarian barbarian/beastskin-berserker
+full barbarian barbarian/beastskin-berserker / legend
+full barbarian barbarian/flesheater
+full barbarian barbarian/flesheater / legend
+full barbarian barbarian/instinctual-warrior
+full barbarian barbarian/instinctual-warrior / legend
+full barbarian barbarian/invulnerable-rager
+full barbarian barbarian/invulnerable-rager / legend
+full barbarian barbarian/mad-dog
+full barbarian barbarian/mad-dog / legend
+full bloodrager bloodrager/primalist
+full bloodrager bloodrager/primalist / legend
+full gap barbarian daemon
+full gap barbarian daemon / legend
+full skald skald/hunt-caller
+full skald skald/hunt-caller / legend
+full t60 skald 20 / empty
+full t60 skald 20 / empty / legend
+full t60 skald/demon-dancer 20 / empty
+full t60 skald/demon-dancer 20 / empty / legend
+full t60 skald/hunt-caller 20 / empty
+full t60 skald/hunt-caller 20 / empty / legend
+full t65 celestial barbarian 6
+full t65 celestial barbarian 6 / filled
+full t66 fighter 5 instinctual warrior 8 purity
+full t66 instinctual warrior 12 / empty
+full t66 instinctual warrior 16 / empty
+full t66 instinctual warrior 20 / empty
+full t66 instinctual warrior 20 / empty / legend
+full t66 plain power, extra rage power
+
+t66 each power
+t66 each power / filled
+t66 deflect arrows only, extra rage power
+t66 deflect arrows only, extra rage power / filled
+full t66 each power
+full t66 each power / filled
+full t66 each power / filled / legend
+full t66 each power / legend
+full t66 deflect arrows only, extra rage power
+full t66 deflect arrows only, extra rage power / filled
+
+full t60 skald/inciter 20 / empty
+full t60 skald/inciter 20 / empty / legend
+
+full kineticist kineticist/kinetic-knight
+full kineticist kineticist/kinetic-knight / legend
+full t59 kinetic-knight 20 / empty
+full t59 kinetic-knight 20 / empty / legend
+
+talent fire 20
+full talent fire 20
+full talent fire 20 / legend
+full t59 kineticist 2 / empty
+full t59 kineticist 20 / empty
+full t59 kineticist 20 / empty / legend
+full t59 kineticist 19 eight infusions
+full t59 kineticist 19 eight infusions / legend

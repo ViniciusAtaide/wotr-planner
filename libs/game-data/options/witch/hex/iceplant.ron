@@ -1,1 +1,1 @@
-(key: "witch/hex/iceplant", blueprint: "9af6dc2697c8ef24eab8ce1c697b05c4", name: "Iceplant", summary: "Permanent +2 natural armour bonus to AC.", guide: "witch#iceplant")
+(key: "witch/hex/iceplant", blueprint: "9af6dc2697c8ef24eab8ce1c697b05c4", name: "Iceplant", summary: "Permanent +2 natural armour bonus to AC.", guide: "witch#iceplant", components: [Requires(condition: HasNot(Option("shaman/hex/iceplant")))])

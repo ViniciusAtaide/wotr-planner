@@ -6,7 +6,7 @@
     guide: "prestige-classes#pentamic-faith",
     components: [
         Requires(condition: Has(Option("fighter/armiger/order/order-of-the-godclaw"))),
-        Requires(condition: HasNot(Option("hellknight/disciplines/pentamic-faith"))),
+        Requires(condition: Not(Any([Has(Selection("hellknight/pentamic-faith")), Has(Option("hellknight/disciplines/pentamic-faith"))]))),
     ],
     levels: [
         (level: 1, selections: ["hellknight/pentamic-faith"]),

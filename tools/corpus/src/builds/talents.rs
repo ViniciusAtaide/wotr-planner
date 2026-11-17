@@ -2,7 +2,7 @@
 //! ki powers, and the talents other classes borrow.
 
 use rules::Alignment::{self, *};
-use rules::{Build, Engine, Parameter, Pick, SelectionOptionKey, SkillKey, SlotId};
+use rules::{Ability, Build, Engine, Parameter, Pick, SelectionOptionKey, SkillKey, SlotId};
 
 use super::{
     character, empty_and_filled, feat, feat_selection, general, human, option, selection, with,
@@ -124,11 +124,13 @@ pub(super) fn wild_talents() -> Vec<Named> {
         &[
             (2, "kineticist-bonus-feat"),
             (4, "foxfire"),
-            (6, "flame-shield"),
             (7, "kineticist/element/water"),
             (8, "expanded-defense"),
             (10, "kinetic-healer"),
             (12, "healing-burst"),
+            // FlameShieldFeature 733bbf836ec575b44b3c88b61a26282e needs kineticist 10 (308f): it swapped places with
+            // Skill Focus, once at 6.
+            (14, "flame-shield"),
             (15, "kineticist/element/air"),
             (16, "aerial-evasion"),
             (18, "tidal-wave"),
@@ -136,7 +138,7 @@ pub(super) fn wild_talents() -> Vec<Named> {
         ],
     );
     fire.picks.insert(
-        selection(14, 0),
+        selection(6, 0),
         Pick::option_for(
             SelectionOptionKey::new("kineticist/wild-talents/skill-focus"),
             Parameter::Skill(SkillKey::new("perception")),
@@ -894,16 +896,28 @@ pub(super) fn borrowed_talents(engine: &Engine) -> Vec<Named> {
 }
 
 /// The Instinctual Warrior's monk powers and Extra Rage Power: an Instinctual Warrior 3, 4, 8, 12, 16 and 20, empty
-/// and filled; one 20 with Improved Unarmed Strike and each monk power at its level; one 9 holding only Deflect Arrows
-/// with Extra Rage Power at 5 and 9 and Purity of Body in the slot at 9; one 9 holding a plain rage power with Extra
-/// Rage Power at 5; a fighter 5 / Instinctual Warrior 8 with Purity of Body at barbarian 8; a plain barbarian 20 with
-/// Improved Unarmed Strike; and Builds no sheet holds: Diamond Body at 8, Deflect Arrows without Improved Unarmed
-/// Strike, Perfect Self on a plain barbarian 20 and on an Armored Hulk 20, Purity of Body at barbarian 4 (character
-/// level 9) on the fighter 5 / Instinctual Warrior 8. Each fixed one also filled. Chaotic neutral humans.
+/// and filled; one 20 with Dex 13, Improved Unarmed Strike and each monk power at its level; one 9 with Dex 13 holding
+/// only Deflect Arrows with Extra Rage Power at 5 and 9 and Purity of Body in the slot at 9; one 9 holding a plain
+/// rage power with Extra Rage Power at 5; a fighter 5 / Instinctual Warrior 8 with Purity of Body at barbarian 8; a
+/// plain barbarian 20 with Improved Unarmed Strike; and Builds no sheet holds: Diamond Body at 8, Deflect Arrows
+/// without Improved Unarmed Strike, Perfect Self on a plain barbarian 20 and on an Armored Hulk 20, Purity of Body at
+/// barbarian 4 (character level 9) on the fighter 5 / Instinctual Warrior 8. Each fixed one also filled. Chaotic
+/// neutral humans.
 pub(super) fn instinctual_warrior(engine: &Engine) -> Vec<Named> {
     let power = |name: &str| option(&format!("barbarian/rage-power/{name}-instinctual-warrior"));
     let iw = Some("barbarian/instinctual-warrior");
     let warrior = |levels| human(&[("barbarian", iw, levels)]);
+    // RageDeflectArrowsFeature d971bbb15f354621ac37fd51d0ab9044 needs Dex 13 (308f): the Builds that take it with
+    // Improved Unarmed Strike have it.
+    let nimble = |levels| {
+        let mut build = warrior(levels);
+        build.start.ability_scores = build
+            .start
+            .ability_scores
+            .with(Ability::Dexterity, 13)
+            .expect("Dex 13 fits the point buy");
+        build
+    };
     let plain = [3, 4, 8, 12, 16, 20]
         .into_iter()
         .map(|levels| (format!("instinctual warrior {levels}"), warrior(levels)))
@@ -914,7 +928,7 @@ pub(super) fn instinctual_warrior(engine: &Engine) -> Vec<Named> {
         (
             "each power",
             with(
-                warrior(20),
+                nimble(20),
                 vec![
                     unarmed.clone(),
                     (selection(4, 0), power("deflect-arrows")),
@@ -928,7 +942,7 @@ pub(super) fn instinctual_warrior(engine: &Engine) -> Vec<Named> {
         (
             "deflect arrows only, extra rage power",
             with(
-                warrior(9),
+                nimble(9),
                 vec![
                     unarmed.clone(),
                     (selection(4, 0), power("deflect-arrows")),

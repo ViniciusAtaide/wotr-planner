@@ -87,6 +87,17 @@ const TALENTS: [(&str, u8, &[&str], Option<&str>); 22] = [
     ("tidal-wave", 9, &["water"], None),
 ];
 
+/// The talents whose prerequisite 308f wrote from the game: no kineticist level for the level-1 ones, and no element
+/// beside the feature or talent their blueprint names.
+const WRITTEN: [&str; 6] = [
+    "elemental-whispers",
+    "healing-burst",
+    "jagged-flesh",
+    "kinetic-revivification",
+    "skill-focus",
+    "skilled-kineticist",
+];
+
 /// What a talent of `level` with these elements and that other prerequisite needs: the kineticist level twice the
 /// talent's, one of its elements, and the other (a Universal talent: the level alone).
 fn talent_prerequisite(level: u8, elements: &[&str], other: Option<&str>) -> Prerequisite {
@@ -167,20 +178,16 @@ fn wild_talents_are_a_selection_of_22_talents_with_their_level_and_elements() {
     let keys: BTreeSet<String> = selection.options.iter().map(|o| o.to_string()).collect();
     let expected: BTreeSet<String> = TALENTS.iter().map(|(name, ..)| talent(name)).collect();
     assert_eq!(keys, expected);
-    // Game: each row's blueprint in TALENTS (Flame Shield's is `flame_shield_needs_kineticist_10_and_searing_flesh`'s).
+    // Game: each row's blueprint in TALENTS. Flame Shield's is `flame_shield_needs_kineticist_10_and_searing_flesh`'s;
+    // WRITTEN's are the game's own trees (308f), whose missing level and element this table's columns don't express:
+    // `barbarian_witch_shaman_prerequisites::the_wild_talents_name_their_features_and_levels_not_an_element`.
     for (name, level, elements, other) in TALENTS {
-        if name == "flame-shield" {
+        if name == "flame-shield" || WRITTEN.contains(&name) {
             continue;
-        }
-        let mut expected = talent_prerequisite(level, elements, other);
-        // Game: ElementalWhispersSelection f02525006521bee4eb90ab26b7b9db24's PrerequisiteNoFeature of itself.
-        if name == "elemental-whispers" {
-            let own = Prerequisite::SelectionOption(SelectionOptionKey::new(talent(name)));
-            expected = and_not(expected, own);
         }
         assert_eq!(
             selection_option(&talent(name)).prerequisite,
-            Some(expected),
+            Some(talent_prerequisite(level, elements, other)),
             "{name}"
         );
     }
@@ -204,15 +211,14 @@ fn wild_talents_are_a_selection_of_22_talents_with_their_level_and_elements() {
 /// The game's Flame Shield needs kineticist 10 as well as Searing Flesh: a Kinetic Knight, who holds Searing Flesh from
 /// 4, takes it from 10, and a fire kineticist 2 can't.
 #[test]
-#[ignore = "waits on ticket 271: the game gives Flame Shield kineticist 10"]
 fn flame_shield_needs_kineticist_10_and_searing_flesh() {
-    let (name, level, elements, other) = TALENTS[5];
+    let (name, level, _, other) = TALENTS[5];
     assert_eq!(name, "flame-shield");
     // Game: FlameShieldFeature 733bbf836ec575b44b3c88b61a26282e: PrerequisiteClassLevel KineticistClass 10 and
-    // SearingFlesh 8ad77685e64842c45a6f5b19f9086c6c.
+    // SearingFlesh 8ad77685e64842c45a6f5b19f9086c6c, no element.
     assert_eq!(
         selection_option(&talent(name)).prerequisite,
-        Some(talent_prerequisite(level, elements, other))
+        Some(talent_prerequisite(level, &[], other))
     );
     assert!(!open_talents(&kineticist("fire", 2), 2).contains(&talent("flame-shield")));
     // Game: KineticKnightElementalFocusFire d4a2a75d01d1e77489ff692636a538bf gives SearingFlesh at 4.
@@ -280,8 +286,8 @@ fn a_level_3_talent_opens_at_kineticist_6() {
     assert!(!possible(&early));
 }
 
-/// Flame Shield needs Searing Flesh, Fire's defensive talent: a Kinetic Knight has it from 4, not 2 (the game's
-/// kineticist 10 is `flame_shield_needs_kineticist_10_and_searing_flesh`'s).
+/// Flame Shield needs Searing Flesh, Fire's defensive talent: a Kinetic Knight has it from 4, not 2, and the reason at
+/// 2 names it beside the game's kineticist 10 (`flame_shield_needs_kineticist_10_and_searing_flesh`).
 #[test]
 fn a_talent_needing_a_defensive_talent_waits_for_it() {
     let knight = with_option(
@@ -290,18 +296,20 @@ fn a_talent_needing_a_defensive_talent_waits_for_it() {
         0,
         "kineticist/element/fire",
     );
-    // Game: FlameShieldFeature 733bbf836ec575b44b3c88b61a26282e needs SearingFlesh 8ad77685e64842c45a6f5b19f9086c6c,
-    // which KineticKnightElementalFocusFire d4a2a75d01d1e77489ff692636a538bf gives at 4.
+    // Game: FlameShieldFeature 733bbf836ec575b44b3c88b61a26282e needs kineticist 10 and SearingFlesh
+    // 8ad77685e64842c45a6f5b19f9086c6c, which KineticKnightElementalFocusFire d4a2a75d01d1e77489ff692636a538bf gives at
+    // 4.
     assert_eq!(
         talent_reason(&knight, 2, "flame-shield"),
-        "Needs Searing Flesh"
+        "Needs Kineticist level 10 (have 2), Searing Flesh"
     );
-    // Healing Burst needs Kinetic Healer. Game: HealingBUrstFeature c73b37aaa2b82b44686c56db8ce14e7f.
+    // Healing Burst needs Kinetic Healer. Game: HealingBUrstFeature c73b37aaa2b82b44686c56db8ce14e7f, a
+    // PrerequisiteFeaturesFromList of one, Amount 1 (308f), which the reason reads as a list.
     let water = kineticist_with("water", 8, &[(2, &talent("kinetic-healer"))]);
     assert!(open_talents(&water, 8).contains(&talent("healing-burst")));
     assert_eq!(
         talent_reason(&kineticist("water", 8), 8, "healing-burst"),
-        "Needs Kinetic Healer"
+        "Needs 1 more of: Kinetic Healer"
     );
 }
 

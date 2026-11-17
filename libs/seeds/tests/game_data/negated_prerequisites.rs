@@ -131,23 +131,29 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
 
     // A slayer's 2nd-level combat style talent at slayer 6:
     // `a_slayer_6_who_skipped_it_takes_the_2nd_level_combat_style`.
-    // A second totem line, ahead of what else it needs: Beast Totem for a barbarian of the Celestial line.
-    let mut totems = barbarian(6);
+    // A second totem line: Beast Totem, Lesser for a barbarian of the Celestial line, and Beast Totem after it.
+    // Game: CelestialTotemFeature 5156331dc888e9347ae6fc81ad3f3cec needs barbarian 6 (308f), so it is taken at 6.
+    let mut totems = barbarian(8);
     totems.picks.insert(
         selection_slot(2),
         pick("barbarian/rage-power/celestial-totem-lesser"),
     );
     totems.picks.insert(
-        selection_slot(4),
+        selection_slot(6),
         pick("barbarian/rage-power/celestial-totem"),
     );
     assert!(possible(&totems));
-    // Game: BeastTotemFeature c085888db293f2741b881cc989a2ab14 needs BeastTotemLesserFeature
-    // d99dfc9238a8a6646b32be09057c1729, which CelestialTotemLesserFeature aba61e0b0e66bf3439cc247ee89fddae shuts
-    // out (equivalent model: the game's only reason is the missing Lesser).
+    // Game: BeastTotemLesserFeature d99dfc9238a8a6646b32be09057c1729 refuses CelestialTotemLesserFeature
+    // aba61e0b0e66bf3439cc247ee89fddae (equivalent model: the other lines' powers held).
     assert_eq!(
-        lock_reason(&totems, 6, "barbarian/rage-power/beast-totem"),
-        "Not with Celestial Totem or Celestial Totem, Lesser; needs Beast Totem, Lesser"
+        lock_reason(&totems, 8, "barbarian/rage-power/beast-totem-lesser"),
+        "Not with Celestial Totem or Celestial Totem, Lesser"
+    );
+    // Game: BeastTotemFeature c085888db293f2741b881cc989a2ab14 needs BeastTotemLesserFeature, which the Celestial
+    // Lesser shuts out; it refuses nothing itself.
+    assert_eq!(
+        lock_reason(&totems, 8, "barbarian/rage-power/beast-totem"),
+        "Needs Beast Totem, Lesser"
     );
     // Cinder Dance with the Lame curse.
     let lame = with_option(oracle("flame", 1), 1, 1, "oracle/oracles-curse/lame");

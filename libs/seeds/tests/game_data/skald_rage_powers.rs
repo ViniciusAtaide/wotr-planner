@@ -239,8 +239,6 @@ fn a_rage_powers_level_prerequisite_reads_skald_levels_too() {
 /// Vitals and Increased Damage Reduction), on 21 rage powers: the 14 and the celestial, daemon and fiend totems (6),
 /// their greater forms (10) and Come and Get Me (12), each totem needing the one before it.
 #[test]
-#[ignore = "waits on ticket 269: the game gives 21 level gates, each read from barbarian, skald, \
-            Primalist or shifter levels"]
 fn a_rage_powers_level_gate_reads_barbarian_skald_primalist_and_shifter_levels() {
     // Game: each row's blueprint in LEVEL_GATED and LEVEL_GATED_TOO (PrerequisiteClassLevel BarbarianClass, SkaldClass,
     // ShifterClass, and PrerequisiteArchetypeLevel BloodragerClass PrimalistArchetype, one of them).

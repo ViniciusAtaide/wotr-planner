@@ -255,10 +255,13 @@ fn the_selections_with_their_own_no_feature_are_taken_once() {
     // 689959eef3e972e458b52598dcc2c752, OracleRevelationBondedMount 0234d0dd1cead22428e71a2500afa2e1, Familiar
     // 363cab72f77c47745bf3a8807074d183, RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9, RangerStyleSelection6
     // 61f82ba786fe05643beb3cd3910233a8, RangerStyleSelection10 78177315fc63b474ea3cbb8df38fafcd. The three slayer
-    // talents 308e wrote share their blueprint with the ranger's stage selection, so the NoFeature is a `Not` of an `Any`
-    // of both.
+    // talents 308e wrote share their blueprint with the ranger's stage selection, and Pentamic Faith (308f) with the
+    // Hellknight's domain selection, so the NoFeature is a `Not` of an `Any` of both.
     for (key, sharer) in [
-        ("hellknight/disciplines/pentamic-faith", None),
+        (
+            "hellknight/disciplines/pentamic-faith",
+            Some("hellknight/pentamic-faith"),
+        ),
         ("kineticist/wild-talents/elemental-whispers", None),
         ("loremaster/secret/combat-feat", None),
         ("loremaster/secret/rogue-secret", None),

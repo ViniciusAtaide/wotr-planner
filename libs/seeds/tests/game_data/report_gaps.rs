@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 
 use rules::{
     ArchetypeKey, Build, ClassKey, FeatKey, FeatureKey, Issue, Pick, Prerequisite,
-    SelectionOptionKey, SkillKey, SlotKind, Unmet,
+    SelectionOptionKey, SkillKey, SlotKind,
 };
 
 use crate::support::*;
@@ -23,7 +23,8 @@ fn totem_options(line: &str) -> [String; 3] {
     ]
 }
 
-/// The options a prerequisite rules out with a `Not(SelectionOption(..))` in its top-level `All` (or as itself).
+/// The options a prerequisite rules out with a `Not(SelectionOption(..))` in its top-level `All` (or as itself). A
+/// refused archetype rules no option out (Increased Damage Reduction's Inciter, 308f).
 fn ruled_out(prerequisite: Option<&Prerequisite>) -> BTreeSet<String> {
     let children = match prerequisite {
         Some(Prerequisite::All(children)) => children.iter().collect(),
@@ -35,6 +36,7 @@ fn ruled_out(prerequisite: Option<&Prerequisite>) -> BTreeSet<String> {
         .filter_map(|child| match child {
             Prerequisite::Not(inner) => match inner.as_ref() {
                 Prerequisite::SelectionOption(option) => Some(option.to_string()),
+                Prerequisite::Archetype(_) => None,
                 other => panic!("an unexpected Not: {other:?}"),
             },
             _ => None,
@@ -51,21 +53,30 @@ fn not_option(key: &str) -> Prerequisite {
 /// '"Totem" powers are exclusive. Selecting one "Totem" power closes off the other categories.' (barbarian#rage-power)
 #[test]
 fn the_totem_rage_powers_are_exclusive_one_line_per_character() {
-    // Each totem power rules out the other three lines' nine powers; no other rage power rules anything out.
+    // Each Lesser totem rules out the other three lines' nine powers; the plain and Greater ones, and every other rage
+    // power, rule nothing out.
     // Game: each Lesser totem (BeastTotemLesserFeature d99dfc9238a8a6646b32be09057c1729, CelestialTotemLesserFeature
     // aba61e0b0e66bf3439cc247ee89fddae, DaemonTotemLesserFeature 45102fd7aab96f94d81ec80768549e12,
-    // FiendTotemLesserFeature 76437492f801f054ba536473ad2fde79) rules out the other Lessers, and each line's plain and
-    // Greater power needs its own Lesser (equivalent model: the same legal picks).
+    // FiendTotemLesserFeature 76437492f801f054ba536473ad2fde79) rules out the other Lessers (equivalent model: the
+    // other lines' nine powers, the same legal picks), and each line's plain and Greater power needs the one before
+    // it, with no PrerequisiteNoFeature (BeastTotemFeature c085888db293f2741b881cc989a2ab14, BeastTotemGreaterFeature
+    // 602d2684add008b4ba748af95c3f8b2e and the other lines' six; 308f wrote them).
     for line in TOTEM_LINES {
         let others: BTreeSet<String> = TOTEM_LINES
             .iter()
             .filter(|other| **other != line)
             .flat_map(|other| totem_options(other))
             .collect();
-        for key in totem_options(line) {
+        let [lesser, plain, greater] = totem_options(line);
+        assert_eq!(
+            ruled_out(selection_option(&lesser).prerequisite.as_ref()),
+            others,
+            "{lesser}"
+        );
+        for key in [plain, greater] {
             assert_eq!(
                 ruled_out(selection_option(&key).prerequisite.as_ref()),
-                others,
+                BTreeSet::new(),
                 "{key}"
             );
         }
@@ -79,7 +90,9 @@ fn the_totem_rage_powers_are_exclusive_one_line_per_character() {
         }
     }
 
-    // A barbarian with Beast Totem, Lesser at 2 is offered no other line's power, and his own line's chain.
+    // A barbarian with Beast Totem, Lesser at 2 is offered no other line's power, and his own line's chain: another
+    // line's Lesser for the Beast Lesser held, its plain and Greater powers for the one before them, which that Lesser
+    // shuts out.
     let mut build = barbarian(10);
     build.picks.insert(
         selection_slot(2),
@@ -88,21 +101,17 @@ fn the_totem_rage_powers_are_exclusive_one_line_per_character() {
     let at_4 = offered(&build, 4);
     let beast_lesser = not_option("barbarian/rage-power/beast-totem-lesser");
     for line in ["celestial", "daemon", "fiend"] {
-        for key in totem_options(line) {
-            let status = at_4[&key].clone();
-            match status {
-                Err(Issue::Unmet(Unmet::Condition { needs, .. })) => {
-                    assert_eq!(needs, beast_lesser)
-                }
-                Err(Issue::Unmet(Unmet::All(children))) => assert!(
-                    children.contains(&Unmet::Condition {
-                        needs: beast_lesser.clone(),
-                        has: None
-                    }),
-                    "{key}: {children:?}"
-                ),
-                other => panic!("{key}: {other:?}"),
-            }
+        let options = totem_options(line);
+        for (index, key) in options.iter().enumerate() {
+            let Err(Issue::Unmet(unmet)) = &at_4[key] else {
+                panic!("{key}: {:?}", at_4[key])
+            };
+            let needs: Vec<&Prerequisite> = conditions(unmet).into_iter().map(|(n, _)| n).collect();
+            let expected = match index {
+                0 => beast_lesser.clone(),
+                _ => Prerequisite::SelectionOption(SelectionOptionKey::new(&options[index - 1])),
+            };
+            assert!(needs.contains(&&expected), "{key}: {needs:?}");
         }
     }
     build
