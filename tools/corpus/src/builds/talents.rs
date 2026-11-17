@@ -972,7 +972,9 @@ pub(super) fn instinctual_warrior(engine: &Engine) -> Vec<Named> {
         ),
         (
             "deflect arrows bare",
-            with(warrior(4), vec![(selection(4, 0), power("deflect-arrows"))]),
+            // Dex 13 (308f's review): the Build tests only the missing Improved Unarmed Strike, which its filled copy
+            // may then take.
+            with(nimble(4), vec![(selection(4, 0), power("deflect-arrows"))]),
         ),
         (
             "barbarian perfect self",
