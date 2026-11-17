@@ -17,3 +17,5 @@ Its section in `slices.md` is built and proved as written there. S3 is a form ch
 ## Note from 307b's review
 
 The dry run's other-ticket carriers (about 224) include about 100 members of selections nothing models yet (bloodline, domain and deity progressions). `carriers-left.txt` will carry many lines unless 306 and 267/294 merge first.
+
+**From 307m's review (main session, 2026-11-17):** make `--write carrier-grants` require `--only` too (`main.rs`, beside the `carriers` guard). A real run without it writes grants toward every existing template-shaped carrier, which includes other tickets' carriers once S2 makes them. Test it.

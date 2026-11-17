@@ -63,6 +63,62 @@ pub const GEAR_FIELDS: &[&str] = &[
     "other_effects",
 ];
 
+/// The fields of a feature in the order `rules::Feature` declares them (`libs/rules/src/game_data.rs`).
+pub const FEATURE_FIELDS: &[&str] = &[
+    "key",
+    "blueprint",
+    "name",
+    "summary",
+    "guide",
+    "option_row",
+    "daily_choice",
+    "favoured_weapon_proficiency",
+    "weapons",
+    "components",
+];
+
+/// The fields of a feat in the order `rules::Feat` declares them.
+pub const FEAT_FIELDS: &[&str] = &[
+    "key",
+    "blueprint",
+    "name",
+    "category",
+    "summary",
+    "guide",
+    "parameter",
+    "ranks",
+    "selection",
+    "requires_proficiency",
+    "prerequisite",
+    "aliases",
+    "components",
+];
+
+/// The fields of a selection option in the order `rules::SelectionOption` declares them.
+pub const OPTION_FIELDS: &[&str] = &[
+    "key",
+    "blueprint",
+    "name",
+    "summary",
+    "guide",
+    "feats",
+    "chosen_feat",
+    "parameter",
+    "values",
+    "ranks",
+    "is_selection",
+    "prerequisite",
+    "levels",
+    "header",
+    "aliases",
+    "replaces_row_of",
+    "group",
+    "arcana",
+    "domain",
+    "bab_from_ranks",
+    "components",
+];
+
 /// The fields of a feature selection in the order `rules::FeatureSelection` declares them
 /// (`libs/rules/src/game_data.rs`).
 pub const SELECTION_FIELDS: &[&str] = &[

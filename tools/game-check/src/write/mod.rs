@@ -28,7 +28,10 @@ use std::path::{Path, PathBuf};
 
 use rules::{DataAt, GameData};
 
-use span::{ARCHETYPE_FIELDS, CLASS_FIELDS, GEAR_FIELDS, SELECTION_FIELDS, SpanError, Value};
+use span::{
+    ARCHETYPE_FIELDS, CLASS_FIELDS, FEAT_FIELDS, FEATURE_FIELDS, GEAR_FIELDS, OPTION_FIELDS,
+    SELECTION_FIELDS, SpanError, Value,
+};
 
 /// One field of one entry's file to write, or to remove when `value` is `None`.
 #[derive(Clone, Debug)]
@@ -207,6 +210,9 @@ fn declared(file: &Path) -> &'static [&'static str] {
         Some("archetypes") => ARCHETYPE_FIELDS,
         Some("gear") => GEAR_FIELDS,
         Some("selections") => SELECTION_FIELDS,
+        Some("features") => FEATURE_FIELDS,
+        Some("feats") => FEAT_FIELDS,
+        Some("options") => OPTION_FIELDS,
         _ => &[],
     }
 }
@@ -244,6 +250,10 @@ fn owned(file: &Path) -> &'static [&'static str] {
             "mythic_abilities",
             "ignores_prerequisites",
         ],
+        // The carrier-grants target (ticket 307m): the grant components a feature, a feat or an option gains, and
+        // an option's rows. It only adds: the read-back refuses a change beyond the field.
+        Some("features" | "feats") => &["components"],
+        Some("options") => &["components", "levels"],
         _ => &[],
     }
 }
@@ -565,6 +575,8 @@ pub enum WriteArea {
     OptionLists,
     /// The hidden features a prerequisite names, and the chains that hold them, as new `features/` files.
     Carriers,
+    /// The grants an existing entry's blueprint makes of a carrier, as components and option rows (ticket 307m).
+    CarrierGrants,
 }
 
 impl WriteArea {
@@ -575,6 +587,7 @@ impl WriteArea {
             "class-tables" => Some(WriteArea::ClassTables),
             "option-lists" => Some(WriteArea::OptionLists),
             "carriers" => Some(WriteArea::Carriers),
+            "carrier-grants" => Some(WriteArea::CarrierGrants),
             _ => None,
         }
     }
@@ -585,6 +598,7 @@ impl WriteArea {
             WriteArea::ClassTables => "class-tables",
             WriteArea::OptionLists => "option-lists",
             WriteArea::Carriers => "carriers",
+            WriteArea::CarrierGrants => "carrier-grants",
         }
     }
 
@@ -594,7 +608,7 @@ impl WriteArea {
             WriteArea::Items => crate::Area::Items,
             WriteArea::ClassTables => crate::Area::ClassTables,
             WriteArea::OptionLists => crate::Area::OptionLists,
-            WriteArea::Carriers => crate::Area::Prerequisites,
+            WriteArea::Carriers | WriteArea::CarrierGrants => crate::Area::Prerequisites,
         }
     }
 
@@ -612,6 +626,7 @@ impl WriteArea {
             ],
             WriteArea::OptionLists => &["list"],
             WriteArea::Carriers => &[carriers::KIND],
+            WriteArea::CarrierGrants => &[carriers::GRANT_KIND],
         }
     }
 }
@@ -650,10 +665,11 @@ pub fn run(
         return Err(WriteError::StaleFacts(stale));
     }
     let lists = areas.contains(&WriteArea::OptionLists);
-    let carriers = areas.contains(&WriteArea::Carriers);
+    let carriers =
+        areas.contains(&WriteArea::Carriers) || areas.contains(&WriteArea::CarrierGrants);
     if only.is_some() && lists && carriers {
         return Err(WriteError::Usage(
-            "--only takes selection keys for option-lists and GUIDs for carriers: not both areas at once".to_owned(),
+            "--only takes selection keys for option-lists and GUIDs for carriers and carrier-grants: not both at once".to_owned(),
         ));
     }
     if let Some(unknown) = only.filter(|_| lists).and_then(|only| {
@@ -687,7 +703,10 @@ pub fn run(
     let mut unexpressed = Vec::new();
     let mut to_the_user = Vec::new();
     let mut applied_facts = BTreeMap::new();
-    for area in areas {
+    // The grants come after the carriers they name, whatever order the areas were given in.
+    let mut ordered = areas.to_vec();
+    ordered.sort_by_key(|area| *area == WriteArea::CarrierGrants);
+    for area in &ordered {
         let (more, left) = match area {
             WriteArea::Items => items::changes(&ctx),
             WriteArea::ClassTables => tables::changes(&ctx, facts),
@@ -697,6 +716,7 @@ pub fn run(
                 created.extend(files);
                 (Vec::new(), left)
             }
+            WriteArea::CarrierGrants => carriers::attachments(&ctx, &created, dry_run, only),
         };
         for change in more {
             let entry = change.at.to_string();

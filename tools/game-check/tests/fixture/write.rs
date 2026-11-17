@@ -2328,3 +2328,248 @@ fn only_refuses_a_value_that_is_no_guid() {
         assert!(matches!(error, WriteError::Usage(_)), "{bad}: {error}");
     }
 }
+
+// The carrier-grants target (ticket 307m): the grants an existing entry's blueprint makes of a carrier. The world:
+// `SteadyFeat` (100, the feat `steady-feat`) requires the hidden `HiddenTrickFeature` (101) and `DeepRankUp2Feature`
+// (102); `TrickWrapperFeature` (105) adds 101 and is added by `MappedHolderFeature` (106, the entry `mapped-holder`),
+// so 101, 102 and 105 are carriers. The option `rooted` (120) is the progression `RootedProgression`, granting 102 at
+// option level 1 and 101 at 2, where its file already has a row. The option `plain` (121) holds 102 if it has the
+// feat, and 101 if it has a blueprint no entry maps.
+
+fn grants_world() -> (tempfile::TempDir, game_check::Dump) {
+    let dir = data_copy();
+    let put = |file: &str, text: String| std::fs::write(dir.path().join(file), text).unwrap();
+    std::fs::create_dir(dir.path().join("features")).unwrap();
+    put(
+        "feats/steady-feat.ron",
+        format!(
+            "(key: \"steady-feat\", blueprint: \"{}\", name: \"Steady\", category: Weapon)\n",
+            guid(100)
+        ),
+    );
+    put(
+        "features/mapped-holder.ron",
+        format!(
+            "(key: \"mapped-holder\", blueprint: \"{}\", name: \"Mapped holder\")\n",
+            guid(106)
+        ),
+    );
+    put(
+        "options/rooted.ron",
+        format!(
+            "(key: \"rooted\", blueprint: \"{}\", name: \"Rooted\", levels: [(level: 2, features: [\"mapped-holder\"])])\n",
+            guid(120)
+        ),
+    );
+    put(
+        "options/plain.ron",
+        format!(
+            "(key: \"plain\", blueprint: \"{}\", name: \"Plain\")\n",
+            guid(121)
+        ),
+    );
+    let if_has = |feature: u32, checked: u32| {
+        format!(
+            "{{\"$type\": \"0, AddFeatureIfHasFact\", \"m_CheckedFact\": \"!bp_{}\", \"m_Feature\": \"!bp_{}\", \"Not\": true}}",
+            guid(checked),
+            guid(feature)
+        )
+    };
+    let rows = format!(
+        "{{\"$type\": \"0, BlueprintProgression\", \"Components\": [], \"LevelEntries\": [{{\"Level\": 1, \"m_Features\": [\"!bp_{}\"]}}, {{\"Level\": 2, \"m_Features\": [\"!bp_{}\"]}}]}}",
+        guid(102),
+        guid(101)
+    );
+    let records = vec![
+        feature_record(
+            100,
+            "SteadyFeat",
+            FEATURE,
+            &format!("{}, {}", requires(101), requires(102)),
+        ),
+        feature_record(101, "HiddenTrickFeature", FEATURE, ""),
+        feature_record(102, "DeepRankUp2Feature", FEATURE, ""),
+        feature_record(105, "TrickWrapperFeature", FEATURE, &adds(101)),
+        feature_record(106, "MappedHolderFeature", FEATURE, &adds(105)),
+        record(120, "RootedProgression", PROGRESSION, &rows),
+        feature_record(
+            121,
+            "PlainFeature",
+            FEATURE,
+            &format!("{}, {}", if_has(102, 100), if_has(101, 999)),
+        ),
+    ];
+    let (_, dump) = crate::support::dump(&crate::support::binz(&records, 1));
+    (dir, dump)
+}
+
+/// The grants area on a world, `only` the carriers a dry run may count.
+fn write_grants_only(
+    dir: &Path,
+    dump: &game_check::Dump,
+    only: Option<&[u32]>,
+    dry_run: bool,
+) -> game_check::write::Outcome {
+    let only: Option<std::collections::BTreeSet<String>> =
+        only.map(|only| only.iter().map(|n| guid(*n)).collect());
+    run(
+        dump,
+        dir,
+        &[WriteArea::CarrierGrants],
+        only.as_ref(),
+        dry_run,
+        &Facts::default(),
+        valid,
+    )
+    .unwrap()
+}
+
+/// The grants area with no `--only`.
+fn write_grants(dir: &Path, dump: &game_check::Dump, dry_run: bool) -> game_check::write::Outcome {
+    let facts = Facts::default();
+    run(
+        dump,
+        dir,
+        &[WriteArea::CarrierGrants],
+        None,
+        dry_run,
+        &facts,
+        valid,
+    )
+    .unwrap()
+}
+
+fn grants_after_carriers() -> (
+    tempfile::TempDir,
+    game_check::Dump,
+    game_check::write::Outcome,
+) {
+    let (dir, dump) = grants_world();
+    write_carriers(dir.path(), &dump, None, false).unwrap();
+    let outcome = write_grants(dir.path(), &dump, false);
+    (dir, dump, outcome)
+}
+
+fn feature_fact(key: &str) -> rules::Fact {
+    rules::Fact::Feature(rules::FeatureKey::new(key))
+}
+
+#[test]
+fn an_option_s_row_names_the_carrier_its_progression_grants() {
+    let (dir, _, outcome) = grants_after_carriers();
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    let option = data
+        .options
+        .iter()
+        .find(|o| o.key.as_str() == "rooted")
+        .unwrap();
+    // Level 1 is a new row; level 2 keeps what it has and gains the carrier (the loader sorts a row's keys).
+    let rows: Vec<(u8, Vec<&str>)> = option
+        .levels
+        .iter()
+        .map(|row| (row.level, row.features.iter().map(|k| k.as_str()).collect()))
+        .collect();
+    assert_eq!(
+        rows,
+        [
+            (1, vec!["deep-rank-up-2"]),
+            (2, vec!["hidden-trick", "mapped-holder"])
+        ]
+    );
+    assert!(
+        outcome
+            .changes
+            .iter()
+            .any(|c| c.field == "levels" && c.kind == "carrier grant"),
+        "{:?}",
+        outcome.changes
+    );
+}
+
+#[test]
+fn a_feature_grants_the_carrier_its_blueprint_adds() {
+    let (dir, _, outcome) = grants_after_carriers();
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    let holder = data
+        .features
+        .iter()
+        .find(|f| f.key.as_str() == "mapped-holder")
+        .unwrap();
+    assert_eq!(
+        holder.components,
+        [rules::Component::Grant(
+            [feature_fact("trick-wrapper")].into()
+        )]
+    );
+    // The entry's other fields are as they were (the read-back checked the bytes between).
+    assert_eq!(holder.name, "Mapped holder");
+    // `plain` holds `deep-rank-up-2` if it has the feat, with the game's `Not`.
+    let plain = data
+        .options
+        .iter()
+        .find(|o| o.key.as_str() == "plain")
+        .unwrap();
+    assert_eq!(
+        plain.components,
+        [rules::Component::GrantIf {
+            has: rules::Fact::Feat(rules::FeatKey::new("steady-feat")),
+            not: true,
+            fact: feature_fact("deep-rank-up-2"),
+        }]
+    );
+    // The grant checked on a blueprint no entry maps is left out and listed.
+    let left: Vec<&str> = outcome
+        .unexpressed
+        .iter()
+        .map(|u| u.what.as_str())
+        .collect();
+    assert_eq!(left.len(), 1, "{left:?}");
+    assert!(left[0].contains("HiddenTrickFeature"), "{left:?}");
+    assert!(outcome.unexpressed[0].at.to_string().contains("plain"));
+}
+
+#[test]
+fn a_grant_already_named_is_not_written_again() {
+    let (dir, dump, _) = grants_after_carriers();
+    let after = all_files(dir.path());
+    let again = write_grants(dir.path(), &dump, false);
+    assert!(again.changes.is_empty(), "{:?}", again.changes);
+    assert!(again.applied.files.is_empty());
+    assert_eq!(all_files(dir.path()), after);
+}
+
+fn planned_entries(outcome: &game_check::write::Outcome) -> usize {
+    let entries: std::collections::BTreeSet<_> = outcome.changes.iter().map(|c| &c.file).collect();
+    entries.len()
+}
+
+#[test]
+fn a_dry_run_of_the_grants_counts_only_the_carriers_only_names() {
+    // Before any carrier exists a dry run counts the ones `--only` names, as the carriers area takes them; with no
+    // `--only` it counts none, so no grant toward a carrier no file holds (or another ticket owns) is planned.
+    let (dir, dump) = grants_world();
+    let all = write_grants_only(dir.path(), &dump, Some(&[101, 102, 105]), true);
+    assert_eq!(planned_entries(&all), 3, "{:?}", all.changes);
+    let one = write_grants_only(dir.path(), &dump, Some(&[102]), true);
+    assert_eq!(planned_entries(&one), 2, "{:?}", one.changes);
+    assert!(
+        one.changes
+            .iter()
+            .all(|c| c.at.to_string() != "feature mapped-holder")
+    );
+    let none = write_grants_only(dir.path(), &dump, None, true);
+    assert!(none.changes.is_empty(), "{:?}", none.changes);
+    assert!(!dir.path().join("features/hidden-trick.ron").exists());
+}
+
+#[test]
+fn a_real_run_never_writes_a_grant_toward_a_carrier_no_file_holds() {
+    // No carrier file exists: a real run, with or without `--only`, writes no grant (the carriers are not made here).
+    let (dir, dump) = grants_world();
+    let before = all_files(dir.path());
+    for only in [None, Some(&[101u32, 102, 105][..])] {
+        let outcome = write_grants_only(dir.path(), &dump, only, false);
+        assert!(outcome.changes.is_empty(), "{:?}", outcome.changes);
+    }
+    assert_eq!(all_files(dir.path()), before);
+}

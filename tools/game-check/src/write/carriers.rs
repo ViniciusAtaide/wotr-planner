@@ -20,15 +20,17 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use rules::{BlueprintGuid, DataAt, FeatureKey};
+use rules::{
+    ArchetypeKey, BlueprintGuid, ClassKey, Component, DataAt, Fact, FeatureKey, OptionLevelRow,
+};
 use serde::Serialize;
 use serde_json::Value;
 
-use super::span::ron_text;
-use super::{NewFile, Unexpressed};
+use super::span::{Value as Field, ron_text};
+use super::{Change, NewFile, Unexpressed};
 use crate::areas::Ctx;
 use crate::dump::{
-    component_kind, components, is_feature_kind, level_entries, reference, references,
+    component_kind, components, flag, int, is_feature_kind, level_entries, reference, references,
 };
 
 /// The four basic blast progressions a chain reaches through a selection nothing models: `AirBlastProgression`,
@@ -353,4 +355,362 @@ fn collect(value: &Value, out: &mut BTreeSet<BlueprintGuid>) {
         Value::Object(fields) => fields.values().for_each(|item| collect(item, out)),
         _ => {}
     }
+}
+
+/// The finding kind a carrier grant answers.
+pub const GRANT_KIND: &str = "carrier grant";
+
+/// The grants (ticket 307m): to each existing feature, feat or option whose blueprint grants a carrier, the grant
+/// components that make it hold the carrier, and for an option whose blueprint is a progression, its row at the
+/// level the progression grants it. It only adds: a grant the entry already names (any grant component, or the
+/// option's row at that level, naming the carrier) is not written again, and no component or row is removed.
+///
+/// A carrier is a `features/` entry of the carriers' template (`name` the key's words capitalised, no `summary` or
+/// `guide`, only grant components: [`is_carrier`]), or one made in this run (`made`). With `prospective` (a dry
+/// run) the carriers `only` names (GUIDs, as for the carriers area) count too, so the plan shows what a run after
+/// the carriers area would write; with no `only` none does, so a grant toward a carrier no file holds is never planned.
+/// A carrier's own grants are its own file's (ticket 307c), so a carrier is never a source here.
+///
+/// A grant whose condition or class has no single entry is left unwritten and listed.
+pub(crate) fn attachments(
+    ctx: &Ctx,
+    made: &[NewFile],
+    prospective: bool,
+    only: Option<&BTreeSet<String>>,
+) -> (Vec<Change>, Vec<Unexpressed>) {
+    let data = ctx.planner.data;
+    let mut targets: BTreeMap<BlueprintGuid, FeatureKey> = data
+        .features
+        .iter()
+        .filter(|feature| is_carrier(feature))
+        .filter_map(|feature| Some((feature.blueprint.clone()?, feature.key.clone())))
+        .collect();
+    let mut planned: Vec<NewFile> = made.to_vec();
+    // Only the carriers `only` names, as the carriers area does: no run plans a grant toward one another ticket owns.
+    if let (true, Some(only)) = (prospective, only) {
+        planned.extend(changes(ctx, Some(only)).0);
+    }
+    for file in &planned {
+        if let Ok(feature) = ron::Options::default()
+            .with_default_extension(ron::extensions::Extensions::IMPLICIT_SOME)
+            .from_str::<rules::Feature>(&file.text)
+            && let Some(guid) = feature.blueprint
+        {
+            targets.insert(guid, feature.key);
+        }
+    }
+    let mut sources: Vec<Source> = Vec::new();
+    for feature in data.features.iter().filter(|f| !is_carrier(f)) {
+        sources.push(Source {
+            at: DataAt::Feature(feature.key.clone()),
+            blueprint: feature.blueprint.as_ref(),
+            components: &feature.components,
+            rows: None,
+        });
+    }
+    for feat in &data.feats {
+        sources.push(Source {
+            at: DataAt::Feat(feat.key.clone()),
+            blueprint: feat.blueprint.as_ref(),
+            components: &feat.components,
+            rows: None,
+        });
+    }
+    for option in &data.options {
+        sources.push(Source {
+            at: DataAt::SelectionOption(option.key.clone()),
+            blueprint: option.blueprint.as_ref(),
+            components: &option.components,
+            rows: Some(&option.levels),
+        });
+    }
+    let (mut out, mut left) = (Vec::new(), Vec::new());
+    for source in sources {
+        let Some(guid) = source.blueprint else {
+            continue;
+        };
+        let Some(json) = ctx.dump.json(guid) else {
+            continue;
+        };
+        let (added, rows, unread) = grants_of(ctx, &targets, &source, json);
+        left.extend(unread.into_iter().map(|what| Unexpressed {
+            at: source.at.clone(),
+            what,
+        }));
+        let file = super::entry_file(data, &source.at);
+        if !added.is_empty() {
+            let all: Vec<String> = source
+                .components
+                .iter()
+                .chain(&added)
+                .map(ron_text)
+                .collect();
+            out.push(Change {
+                at: source.at.clone(),
+                file: file.clone(),
+                field: "components",
+                kind: GRANT_KIND,
+                value: Some(Field::List(all)),
+                old: format!("{} components", source.components.len()),
+                new: added.iter().map(ron_text).collect::<Vec<_>>().join("; "),
+            });
+        }
+        if let (Some(held), false) = (source.rows, rows.is_empty()) {
+            let mut all: Vec<OptionLevelRow> = held.to_vec();
+            for (level, key) in &rows {
+                match all.iter_mut().find(|row| row.level == *level) {
+                    Some(row) => row.features.push(key.clone()),
+                    None => all.push(OptionLevelRow {
+                        level: *level,
+                        features: vec![key.clone()],
+                        ..OptionLevelRow::default()
+                    }),
+                }
+            }
+            all.sort_by_key(|row| row.level);
+            out.push(Change {
+                at: source.at.clone(),
+                file,
+                field: "levels",
+                kind: GRANT_KIND,
+                value: Some(Field::List(all.iter().map(row_text).collect())),
+                old: format!("{} rows", held.len()),
+                new: rows
+                    .iter()
+                    .map(|(level, key)| format!("level {level}: {key}"))
+                    .collect::<Vec<_>>()
+                    .join("; "),
+            });
+        }
+    }
+    (out, left)
+}
+
+/// An entry that can hold a grant: what it has now, and its blueprint.
+struct Source<'a> {
+    at: DataAt,
+    blueprint: Option<&'a BlueprintGuid>,
+    components: &'a [Component],
+    /// An option's rows; `None` for an entry that has none.
+    rows: Option<&'a [OptionLevelRow]>,
+}
+
+/// Whether a feature is a carrier as the carriers area writes it: the key's words as the name, nothing else of its
+/// own, and only grants of its own.
+fn is_carrier(feature: &rules::Feature) -> bool {
+    let name: Vec<String> = feature.key.as_str().split('-').map(capitalised).collect();
+    feature.blueprint.is_some()
+        && feature.name == name.join(" ")
+        && feature.summary.is_empty()
+        && feature.guide.is_none()
+        && feature.option_row.is_none()
+        && !feature.daily_choice
+        && !feature.favoured_weapon_proficiency
+        && feature.weapons.is_empty()
+        && feature.components.iter().all(|part| {
+            matches!(
+                part,
+                Component::Grant(_)
+                    | Component::GrantAtClassLevel { .. }
+                    | Component::GrantIf { .. }
+                    | Component::GrantOnApply(_)
+            )
+        })
+}
+
+/// The facts a component grants or names in a grant.
+fn named(component: &Component) -> Vec<&Fact> {
+    match component {
+        Component::Grant(facts) => facts.iter().collect(),
+        Component::GrantAtClassLevel { fact, .. } | Component::GrantOnApply(fact) => vec![fact],
+        Component::GrantIf { fact, .. } => vec![fact],
+        _ => Vec::new(),
+    }
+}
+
+/// The components an entry's blueprint adds for the carriers it grants, the rows (option level, carrier) its
+/// progression grants them at, and what could not be written.
+fn grants_of(
+    ctx: &Ctx,
+    targets: &BTreeMap<BlueprintGuid, FeatureKey>,
+    source: &Source,
+    json: &Value,
+) -> (Vec<Component>, Vec<(u8, FeatureKey)>, Vec<String>) {
+    let mut held: BTreeSet<Fact> = source.components.iter().flat_map(named).cloned().collect();
+    let carrier = |guid: &BlueprintGuid| targets.get(guid).map(|key| Fact::Feature(key.clone()));
+    let (mut added, mut rows, mut left) = (Vec::new(), Vec::new(), Vec::new());
+    for part in components(json) {
+        match component_kind(part) {
+            "AddFacts" => {
+                let new: BTreeSet<Fact> = references(part.get("m_Facts"))
+                    .iter()
+                    .filter_map(carrier)
+                    .filter(|fact| held.insert(fact.clone()))
+                    .collect();
+                if !new.is_empty() {
+                    added.push(Component::Grant(new));
+                }
+            }
+            "AddFeatureOnApply" => {
+                if let Some(fact) = reference(&part["m_Feature"])
+                    .as_ref()
+                    .and_then(carrier)
+                    .filter(|fact| held.insert(fact.clone()))
+                {
+                    added.push(Component::GrantOnApply(fact));
+                }
+            }
+            "AddFeatureIfHasFact" => {
+                let Some(feature) = reference(&part["m_Feature"]) else {
+                    continue;
+                };
+                let Some(fact) = carrier(&feature).filter(|fact| !held.contains(fact)) else {
+                    continue;
+                };
+                let checked = reference(&part["m_CheckedFact"]);
+                let Some(has) = checked
+                    .as_ref()
+                    .and_then(|guid| fact_of(ctx, targets, guid))
+                else {
+                    left.push(format!(
+                        "a grant of {} if it has {}: no single entry for the checked fact",
+                        ctx.name(&feature),
+                        checked.map_or_else(String::new, |guid| ctx.name(&guid))
+                    ));
+                    continue;
+                };
+                held.insert(fact.clone());
+                added.push(Component::GrantIf {
+                    has,
+                    not: flag(&part["Not"]),
+                    fact,
+                });
+            }
+            "AddFeatureOnClassLevel" => {
+                let Some(feature) = reference(&part["m_Feature"]) else {
+                    continue;
+                };
+                let Some(fact) = carrier(&feature).filter(|fact| !held.contains(fact)) else {
+                    continue;
+                };
+                let classes: Vec<BlueprintGuid> = reference(&part["m_Class"])
+                    .into_iter()
+                    .chain(references(part.get("m_AdditionalClasses")))
+                    .collect();
+                let archetypes = references(part.get("m_Archetypes"));
+                let class_keys: Vec<ClassKey> = classes
+                    .iter()
+                    .filter_map(|guid| match one_entry(ctx, guid) {
+                        Some(DataAt::Class(key)) => Some(key.clone()),
+                        _ => None,
+                    })
+                    .collect();
+                let archetype_keys: Vec<ArchetypeKey> = archetypes
+                    .iter()
+                    .filter_map(|guid| match one_entry(ctx, guid) {
+                        Some(DataAt::Archetype(key)) => Some(key.clone()),
+                        _ => None,
+                    })
+                    .collect();
+                let Ok(level) = u8::try_from(int(&part["Level"])) else {
+                    continue;
+                };
+                if class_keys.len() != classes.len() || archetype_keys.len() != archetypes.len() {
+                    left.push(format!(
+                        "a grant of {} at class level {level}: a class or archetype has no single entry",
+                        ctx.name(&feature)
+                    ));
+                    continue;
+                }
+                held.insert(fact.clone());
+                added.push(Component::GrantAtClassLevel {
+                    fact,
+                    classes: class_keys.into_iter().collect(),
+                    archetypes: archetype_keys.into_iter().collect(),
+                    level,
+                    before: flag(&part["BeforeThisLevel"]),
+                });
+            }
+            _ => {}
+        }
+    }
+    if let Some(have) = source.rows {
+        for (level, guids) in level_entries(&json["LevelEntries"]) {
+            let Ok(level) = u8::try_from(level) else {
+                continue;
+            };
+            for guid in guids {
+                let Some(key) = targets.get(&guid) else {
+                    continue;
+                };
+                let present = have
+                    .iter()
+                    .any(|row| row.level == level && row.features.contains(key));
+                if !present && !rows.contains(&(level, key.clone())) {
+                    rows.push((level, key.clone()));
+                }
+            }
+        }
+    }
+    (added, rows, left)
+}
+
+/// The one entry that names a blueprint.
+fn one_entry<'a>(ctx: &'a Ctx, guid: &BlueprintGuid) -> Option<&'a DataAt> {
+    match ctx.planner.entries_of(guid)[..] {
+        [at] => Some(at),
+        _ => None,
+    }
+}
+
+/// The fact a blueprint stands for: a carrier, or the one entry that maps it.
+fn fact_of(
+    ctx: &Ctx,
+    targets: &BTreeMap<BlueprintGuid, FeatureKey>,
+    guid: &BlueprintGuid,
+) -> Option<Fact> {
+    if let Some(key) = targets.get(guid) {
+        return Some(Fact::Feature(key.clone()));
+    }
+    Some(match one_entry(ctx, guid)? {
+        DataAt::Feat(key) => Fact::Feat(key.clone()),
+        DataAt::Feature(key) => Fact::Feature(key.clone()),
+        DataAt::SelectionOption(key) => Fact::Option(key.clone()),
+        DataAt::FeatureSelection(key) => Fact::Selection(key.clone()),
+        DataAt::MythicAbility(key) => Fact::MythicAbility(key.clone()),
+        DataAt::MythicFeat(key) => Fact::MythicFeat(key.clone()),
+        DataAt::Class(key) => Fact::Class(key.clone()),
+        DataAt::Archetype(key) => Fact::Archetype(key.clone()),
+        DataAt::Race(key) => Fact::Race(key.clone()),
+        DataAt::Deity(key) => Fact::Deity(key.clone()),
+        _ => return None,
+    })
+}
+
+/// An option's row as the files hold it: the level, then the lists it has.
+fn row_text(row: &OptionLevelRow) -> String {
+    let mut parts = vec![format!("level: {}", row.level)];
+    let mut list = |name: &str, empty: bool, text: String| {
+        if !empty {
+            parts.push(format!("{name}: {text}"));
+        }
+    };
+    list("features", row.features.is_empty(), ron_text(&row.features));
+    list("feats", row.feats.is_empty(), ron_text(&row.feats));
+    list(
+        "chosen_feats",
+        row.chosen_feats.is_empty(),
+        ron_text(&row.chosen_feats),
+    );
+    list(
+        "selections",
+        row.selections.is_empty(),
+        ron_text(&row.selections),
+    );
+    list(
+        "class_skills",
+        row.class_skills.is_empty(),
+        ron_text(&row.class_skills),
+    );
+    format!("({})", parts.join(", "))
 }
