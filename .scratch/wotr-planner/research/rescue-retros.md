@@ -8,6 +8,6 @@ The `subagent-rescue` skill appends one entry per rescue: the ticket, the minute
 - **A move away from the game, caught by the rescue:** moving the six greater exploits into the ordinary exploit lists dropped the game's `ArcanistGreaterExploitsFeature` requirement. The brief didn't say that moving an option into a wider list carries over its owner's gating.
 - **Changes:**
   - (proposed) `ticket-builder.md` step 3: iterate with `cargo test -p <crate> --test <bin> -- <filter>`, and run a crate's whole suite only at the end. The step says this already; repeat it in briefs for data slices, whose suites are slow.
-  - (proposed) Family-slice briefs: an option moved from a gated selection into a wider list keeps the gate as a `Requires` (cite it), or the census shows offers moving away from the game.
-  - (proposed) `ticket-builder.md` step 8: set Status only together with the Answer, in one edit.
+  - (applied: research/306/decisions.md) Family-slice briefs: an option moved from a gated selection into a wider list keeps the gate as a `Requires` (cite it), or the census shows offers moving away from the game.
+  - (applied) `ticket-builder.md` step 8: set Status only together with the Answer, in one edit.
   - (applied) The rescue helper and its 30-minute watchdog in the `ticket-queue` skill.
