@@ -9,7 +9,7 @@
         Requires(condition: Has(Race("kitsune"))),
     ],
     levels: [
-        (level: 1, features: ["sorcerer-cantrips", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], selections: ["sorcerer/bloodline", "magic-feats"]),
+        (level: 1, features: ["sorcerer-cantrips", "sorcerer-proficiencies"], feats: ["simple-weapon-proficiency"], selections: ["magic-feats", "sorcerer/nine-tailed-heir/bloodline"]),
         (level: 3, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
         (level: 5, features: ["sorcerer/nine-tailed-heir/magical-tail"]),
         (level: 7, features: ["sorcerer/nine-tailed-heir/magical-tail"], selections: ["sorcerer/bloodline-feats"]),

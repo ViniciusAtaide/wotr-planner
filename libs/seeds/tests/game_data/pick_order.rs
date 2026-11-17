@@ -148,6 +148,8 @@ fn the_selections_outside_the_features_band_are_the_games() {
         // SorcererBloodlineSelection 24bef8d1bee12274686f6da6ccbc8914 (BloodLine)
         ("sorcerer/bloodline", Band::Path),
         ("sorcerer/empyreal-sorcerer/bloodline", Band::Path),
+        // NineTailedHeirBloodlineSelection 7c813fb495d74246918a690ba86f9c86 (BloodLine; ticket 306k)
+        ("sorcerer/nine-tailed-heir/bloodline", Band::Path),
         ("sorcerer/sage-sorcerer/bloodline", Band::Path),
         ("sorcerer/seeker-sorcerer/bloodline", Band::Path),
         ("sorcerer/sylvan-sorcerer/bloodline", Band::Path),

@@ -1,0 +1,1 @@
+(key: "witch/elemental-witch/energy/fire", blueprint: "97e4fe7723b749849f182186764c23a4", name: "Fire Ray", summary: "The Elemental Ray deals fire damage.", guide: "witch#elemental-ray", levels: [(level: 1, features: ["witch/elemental-witch/elemental-ray"])])

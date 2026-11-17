@@ -5,7 +5,7 @@ use std::collections::BTreeSet;
 
 use rules::{
     Ability, Build, FeatKey, FeatureKey, Issue, MythicPathKey, Parameter, Pick, Prerequisite,
-    RankStatus, Repeat, SelectionOptionKey, SlotId, SlotKind, SlotOption, Unmet, WeaponProficiency,
+    RankStatus, Repeat, SelectionOptionKey, SlotId, SlotKind, SlotOption, WeaponProficiency,
 };
 
 use crate::support::*;
@@ -62,20 +62,14 @@ fn an_aeon_gaze_needing_rank_5_opens_at_mr_5() {
             .unwrap()
             .into_iter()
             .find(|option| option.pick == area_effects)
-            .unwrap()
-            .status
+            .map(|option| option.status)
     };
     // Game: AeonAreaEffectsGazeFeature 39d8ae51c0034adbb8394210c51901e2 is only in AeonGazeSecondSelection
     // 7d498e034d18ca94baea19d7edee7403, first at Aeon level 3 (MR 5) of AeonProgression
-    // 34b9484b0d5ce9340ae51d2bf9518bbe (equivalent model: a tiered selection, not a MythicRank(5) prerequisite).
-    assert_eq!(
-        status(4),
-        Err(Issue::Unmet(Unmet::Condition {
-            needs: Prerequisite::MythicRank(5),
-            has: Some(4)
-        }))
-    );
-    assert_eq!(status(5), Ok(()));
+    // 34b9484b0d5ce9340ae51d2bf9518bbe: since ticket 306k the rank 3 and 4 picker is the first selection's list, which
+    // doesn't hold it, so it isn't offered there at all.
+    assert_eq!(status(4), None);
+    assert_eq!(status(5), Some(Ok(())));
 }
 
 #[test]

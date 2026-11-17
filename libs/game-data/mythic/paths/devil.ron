@@ -4,7 +4,7 @@ MythicPath(
     name: "Devil",
     summary: "A path taken at mythic rank 8 after Aeon or Azata; Azatas lose their dragon and Aeons their gazes.",
     guide: "other-mythic-paths#devil",
-    switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7, dropped_features: ["aeon/enforcing-gaze-extra-gaze", "azata/dragon-companion"], dropped_selections: ["aeon/enforcing-gaze"], further_ascensions: true),
+    switch: (from: ["aeon", "azata"], kept_through_rank: 7, path_kept_through_rank: 7, dropped_features: ["aeon/enforcing-gaze-extra-gaze", "azata/dragon-companion"], dropped_selections: ["aeon/enforcing-gaze", "aeon/enforcing-gaze-2", "aeon/enforcing-gaze-3"], further_ascensions: true),
     ranks: [
         (rank: 8, features: ["devil/hells-dominance", "devil/wings"], selections: ["devil/hells-decree"]),
         (rank: 9, features: ["devil/hells-vengeance"], selections: ["devil/hells-seal"]),

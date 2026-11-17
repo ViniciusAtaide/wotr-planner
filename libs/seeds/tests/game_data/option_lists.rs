@@ -46,7 +46,11 @@ const EXCEPTIONS: [(&str, &str, &str); 5] = [
 
 /// The extra feats whose prerequisite names no option, so the rule doesn't apply: a class level is their guide's
 /// "Slayer Talents or Talented Slayer" and "Wild Talents". A new extra feat of that shape needs a decision.
-const NO_OPTIONS_NAMED: [&str; 2] = ["extra-slayer-talent", "extra-wild-talent"];
+const NO_OPTIONS_NAMED: [&str; 3] = [
+    "extra-discovery-vivisectionist",
+    "extra-slayer-talent",
+    "extra-wild-talent",
+];
 
 /// Every option condition anywhere in the prerequisite.
 fn named_options(prerequisite: &Prerequisite) -> BTreeSet<String> {

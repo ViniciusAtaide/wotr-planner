@@ -12,19 +12,17 @@ use crate::support::*;
 /// The "Extra …" feats that give one more pick of a class selection ("You gain one additional hex"), with the
 /// selections that pick may be of, as the game gives them. Extra Mercy's since ticket 54 made the paladin's mercies a
 /// selection; the Vivisectionist's Medical Discovery since ticket 64. The rows of `WAITING` differ from the data.
-const EXTRA_PICKS: [(&str, &[&str]); 10] = [
+const EXTRA_PICKS: [(&str, &[&str]); 11] = [
     ("extra-arcana", &["magus/magus-arcana"]), // Game: ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8 (its own list of the 15 magus arcana; met by MagusArcanaSelection, HexcrafterMagusHexArcanaSelection or EldritchMagusArcanaSelection)
     (
         "extra-arcanist-exploit",
         &["arcanist/arcanist-exploits", "arcanist/exploiter-exploits"],
     ), // Game: ExtraArcanistExploitSelection 0a7065e13f4449fa81bfb33199bf7f6a (ArcanistExploitSelection or ExploiterExploitSelection)
+    ("extra-discovery", &["alchemist/discovery"]), // Game: ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 (DiscoverySelection cd86c437488386f438dcc9ae727ea2a6); UndergroundChemistSelection c3d08fdb481aa2e4a9f71c4349141826 meets neither
     (
-        "extra-discovery",
-        &[
-            "alchemist/discovery",
-            "alchemist/vivisectionist/medical-discovery",
-        ],
-    ), // Game: ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 and ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae (equivalent model: two feats, one key); UndergroundChemistSelection c3d08fdb481aa2e4a9f71c4349141826 meets neither
+        "extra-discovery-vivisectionist",
+        &["alchemist/vivisectionist/medical-discovery"],
+    ), // Game: ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae (VivsectionistDiscoverySelection 67f499218a0e22944abab6fe1c9eaeee)
     ("extra-hex", &["witch/hex"]), // Game: ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35; the shaman's is another feat, ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6
     ("extra-hex-shaman", &["shaman/hex"]), // Game: ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6 (ShamanHexSelection 4223fe18c75d4d14787af196a04e14e7)
     ("extra-mercy", &["paladin/mercy"]), // Game: ExtraMercySelection 8a49abed5be9473da1e1fd1e2457562e (SelectionMercy 02b187038a8dce545bb34bbfb346428d)
@@ -365,7 +363,7 @@ fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
         // 67f499218a0e22944abab6fe1c9eaeee at 2); ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae
         (
             chaotic(archetype_build("alchemist", "alchemist/vivisectionist", 3)),
-            "extra-discovery",
+            "extra-discovery-vivisectionist",
             3,
             "alchemist/vivisectionist/medical-discovery",
         ),
@@ -471,23 +469,23 @@ fn label_at(build: &Build, slot: &SlotId) -> String {
 #[test]
 fn a_vivisectionists_extra_discovery_gives_a_medical_discovery_slot_at_the_level_its_taken() {
     // Game: ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae (needs VivsectionistDiscoverySelection
-    // 67f499218a0e22944abab6fe1c9eaeee; its list is the same 25) (equivalent model: one key for the two Extra Discovery
-    // feats)
+    // 67f499218a0e22944abab6fe1c9eaeee; its list is the same 25); its own feat since ticket 306k
     let mut build = with_selections_filled(borrower("alchemist", Some(VIVISECTIONIST), 5));
     for level in [3, 5] {
-        build
-            .picks
-            .insert(general_slot(level), feat_pick_plain("extra-discovery"));
+        build.picks.insert(
+            general_slot(level),
+            feat_pick_plain("extra-discovery-vivisectionist"),
+        );
     }
     assert!(possible(&build));
     for level in [3, 5] {
         let slot = extra_slot(level, 0);
         assert_eq!(
             kind_at(&build, &slot),
-            Some(selection_kind(MEDICAL_DISCOVERY)),
+            Some(selection_kind("alchemist/vivisectionist/extra-discovery")),
             "at {level}"
         );
-        assert_eq!(label_at(&build, &slot), "Medical Discovery");
+        assert_eq!(label_at(&build, &slot), "Extra Discovery (Vivisectionist)");
         // What the Vivisectionist's own slot at 2 offers: its discoveries and talents.
         assert_eq!(
             offered_keys(&build, &slot),
@@ -542,7 +540,11 @@ fn extra_discovery_and_extra_arcana_reach_a_vivisectionist_and_a_hexcrafter_what
     );
     assert!(possible(&vivisectionist));
     assert_eq!(
-        feat_status(&vivisectionist, &general_slot(3), "extra-discovery"),
+        feat_status(
+            &vivisectionist,
+            &general_slot(3),
+            "extra-discovery-vivisectionist"
+        ),
         Ok(())
     );
     let hexcrafter = with_picks(
@@ -562,7 +564,7 @@ fn extra_discovery_and_extra_arcana_reach_a_vivisectionist_and_a_hexcrafter_what
         feat_status(
             &borrower("alchemist", Some(VIVISECTIONIST), 1),
             &general_slot(1),
-            "extra-discovery"
+            "extra-discovery-vivisectionist"
         )
         .is_err()
     );
@@ -575,7 +577,7 @@ fn extra_discovery_and_extra_arcana_reach_a_vivisectionist_and_a_hexcrafter_what
         feat_status(
             &rogue_then_vivisectionist,
             &general_slot(3),
-            "extra-discovery"
+            "extra-discovery-vivisectionist"
         )
         .is_err()
     );
@@ -612,7 +614,7 @@ fn a_plain_alchemists_and_magus_extra_picks_are_unchanged() {
             "extra-discovery",
             2,
             "alchemist/discovery",
-            "Discovery",
+            "Extra Discovery",
         ),
         (
             "magus",

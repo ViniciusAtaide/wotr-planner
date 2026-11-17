@@ -26,7 +26,7 @@ fn selection_keys(keys: &[&str]) -> BTreeSet<FeatureSelectionKey> {
 /// `BlueprintFeatureSelection`, so one GUID names both entries.
 #[test]
 fn each_extra_feat_grants_a_selection_with_its_blueprint() {
-    let extra: [(&str, &str, &str); 10] = [
+    let extra: [(&str, &str, &str); 11] = [
         // Game: ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8 (BlueprintFeatureSelection)
         (
             "extra-arcana",
@@ -44,6 +44,12 @@ fn each_extra_feat_grants_a_selection_with_its_blueprint() {
             "extra-discovery",
             "alchemist/extra-discovery",
             "537965879fc24ad3948aaffa7a1a3a66",
+        ),
+        // Game: ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae (306k)
+        (
+            "extra-discovery-vivisectionist",
+            "alchemist/vivisectionist/extra-discovery",
+            "10287e7b8cee479e82ea88bd6d2d4dae",
         ),
         // Game: ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35
         (
@@ -168,32 +174,37 @@ fn the_own_list_extra_feats_list_the_selection_they_stand_for() {
 /// the character had a slot of, among those it names: a marked planner list until 293 writes the game's.
 #[test]
 fn the_first_had_extra_feats_name_the_selections_they_reach() {
-    for (extra, of) in [
-        (
-            "alchemist/extra-discovery",
-            &[
-                "alchemist/discovery",
-                "alchemist/vivisectionist/medical-discovery",
-                "rogue/underground-chemist/discovery",
-            ][..],
-        ),
-        (
-            "rogue/extra-rogue-talent",
-            &[
-                "rogue/rogue-talents",
-                "rogue/sylvan-trickster/fey-tricks",
-                "shifter/feyform-shifter/rogue-talent",
-            ],
-        ),
-    ] {
-        let selection = any_selection(extra);
-        assert_eq!(selection.needs_slot_of, selection_keys(of), "{extra}");
-        assert!(
-            selection.offered().is_empty(),
-            "{extra}: no list of its own"
-        );
-        assert!(selection.feats.is_empty(), "{extra}");
-    }
+    let extra = "rogue/extra-rogue-talent";
+    let selection = any_selection(extra);
+    assert_eq!(
+        selection.needs_slot_of,
+        selection_keys(&[
+            "rogue/rogue-talents",
+            "rogue/sylvan-trickster/fey-tricks",
+            "shifter/feyform-shifter/rogue-talent",
+        ]),
+        "{extra}"
+    );
+    assert!(
+        selection.offered().is_empty(),
+        "{extra}: no list of its own"
+    );
+    assert!(selection.feats.is_empty(), "{extra}");
+    // The alchemist's has the game's 28 of its own since 306k (ExtraDiscoverySelection
+    // 537965879fc24ad3948aaffa7a1a3a66), and the Vivisectionist's own feat the 25 (ExtraVivsectionistDiscoverySelection
+    // 10287e7b8cee479e82ea88bd6d2d4dae); an Underground Chemist still reaches it until 264.
+    let alchemist = any_selection("alchemist/extra-discovery");
+    assert_eq!(
+        alchemist.needs_slot_of,
+        selection_keys(&["alchemist/discovery", "rogue/underground-chemist/discovery"])
+    );
+    assert_eq!(alchemist.offered().len(), 28);
+    let vivisectionist = any_selection("alchemist/vivisectionist/extra-discovery");
+    assert_eq!(
+        vivisectionist.needs_slot_of,
+        selection_keys(&["alchemist/vivisectionist/medical-discovery"])
+    );
+    assert_eq!(vivisectionist.offered().len(), 25);
     // The witch's has the game's 27 of its own since 306j (ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35).
     let witch = any_selection("witch/extra-hex");
     assert_eq!(

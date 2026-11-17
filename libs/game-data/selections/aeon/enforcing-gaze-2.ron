@@ -1,0 +1,18 @@
+(
+    key: "aeon/enforcing-gaze-2",
+    blueprint: "7d498e034d18ca94baea19d7edee7403",
+    name: "Enforcing Gaze (ranks 5 to 7)",
+    summary: "From rank 5, one more gaze per rank, from a longer list that adds the gazes needing rank 5.",
+    guide: "aeon#enforcing-gaze",
+    options: ["aeon/enforcing-gaze/enforcing-gaze-area-effects", "aeon/enforcing-gaze/enforcing-gaze-concentration", "aeon/enforcing-gaze/enforcing-gaze-hit-points", "aeon/enforcing-gaze/enforcing-gaze-normalize-size", "aeon/enforcing-gaze/enforcing-gaze-power-of-law", "aeon/enforcing-gaze/enforcing-gaze-primordial-magic", "aeon/enforcing-gaze/enforcing-gaze-relativity-of-space", "aeon/enforcing-gaze/enforcing-gaze-summoners-gaze"],
+    shared_options: [
+        "aeon/enforcing-gaze/enforcing-gaze-attack",
+        "aeon/enforcing-gaze/enforcing-gaze-attacks-of-opportunity",
+        "aeon/enforcing-gaze/enforcing-gaze-caster-level",
+        "aeon/enforcing-gaze/enforcing-gaze-combat-maneuvers",
+        "aeon/enforcing-gaze/enforcing-gaze-damage",
+        "aeon/enforcing-gaze/enforcing-gaze-damage-reduction",
+        "aeon/enforcing-gaze/enforcing-gaze-energy-shield",
+        "aeon/enforcing-gaze/enforcing-gaze-save-dc",
+    ],
+)

@@ -1,0 +1,1 @@
+(key: "witch/elemental-witch/energy/acid", blueprint: "8006c9d043724f34b2745b3e5a5c2ef1", name: "Acid Ray", summary: "The Elemental Ray deals acid damage.", guide: "witch#elemental-ray", levels: [(level: 1, features: ["witch/elemental-witch/elemental-ray"])])
