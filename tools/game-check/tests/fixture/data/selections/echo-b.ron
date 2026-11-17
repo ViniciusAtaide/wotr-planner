@@ -1,0 +1,7 @@
+// A copy pair: both name the one blueprint, whose list is Power X alone (ticket 316's kind).
+(
+    key: "echo-b",
+    blueprint: "000000000000000000000000000000b48",
+    name: "Echo b",
+    shared_options: ["power-a"],
+)

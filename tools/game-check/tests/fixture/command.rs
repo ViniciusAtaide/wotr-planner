@@ -47,3 +47,13 @@ fn only_without_the_option_lists_area_is_refused() {
         "{stderr}"
     );
 }
+
+#[test]
+fn option_lists_without_only_is_refused() {
+    let (code, stderr) = game_check(&["--write", "option-lists"]);
+    assert_eq!(code, Some(2));
+    assert!(
+        stderr.contains("option-lists writes only the selections --only names"),
+        "{stderr}"
+    );
+}

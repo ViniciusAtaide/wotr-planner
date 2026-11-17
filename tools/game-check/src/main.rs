@@ -143,6 +143,11 @@ fn run() -> Result<Outcome, String> {
     let data_dir = data_dir.unwrap_or_else(seeds::game_data_dir);
     if let Some(areas) = write_areas {
         let areas = parse_areas(&areas)?;
+        if only.is_none() && areas.contains(&WriteArea::OptionLists) {
+            return Err(format!(
+                "option-lists writes only the selections --only names (copies share their base list's blueprint: ticket 316)\n{USAGE}"
+            ));
+        }
         if only.is_some() && !areas.contains(&WriteArea::OptionLists) {
             return Err(format!(
                 "--only limits the option-lists area: --write must name it\n{USAGE}"

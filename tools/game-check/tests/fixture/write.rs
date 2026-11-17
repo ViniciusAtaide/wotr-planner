@@ -1537,3 +1537,19 @@ fn an_only_key_that_is_no_selection_is_a_usage_error() {
     assert!(matches!(error, WriteError::Usage(_)), "{error}");
     assert!(!error.to_string().contains("fails its check"), "{error}");
 }
+
+#[test]
+fn a_selection_whose_blueprint_is_another_selections_too_is_listed_unless_both_are_in_only() {
+    // TestEchoList ...b48 lists Power X; echo-a and echo-b both name it, and the data's lists would be widened to it.
+    let dir = data_copy();
+    let echo = read(dir.path(), "selections/echo-a.ron");
+    let outcome = write_lists(dir.path(), Some(&["echo-a"])).unwrap();
+    assert_eq!(read(dir.path(), "selections/echo-a.ron"), echo);
+    assert_eq!(
+        unexpressed_of(&outcome, "selection echo-a"),
+        ["its blueprint is another selection's too (a copy: 316)"]
+    );
+    let outcome = write_lists(dir.path(), Some(&["echo-a", "echo-b"])).unwrap();
+    assert!(unexpressed_of(&outcome, "selection echo-a").is_empty());
+    assert!(read(dir.path(), "selections/echo-a.ron").contains("shared_options: [\"power-x\"]"));
+}

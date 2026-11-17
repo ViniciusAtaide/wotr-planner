@@ -49,7 +49,7 @@ pub(crate) fn changes(
             options_changes(ctx, selection, &owning, &mut changes, &mut unexpressed);
             continue;
         };
-        let (json, game) = match game_of(ctx, selection) {
+        let (json, game) = match game_of(ctx, selection, &in_set) {
             Ok(found) => found,
             Err(what) => {
                 unexpressed.push(Unexpressed { at, what });
@@ -108,6 +108,7 @@ pub(crate) fn changes(
 fn game_of<'a>(
     ctx: &Ctx<'a>,
     selection: &FeatureSelection,
+    in_set: &dyn Fn(&FeatureSelectionKey) -> bool,
 ) -> Result<(&'a Json, BTreeSet<BlueprintGuid>), String> {
     let guid = selection
         .blueprint
@@ -117,6 +118,15 @@ fn game_of<'a>(
         .dump
         .json(guid)
         .ok_or("blueprint not in the dump".to_owned())?;
+    // A copy shares its base's blueprint, so its game list is the base's: written, it would widen the copy (ticket 316).
+    let copy = ctx.planner.data.selections.iter().any(|other| {
+        other.key != selection.key
+            && other.blueprint == selection.blueprint
+            && !(in_set(&selection.key) && in_set(&other.key))
+    });
+    if copy {
+        return Err("its blueprint is another selection's too (a copy: 316)".to_owned());
+    }
     match game_list(json) {
         None => Err("the game's blueprint has no list".to_owned()),
         Some(game) if game.is_empty() => Err("the game's list is empty".to_owned()),
@@ -315,7 +325,7 @@ impl Ownership {
             if !selection.has_list() || !options_kind {
                 continue;
             }
-            let found = game_of(ctx, selection)
+            let found = game_of(ctx, selection, &in_set)
                 .and_then(|(_, game)| resolve_options(ctx, selection, &game));
             resolved.insert(selection.key.clone(), found);
         }

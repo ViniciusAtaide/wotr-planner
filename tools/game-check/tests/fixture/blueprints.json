@@ -1578,5 +1578,16 @@
     "!bp_000000000000000000000000000000b46"
    ]
   }
+ },
+ {
+  "guid": "000000000000000000000000000000b48",
+  "name": "TestEchoList",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "Feat",
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000b42"
+   ]
+  }
  }
 ]
