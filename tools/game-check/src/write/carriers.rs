@@ -367,7 +367,8 @@ pub const GRANT_KIND: &str = "carrier grant";
 ///
 /// A carrier is a `features/` entry of the carriers' template (`name` the key's words capitalised, no `summary` or
 /// `guide`, only grant components: [`is_carrier`]), or one made in this run (`made`). With `prospective` (a dry
-/// run) every carrier the carriers area would make counts too, so the plan shows what a run after it would write.
+/// run) the carriers `only` names (GUIDs, as for the carriers area) count too, so the plan shows what a run after
+/// the carriers area would write; with no `only` none does, so a grant toward a carrier no file holds is never planned.
 /// A carrier's own grants are its own file's (ticket 307c), so a carrier is never a source here.
 ///
 /// A grant whose condition or class has no single entry is left unwritten and listed.
@@ -385,8 +386,9 @@ pub(crate) fn attachments(
         .filter_map(|feature| Some((feature.blueprint.clone()?, feature.key.clone())))
         .collect();
     let mut planned: Vec<NewFile> = made.to_vec();
-    if prospective {
-        planned.extend(changes(ctx, None).0);
+    // Only the carriers `only` names, as the carriers area does: no run plans a grant toward one another ticket owns.
+    if let (true, Some(only)) = (prospective, only) {
+        planned.extend(changes(ctx, Some(only)).0);
     }
     for file in &planned {
         if let Ok(feature) = ron::Options::default()
@@ -427,9 +429,6 @@ pub(crate) fn attachments(
         let Some(guid) = source.blueprint else {
             continue;
         };
-        if only.is_some_and(|only| !only.contains(guid.as_str())) {
-            continue;
-        }
         let Some(json) = ctx.dump.json(guid) else {
             continue;
         };

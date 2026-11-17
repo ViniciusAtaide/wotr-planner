@@ -2403,7 +2403,28 @@ fn grants_world() -> (tempfile::TempDir, game_check::Dump) {
     (dir, dump)
 }
 
-/// The carriers, then the grants, as two runs.
+/// The grants area on a world, `only` the carriers a dry run may count.
+fn write_grants_only(
+    dir: &Path,
+    dump: &game_check::Dump,
+    only: Option<&[u32]>,
+    dry_run: bool,
+) -> game_check::write::Outcome {
+    let only: Option<std::collections::BTreeSet<String>> =
+        only.map(|only| only.iter().map(|n| guid(*n)).collect());
+    run(
+        dump,
+        dir,
+        &[WriteArea::CarrierGrants],
+        only.as_ref(),
+        dry_run,
+        &Facts::default(),
+        valid,
+    )
+    .unwrap()
+}
+
+/// The grants area with no `--only`.
 fn write_grants(dir: &Path, dump: &game_check::Dump, dry_run: bool) -> game_check::write::Outcome {
     let facts = Facts::default();
     run(
@@ -2517,21 +2538,38 @@ fn a_grant_already_named_is_not_written_again() {
     assert_eq!(all_files(dir.path()), after);
 }
 
+fn planned_entries(outcome: &game_check::write::Outcome) -> usize {
+    let entries: std::collections::BTreeSet<_> = outcome.changes.iter().map(|c| &c.file).collect();
+    entries.len()
+}
+
 #[test]
-fn a_dry_run_of_the_grants_counts_the_carriers_it_would_follow() {
-    // Before any carrier exists, a dry run reads the ones the carriers area would make; a real run writes none of
-    // the grants naming a carrier no file holds.
+fn a_dry_run_of_the_grants_counts_only_the_carriers_only_names() {
+    // Before any carrier exists a dry run counts the ones `--only` names, as the carriers area takes them; with no
+    // `--only` it counts none, so no grant toward a carrier no file holds (or another ticket owns) is planned.
     let (dir, dump) = grants_world();
-    let planned = write_grants(dir.path(), &dump, true);
-    let entries: std::collections::BTreeSet<_> = planned.changes.iter().map(|c| &c.file).collect();
-    assert_eq!(entries.len(), 3, "{:?}", planned.changes);
-    assert!(!dir.path().join("features/hidden-trick.ron").exists());
-    let real = write_grants(dir.path(), &dump, false);
+    let all = write_grants_only(dir.path(), &dump, Some(&[101, 102, 105]), true);
+    assert_eq!(planned_entries(&all), 3, "{:?}", all.changes);
+    let one = write_grants_only(dir.path(), &dump, Some(&[102]), true);
+    assert_eq!(planned_entries(&one), 2, "{:?}", one.changes);
     assert!(
-        real.changes
+        one.changes
             .iter()
-            .all(|c| c.field != "components" || c.at.to_string() != "feature mapped-holder"),
-        "{:?}",
-        real.changes
+            .all(|c| c.at.to_string() != "feature mapped-holder")
     );
+    let none = write_grants_only(dir.path(), &dump, None, true);
+    assert!(none.changes.is_empty(), "{:?}", none.changes);
+    assert!(!dir.path().join("features/hidden-trick.ron").exists());
+}
+
+#[test]
+fn a_real_run_never_writes_a_grant_toward_a_carrier_no_file_holds() {
+    // No carrier file exists: a real run, with or without `--only`, writes no grant (the carriers are not made here).
+    let (dir, dump) = grants_world();
+    let before = all_files(dir.path());
+    for only in [None, Some(&[101u32, 102, 105][..])] {
+        let outcome = write_grants_only(dir.path(), &dump, only, false);
+        assert!(outcome.changes.is_empty(), "{:?}", outcome.changes);
+    }
+    assert_eq!(all_files(dir.path()), before);
 }
