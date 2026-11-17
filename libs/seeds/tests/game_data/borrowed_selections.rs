@@ -292,19 +292,27 @@ fn each_borrowing_class_picks_at_its_tables_levels() {
     let bard = vec![2, 6, 10, 14, 18];
     let skald = vec![2, 7, 12, 17];
     let mut cases: Vec<(Build, &str, Vec<u8>)> = vec![
-        (borrower("bard", None, 20), ROGUE_TALENTS, bard.clone()),
-        (borrower("skald", None, 20), ROGUE_TALENTS, skald.clone()),
+        (
+            borrower("bard", None, 20),
+            "bard/rogue-talents",
+            bard.clone(),
+        ),
+        (
+            borrower("skald", None, 20),
+            "skald/rogue-talents",
+            skald.clone(),
+        ),
         // Game: BeastTamerArchetype 912b0495d9485124bb2c0e4aa6ac2efd removes the talents at 2 and 10
         (
             borrower("bard", Some("bard/beast-tamer"), 20),
-            ROGUE_TALENTS,
+            "bard/rogue-talents",
             vec![6, 14, 18],
         ),
         // Game: ProvocateurArchetype a1f5ab7eb78942f6889304acbd92e945 (ProvocateurTalentSelection
         // aa88cb5263a54791b8d1e471bc192ad4 at these levels; its list: see the own-lists test)
         (
             borrower("skald", Some("skald/inciter"), 20),
-            ROGUE_TALENTS,
+            "skald/inciter/rogue-talents",
             vec![4, 9, 14, 19],
         ),
         // Game: FeyformShifterShifterArchetype 1cdfc7d306d1430eac19427539b62091
@@ -345,7 +353,7 @@ fn each_borrowing_class_picks_at_its_tables_levels() {
     ] {
         cases.push((
             borrower("bard", Some(archetype), 20),
-            ROGUE_TALENTS,
+            "bard/rogue-talents",
             bard.clone(),
         ));
     }
@@ -359,7 +367,7 @@ fn each_borrowing_class_picks_at_its_tables_levels() {
     ] {
         cases.push((
             borrower("skald", Some(archetype), 20),
-            ROGUE_TALENTS,
+            "skald/rogue-talents",
             skald.clone(),
         ));
     }
@@ -434,7 +442,6 @@ fn a_hexcrafter_keeps_its_magus_arcana_at_3() {
 // 8127f5ff40f5b484b8be98609358b9d2 uses), SkaldTalentSelection d2a8fde8985691045b90e1ec57e3cc57 (21),
 // ProvocateurTalentSelection aa88cb5263a54791b8d1e471bc192ad4 (24)
 #[test]
-#[ignore = "waits on ticket 276: the game gives the bard 24 talents, the skald 21 and the Inciter 24 of their own lists"]
 fn a_bard_and_a_skald_pick_from_their_own_talent_lists() {
     assert_eq!(offered(&borrower("bard", None, 2), 2).len(), 24);
     assert_eq!(offered(&borrower("skald", None, 2), 2).len(), 21);

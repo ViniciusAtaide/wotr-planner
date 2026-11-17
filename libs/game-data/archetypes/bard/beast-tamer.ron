@@ -16,7 +16,7 @@
         (level: 10, features: ["bard/jack-of-all-trades"]),
         (level: 11, features: ["bard/beast-tamer/summon-natures-ally-vi"]),
         (level: 13, features: ["bard/bardic-performance-swift-action", "bard/beast-tamer/summon-natures-ally-vii"]),
-        (level: 14, selections: ["rogue/rogue-talents"]),
+        (level: 14, selections: ["bard/rogue-talents"]),
         (level: 15, features: ["bard/beast-tamer/summon-natures-ally-viii", "bard/inspire-heroics"]),
         (level: 17, features: ["bard/beast-tamer/summon-natures-ally-ix"]),
     ],

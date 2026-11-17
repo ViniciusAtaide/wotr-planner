@@ -12,6 +12,7 @@ const RAGE_POWER: &str = "barbarian/rage-power";
 const BATTLE_SCION: &str = "skald/battle-scion";
 /// The Battle Scion's slot in the Rage Power cells: a rage power or a teamwork feat.
 const SCION_SLOT: &str = "skald/battle-scion/rage-power-or-teamwork-feat";
+const SKALD_TALENTS: &str = "skald/rogue-talents";
 const TEAMWORK_FEAT: &str = "skald/battle-scion/rage-power-or-teamwork-feat/teamwork-feat";
 
 /// The Battle Scion's Rage Power cells: "Battle Prowess" stands in the skald's six.
@@ -140,13 +141,18 @@ fn the_skald_and_each_archetype_have_a_rage_power_slot_at_their_tables_levels() 
         // Game: SkaldTalentSelection d2a8fde8985691045b90e1ec57e3cc57 at 2, 7, 12, 17; ProvocateurArchetype
         // a1f5ab7eb78942f6889304acbd92e945 trades them for ProvocateurTalentSelection
         // aa88cb5263a54791b8d1e471bc192ad4 at 4, 9, 14, 19.
+        let talents_key = if archetype == Some("skald/inciter") {
+            "skald/inciter/rogue-talents"
+        } else {
+            "skald/rogue-talents"
+        };
         let talents: &[u8] = if archetype == Some("skald/inciter") {
             &[4, 9, 14, 19]
         } else {
             &[2, 7, 12, 17]
         };
         assert_eq!(
-            levels_with_slot_of(&build, ROGUE_TALENTS),
+            levels_with_slot_of(&build, talents_key),
             talents,
             "{archetype:?}"
         );
@@ -658,7 +664,8 @@ fn a_battle_scion_with_barbarian_levels_is_offered_no_teamwork_feat_in_a_barbari
 
 /// The rogue talent slot of a skald 12 follows the rage power slot: a row's selections are sorted by key, so the
 /// rage power slot is index 0 and the rogue talents' index 1 (the user accepted the move from 0). The Battle Scion's
-/// own selection sorts after the rogue talents, so its slot at 12 is index 1 and the talents stay at 0.
+/// own selection sorts before the skald's talents (ticket 306e: `skald/rogue-talents`), so its slot at 12 is index 0 and
+/// the talents move to 1 (a link's two picks there are refused, `306-refused.txt`).
 #[test]
 fn the_rogue_talent_slot_at_skald_12_follows_the_rage_power_slot() {
     for archetype in [None, Some("skald/demon-dancer")] {
@@ -667,14 +674,14 @@ fn the_rogue_talent_slot_at_skald_12_follows_the_rage_power_slot() {
         assert_eq!(kind(0), Some(selection_kind(RAGE_POWER)), "{archetype:?}");
         assert_eq!(
             kind(1),
-            Some(selection_kind(ROGUE_TALENTS)),
+            Some(selection_kind(SKALD_TALENTS)),
             "{archetype:?}"
         );
     }
     let scion = skald(Some(BATTLE_SCION), 12);
     let kind = |index| kind_at(&scion, &SlotId::Selection { level: 12, index });
-    assert_eq!(kind(0), Some(selection_kind(ROGUE_TALENTS)));
-    assert_eq!(kind(1), Some(selection_kind(SCION_SLOT)));
+    assert_eq!(kind(0), Some(selection_kind(SCION_SLOT)));
+    assert_eq!(kind(1), Some(selection_kind(SKALD_TALENTS)));
     // The Inciter's 12 has a rage power and no rogue talent; its talents are at 4, 9, 14 and 19. Game:
     // ProvocateurArchetype a1f5ab7eb78942f6889304acbd92e945 keeps SkaldRagePowerSelection at 12 and removes
     // SkaldTalentSelection there.

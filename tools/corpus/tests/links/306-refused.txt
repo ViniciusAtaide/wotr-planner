@@ -1,0 +1,35 @@
+full bard bard/archaeologist
+full bard bard/archaeologist / legend
+full bard bard/dirge-bard
+full bard bard/dirge-bard / legend
+full bard bard/flame-dancer
+full bard bard/flame-dancer / legend
+full bard bard/thundercaller
+full bard bard/thundercaller / legend
+full skald skald/battle-scion
+full skald skald/battle-scion / legend
+full skald skald/battle-singer
+full skald skald/battle-singer / legend
+full skald skald/court-poet
+full skald skald/court-poet / legend
+full skald skald/demon-dancer
+full skald skald/demon-dancer / legend
+full skald skald/inciter
+full skald skald/inciter / legend
+full t60 bard 20 / empty
+full t60 bard 20 / empty / legend
+full t60 bard 3 extra rogue talent
+full t60 bard/archaeologist 20 / empty
+full t60 bard/archaeologist 20 / empty / legend
+full t60 bard/chelaxian-diva 20 / empty
+full t60 bard/chelaxian-diva 20 / empty / legend
+full t60 skald/battle-scion 20 / empty
+full t60 skald/battle-scion 20 / empty / legend
+full t60 skald/battle-scion 20 / filled
+full t60 skald/battle-scion 20 / filled / legend
+full t60 skald/court-poet 20 / empty
+full t60 skald/court-poet 20 / empty / legend
+full t60 skald/herald-of-the-horn 20 / empty
+full t60 skald/herald-of-the-horn 20 / empty / legend
+t60 bard 3 extra rogue talent
+t60 skald/battle-scion 20 / filled

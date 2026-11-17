@@ -264,7 +264,7 @@ fn combat_trick_grants_its_slot_through_every_selection_offering_it() {
     // SlayerTalentSelection2/6/10, SylvanTricksterTalentSelection, UndergroundChemistSelection,
     // VivsectionistDiscoverySelection, DarkLurkerRogueTalentSelection, BardTalentSelection, SkaldTalentSelection,
     // ProvocateurTalentSelection and the Extra Rogue, Slayer and Vivisectionist selections (equivalent model: the
-    // planner reaches the bard, skald, Dark Lurker and Feyform rows through the rogue's or slayer's selection).
+    // planner reaches the Dark Lurker and Feyform rows through the rogue's or slayer's selection).
     let offering: BTreeSet<String> =
         grants(DATA.classes.iter().flat_map(|class| class_rows(class)))
             .selections
@@ -279,10 +279,13 @@ fn combat_trick_grants_its_slot_through_every_selection_offering_it() {
         BTreeSet::from(
             [
                 "alchemist/vivisectionist/medical-discovery",
+                "bard/rogue-talents",
                 "rogue/rogue-talents",
                 "rogue/sylvan-trickster/fey-tricks",
                 "rogue/underground-chemist/discovery",
                 "shifter/feyform-shifter/rogue-talent",
+                "skald/inciter/rogue-talents",
+                "skald/rogue-talents",
                 "slayer/slayer-talents",
             ]
             .map(String::from)

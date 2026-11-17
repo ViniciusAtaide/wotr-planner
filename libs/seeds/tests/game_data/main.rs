@@ -32,6 +32,7 @@ mod gear;
 mod gear_engine;
 mod gold;
 mod held_selections;
+mod importer_lists;
 mod infusions;
 mod instinctual_rage_powers;
 mod ki_powers;
