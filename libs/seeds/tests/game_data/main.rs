@@ -18,6 +18,7 @@ mod build_sheets;
 mod caster_line;
 mod class_rules;
 mod class_skills;
+mod class_tables;
 mod collapsed_features;
 mod data;
 mod deities;
