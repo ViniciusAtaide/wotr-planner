@@ -328,6 +328,7 @@ fn record_all() -> Vec<Entry> {
     let (engine, data) = corpus::engine().expect("the game data loads");
     let threads = corpus::threads("FORM_PROOF_THREADS");
     let builds = corpus::builds::all(&engine, &data, threads);
+    no_duplicate_names(builds.iter().map(|(name, _)| name.as_str()), "the corpus");
     let keys = LinkKeys::new(&data);
     in_parallel(&builds, threads, |build| {
         record_entry(&engine, &keys, build)
@@ -429,7 +430,8 @@ fn read_entries(dir: &Path) -> Vec<Entry> {
         sheet_sections.len(),
         number_sections.len()
     );
-    rows.iter()
+    let entries: Vec<Entry> = rows
+        .iter()
         .zip(slot_sections)
         .zip(sheet_sections)
         .zip(number_sections)
@@ -449,7 +451,20 @@ fn read_entries(dir: &Path) -> Vec<Entry> {
                 numbers,
             }
         })
-        .collect()
+        .collect();
+    no_duplicate_names(entries.iter().map(|e| e.name.as_str()), "the record");
+    entries
+}
+
+/// Panics naming each Build name `names` holds twice: the proof matches Builds by name, so a shared name would hide
+/// one of them. `whose` says which list it is.
+fn no_duplicate_names<'a>(names: impl Iterator<Item = &'a str>, whose: &str) {
+    let mut seen = BTreeSet::new();
+    let duplicates: BTreeSet<&str> = names.filter(|name| !seen.insert(*name)).collect();
+    assert!(
+        duplicates.is_empty(),
+        "{whose} holds Builds that share a name (the proof matches by name): {duplicates:?}"
+    );
 }
 
 /// The differences by kind: how many, and the first few.
@@ -1622,6 +1637,15 @@ mod pieces {
             path: "tools/corpus/src/builds/planted.rs".to_owned(),
             text: PLANTED.to_owned(),
         }]
+    }
+
+    #[test]
+    #[should_panic(expected = "share a name (the proof matches by name): {\"t90 witch 20\"}")]
+    fn two_builds_with_one_name_are_refused() {
+        no_duplicate_names(
+            ["t90 witch 20", "t91 new", "t90 witch 20"].into_iter(),
+            "the corpus",
+        );
     }
 
     #[test]
