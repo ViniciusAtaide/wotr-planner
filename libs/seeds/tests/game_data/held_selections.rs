@@ -44,7 +44,7 @@ fn a_skald_holds_its_rage_power_selection_from_3_with_no_rage_power_picked() {
 fn an_exploiter_wizard_holds_the_exploit_selection_from_1() {
     // Game: ExploiterWizardArchetype 6d2027b4eec590c41adb5caeb7bb026d adds ExploiterExploitSelection
     // 2ba8a0040e0149e9ae9bfcb01a8ff01d at 1 (equivalent model: the arcanist's `arcanist/arcanist-exploits`).
-    assert!(held(&exploiter(1), 1, "arcanist/arcanist-exploits"));
+    assert!(held(&exploiter(1), 1, "arcanist/exploiter-exploits"));
     assert!(!held(&build("wizard", 1), 1, "arcanist/arcanist-exploits"));
 }
 

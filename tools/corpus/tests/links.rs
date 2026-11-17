@@ -245,6 +245,25 @@ fn every_s2_base_link_opens_the_same_or_through_an_heir_or_is_listed() {
     assert!(same + heirs + refused > 1_800, "{}", same + heirs + refused);
 }
 
+/// The twelve rage powers the game's Battle Prowess list lacks (ticket 306h's review): a Battle Scion's refused pick of
+/// any other rage power is a bug.
+// Game: BattleProwessSelection 29b480a26a88f9e47a10d8c9fab84ee6 offers 21 of RagePowerSelection
+// 28710502f46848d48b3f0d6132817c4e's 33; these are the other 12.
+const BATTLE_PROWESS_LACKS: [&str; 12] = [
+    "barbarian/rage-power/celestial-totem",
+    "barbarian/rage-power/celestial-totem-greater",
+    "barbarian/rage-power/celestial-totem-lesser",
+    "barbarian/rage-power/clear-mind",
+    "barbarian/rage-power/come-and-get-me",
+    "barbarian/rage-power/crippling-blows",
+    "barbarian/rage-power/daemon-totem",
+    "barbarian/rage-power/daemon-totem-greater",
+    "barbarian/rage-power/daemon-totem-lesser",
+    "barbarian/rage-power/powerful-stance",
+    "barbarian/rage-power/rolling-dodge",
+    "barbarian/rage-power/wrecking-blows",
+];
+
 /// Ticket 306e: a Battle Scion's link from S2's base still opens with its picks. Its level-12 row holds the skald's
 /// talents and its own selection, numbered by key, and the talents' key keeps its place in that order.
 #[test]
@@ -264,7 +283,7 @@ fn a_battle_scion_link_from_the_s2_base_still_opens() {
                 picks
                     .iter()
                     .all(|(_, key)| key.starts_with("rogue/rogue-talents/")
-                        || key.starts_with("barbarian/rage-power/")),
+                        || BATTLE_PROWESS_LACKS.contains(&key.as_str())),
                 "{name}: {picks:?}"
             ),
             Fate::Changed(why) => panic!("{name}: {why}"),

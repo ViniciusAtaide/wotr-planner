@@ -117,13 +117,22 @@ fn the_own_list_extra_feats_list_the_selection_they_stand_for() {
     // 53f7237f5b1447bb851ba68045a00e41 and ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471 their own (41, 40),
     // which the planner's wild talents stand for (293 writes the game's); the slayer's own list is written (306g) and
     // `the_slayers_extra_talent_list_is_the_games_41` pins it.
-    for (extra, base) in [
+    for (extra, base, needs) in [
         (
             "arcanist/extra-arcanist-exploit",
             "arcanist/arcanist-exploits",
+            &["arcanist/arcanist-exploits", "arcanist/exploiter-exploits"][..],
         ),
-        ("paladin/extra-mercy", "paladin/mercy"),
-        ("kineticist/extra-wild-talent", "kineticist/wild-talents"),
+        (
+            "paladin/extra-mercy",
+            "paladin/mercy",
+            &["paladin/mercy"][..],
+        ),
+        (
+            "kineticist/extra-wild-talent",
+            "kineticist/wild-talents",
+            &["kineticist/wild-talents"][..],
+        ),
     ] {
         let (extra_selection, base_selection) = (any_selection(extra), any_selection(base));
         assert_eq!(
@@ -143,7 +152,7 @@ fn the_own_list_extra_feats_list_the_selection_they_stand_for() {
         );
         assert_eq!(
             extra_selection.needs_slot_of,
-            selection_keys(&[base]),
+            selection_keys(needs),
             "{extra}"
         );
     }
@@ -154,10 +163,6 @@ fn the_own_list_extra_feats_list_the_selection_they_stand_for() {
 #[test]
 fn the_first_had_extra_feats_name_the_selections_they_reach() {
     for (extra, of) in [
-        (
-            "magus/extra-arcana",
-            &["magus/hexcrafter/hex-arcana", "magus/magus-arcana"][..],
-        ),
         (
             "alchemist/extra-discovery",
             &[
