@@ -1,0 +1,257 @@
+# The prerequisite rewrites that narrow who qualifies and are written all the same (ticket 308a's fix round), read by
+# `game-check --write prerequisites`.
+#
+# The writer turns each GUID the game's prerequisite names into whichever planner entry maps it. Where the planner
+# grants the game's blueprint under another entry, or a grantor's rows are still the planner's, a rewrite would refuse
+# characters the game allows, and the game check can't see it, since it compares GUIDs. So the writer compares each
+# entry's compiled tree before and after, and leaves the entry whole (listed `narrows: … -> 308`) when the rewrite
+#   - drops a fact the old tree accepts outside a `Not` and the new one doesn't name, or
+#   - adds a `Not` of a fact the old tree doesn't refuse (the entry's own blueprint aside: refusing itself, or another
+#     entry of its own GUID, is the game's NoFeature exactly),
+# unless this file names that entry and that narrowing.
+#
+#   <entry> -> <reason>              the entry's reason, for each of its narrowings below
+#   <entry> / drops <fact>           one narrowing, under its entry's reason
+#   <entry> / adds Not <fact>
+#   <entry> / drops <fact> -> <reason>    or with a reason of its own
+#
+# The entry and the fact as the report names them (`feat extra-channel`, `feature cleric/channel-energy`). The reason
+# says why the narrowing moves toward the game: the game blueprint and GUID the entry's prerequisite names, and, for a
+# dropped fact, that no planner holder of it is granted that blueprint (`game-check refs` / `granted-by`, and the
+# check's `progression rows / … game only` findings, none of which names the blueprint); for an added `Not`, that the
+# planner entry it refuses is the only one mapping the game's blueprint. A narrowing this file doesn't name stays
+# blocked, its `known.txt` line naming the ticket that owns it.
+
+# A requirement the game doesn't state, dropped: the rewrite only widens there.
+feat manyshot -> Manyshot adf54af2a681792489826f7fd1b62889 names RapidShotFeature 9c928dc570bb9e54a9649b3ebfe47a41 and a stat, not Point-Blank Shot
+feat manyshot / drops feat point-blank-shot
+feat rapid-shot -> RapidShotFeature 9c928dc570bb9e54a9649b3ebfe47a41 names only a stat, not Point-Blank Shot
+feat rapid-shot / drops feat point-blank-shot
+selection option kineticist/infusions/kinetic-blade -> KineticBladeInfusion 9ff81732daddb174aa8138ad1297c787 names no kineticist level
+selection option kineticist/infusions/kinetic-blade / drops class kineticist
+selection option kineticist/wild-talents/elemental-whispers -> ElementalWhispersSelection f02525006521bee4eb90ab26b7b9db24 names only its own NoFeature, no kineticist level
+selection option kineticist/wild-talents/elemental-whispers / drops class kineticist
+selection option kineticist/wild-talents/skill-focus -> SkillFocusSelection c9629ef9eebb88b479b2fbc5e836656a has no prerequisite
+selection option kineticist/wild-talents/skill-focus / drops class kineticist
+selection option kineticist/wild-talents/skilled-kineticist -> SkilledKineticistFeature fd13e9efee08db448974fe0263eb96c8 names only its own NoFeature, no kineticist level
+selection option kineticist/wild-talents/skilled-kineticist / drops class kineticist
+selection option kineticist/wild-talents/flame-shield -> FlameShieldFeature 733bbf836ec575b44b3c88b61a26282e names SearingFlesh 8ad77685e64842c45a6f5b19f9086c6c and kineticist 10, not the fire element
+selection option kineticist/wild-talents/flame-shield / drops selection option kineticist/element/fire
+selection option kineticist/wild-talents/healing-burst -> HealingBUrstFeature c73b37aaa2b82b44686c56db8ce14e7f names its list and kineticist 8, not the water element
+selection option kineticist/wild-talents/healing-burst / drops selection option kineticist/element/water
+selection option kineticist/wild-talents/jagged-flesh -> JaggedFleshFeature 94064ed53b1020247941ac70313b439d names FleshOfStoneFeature a275b35f282601944a97e694f6bc79f8 and kineticist 6, not the earth element
+selection option kineticist/wild-talents/jagged-flesh / drops selection option kineticist/element/earth
+selection option kineticist/wild-talents/kinetic-revivification -> KineticRevificationFeature 0377fcf4c10871f4187809d273af7f5d names its list and kineticist 12, not the water element
+selection option kineticist/wild-talents/kinetic-revivification / drops selection option kineticist/element/water
+selection option monk/ki-power/sudden-speed -> KiSuddenSpeedFeature 96d96f5b6f71004418e7a7e42a81c94d has no prerequisite
+selection option monk/ki-power/sudden-speed / drops class monk
+selection option paladin/mercy/fatigued -> MercyFatigued e5aa306af9b91974a9b2f2cbe702f562 has no prerequisite
+selection option paladin/mercy/fatigued / drops class paladin
+selection option paladin/mercy/shaken -> MercyShaken c4732ca5b0af7214a98f9b4dafe87da9 has no prerequisite
+selection option paladin/mercy/shaken / drops class paladin
+selection option paladin/mercy/sickened -> MercySickened 7ee2ef06226a4884f80b7647a2aa2dee has no prerequisite
+selection option paladin/mercy/sickened / drops class paladin
+selection option slayer/slayer-talents/combat-style-feat-2 -> RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9 names only its own NoFeature, no slayer level
+selection option slayer/slayer-talents/combat-style-feat-2 / drops class slayer
+archetype witch/hag-of-gyronna -> DarkSisterArchetype 411fa458481e44f0855d47a19358874b names only an alignment, no deity
+archetype witch/hag-of-gyronna / drops deity gyronna
+
+# A class or an archetype the game names, or refuses (PrerequisiteNoClassLevel, PrerequisiteNoArchetype): each maps
+# one entry exactly.
+mythic ability kinetic-overcharge -> KineticOvercharge 4236ca275c6fa9b4a9945b2645262616 names KineticistClass 42a455d9ec1ad924d889272429eb8391 level 1, not Gather Power
+mythic ability kinetic-overcharge / drops feature kineticist/gather-power
+mythic ability witch-wandering-hex -> WitchWanderingHex fb8490d1721bd5a4883c3b6559310351 names WitchClass 1b9873f1e7bfe5449bc84d03e9c8e3cc level 1, SylvanTricksterArchetype 490394869f666c141bf8647b1a365220 rogue 2 or HexcrafterArchetype 79ccf7a306a5d5547bebd97299f6fc89 magus 4, not a hex
+mythic ability witch-wandering-hex / drops selection option witch/hex/agony
+mythic ability witch-wandering-hex / drops selection option witch/hex/ameliorating
+mythic ability witch-wandering-hex / drops selection option witch/hex/animal-servant
+mythic ability witch-wandering-hex / drops selection option witch/hex/animal-skin
+mythic ability witch-wandering-hex / drops selection option witch/hex/aura-of-purity
+mythic ability witch-wandering-hex / drops selection option witch/hex/beasts-gift
+mythic ability witch-wandering-hex / drops selection option witch/hex/cackle
+mythic ability witch-wandering-hex / drops selection option witch/hex/channel
+mythic ability witch-wandering-hex / drops selection option witch/hex/death-curse
+mythic ability witch-wandering-hex / drops selection option witch/hex/delicious-fright
+mythic ability witch-wandering-hex / drops selection option witch/hex/evil-eye
+mythic ability witch-wandering-hex / drops selection option witch/hex/fortune
+mythic ability witch-wandering-hex / drops selection option witch/hex/healing-hex
+mythic ability witch-wandering-hex / drops selection option witch/hex/hoarfrost
+mythic ability witch-wandering-hex / drops selection option witch/hex/iceplant
+mythic ability witch-wandering-hex / drops selection option witch/hex/lay-to-rest
+mythic ability witch-wandering-hex / drops selection option witch/hex/life-giver
+mythic ability witch-wandering-hex / drops selection option witch/hex/major-ameliorating
+mythic ability witch-wandering-hex / drops selection option witch/hex/major-healing
+mythic ability witch-wandering-hex / drops selection option witch/hex/misfortune
+mythic ability witch-wandering-hex / drops selection option witch/hex/nails
+mythic ability witch-wandering-hex / drops selection option witch/hex/protective-luck
+mythic ability witch-wandering-hex / drops selection option witch/hex/regenerative-sinew
+mythic ability witch-wandering-hex / drops selection option witch/hex/restless-slumber
+mythic ability witch-wandering-hex / drops selection option witch/hex/slumber
+mythic ability witch-wandering-hex / drops selection option witch/hex/vulnerability-curse
+mythic ability witch-wandering-hex / drops selection option witch/hex/ward
+selection option alchemist/discovery/mummification -> Mummification daf854d84d442e941aa3a2fdc041b37c names UndergroundChemistArchetype b4f5741d42c4cb04abf5ab3fe33f6fc5 rogue 10 (PrerequisiteArchetypeLevel), not the Underground Chemist's discovery feature
+selection option alchemist/discovery/mummification / drops feature rogue/underground-chemist/discovery
+selection option rogue/rogue-talents/improved-uncanny-dodge -> ImprovedUncannyDodgeTalent e821c61b2711cea4cb993725b910e7e8 names level 12 of the Eldritch Scoundrel rogue, slayer, bard or skald, not Uncanny Dodge: the user's rule (276; user-facts.txt, applied 276)
+selection option rogue/rogue-talents/improved-uncanny-dodge / drops feature uncanny-dodge
+selection option alchemist/discovery/cognatogen -> CognatogenFeature e3f460ea61fcc504183c7d6818bbbf7a: PrerequisiteNoArchetype IncenseSynthesizerArchetype 6faf49766d8156c419d08f556a40374f
+selection option alchemist/discovery/cognatogen / adds Not archetype alchemist/incense-synthesizer
+selection option alchemist/discovery/fast-bombs -> FastBombsFeature 128c5fccec5ca724281a4907b1f0ac83: PrerequisiteNoArchetype VivisectionistArchetype 68cbcd9fbf1fb1d489562f829bb97e38 and MetamorphArchetype ac242ddeaa05af449bfc5230231fab84
+selection option alchemist/discovery/fast-bombs / adds Not archetype alchemist/metamorph
+selection option alchemist/discovery/fast-bombs / adds Not archetype alchemist/vivisectionist
+selection option alchemist/discovery/preserve-organs -> PreserveOrgans 76b4bb8e54f3f5c418f421684c76ef4e: PrerequisiteNoArchetype MetamorphArchetype ac242ddeaa05af449bfc5230231fab84
+selection option alchemist/discovery/preserve-organs / adds Not archetype alchemist/metamorph
+selection option arcanist/arcanist-exploits/potent-magic -> ArcanistExploitPotentMagicFeature 995110cc948d5164a820403a9e903151: PrerequisiteNoArchetype PhantasmalMageArchetype e9d0ee69305049fe8400a066010dbcd1
+selection option arcanist/arcanist-exploits/potent-magic / adds Not archetype arcanist/phantasmal-mage
+selection option barbarian/rage-power/increased-damage-reduction -> IncreasedDamageReductionFeature ddaee203ee4dcb24c880d633fbd77db6: PrerequisiteNoArchetype ProvocateurArchetype a1f5ab7eb78942f6889304acbd92e945, the planner's skald/inciter
+selection option barbarian/rage-power/increased-damage-reduction / adds Not archetype skald/inciter
+selection option kineticist/element/air -> ElementalFocusAir 2bd0d44953a536f489082534c48f8e31: PrerequisiteNoArchetype BloodKineticistArchetype 365b50dba54efb74fa24c07e9b7a838c
+selection option kineticist/element/air / adds Not archetype kineticist/blood-kineticist
+selection option kineticist/element/earth -> ElementalFocusEarth c6816ad80a3df9c4ea7d3b012b06bacd: PrerequisiteNoArchetype BloodKineticistArchetype 365b50dba54efb74fa24c07e9b7a838c
+selection option kineticist/element/earth / adds Not archetype kineticist/blood-kineticist
+selection option kineticist/element/fire -> ElementalFocusFire 3d8d3d6678b901444a07984294a1bc24: PrerequisiteNoArchetype BloodKineticistArchetype 365b50dba54efb74fa24c07e9b7a838c
+selection option kineticist/element/fire / adds Not archetype kineticist/blood-kineticist
+selection option magus/magus-arcana/bane-blade-level-15 -> BaneBladeFeature a2e0691dcfda2374e84d8bbf480e06a0: PrerequisiteNoArchetype ArmoredBattlemageArchetype 67ec8dcae6fb3d3439e5ae874ddc7b9b
+selection option magus/magus-arcana/bane-blade-level-15 / adds Not archetype magus/armored-battlemage
+selection option magus/magus-arcana/devoted-blade-level-12 -> DevotedBladeFeature 4be0bb10e110a35419e406da767bd1e3: PrerequisiteNoArchetype ArmoredBattlemageArchetype 67ec8dcae6fb3d3439e5ae874ddc7b9b
+selection option magus/magus-arcana/devoted-blade-level-12 / adds Not archetype magus/armored-battlemage
+selection option magus/magus-arcana/enduring-blade-level-6 -> EnduringBladeFeature 7a73bf165e8eda6478b4419f857d1ab5: PrerequisiteNoArchetype ArmoredBattlemageArchetype 67ec8dcae6fb3d3439e5ae874ddc7b9b
+selection option magus/magus-arcana/enduring-blade-level-6 / adds Not archetype magus/armored-battlemage
+selection option magus/magus-arcana/ghost-blade-level-9 -> GhostBladeFeature 8896f327c59569c4eaf129bf35b96c1f: PrerequisiteNoArchetype ArmoredBattlemageArchetype 67ec8dcae6fb3d3439e5ae874ddc7b9b
+selection option magus/magus-arcana/ghost-blade-level-9 / adds Not archetype magus/armored-battlemage
+selection option rogue/rogue-talents/mystery-seeker -> MysterySeeker 04f8c258a47a2de4faac28be313b1621: PrerequisiteNoArchetype MasterOfAllArchetype bd4e70bfb89a452b876713d61b9b8eb2
+selection option rogue/rogue-talents/mystery-seeker / adds Not archetype rogue/master-of-all
+selection option rogue/rogue-talents/survivalist -> Survivalist 9836ea18e56af8249bdda4a4b11ea78c: PrerequisiteNoArchetype MasterOfAllArchetype bd4e70bfb89a452b876713d61b9b8eb2 and SylvanTricksterArchetype 490394869f666c141bf8647b1a365220
+selection option rogue/rogue-talents/survivalist / adds Not archetype rogue/master-of-all
+selection option rogue/rogue-talents/survivalist / adds Not archetype rogue/sylvan-trickster
+archetype arcanist/magic-deceiver -> MagicDeceiver 5c77110cd0414e7eb4c2e485659c9a46: PrerequisiteNoClassLevel LoremasterClass 4a7c05adfbaf05446a6bf664d28fb103 and MysticTheurgeClass 0920ea7e4fd7a404282e3d8b0ac41838
+archetype arcanist/magic-deceiver / adds Not class loremaster
+archetype arcanist/magic-deceiver / adds Not class mystic-theurge
+class mystic-theurge -> MysticTheurgeClass 0920ea7e4fd7a404282e3d8b0ac41838: PrerequisiteNoArchetype MagicDeceiver 5c77110cd0414e7eb4c2e485659c9a46
+class mystic-theurge / adds Not archetype arcanist/magic-deceiver
+
+# A PrerequisiteNoFeature of a blueprint one planner entry alone maps.
+selection option rogue/rogue-talents/blinding-strike -> BlindingStrike fd01c15d9e74cd247b1fdbd6eb4d4713: PrerequisiteNoFeature BlindingCriticalFeature 787e56055e3ef864d9c78a3ec21e56be, which the feat blinding-critical alone maps
+selection option rogue/rogue-talents/blinding-strike / adds Not feat blinding-critical
+selection option shaman/hex/iceplant -> ShamanHexIceplantFeature 999e367bbabc42d46bf864d3f4bda86d: PrerequisiteNoFeature WitchHexIceplantFeature 9af6dc2697c8ef24eab8ce1c697b05c4, which witch/hex/iceplant alone maps
+selection option shaman/hex/iceplant / adds Not selection option witch/hex/iceplant
+selection option witch/hex/iceplant -> WitchHexIceplantFeature 9af6dc2697c8ef24eab8ce1c697b05c4: PrerequisiteNoFeature ShamanHexIceplantFeature 999e367bbabc42d46bf864d3f4bda86d, which shaman/hex/iceplant alone maps
+selection option witch/hex/iceplant / adds Not selection option shaman/hex/iceplant
+selection option shaman/hex/intimidating-display -> ShamanHexIntimidatingDisplayFeature 2eacbef4be7c6434e9cfaa9632fdc429: PrerequisiteNoFeature DazzlingDisplayFeature bcbd674ec70ff6f4894bb5f07b6f4095, which the feat dazzling-display alone maps
+selection option shaman/hex/intimidating-display / adds Not feat dazzling-display
+class oracle -> OracleClass 20ce9bf8af32bee4c8557a045ab499b1: PrerequisiteNoFeature ApsuFeature 772e2673945e4583a804ae01f67efea0, which the deity apsu alone maps
+class oracle / adds Not deity apsu
+
+# A member the game's list or feature doesn't name: the planner's holder of it isn't granted the game's blueprint.
+feat advanced-weapon-training -> AdvancedWeaponTraining1 3aa4cbdd4af5ba54888b0dc7f07f80c4 names WeaponTrainingSelection b8cecf4e5e464ad41b79d5b42b76b399 and fighter 5; refs of it hold FighterProgression and no Sohei or Disciple of the Pike grant, whose own selections (SoheiWeaponTrainingSelection 5f08ae15929f02341a3f328449d443f3, DIscipleOfThePikeWeaponTrainingSelection bc050eac79b34d4abf63e2f1152badad) are other blueprints
+feat advanced-weapon-training / drops feature cavalier/disciple-of-the-pike/weapon-training-spears-polearms
+feat advanced-weapon-training / drops feature monk/sohei/weapon-training
+feat critical-mastery -> CriticalMastery fc85925cd241dd0408ab2f4cb171b7e3: its FeaturesFromList of 2 names Blinding, Exhausting, Sickening, Staggering and Tiring Critical, not Flaying or Stunning Critical
+feat critical-mastery / drops feat flaying-critical
+feat critical-mastery / drops feat stunning-critical
+feat pummeling-style -> PummelingStyle c36562b8e7ae12d408487ba8b532d966 names MonkFlurryOfBlowstUnlock fd99770e6bd240a4aab70f7af103e56a (or BAB 6); the Sohei, Zen Archer and Quarterstaff Master archetypes remove it at level 1 (RemoveFeatures), and their own flurries are other blueprints
+feat pummeling-style / drops feature monk/quarterstaff-master/flurry-of-blows-quarterstaff-master
+feat pummeling-style / drops feature monk/sohei/flurry-of-blows-sohei
+feat pummeling-style / drops feature monk/zen-archer/flurry-of-blows-zen-archer
+mythic ability defensive-study -> DefensiveStudy ec041312142ba1f48a0044521f68fc0a names SlayerStudyTargetFeature 09bdd9445ac38044389476689ae8d5a1; the Tandem Executioner's (TandemExecutionerStudyTargetFeature 3dac0ae65dec4b619c035df07751b59d) and the Sanctified Slayer's (SanctifiedSlayerStudyTargetFeature 6d9d3fbc30564e64d966dba27cd6357a) are other blueprints, HunterProgression names it only in a UI group, and SlayerSwiftStudyTargetFeature 40d4f55a5ac0e4f469d67d36c0dfc40b is not it
+mythic ability defensive-study / drops feature hunter/tandem-executioner/studied-target
+mythic ability defensive-study / drops feature inquisitor/sanctified-slayer/studied-target
+mythic ability defensive-study / drops feature studied-target-swift
+class winter-witch -> WinterWitchClass eb24ca44debf6714aabe1af1fd905a07: its FeaturesFromList of 1 names the Winter Child's, the frost spirit's and the winter patron's blueprints, not the archetype; archetypes/druid/winter-child.ron grants the Winter Child's, and the check finds no game grant of them missing
+class winter-witch / drops archetype druid/winter-child
+
+# A selection the game names in place of its options or a class level, which the planner's rows grant wherever the
+# game's do: the check finds no `progression rows / … game only` row of it.
+feat extra-arcanist-exploit -> ExtraArcanistExploitSelection 0a7065e13f4449fa81bfb33199bf7f6a names ArcanistExploitSelection b8bf3d5023f2d8c428fdf6438cecaea7 or ExploiterExploitSelection 2ba8a0040e0149e9ae9bfcb01a8ff01d, not an exploit; the arcanist's and the Exploiter Wizard's rows grant their entries
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/acid-jet
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/arcane-barrier
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/armored-mask
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/dimensional-slide
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/energy-shield
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/flame-arc
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/force-strike
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/holy-water-jet
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/ice-missile
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/lightning-lance
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/potent-magic
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/shadow-veil
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/sonic-blast
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/spell-resistance
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/swift-consume
+feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/wooden-flesh
+feat extra-discovery-vivisectionist -> ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae names VivsectionistDiscoverySelection 67f499218a0e22944abab6fe1c9eaeee, not the class or the archetype; the Vivisectionist's rows grant its entry
+feat extra-discovery-vivisectionist / drops archetype alchemist/vivisectionist
+feat extra-discovery-vivisectionist / drops class alchemist
+feat extra-rage-power -> ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a names RagePowerSelection 28710502f46848d48b3f0d6132817c4e, InstinctualWarriorRagePowerSelection 609f0e5336084442a0dafa3abd4d31c5 or SkaldRagePowerSelection 2476514e31791394fa140f1a07941c96, not a rage power
+feat extra-rage-power / drops selection option barbarian/rage-power/animal-fury
+feat extra-rage-power / drops selection option barbarian/rage-power/beast-totem
+feat extra-rage-power / drops selection option barbarian/rage-power/beast-totem-greater
+feat extra-rage-power / drops selection option barbarian/rage-power/beast-totem-lesser
+feat extra-rage-power / drops selection option barbarian/rage-power/celestial-totem
+feat extra-rage-power / drops selection option barbarian/rage-power/celestial-totem-greater
+feat extra-rage-power / drops selection option barbarian/rage-power/celestial-totem-lesser
+feat extra-rage-power / drops selection option barbarian/rage-power/clear-mind
+feat extra-rage-power / drops selection option barbarian/rage-power/come-and-get-me
+feat extra-rage-power / drops selection option barbarian/rage-power/crippling-blows
+feat extra-rage-power / drops selection option barbarian/rage-power/daemon-totem
+feat extra-rage-power / drops selection option barbarian/rage-power/daemon-totem-greater
+feat extra-rage-power / drops selection option barbarian/rage-power/daemon-totem-lesser
+feat extra-rage-power / drops selection option barbarian/rage-power/deadly-accuracy
+feat extra-rage-power / drops selection option barbarian/rage-power/deflect-arrows-instinctual-warrior
+feat extra-rage-power / drops selection option barbarian/rage-power/diamond-body-instinctual-warrior
+feat extra-rage-power / drops selection option barbarian/rage-power/diamond-soul-instinctual-warrior
+feat extra-rage-power / drops selection option barbarian/rage-power/fearless-rage
+feat extra-rage-power / drops selection option barbarian/rage-power/fiend-totem
+feat extra-rage-power / drops selection option barbarian/rage-power/fiend-totem-greater
+feat extra-rage-power / drops selection option barbarian/rage-power/fiend-totem-lesser
+feat extra-rage-power / drops selection option barbarian/rage-power/guarded-stance
+feat extra-rage-power / drops selection option barbarian/rage-power/increased-damage-reduction
+feat extra-rage-power / drops selection option barbarian/rage-power/inspire-ferocity
+feat extra-rage-power / drops selection option barbarian/rage-power/internal-fortitude
+feat extra-rage-power / drops selection option barbarian/rage-power/lethal-accuracy
+feat extra-rage-power / drops selection option barbarian/rage-power/lethal-stance
+feat extra-rage-power / drops selection option barbarian/rage-power/perfect-self-instinctual-warrior
+feat extra-rage-power / drops selection option barbarian/rage-power/powerful-stance
+feat extra-rage-power / drops selection option barbarian/rage-power/protect-vitals
+feat extra-rage-power / drops selection option barbarian/rage-power/purity-of-body-instinctual-warrior
+feat extra-rage-power / drops selection option barbarian/rage-power/reckless-stance
+feat extra-rage-power / drops selection option barbarian/rage-power/reflexive-dodge
+feat extra-rage-power / drops selection option barbarian/rage-power/renewed-vigor
+feat extra-rage-power / drops selection option barbarian/rage-power/rolling-dodge
+feat extra-rage-power / drops selection option barbarian/rage-power/scent
+feat extra-rage-power / drops selection option barbarian/rage-power/swift-foot
+feat extra-rage-power / drops selection option barbarian/rage-power/wrecking-blows
+feat extra-wild-talent -> ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471 names WildTalentSelection 5c883ae0cd6d7d5448b7a420f51f8459, not a kineticist level
+feat extra-wild-talent / drops class kineticist
+selection option kineticist/infusions/extended-range -> ExtendedRangeInfusion cb2d9e6355dd33940b2bef49e544b0bf names ElementalFocusSelection 1f3a15a3ae8a5524ab8b97f469bf4e3d, not a kineticist level
+selection option kineticist/infusions/extended-range / drops class kineticist
+selection option ranger/combat-style-feats-10/archery -> RangerStyleArcherySelection10 7ef950ca681955d47bc4efbe77073e2c names RangerStyleArcherySelection6 6c799d09d5b93f344b9ade0e0c765c2d, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
+selection option ranger/combat-style-feats-10/archery / drops selection option ranger/combat-style-feat/archery-feats
+selection option ranger/combat-style-feats-10/menacing -> RangerStyleMenacingSelection10 7d5bd07830a5e2c478852bf8b860db2c names RangerStyleMenacingSelection6 a9998f05a0472bb4f8950304fe26ec0c, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
+selection option ranger/combat-style-feats-10/menacing / drops selection option ranger/combat-style-feat/menacing-feats
+selection option ranger/combat-style-feats-10/two-handed-weapon -> RangerStyleTwoHandedSelection10 f96ad7f1fe7e62c4d8f7540d0f4c7313 names RangerStyleTwoHandedSelection6 83a4b2605333e004f875e2fd22f6be30, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
+selection option ranger/combat-style-feats-10/two-handed-weapon / drops selection option ranger/combat-style-feat/two-handed-weapon-feats
+selection option ranger/combat-style-feats-10/two-weapon-combat -> RangerStyleTwoWeaponSelection10 ee907845112b8aa4e907cf326e6142a6 names RangerStyleTwoWeaponSelection6 59d5445392ac62245a5ece9b01c05ee8, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
+selection option ranger/combat-style-feats-10/two-weapon-combat / drops selection option ranger/combat-style-feat/two-weapon-combat-feats
+selection option ranger/combat-style-feats-10/weapon-and-shield -> RangerStyleShieldSelection10 b2e73b554839a314a8c716dbf33fcfc3 names RangerStyleShieldSelection6 10d8245011456224cb6358f640364e26, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
+selection option ranger/combat-style-feats-10/weapon-and-shield / drops selection option ranger/combat-style-feat/weapon-and-shield-feats
+mythic ability beneficial-curse -> BeneficialCurse 2dda67424ee8e0b4d83ef01a73ca6bff names OracleCurseSelection b0a5118b4fb793241bc7042464b23fab, not a curse
+mythic ability beneficial-curse / drops selection option oracle/oracles-curse/blackened
+mythic ability beneficial-curse / drops selection option oracle/oracles-curse/demonic
+mythic ability beneficial-curse / drops selection option oracle/oracles-curse/hellbound
+mythic ability beneficial-curse / drops selection option oracle/oracles-curse/lame
+mythic ability beneficial-curse / drops selection option oracle/oracles-curse/plagued
+mythic ability beneficial-curse / drops selection option oracle/oracles-curse/powerless-prophecy
+mythic ability beneficial-curse / drops selection option oracle/oracles-curse/pranked
+mythic ability beneficial-curse / drops selection option oracle/oracles-curse/wasting
+mythic ability beneficial-curse / drops selection option oracle/oracles-curse/wolf-scarred-face
+mythic ability second-bloodrager-bloodline -> SecondBloodragerBloodline b7f62628915bdb14d8888c25da3fac56 names BloodragerBloodlineSelection 62b33ac8ceb18dd47ad4c8f06849bc01, not a bloodrager level
+mythic ability second-bloodrager-bloodline / drops class bloodrager
+mythic ability second-mystery -> SecondMystery 277b0164740b97945a3f8022bd572f48 names OracleMysterySelection 5531b975dcdf0e24c98f1ff7e017e741 or MysteryGiftFeatureMisterySelection e9629fc4de4c4b3ea1c26e9c13c2402d, not a mystery
+mythic ability second-mystery / drops selection option oracle/mystery/ancestor
+mythic ability second-mystery / drops selection option oracle/mystery/battle
+mythic ability second-mystery / drops selection option oracle/mystery/bones
+mythic ability second-mystery / drops selection option oracle/mystery/flame
+mythic ability second-mystery / drops selection option oracle/mystery/life
+mythic ability second-mystery / drops selection option oracle/mystery/nature
+mythic ability second-mystery / drops selection option oracle/mystery/stone
+mythic ability second-mystery / drops selection option oracle/mystery/waves
+mythic ability second-mystery / drops selection option oracle/mystery/wind

@@ -7,6 +7,7 @@ mod determinism;
 mod known;
 mod lookup;
 mod pins;
+mod prerequisites_write;
 mod refusal;
 mod span;
 mod support;

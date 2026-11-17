@@ -7,8 +7,12 @@
 //! What either side has that the other can't say is left out and counted.
 
 use std::cmp::Ordering;
+use std::collections::BTreeSet;
 
-use rules::{Alignment, BlueprintGuid, DataAt, FeatKey, Parameter, Prerequisite, SpellType};
+use rules::{
+    Alignment, ArmourProficiency, BlueprintGuid, DataAt, FeatKey, Parameter, Prerequisite,
+    SpellType,
+};
 use serde_json::Value;
 
 use super::fixed::{
@@ -23,7 +27,7 @@ const AREA: Area = Area::Prerequisites;
 
 /// The lowest ability score a Build can have: 7 bought, less a racial 2. A game prerequisite at or below it always
 /// holds (`ShatterDefenses`' Intelligence 3).
-const LOWEST_SCORE: i64 = 5;
+pub(crate) const LOWEST_SCORE: i64 = 5;
 
 /// One condition, in blueprint GUIDs.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -168,7 +172,7 @@ fn entry(
         return;
     };
     let mark = out.mark();
-    let game = game_side(json, guid, class, out).and_then(canon);
+    let game = game_side(ctx, json, guid, class, out).and_then(canon);
     let planner = prerequisite
         .and_then(|prerequisite| planner_side(ctx, prerequisite, out))
         .and_then(canon);
@@ -348,7 +352,13 @@ fn group(children: Vec<Node>, any: bool) -> Option<Node> {
 }
 
 /// The game's prerequisites of a blueprint, before the normal form.
-fn game_side(json: &Value, own: &BlueprintGuid, class: bool, out: &mut Out) -> Option<Node> {
+fn game_side(
+    ctx: &Ctx,
+    json: &Value,
+    own: &BlueprintGuid,
+    class: bool,
+    out: &mut Out,
+) -> Option<Node> {
     let mut all = Vec::new();
     let mut any = Vec::new();
     let mut any_holds = false;
@@ -374,12 +384,9 @@ fn game_side(json: &Value, own: &BlueprintGuid, class: bool, out: &mut Out) -> O
         // A feature's `PrerequisiteNoFeature` of itself: `BlueprintFeatureSelection.CanSelect` already refuses a
         // feature held at its `Ranks`, so with one rank it says nothing the feature doesn't. A selection skips that
         // check, so of one it is what makes it once-only, which the planner says as `HasNot` of itself (ticket 303).
-        if kind == "PrerequisiteNoFeature"
-            && group == "All"
-            && reference(&component["m_Feature"]).as_ref() == Some(own)
-            && json["Ranks"].as_i64().unwrap_or(1) <= 1
-            && !component_kind(json).ends_with("BlueprintFeatureSelection")
-        {
+        // A blueprint several entries share is held once whichever entry holds it, so its own NoFeature refuses the
+        // others (the rogue talent Evasion beside the class feature): compared (ticket 308a).
+        if is_own_no_feature(json, own, component) && ctx.planner.entries_of(own).len() <= 1 {
             out.skip(AREA, "a feature's own NoFeature, not compared");
             continue;
         }
@@ -389,7 +396,7 @@ fn game_side(json: &Value, own: &BlueprintGuid, class: bool, out: &mut Out) -> O
             any_holds |= group != "All";
             continue;
         }
-        if let Some(node) = game_component(component, kind, out) {
+        if let Some(node) = game_component(ctx, component, kind, out) {
             if group == "All" {
                 all.push(node);
             } else {
@@ -403,11 +410,50 @@ fn game_side(json: &Value, own: &BlueprintGuid, class: bool, out: &mut Out) -> O
     Some(Node::All(all))
 }
 
+/// Whether a component is a feature's `PrerequisiteNoFeature` of itself, in the `All` group, on a blueprint that
+/// isn't a selection and has one rank: what `BlueprintFeatureSelection.CanSelect` already refuses.
+pub(crate) fn is_own_no_feature(json: &Value, own: &BlueprintGuid, component: &Value) -> bool {
+    component_kind(component) == "PrerequisiteNoFeature"
+        && component["Group"].as_str().unwrap_or("All") == "All"
+        && reference(&component["m_Feature"]).as_ref() == Some(own)
+        && json["Ranks"].as_i64().unwrap_or(1) <= 1
+        && !component_kind(json).ends_with("BlueprintFeatureSelection")
+}
+
+/// The planner's armour groups of a `PrerequisiteProficiency` or `PrerequisiteNotProficient` that names only armour
+/// (`ArmorProficiencyGroupFlag`: a light and a heavy shield and a buckler are the planner's one shield proficiency),
+/// or the ticket of what it names that the planner has no word for: a weapon (313) or a barding (174).
+pub(crate) fn armour_groups(
+    component: &Value,
+) -> Result<BTreeSet<ArmourProficiency>, &'static str> {
+    let weapons = component["WeaponProficiencies"]
+        .as_array()
+        .is_some_and(|list| !list.is_empty());
+    if weapons {
+        return Err("313");
+    }
+    let names = component["ArmorProficiencies"]
+        .as_array()
+        .map_or(&[][..], Vec::as_slice);
+    names
+        .iter()
+        .map(|name| match name.as_str().unwrap_or("") {
+            "Light" => Ok(ArmourProficiency::Light),
+            "Medium" => Ok(ArmourProficiency::Medium),
+            "Heavy" => Ok(ArmourProficiency::Heavy),
+            "LightShield" | "HeavyShield" | "Buckler" => Ok(ArmourProficiency::Shield),
+            "TowerShield" => Ok(ArmourProficiency::TowerShield),
+            barding if barding.ends_with("Barding") => Err("174"),
+            _ => Err("313"),
+        })
+        .collect()
+}
+
 /// Whether a prerequisite is one only a pet (or a creature no Build is) can fail: not a level of a pet's class, not a
 /// feature only a creature has. Every Build meets it, so the check leaves it out and counts it, as the other "not a
 /// pet" prerequisites (`PrerequisiteClassLevel.CheckInternal`, `PrerequisiteNoFeature`, `PrerequisiteNoClassLevel`:
 /// WrathDecompiled 6ce4a6b).
-fn holds_for_every_build(component: &Value, kind: &str) -> bool {
+pub(crate) fn holds_for_every_build(component: &Value, kind: &str) -> bool {
     let pet_class = |field: &str| {
         reference(&component[field]).is_some_and(|class| {
             [ANIMAL_COMPANION_CLASS, MONSTROUS_HUMANOID_CLASS]
@@ -427,11 +473,38 @@ fn holds_for_every_build(component: &Value, kind: &str) -> bool {
     }
 }
 
-fn game_component(component: &Value, kind: &str, out: &mut Out) -> Option<Node> {
+fn game_component(ctx: &Ctx, component: &Value, kind: &str, out: &mut Out) -> Option<Node> {
     let has = |field: &str| reference(&component[field]).map(|guid| Node::Leaf(Leaf::Has(guid)));
     let not = |node: Node| Node::Not(Box::new(node));
     let node = match kind {
-        "PrerequisiteFeature" => has("m_Feature"),
+        // The Build is the main character (`PrerequisitePlayerHasFeature.CheckInternal`: the player character's
+        // features), so it is the feature held (ticket 308a).
+        "PrerequisiteFeature" | "PrerequisitePlayerHasFeature" => has("m_Feature"),
+        // Of armour only, any group held (`PrerequisiteProficiency.CheckInternal`) or any one lacking
+        // (`PrerequisiteNotProficient.CheckInternal`), each held as the planner's proficiency feat (ticket 308a).
+        "PrerequisiteProficiency" | "PrerequisiteNotProficient" => {
+            let feats: Option<Vec<BlueprintGuid>> =
+                armour_groups(component).ok().and_then(|groups| {
+                    groups
+                        .into_iter()
+                        .map(|group| ctx.planner.guid(DataAt::Feat(group.feat())).cloned())
+                        .collect()
+                });
+            let Some(feats) = feats.filter(|feats| !feats.is_empty()) else {
+                out.skip(AREA, format!("{kind}, not compared"));
+                return None;
+            };
+            let negated = kind == "PrerequisiteNotProficient";
+            Some(Node::Any(
+                feats
+                    .into_iter()
+                    .map(|guid| {
+                        let held = Node::Leaf(Leaf::Has(guid));
+                        if negated { not(held) } else { held }
+                    })
+                    .collect(),
+            ))
+        }
         "PrerequisiteNoFeature" => has("m_Feature").map(not),
         "PrerequisiteFeaturesFromList" => {
             let features: Vec<Node> = references(component.get("m_Features"))
@@ -548,7 +621,6 @@ fn game_component(component: &Value, kind: &str, out: &mut Out) -> Option<Node> 
         "PrerequisiteMainCharacter"
         | "PrerequisiteEtude"
         | "PrerequisitePet"
-        | "PrerequisitePlayerHasFeature"
         | "PrerequisiteConditionForWeaponCategory" => {
             out.skip(AREA, format!("{kind}, the story's or a pet's"));
             return None;
@@ -565,7 +637,7 @@ fn game_component(component: &Value, kind: &str, out: &mut Out) -> Option<Node> 
 }
 
 /// `AlignmentMaskType` from its names, as the JSON writes flags: `"NeutralGood, TrueNeutral, NeutralEvil, Chaotic"`.
-fn alignment_mask(names: &str) -> Option<u16> {
+pub(crate) fn alignment_mask(names: &str) -> Option<u16> {
     names.split(", ").try_fold(0, |mask, name| {
         let bits = match name.trim() {
             "LawfulGood" => 0x1,
@@ -671,10 +743,18 @@ fn planner_side(ctx: &Ctx, prerequisite: &Prerequisite, out: &mut Out) -> Option
         Prerequisite::SkillRanks { skill, ranks } => {
             leaf(Leaf::Ranks(skill_stat(skill), i64::from(*ranks)))
         }
-        Prerequisite::AbilityScore { ability, score } => leaf(Leaf::Ability(
+        // A full score is the game's `PrerequisiteFullStatValue`, which the game side reads as the score (ticket 308a).
+        Prerequisite::AbilityScore { ability, score }
+        | Prerequisite::FullAbilityScore { ability, score } => leaf(Leaf::Ability(
             ability_stat(*ability).to_owned(),
             i64::from(*score),
         )),
+        // The game side's reading of `PrerequisiteCasterType`: spells of that type of level 1 (ticket 308a).
+        Prerequisite::CasterType(spell_type) => leaf(Leaf::SpellLevel {
+            arcane: *spell_type == SpellType::Arcane,
+            spontaneous: false,
+            level: 1,
+        }),
         Prerequisite::BaseAttackBonus(bab) => leaf(Leaf::Bab(i64::from(*bab))),
         Prerequisite::SpellLevel { spell_type, level } => leaf(Leaf::SpellLevel {
             arcane: *spell_type == SpellType::Arcane,

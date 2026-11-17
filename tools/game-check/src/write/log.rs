@@ -43,9 +43,14 @@ pub fn tsv(
         } else {
             removed.join("; ")
         };
+        // A prerequisites change is the census's `prerequisite` row (308b), apart from a carrier grant's `components`.
+        let field = if change.kind == super::prerequisites::KIND {
+            "prerequisite"
+        } else {
+            change.field
+        };
         out.push_str(&format!(
-            "{entry}\t{}\t{}\t{}\t{removed}\t{}\n",
-            change.field,
+            "{entry}\t{field}\t{}\t{}\t{removed}\t{}\n",
             flat(&change.old),
             flat(&change.new),
             facts

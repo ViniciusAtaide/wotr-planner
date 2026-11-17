@@ -10,7 +10,7 @@
 //! doesn't parse, or nothing could be read.
 //!
 //! `game-check --write <area>[,<area>...] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]` (ticket 293): brings
-//! the data's text to the game's values for the areas named (`items`, `class-tables`, `option-lists`, `carriers`; `--only` limits `option-lists` to the selections named and `carriers` to the GUIDs named, never both at once; `carriers` creates the `features/` entries of the hidden features a prerequisite names and of the chains that hold them, ticket 307b; `carrier-grants` adds to an existing feature, feat or option the grants of a carrier its blueprint makes, and to an option the row its progression gives, ticket 307m: `--only` takes the GUIDs of the carriers a dry run may count beside the existing ones), changing only the fields the importer owns and
+//! the data's text to the game's values for the areas named (`items`, `class-tables`, `option-lists`, `carriers`; `--only` limits `option-lists` to the selections named and `carriers` to the GUIDs named, never both at once; `carriers` creates the `features/` entries of the hidden features a prerequisite names and of the chains that hold them, ticket 307b; `carrier-grants` adds to an existing feature, feat or option the grants of a carrier its blueprint makes, and to an option the row its progression gives, ticket 307m: `--only` takes the GUIDs of the carriers a dry run may count beside the existing ones; `prerequisites` writes each feat's, option's, mythic ability's and feat's, class's and archetype's `Requires` from the game, ticket 308a: `--only` takes the report's entry names, `feat extra-hex`, a trailing `*` a prefix, `selection option rogue/*`, and the area then runs alone), changing only the fields the importer owns and
 //! keeping every other byte. It prints, per area, the fields written and the files touched, then what it left
 //! unwritten. `--dry-run` plans and runs the guards and writes nothing. `--log` writes one TSV row per change (not with
 //! `--dry-run`, which has no report after). Exit status: 0 when it wrote or had nothing to write, 2 when a guard
@@ -35,7 +35,8 @@ use std::process::ExitCode;
 use std::time::Instant;
 
 use game_check::write::facts::Facts;
-use game_check::write::{WriteArea, log, run as write};
+use game_check::write::prerequisites::Narrowings;
+use game_check::write::{WriteArea, log, run_with as write};
 use game_check::{Known, Library, Pins, Report, binz, check, default_dump};
 
 fn main() -> ExitCode {
@@ -67,7 +68,7 @@ enum Outcome {
     Written(String),
 }
 
-const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--only <key>[,<key>...]] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items, class-tables, option-lists, carriers, carrier-grants; --only takes selection keys for option-lists and GUIDs for carriers and carrier-grants, never both)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>";
+const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--only <key>[,<key>...]] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items, class-tables, option-lists, carriers, carrier-grants, prerequisites; --only takes selection keys for option-lists, GUIDs for carriers and carrier-grants, never both, and entry names for prerequisites alone: `feat extra-hex`, `selection option rogue/*`)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>";
 
 fn run() -> Result<Outcome, String> {
     let mut binz_path = None;
@@ -157,9 +158,10 @@ fn run() -> Result<Outcome, String> {
             && !areas.contains(&WriteArea::OptionLists)
             && !areas.contains(&WriteArea::Carriers)
             && !areas.contains(&WriteArea::CarrierGrants)
+            && !areas.contains(&WriteArea::Prerequisites)
         {
             return Err(format!(
-                "--only limits the option-lists area (selection keys) or the carriers and carrier-grants areas (GUIDs): --write must name one\n{USAGE}"
+                "--only limits the option-lists area (selection keys), the carriers and carrier-grants areas (GUIDs) or the prerequisites area (entry names): --write must name one\n{USAGE}"
             ));
         }
         return write_run(
@@ -242,8 +244,18 @@ fn write_run(
     };
     let (areas, only) = wanted;
     let facts = Facts::embedded().map_err(|error| error.to_string())?;
-    let outcome = write(&dump, data_dir, areas, only, dry_run, &facts, validate)
-        .map_err(|error| error.to_string())?;
+    let narrowings = Narrowings::embedded().map_err(|error| error.to_string())?;
+    let outcome = write(
+        &dump,
+        data_dir,
+        areas,
+        only,
+        dry_run,
+        &facts,
+        &narrowings,
+        validate,
+    )
+    .map_err(|error| error.to_string())?;
     let mut text = String::new();
     if dry_run {
         text.push_str("dry run: nothing written\n");

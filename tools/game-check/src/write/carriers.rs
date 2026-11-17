@@ -151,7 +151,7 @@ fn capitalised(word: &str) -> String {
 
 /// An asset name's words, lowercased: a capital with its lowercase letters, a run of capitals (an acronym) up to the
 /// capital that starts the next word, a run of digits.
-fn words(name: &str) -> Vec<String> {
+pub(super) fn words(name: &str) -> Vec<String> {
     let chars: Vec<char> = name.chars().collect();
     let mut out: Vec<String> = Vec::new();
     let mut word = String::new();
@@ -672,7 +672,22 @@ fn fact_of(
     if let Some(key) = targets.get(guid) {
         return Some(Fact::Feature(key.clone()));
     }
-    Some(match one_entry(ctx, guid)? {
+    fact_at(one_entry(ctx, guid)?)
+}
+
+/// The facts of every entry that maps a blueprint, in entry order: several for a blueprint entries share (ticket
+/// 305's 90), none for one no entry maps or whose entries are no fact a character holds (a weapon, a spell).
+pub(super) fn facts_of(ctx: &Ctx, guid: &BlueprintGuid) -> Vec<Fact> {
+    ctx.planner
+        .entries_of(guid)
+        .into_iter()
+        .filter_map(fact_at)
+        .collect()
+}
+
+/// The fact an entry is, when it is one a character holds.
+pub(super) fn fact_at(at: &DataAt) -> Option<Fact> {
+    Some(match at {
         DataAt::Feat(key) => Fact::Feat(key.clone()),
         DataAt::Feature(key) => Fact::Feature(key.clone()),
         DataAt::SelectionOption(key) => Fact::Option(key.clone()),
