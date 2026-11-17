@@ -491,31 +491,28 @@ fn the_sheet_labels_the_wild_talent_and_its_bonus_feat() {
     }
 }
 
-/// "Prerequisites: Wild Talents" (feats#extra-wild-talent): the feature the even rows held is a pick now, so the
-/// feat needs the level of the first one, kineticist 2, as Extra Slayer Talent needs slayer 2.
+/// "Prerequisites: Wild Talents" (feats#extra-wild-talent): the feat needs the wild talent selection, held from its
+/// first row, kineticist 2.
 #[test]
-fn extra_wild_talent_needs_kineticist_level_2() {
-    // Game: ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471 needs WildTalentSelection, first held at
-    // kineticist 2 (equivalent model).
-    // And its cap at 3, its own PrerequisiteCondition (ticket 250).
+fn extra_wild_talent_needs_the_wild_talent_selection() {
+    // Game: ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471 needs WildTalentSelection
+    // 5c883ae0cd6d7d5448b7a420f51f8459 (308c), first held at kineticist 2 (KineticistProgression
+    // b79e92dd495edd64e90fb483c504b8df); LevelUpHelper.AddFeaturesFromProgression, WrathDecompiled 6ce4a6b, adds the
+    // selection itself as a fact. And its cap at 3, its own PrerequisiteCondition (ticket 250).
     assert_eq!(
         feat("extra-wild-talent").prerequisite,
         Some(and_not(
-            Prerequisite::ClassLevel {
-                class: ClassKey::new("kineticist"),
-                level: 2,
-            },
+            Prerequisite::Selection(rules::FeatureSelectionKey::new(WILD_TALENTS)),
             own_rank("extra-wild-talent", 3)
         ))
     );
-    let status = feat_status(
-        &kineticist("fire", 1),
-        &general_slot(1),
-        "extra-wild-talent",
-    );
-    assert_eq!(
-        engine().issue_text(&status.unwrap_err()).as_deref(),
-        Some("Needs Kineticist level 2 (have 1)")
+    assert!(
+        feat_status(
+            &kineticist("fire", 1),
+            &general_slot(1),
+            "extra-wild-talent"
+        )
+        .is_err()
     );
     assert_eq!(
         feat_status(

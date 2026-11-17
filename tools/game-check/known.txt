@@ -226,104 +226,55 @@ prerequisites / * / mythic ability witch-wandering-hex -> 259
 # 260, Greater Exploits opens the greater exploits in the exploit picks.
 option lists / * / selection arcanist/greater-exploits -> 260
 
-# 263, feats' prerequisites.
-prerequisites / * / feat accomplished-sneak-attacker -> 263
-prerequisites / * / feat advanced-weapon-training -> 263
-prerequisites / * / feat agile-maneuvers -> 263
-prerequisites / * / feat bashing-finish -> 263
-prerequisites / * / feat blood-feaster -> 263
-prerequisites / * / feat boar-ferocity -> 263
-prerequisites / * / feat boar-shred -> 263
-prerequisites / * / feat boon-companion -> 263
-prerequisites / * / feat bull-rush -> 263
-prerequisites / * / feat cleave -> 263
-prerequisites / * / feat cleaving-finish -> 263
-prerequisites / * / feat combat-mobility -> 263
-prerequisites / * / feat crane-riposte -> 263
-prerequisites / * / feat crane-wing -> 263
-prerequisites / * / feat critical-mastery -> 263
-prerequisites / * / feat crushing-blow -> 263
-prerequisites / * / feat diehard -> 263
-prerequisites / * / feat dirty-trick -> 263
-prerequisites / * / feat disarm -> 263
-prerequisites / * / feat disarming-strike -> 263
-prerequisites / * / feat discordant-voice -> 263
-prerequisites / * / feat disruptive -> 263
-prerequisites / * / feat diva-advance -> 263
-prerequisites / * / feat diva-strike -> 263
-prerequisites / * / feat diva-style -> 263
-prerequisites / * / feat dragon-ferocity -> 263
-prerequisites / * / feat dragon-roar -> 263
-prerequisites / * / feat energized-wild-shape -> 263
-prerequisites / * / feat extended-aspects -> 263
+# 263 (feats' prerequisites) and 264 (the Extra feats'), superseded by 293: 308c wrote every feat's prerequisite the
+# writer can express from the game (`game-check --write prerequisites --only 'feat *'`), and the lines left name their
+# owner, the ticket whose carrier, vocabulary or rows the writer's gap waits on (research/308/slices.md §1.2).
+prerequisites / * / feat accomplished-sneak-attacker -> 314
+prerequisites / * / feat boon-companion -> 174
+prerequisites / * / feat diehard -> 307
+prerequisites / * / feat discordant-voice -> 307
+prerequisites / * / feat disruptive -> 306x
+# The four wild shape feats' PrerequisiteCondition trees wait on 308 too (research/308/decisions.md item 3).
+prerequisites / * / feat energized-wild-shape -> 307
+prerequisites / * / feat extended-aspects -> 308
 prerequisites / * / feat favored-enemy-spellcasting -> 275
-prerequisites / * / feat feint -> 263
-prerequisites / * / feat fencing-grace -> 263
-prerequisites / * / feat final-feint -> 263
-prerequisites / * / feat frightful-shape -> 263
-prerequisites / * / feat great-cleave -> 263
-prerequisites / * / feat greater-bull-rush -> 263
-prerequisites / * / feat greater-dirty-trick -> 263
-prerequisites / * / feat greater-disarm -> 263
-prerequisites / * / feat greater-penetrating-strike -> 263
-prerequisites / * / feat greater-shield-focus -> 263
-prerequisites / * / feat greater-snap-shot -> 263
-prerequisites / * / feat greater-sunder-armor -> 263
-prerequisites / * / feat greater-trip -> 263
-prerequisites / * / feat improved-cleaving-finish -> 263
-prerequisites / * / feat improved-elven-immunities -> 263
-prerequisites / * / feat improved-snap-shot -> 263
-prerequisites / * / feat ironguts -> 263
-prerequisites / * / feat lingering-performance -> 263
-prerequisites / * / feat manyshot -> 263
-prerequisites / * / feat murmurs-of-earth -> 263
-prerequisites / * / feat natural-spell -> 263
-prerequisites / * / feat point-blank-master -> 263
-prerequisites / * / feat pummeling-bully -> 263
-prerequisites / * / feat pummeling-style -> 263
-prerequisites / * / feat raging-brutality -> 263
-prerequisites / * / feat raking-claws -> 263
-prerequisites / * / feat ranged-feint -> 263
-prerequisites / * / feat rapid-shot -> 263
-prerequisites / * / feat selective-channel -> 263
-prerequisites / * / feat shaitan-earthblast -> 263
-prerequisites / * / feat shaitan-skin -> 263
-prerequisites / * / feat shifters-edge -> 263
-prerequisites / * / feat shifters-rush -> 263
-prerequisites / * / feat slashing-grace -> 263
-prerequisites / * / feat spell-chain -> 263
-prerequisites / * / feat spell-specialization -> 263
-prerequisites / * / feat steel-soul -> 263
-prerequisites / * / feat sunder-armor -> 263
-prerequisites / * / feat trip -> 263
-prerequisites / * / feat two-weapon-feint -> 263
-prerequisites / * / feat warrior-priest -> 263
-prerequisites / * / feat wings -> 263
-prerequisites / missing in planner / feat improved-improved-improved-critical -> 263
-prerequisites / missing in planner / feat improved-improved-improved-critical-improved -> 263
-prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-heavy-barding -> 263
-prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-light-barding -> 263
-prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-medium-barding -> 263
-
-# 264, the Extra feats' prerequisites and picks.
-prerequisites / * / feat extra-arcana -> 264
-prerequisites / * / feat extra-arcanist-exploit -> 264
-prerequisites / * / feat extra-bombs -> 264
+prerequisites / * / feat fencing-grace -> 313
+prerequisites / * / feat frightful-shape -> 307
+prerequisites / * / feat improved-elven-immunities -> 307
+prerequisites / * / feat lingering-performance -> 307
+prerequisites / * / feat natural-spell -> 307
+prerequisites / * / feat point-blank-master -> 313
+prerequisites / * / feat raking-claws -> 307
+prerequisites / * / feat selective-channel -> 307
+prerequisites / * / feat shifters-edge -> 307
+prerequisites / * / feat shifters-rush -> 307
+prerequisites / * / feat slashing-grace -> 313
+# Spell Specialization also names the spellbook's spells (317).
+prerequisites / * / feat spell-specialization -> 307
+prerequisites / * / feat steel-soul -> 307
+prerequisites / * / feat wings -> 307
+# The Trickster's critical feats are hand trees (315).
+prerequisites / missing in planner / feat improved-improved-improved-critical -> 315
+prerequisites / missing in planner / feat improved-improved-improved-critical-improved -> 315
+prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-heavy-barding -> 174
+prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-light-barding -> 174
+prerequisites / missing in planner, a blueprint it doesn't map / feat armor-proficiency-medium-barding -> 174
+# Extra Arcana, Extra Hex and Extra Hex (Shaman) are the game's but for one member each, an `Any` alternative no Build
+# can hold today: the Eldritch Scion's EldritchMagusArcanaSelection d4b54d9db4932454ab2899f931c2042c and the Winter
+# Witch's WinterWitchWitchHexSelection b921af3627142bd4d9cf3aefb5e2610a and WinterWitchShamanHexSelection
+# 4e760c5034fafb2438993d8a192150b9 (research/308/decisions.md item 2).
+prerequisites / missing in planner, a blueprint it doesn't map / feat extra-arcana / EldritchMagusArcanaSelection -> 306o
 prerequisites / * / feat extra-channel -> 267
 # The Life spirit's channel: the game's ExtraChannelShaman names ShamanLifeSpiritChannelEnergyFeature b8ec9dcc…, which only
 # ShamanLifeSpiritBaseFeature 9ae3ba76… grants (refs), and the planner holds the channel as that base feature; the check
 # compares by GUID, so each side shows (307's carriers).
 prerequisites / missing in planner, a blueprint it doesn't map / feat extra-channel-shaman -> 307
 prerequisites / not in game / feat extra-channel-shaman -> 307
-prerequisites / * / feat extra-discovery-vivisectionist -> 264
-prerequisites / * / feat extra-hex -> 306o
-prerequisites / * / feat extra-ki -> 264
-prerequisites / * / feat extra-lay-on-hands -> 264
-prerequisites / * / feat extra-hex-shaman -> 264
-prerequisites / * / feat extra-performance -> 264
-prerequisites / * / feat extra-rage-power -> 264
-prerequisites / * / feat extra-slayer-talent -> 264
-prerequisites / * / feat extra-wild-talent -> 264
+prerequisites / missing in planner, a blueprint it doesn't map / feat extra-hex / WinterWitchWitchHexSelection -> 306o
+prerequisites / missing in planner, a blueprint it doesn't map / feat extra-hex-shaman / WinterWitchShamanHexSelection -> 306o
+prerequisites / * / feat extra-ki -> 307
+prerequisites / * / feat extra-performance -> 307
+prerequisites / * / feat extra-slayer-talent -> 307
 
 # 265, mythic abilities' and mythic feats' prerequisites and lists.
 option lists / * / pool mythic feats -> 265
@@ -1100,14 +1051,8 @@ mapping / selection or not / selection option shaman/hex/battle-master -> 316
 
 # 308 (308a, the writer's prerequisites target): the check now compares a PrerequisiteProficiency or
 # PrerequisiteNotProficient of armour only as the planner's proficiency feats. Armor Focus's hand prerequisite is 315's;
-# the five proficiency feats' own NotProficient and Shield Master's shield proficiency are the writer's run (308c).
+# the five proficiency feats' own NotProficient and Shield Master's shield proficiency were written in 308c.
 prerequisites / missing in planner / feat armor-focus -> 315
-prerequisites / missing in planner / feat armor-proficiency-heavy-armor -> 308
-prerequisites / missing in planner / feat armor-proficiency-light-armor -> 308
-prerequisites / missing in planner / feat armor-proficiency-medium-armor -> 308
-prerequisites / missing in planner / feat shield-master -> 308
-prerequisites / missing in planner / feat shield-proficiency -> 308
-prerequisites / missing in planner / feat tower-shield-proficiency -> 308
 # 308a's fix round: the writer's narrowing guard leaves an entry whole when its rewrite would refuse a character the game
 # allows, because the planner grants the game's blueprint under another entry or a grantor's rows are still the
 # planner's. Their lines above name the owner, which unblocks them: feat extra-channel -> 267 (the cleric's
@@ -1119,5 +1064,5 @@ prerequisites / missing in planner / feat tower-shield-proficiency -> 308
 # Zealot's NoFeature of DeitySelection 59e7a76987fe3b547b9cce045f4db3e4 stays 267's, Battle Master's
 # ShamanBattleSpiritProgression 26e81d83d13dbf6448b10019c802612d (the Wildland Shaman's rows lack it) 278's. The writer
 # prints `-> 308` for these, as its `owner` names none of their facts' blueprints; the lines above name the owners.
-# 308g allowlisted Impossible Domain's narrowings (its line is 265's again, with the mythic abilities 308d writes) and
-# Extra Mercy's (it has no line), each with its evidence in prerequisite-narrowing.txt.
+# 308g allowlisted Impossible Domain's narrowings (its line is 265's again, with the mythic abilities 308d writes), with
+# its evidence in prerequisite-narrowing.txt. 308g also allowlisted Extra Mercy's, which 308c wrote; its lines went then.

@@ -512,8 +512,6 @@ fn the_battle_scions_selection_shares_every_rage_power_and_adds_a_teamwork_feat(
 /// The game's Extra Rage Power needs a rage power selection held, which a skald holds from its slot at 3, picked or
 /// not.
 #[test]
-#[ignore = "waits on ticket 293: the importer writes Extra Rage Power's prerequisite as the game's \
-            selections, in ticket 247's form, so a skald 3 with no rage power picked meets it"]
 fn a_skald_takes_extra_rage_power_once_it_has_a_rage_power_slot() {
     // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a (PrerequisiteFeature SkaldRagePowerSelection
     // 2476514e31791394fa140f1a07941c96, Group Any);
@@ -570,8 +568,6 @@ fn the_battle_scions_selection_offers_21_rage_powers() {
 /// The game's Extra Rage Power needs the barbarian's, the Instinctual Warrior's or the skald's rage power selection:
 /// a Battle Scion with none of them can't take it, and the feat's slot is never Battle Prowess.
 #[test]
-#[ignore = "waits on ticket 308: the game closes Extra Rage Power to a Battle Scion by its prerequisite, which the \
-            importer writes in S4 (the feat's slot is its own selection's since 306aa)"]
 fn extra_rage_power_is_closed_to_a_battle_scion_with_no_other_rage_power_selection() {
     // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a (RagePowerSelection,
     // InstinctualWarriorRagePowerSelection or SkaldRagePowerSelection, Group Any); BattleScionArchetype

@@ -28,10 +28,6 @@
 # of the entries it writes. A reason line with no narrowing of its entry is refused.
 
 # A requirement the game doesn't state, dropped: the rewrite only widens there.
-feat manyshot -> Manyshot adf54af2a681792489826f7fd1b62889 names RapidShotFeature 9c928dc570bb9e54a9649b3ebfe47a41 and a stat, not Point-Blank Shot
-feat manyshot / drops feat point-blank-shot
-feat rapid-shot -> RapidShotFeature 9c928dc570bb9e54a9649b3ebfe47a41 names only a stat, not Point-Blank Shot
-feat rapid-shot / drops feat point-blank-shot
 selection option kineticist/infusions/kinetic-blade -> KineticBladeInfusion 9ff81732daddb174aa8138ad1297c787 names no kineticist level
 selection option kineticist/infusions/kinetic-blade / drops class kineticist
 selection option kineticist/wild-talents/elemental-whispers -> ElementalWhispersSelection f02525006521bee4eb90ab26b7b9db24 names only its own NoFeature, no kineticist level
@@ -146,16 +142,6 @@ class oracle -> OracleClass 20ce9bf8af32bee4c8557a045ab499b1: PrerequisiteNoFeat
 class oracle / adds Not deity apsu
 
 # A member the game's list or feature doesn't name: the planner's holder of it isn't granted the game's blueprint.
-feat advanced-weapon-training -> AdvancedWeaponTraining1 3aa4cbdd4af5ba54888b0dc7f07f80c4 names WeaponTrainingSelection b8cecf4e5e464ad41b79d5b42b76b399 and fighter 5; refs of it hold FighterProgression and no Sohei or Disciple of the Pike grant, whose own selections (SoheiWeaponTrainingSelection 5f08ae15929f02341a3f328449d443f3, DIscipleOfThePikeWeaponTrainingSelection bc050eac79b34d4abf63e2f1152badad) are other blueprints
-feat advanced-weapon-training / drops feature cavalier/disciple-of-the-pike/weapon-training-spears-polearms
-feat advanced-weapon-training / drops feature monk/sohei/weapon-training
-feat critical-mastery -> CriticalMastery fc85925cd241dd0408ab2f4cb171b7e3: its FeaturesFromList of 2 names Blinding, Exhausting, Sickening, Staggering and Tiring Critical, not Flaying or Stunning Critical
-feat critical-mastery / drops feat flaying-critical
-feat critical-mastery / drops feat stunning-critical
-feat pummeling-style -> PummelingStyle c36562b8e7ae12d408487ba8b532d966 names MonkFlurryOfBlowstUnlock fd99770e6bd240a4aab70f7af103e56a (or BAB 6); the Sohei, Zen Archer and Quarterstaff Master archetypes remove it at level 1 (RemoveFeatures), and their own flurries are other blueprints
-feat pummeling-style / drops feature monk/quarterstaff-master/flurry-of-blows-quarterstaff-master
-feat pummeling-style / drops feature monk/sohei/flurry-of-blows-sohei
-feat pummeling-style / drops feature monk/zen-archer/flurry-of-blows-zen-archer
 mythic ability defensive-study -> DefensiveStudy ec041312142ba1f48a0044521f68fc0a names SlayerStudyTargetFeature 09bdd9445ac38044389476689ae8d5a1; the Tandem Executioner's (TandemExecutionerStudyTargetFeature 3dac0ae65dec4b619c035df07751b59d) and the Sanctified Slayer's (SanctifiedSlayerStudyTargetFeature 6d9d3fbc30564e64d966dba27cd6357a) are other blueprints, HunterProgression names it only in a UI group, and SlayerSwiftStudyTargetFeature 40d4f55a5ac0e4f469d67d36c0dfc40b is not it
 mythic ability defensive-study / drops feature hunter/tandem-executioner/studied-target
 mythic ability defensive-study / drops feature inquisitor/sanctified-slayer/studied-target
@@ -165,67 +151,6 @@ class winter-witch / drops archetype druid/winter-child
 
 # A selection the game names in place of its options or a class level, which the planner's rows grant wherever the
 # game's do: the check finds no `progression rows / … game only` row of it.
-feat extra-arcanist-exploit -> ExtraArcanistExploitSelection 0a7065e13f4449fa81bfb33199bf7f6a names ArcanistExploitSelection b8bf3d5023f2d8c428fdf6438cecaea7 or ExploiterExploitSelection 2ba8a0040e0149e9ae9bfcb01a8ff01d, not an exploit; the arcanist's and the Exploiter Wizard's rows grant their entries
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/acid-jet
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/arcane-barrier
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/armored-mask
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/dimensional-slide
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/energy-shield
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/flame-arc
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/force-strike
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/holy-water-jet
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/ice-missile
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/lightning-lance
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/potent-magic
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/shadow-veil
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/sonic-blast
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/spell-resistance
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/swift-consume
-feat extra-arcanist-exploit / drops selection option arcanist/arcanist-exploits/wooden-flesh
-feat extra-discovery-vivisectionist -> ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae names VivsectionistDiscoverySelection 67f499218a0e22944abab6fe1c9eaeee, not the class or the archetype; the Vivisectionist's rows grant its entry
-feat extra-discovery-vivisectionist / drops archetype alchemist/vivisectionist
-feat extra-discovery-vivisectionist / drops class alchemist
-feat extra-rage-power -> ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a names RagePowerSelection 28710502f46848d48b3f0d6132817c4e, InstinctualWarriorRagePowerSelection 609f0e5336084442a0dafa3abd4d31c5 or SkaldRagePowerSelection 2476514e31791394fa140f1a07941c96, not a rage power
-feat extra-rage-power / drops selection option barbarian/rage-power/animal-fury
-feat extra-rage-power / drops selection option barbarian/rage-power/beast-totem
-feat extra-rage-power / drops selection option barbarian/rage-power/beast-totem-greater
-feat extra-rage-power / drops selection option barbarian/rage-power/beast-totem-lesser
-feat extra-rage-power / drops selection option barbarian/rage-power/celestial-totem
-feat extra-rage-power / drops selection option barbarian/rage-power/celestial-totem-greater
-feat extra-rage-power / drops selection option barbarian/rage-power/celestial-totem-lesser
-feat extra-rage-power / drops selection option barbarian/rage-power/clear-mind
-feat extra-rage-power / drops selection option barbarian/rage-power/come-and-get-me
-feat extra-rage-power / drops selection option barbarian/rage-power/crippling-blows
-feat extra-rage-power / drops selection option barbarian/rage-power/daemon-totem
-feat extra-rage-power / drops selection option barbarian/rage-power/daemon-totem-greater
-feat extra-rage-power / drops selection option barbarian/rage-power/daemon-totem-lesser
-feat extra-rage-power / drops selection option barbarian/rage-power/deadly-accuracy
-feat extra-rage-power / drops selection option barbarian/rage-power/deflect-arrows-instinctual-warrior
-feat extra-rage-power / drops selection option barbarian/rage-power/diamond-body-instinctual-warrior
-feat extra-rage-power / drops selection option barbarian/rage-power/diamond-soul-instinctual-warrior
-feat extra-rage-power / drops selection option barbarian/rage-power/fearless-rage
-feat extra-rage-power / drops selection option barbarian/rage-power/fiend-totem
-feat extra-rage-power / drops selection option barbarian/rage-power/fiend-totem-greater
-feat extra-rage-power / drops selection option barbarian/rage-power/fiend-totem-lesser
-feat extra-rage-power / drops selection option barbarian/rage-power/guarded-stance
-feat extra-rage-power / drops selection option barbarian/rage-power/increased-damage-reduction
-feat extra-rage-power / drops selection option barbarian/rage-power/inspire-ferocity
-feat extra-rage-power / drops selection option barbarian/rage-power/internal-fortitude
-feat extra-rage-power / drops selection option barbarian/rage-power/lethal-accuracy
-feat extra-rage-power / drops selection option barbarian/rage-power/lethal-stance
-feat extra-rage-power / drops selection option barbarian/rage-power/perfect-self-instinctual-warrior
-feat extra-rage-power / drops selection option barbarian/rage-power/powerful-stance
-feat extra-rage-power / drops selection option barbarian/rage-power/protect-vitals
-feat extra-rage-power / drops selection option barbarian/rage-power/purity-of-body-instinctual-warrior
-feat extra-rage-power / drops selection option barbarian/rage-power/reckless-stance
-feat extra-rage-power / drops selection option barbarian/rage-power/reflexive-dodge
-feat extra-rage-power / drops selection option barbarian/rage-power/renewed-vigor
-feat extra-rage-power / drops selection option barbarian/rage-power/rolling-dodge
-feat extra-rage-power / drops selection option barbarian/rage-power/scent
-feat extra-rage-power / drops selection option barbarian/rage-power/swift-foot
-feat extra-rage-power / drops selection option barbarian/rage-power/wrecking-blows
-feat extra-wild-talent -> ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471 names WildTalentSelection 5c883ae0cd6d7d5448b7a420f51f8459, not a kineticist level
-feat extra-wild-talent / drops class kineticist
 selection option kineticist/infusions/extended-range -> ExtendedRangeInfusion cb2d9e6355dd33940b2bef49e544b0bf names ElementalFocusSelection 1f3a15a3ae8a5524ab8b97f469bf4e3d, not a kineticist level
 selection option kineticist/infusions/extended-range / drops class kineticist
 selection option ranger/combat-style-feats-10/archery -> RangerStyleArcherySelection10 7ef950ca681955d47bc4efbe77073e2c names RangerStyleArcherySelection6 6c799d09d5b93f344b9ade0e0c765c2d, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
@@ -260,22 +185,6 @@ mythic ability second-mystery / drops selection option oracle/mystery/nature
 mythic ability second-mystery / drops selection option oracle/mystery/stone
 mythic ability second-mystery / drops selection option oracle/mystery/waves
 mythic ability second-mystery / drops selection option oracle/mystery/wind
-feat extra-mercy -> ExtraMercySelection 8a49abed5be9473da1e1fd1e2457562e names SelectionMercy 02b187038a8dce545bb34bbfb346428d, not a mercy (308g); selections/paladin/mercy.ron maps it and is the only selection a paladin's rows grant that offers a mercy (paladin/extra-mercy offers them only to a holder of Extra Mercy, which needs one), and every paladin holds it from 3: PaladinProgression grants it, DivineHunterArchetype fec08c1a3187da549abd6b85f27e4432 removes it at 6 alone (archetypes/paladin/divine-hunter-paladin.ron grants it at 3)
-feat extra-mercy / drops selection option paladin/mercy/blinded
-feat extra-mercy / drops selection option paladin/mercy/confused
-feat extra-mercy / drops selection option paladin/mercy/cursed
-feat extra-mercy / drops selection option paladin/mercy/dazed
-feat extra-mercy / drops selection option paladin/mercy/diseased
-feat extra-mercy / drops selection option paladin/mercy/exhausted
-feat extra-mercy / drops selection option paladin/mercy/fatigued
-feat extra-mercy / drops selection option paladin/mercy/frightened
-feat extra-mercy / drops selection option paladin/mercy/nauseated
-feat extra-mercy / drops selection option paladin/mercy/paralyzed
-feat extra-mercy / drops selection option paladin/mercy/poisoned
-feat extra-mercy / drops selection option paladin/mercy/shaken
-feat extra-mercy / drops selection option paladin/mercy/sickened
-feat extra-mercy / drops selection option paladin/mercy/staggered
-feat extra-mercy / drops selection option paladin/mercy/stunned
 mythic ability impossible-domain -> ExtraDomain 213a8480d22206b45acbfa0619ca5aaf names DomainsSelection 48525e5da45c9c243a343fc6545dbdb9, DivineHunterDomainsSelection 72909a37a1ed5344f88ec9d1d31f5c5b or FakeDivineSparkSelection e6d337e709b4478cb6e5389d3f85b601, not a class, an archetype or a way (308g)
 mythic ability impossible-domain / drops class cleric -> ClericProgression b2cd67193d1199f41bc6ecec3a2f2c87 grants DomainsSelection and refs of DomainsSelection hold no cleric archetype; classes/cleric.ron and the 7 cleric archetypes grant cleric/domain at 1
 mythic ability impossible-domain / drops class inquisitor -> InquisitorProgression 4e945c2fe5e252f4ea61eee7fb560017 grants DomainsSelection and FaithHunterArchetype ac87f40932cfd324c90b441f93857c40 removes it at 1, as archetypes/inquisitor/faith-hunter.ron's row 1 lacks inquisitor/domain; every other inquisitor holds inquisitor/domain or inquisitor/sacred-huntsmaster/domain, both DomainsSelection

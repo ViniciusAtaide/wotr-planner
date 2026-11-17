@@ -709,10 +709,9 @@ fn features_sharing_a_name_read_apart_in_a_reason() {
             panic!("{other} and {feature} both read {text:?}");
         }
     }
-    // The reason names only the alternatives the character's classes give, all of them when none does. The fighter's
-    // agrees with the game (AdvancedWeaponTraining1 3aa4cbdd4af5ba54888b0dc7f07f80c4: WeaponTrainingSelection and
-    // Fighter 5); the Sohei's and the Disciple of the Pike's alternatives wait on a ticket
-    // (`advanced_weapon_training_needs_the_fighters_weapon_training`). The texts are the engine's.
+    // The reason names the game's two conditions (AdvancedWeaponTraining1 3aa4cbdd4af5ba54888b0dc7f07f80c4:
+    // WeaponTrainingSelection and Fighter 5; 308c), in the order the engine canonicalises them. The texts are the
+    // engine's.
     let reason = |build: &Build| {
         let advanced = engine
             .options(
@@ -731,7 +730,7 @@ fn features_sharing_a_name_read_apart_in_a_reason() {
     };
     assert_eq!(
         reason(&build("fighter", 1)),
-        "Needs Weapon Training (Fighter), Fighter level 5 (have 1)"
+        "Needs Fighter level 5 (have 1), Weapon Training (Fighter)"
     );
 }
 
@@ -741,7 +740,6 @@ fn features_sharing_a_name_read_apart_in_a_reason() {
 // SoheiWeaponTrainingSelection 5f08ae15929f02341a3f328449d443f3 and DIscipleOfThePikeWeaponTrainingSelection
 // bc050eac79b34d4abf63e2f1152badad aren't named
 #[test]
-#[ignore = "waits on ticket 263: the game's Advanced Weapon Training needs the fighter's Weapon Training and fighter 5 only"]
 fn advanced_weapon_training_needs_the_fighters_weapon_training() {
     let prerequisite = feat("advanced-weapon-training")
         .prerequisite
@@ -780,9 +778,10 @@ fn the_sheet_labels_a_real_build() {
         .into_iter()
         .find(|option| option.pick == Pick::feat(FeatKey::new("cleave")))
         .unwrap();
-    // Game: CleaveFeature d809b6c4ff2aaff4fa70d712a70f7d7b (Power Attack and Str 13; the fighter 20 has Str 13)
+    // Game: CleaveFeature d809b6c4ff2aaff4fa70d712a70f7d7b (PowerAttackFeature 9972f33f977fc724c838e59641b2fca5 and
+    // PrerequisiteStatValue Strength 13; 308c); this fighter 20's Strength is 10
     assert_eq!(
         engine.issue_text(&cleave.status.unwrap_err()).as_deref(),
-        Some("Needs Power Attack")
+        Some("Needs Power Attack, Str 13 (have 10)")
     );
 }

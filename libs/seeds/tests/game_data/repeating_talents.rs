@@ -190,14 +190,14 @@ fn combat_trick_repeats_and_grants_a_combat_feat_slot_each_time() {
     }
     // Its feat's prerequisites are checked; a feat that isn't a Combat feat isn't offered. Game: CombatTrick
     // c5158a6622d0b694a99efb1d0025d2c1 lists WeaponFocus, not SkillFocus, IgnorePrerequisites false; CleaveFeature
-    // d809b6c4ff2aaff4fa70d712a70f7d7b needs PowerAttackFeature.
+    // d809b6c4ff2aaff4fa70d712a70f7d7b needs PowerAttackFeature and Strength 13 (308c), and this rogue's is 10.
     let offered = feats_offered(&build, &option_feat_slot(2));
     assert!(offered.contains("weapon-focus"));
     assert!(!offered.contains("skill-focus"));
     let cleave = feat_status(&build, &option_feat_slot(2), "cleave");
     assert_eq!(
         engine.issue_text(&cleave.unwrap_err()).as_deref(),
-        Some("Needs Power Attack")
+        Some("Needs Power Attack, Str 13 (have 10)")
     );
 }
 
