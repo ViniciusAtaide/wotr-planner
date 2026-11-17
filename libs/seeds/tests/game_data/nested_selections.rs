@@ -420,8 +420,4 @@ fn the_category_selections_list_the_feats_of_their_category() {
         any_selection("teamwork-feats").feats,
         of(&|category| category == FeatCategory::Teamwork)
     );
-    assert_eq!(
-        any_selection("mounted-combat-feats").feats,
-        of(&|category| category == FeatCategory::MountedCombat)
-    );
 }

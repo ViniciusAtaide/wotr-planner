@@ -810,3 +810,425 @@ fn the_magus_arcane_rider_and_warpriest_bonus_feats_are_their_own() {
         );
     }
 }
+
+// Game: the `m_AllFeatures` of CavalierBonusFeatSelection dd17090d14958ef48ba601688b611970 (146 entries, 142 feats the
+// planner has an entry for: AdvancedWeaponTraining2 70a139f0a4c6c534eaa34feea0d08622, 3 ee9ab0117ca06b84f9c66469f4428c61,
+// 4 0b55d725ded1ae549bb858fba1d84114 and BleedingCriticalFeature 42be7d465db94213baf0578c721803ff have none yet: 306q,
+// 306r), GendarmeFeatSelection ef1cd58e0b7fc7f45baedb09407a1cd1 (155, the same four left out) and
+// CavalierTacticianFeatSelection 7bc55b5e381358c45b42153b8b2603a6 (12). Each GUID is a member the planner's feat of that
+// `blueprint` stands for.
+const CAVALIER_BONUS_FEATS: [&str; 142] = [
+    "006a966007802a0478c9e21007207aac",
+    "055fb8dcaf6be334ca13172bafa9e782",
+    "05a3b543b0a0a0346a5061e90f293f0b",
+    "0641368c74334671aaaf32a2730587be",
+    "09c9e82965fb4334b984a1e9df3bd088",
+    "0ab2f21a922feee4dab116238e3150b4",
+    "0b442a7b4aa598d4e912a4ecee0500ff",
+    "0c17102f650d9044290922b0fad9132f",
+    "0da0c194d6e1d43419eb8d990b28e0ab",
+    "0f15c6f70d8fb2b49aa6cc24239cc5fa",
+    "0f8939ae6f220984e8fb568abbdfba95",
+    "0fc1ed8532168f74a9441bd17ad59e66",
+    "1191ef3065e6f8e4f9fbe1b7e3c0f760",
+    "121811173a614534e8720d7550aae253",
+    "12c1b556df3b667458ae200bfb38ccb8",
+    "14a1fc1356df9f146900e1e42142fc9d",
+    "197306972c98bb843af738dc7529a7ac",
+    "1a0298abacb6e0f45b7e28553e99e76c",
+    "1b0f68188dcc435429fb87a022239681",
+    "1e1f627d26ad36f43bbd26cc2bf8ac7e",
+    "1fc8c07a82d749a1a35b6992ad359788",
+    "203992ef5b35c864390b4e4a1e200629",
+    "204a749f60f443e29fbb9e8f6da0a14d",
+    "25bc9c439ac44fd44ac3b1e58890916f",
+    "2a6091b97ad940943b46262600eaeaeb",
+    "2a681cb9fcaab664286cb36fff761245",
+    "2c61fdbf242866f4e93c3e1477fb96b5",
+    "308cd7dc4f10efd428f531bbf4f2823d",
+    "31470b17e8446ae4ea0dacd6c5817d86",
+    "319c882ab3cc51544ad2f3f43633d5b1",
+    "3aa4cbdd4af5ba54888b0dc7f07f80c4",
+    "3af3476f6034a924e96f3ffa198424b7",
+    "4153755355a0b9b4e956c9ca232c22cf",
+    "422dab7309e1ad343935f33a4d6e9f11",
+    "453f5181a5ed3a445abfa3bcd3f4ac0c",
+    "46f4fb320f35704488ba3d513397789d",
+    "46f970a6b9b5d2346b10892673fe6e74",
+    "479c7f3b0dba69a4bbcb43e101f3f7f9",
+    "47b352ea0f73c354aba777945760b441",
+    "4c44724ffa8844f4d9bedb5bb27d144a",
+    "4c7205d859a1e114895e798af383d76a",
+    "4cc71ae82bdd85b40b3cfe6697bb7949",
+    "4e219f5894ad0ea4daa0699e28c37b1d",
+    "4f1a78b02ac71bd4fa7d6e011d6f8ce0",
+    "52913092cd018da47845f36e6fbe240f",
+    "52c6b07a68940af41b270b3710682dc7",
+    "54d824028117e884a8f9356c7c66149b",
+    "54ee847996c25cd4ba8773d7b8555174",
+    "5662d1b793db90c4b9ba68037fd2a768",
+    "56f94badbba018b4b8277ce6e2e79e72",
+    "57c3ea6b05da4226aaeeb21da04e82ea",
+    "59bd93899149fa44687ff4121389b3a9",
+    "59eb2a5507975244c893402d582bf77b",
+    "5d7c3a3eed0546a598e3d2a1c7e0026a",
+    "5ffcd225924514348ac71730179b5b24",
+    "60d57680c3f64539b72423b3dbcd38cd",
+    "6105f450bb2acbd458d277e71e19d835",
+    "61a17ccbbb3d79445b0926347ec07577",
+    "63d8e3a9ab4d72e4081a7862d7246a79",
+    "67b09c86234cecc4c8309f22f7d33973",
+    "68e814f1f3ce55942a52c1dd536eaa5b",
+    "697d64669eb2c0543abb9c9b07998a38",
+    "6a556375036ac8b4ebd80e74d308d108",
+    "6d3728d4e9c9898458fe5e9532951132",
+    "7115a6c08bd101247b70d72a4ff99453",
+    "7213b7bd026d4414da2308df23715d8f",
+    "72ba6ad46d94ecd41bad8e64739ea392",
+    "7477e2e0b72f4ce4fb674f4b21d5e81d",
+    "76d4885a395976547a13c5d6bf95b482",
+    "7812ad3672a4b9a4fb894ea402095167",
+    "787e56055e3ef864d9c78a3ec21e56be",
+    "797f25d709f559546b29e7bcb181cc74",
+    "7b64641c76ff4a744a2bce7f91a20f9a",
+    "7c492212d25d8f04fbd43eb99d780b1e",
+    "7cf5edc65e785a24f9cf93af987d66b3",
+    "7fb3023bda2f42728e76cf269f5a2fa0",
+    "805fd6181a104bf0aca9ae79ef220c16",
+    "80a50d9744a40ac4c96e2cc6451a6703",
+    "87ec6541cddfa394ab540dd13399d319",
+    "8976de442862f82488a4b138a0a89907",
+    "8a6a1920019c45d40b4561f05dcb3240",
+    "8ac59959b1b23c347a0361dc97cc786d",
+    "8f3d1e6b4be006f4d896081f2f889665",
+    "90e54424d682d104ab36436bd527af09",
+    "92db263bfb7445d4aa592a5d15128fc5",
+    "95ef0ff14771f2549897f300ce62c95c",
+    "9719015edcbf142409592e2cbaab7fe1",
+    "97e216dbb46ae3c4faef90cf6bbe6fd5",
+    "992fd59da1783de49b135ad89142c6d7",
+    "9972f33f977fc724c838e59641b2fca5",
+    "9a01b6815d6c3684cb25f30b8bf20932",
+    "9af88f3ed8a017b45a6837eab7437629",
+    "9c928dc570bb9e54a9649b3ebfe47a41",
+    "a0e95a17fed549bcbf85a977811f6094",
+    "a29a582c3daa4c24bb0e991c596ccb28",
+    "ac57069b6bf8c904086171683992a92a",
+    "ac8aaf29054f5b74eb18f2af950e752d",
+    "adf54af2a681792489826f7fd1b62889",
+    "aed0b33e17a3b3d44a718852e87305bd",
+    "af0aae1b973114f47a19ea532237b5fc",
+    "afd05ca5363036c44817c071189b67e1",
+    "b186cea78dce3a04aacff0a81786008c",
+    "b3614622866fe7046b787a548bbd7f59",
+    "bcbd674ec70ff6f4894bb5f07b6f4095",
+    "bdf58317985383540920c723db07aa3b",
+    "bfd867bce95e420e82b3c96abb133876",
+    "c126adbdf6ddd8245bda33694cd774e8",
+    "c3453e7e215c1f149b938be27ac754c6",
+    "c36562b8e7ae12d408487ba8b532d966",
+    "c3a66c1bbd2fb65498b130802d5f183a",
+    "c450b2902b1f4ebdbdd5063260823b57",
+    "c4b555225f565bb40a855c1bfeeff07e",
+    "c5a39c8f1a2d6824ca565e6c1e4075a5",
+    "c5e2aa13b1b6470d8ec70a962ddabdbd",
+    "c62ba548b1a34b94b9802925b35737c2",
+    "c806103e27cce6f429e5bf47067966cf",
+    "c920f2cd2244d284aa69a146aeefcb2c",
+    "cb8686e7357a68c42bdd9d4e65334633",
+    "cc198d726ac34b4599bd1b4d22a7f2b7",
+    "cc9c862ef2e03af4f89be5088851ea35",
+    "ceea53555d83f2547ae5fc47e0399e14",
+    "d26eb8ab2aabd0e45a4d7eec0340bbce",
+    "d41d5bd9a775d7245929256d58a3e03e",
+    "d76497bfc48516e45a0831628f767a0f",
+    "d809b6c4ff2aaff4fa70d712a70f7d7b",
+    "dbec636d84482944f87435bd31522fcc",
+    "e2d1fa11f6b095e4fb2fd1dcf5e36eb3",
+    "e5bee904e6724fc44aae8887dcefae51",
+    "e70ecf1ed95ca2f40b754f1adb22bbdd",
+    "e92cb7c4c900dcf4282def347af42b9c",
+    "eb6eb946c68ef094f89c7633f5bfdc9b",
+    "ed699d64870044b43bb5a7fbe3f29494",
+    "f09b89812cc94b89a09069671002b899",
+    "f308a03bea0d69843a8ed0af003d47a9",
+    "f3ef866a9da642c4b9f7dcd76c3567fe",
+    "f4201c85a991369408740c6888362e20",
+    "f47df34d53f8c904f9981a3ee8e84892",
+    "f7de245bb20f12f47864c7cb8b1d1abb",
+    "f979ed68d1e74d21962edc66f0a1d169",
+    "fc37b70e3d064a147a3a99db4a86ee12",
+    "fc85925cd241dd0408ab2f4cb171b7e3",
+    "ffa1b373190af4f4db7a5501904a1983",
+];
+const GENDARME_FEATS: [&str; 151] = [
+    "006a966007802a0478c9e21007207aac",
+    "055fb8dcaf6be334ca13172bafa9e782",
+    "05a3b543b0a0a0346a5061e90f293f0b",
+    "0641368c74334671aaaf32a2730587be",
+    "09c9e82965fb4334b984a1e9df3bd088",
+    "0ab2f21a922feee4dab116238e3150b4",
+    "0b442a7b4aa598d4e912a4ecee0500ff",
+    "0c17102f650d9044290922b0fad9132f",
+    "0da0c194d6e1d43419eb8d990b28e0ab",
+    "0f15c6f70d8fb2b49aa6cc24239cc5fa",
+    "0f8939ae6f220984e8fb568abbdfba95",
+    "0fc1ed8532168f74a9441bd17ad59e66",
+    "1191ef3065e6f8e4f9fbe1b7e3c0f760",
+    "121811173a614534e8720d7550aae253",
+    "12c1b556df3b667458ae200bfb38ccb8",
+    "14a1fc1356df9f146900e1e42142fc9d",
+    "197306972c98bb843af738dc7529a7ac",
+    "1a0298abacb6e0f45b7e28553e99e76c",
+    "1b0f68188dcc435429fb87a022239681",
+    "1e1f627d26ad36f43bbd26cc2bf8ac7e",
+    "1fc8c07a82d749a1a35b6992ad359788",
+    "203992ef5b35c864390b4e4a1e200629",
+    "204a749f60f443e29fbb9e8f6da0a14d",
+    "25bc9c439ac44fd44ac3b1e58890916f",
+    "2a6091b97ad940943b46262600eaeaeb",
+    "2a681cb9fcaab664286cb36fff761245",
+    "2c61fdbf242866f4e93c3e1477fb96b5",
+    "308cd7dc4f10efd428f531bbf4f2823d",
+    "31470b17e8446ae4ea0dacd6c5817d86",
+    "319c882ab3cc51544ad2f3f43633d5b1",
+    "32429740d6a5470aaaa02f20d61e43d3",
+    "3306f4c6913d4d429358b907cdb4ffd1",
+    "39425a13df904e3cb0e3f6debfe65cab",
+    "3aa4cbdd4af5ba54888b0dc7f07f80c4",
+    "3af3476f6034a924e96f3ffa198424b7",
+    "4153755355a0b9b4e956c9ca232c22cf",
+    "422dab7309e1ad343935f33a4d6e9f11",
+    "453f5181a5ed3a445abfa3bcd3f4ac0c",
+    "46f4fb320f35704488ba3d513397789d",
+    "46f970a6b9b5d2346b10892673fe6e74",
+    "479c7f3b0dba69a4bbcb43e101f3f7f9",
+    "47b352ea0f73c354aba777945760b441",
+    "4c44724ffa8844f4d9bedb5bb27d144a",
+    "4c7205d859a1e114895e798af383d76a",
+    "4cc71ae82bdd85b40b3cfe6697bb7949",
+    "4e219f5894ad0ea4daa0699e28c37b1d",
+    "4f1a78b02ac71bd4fa7d6e011d6f8ce0",
+    "52913092cd018da47845f36e6fbe240f",
+    "52c6b07a68940af41b270b3710682dc7",
+    "54d824028117e884a8f9356c7c66149b",
+    "54ee847996c25cd4ba8773d7b8555174",
+    "5662d1b793db90c4b9ba68037fd2a768",
+    "56f94badbba018b4b8277ce6e2e79e72",
+    "57c3ea6b05da4226aaeeb21da04e82ea",
+    "59bd93899149fa44687ff4121389b3a9",
+    "59eb2a5507975244c893402d582bf77b",
+    "5d7c3a3eed0546a598e3d2a1c7e0026a",
+    "5ffcd225924514348ac71730179b5b24",
+    "60d57680c3f64539b72423b3dbcd38cd",
+    "6105f450bb2acbd458d277e71e19d835",
+    "61a17ccbbb3d79445b0926347ec07577",
+    "63d8e3a9ab4d72e4081a7862d7246a79",
+    "67b09c86234cecc4c8309f22f7d33973",
+    "68e814f1f3ce55942a52c1dd536eaa5b",
+    "697d64669eb2c0543abb9c9b07998a38",
+    "6a556375036ac8b4ebd80e74d308d108",
+    "6d3728d4e9c9898458fe5e9532951132",
+    "7115a6c08bd101247b70d72a4ff99453",
+    "7213b7bd026d4414da2308df23715d8f",
+    "72ba6ad46d94ecd41bad8e64739ea392",
+    "7477e2e0b72f4ce4fb674f4b21d5e81d",
+    "76d4885a395976547a13c5d6bf95b482",
+    "7812ad3672a4b9a4fb894ea402095167",
+    "787e56055e3ef864d9c78a3ec21e56be",
+    "797f25d709f559546b29e7bcb181cc74",
+    "7b64641c76ff4a744a2bce7f91a20f9a",
+    "7ba4b4023a7748669098c479dd9e8de6",
+    "7c492212d25d8f04fbd43eb99d780b1e",
+    "7cf5edc65e785a24f9cf93af987d66b3",
+    "7fb3023bda2f42728e76cf269f5a2fa0",
+    "805fd6181a104bf0aca9ae79ef220c16",
+    "80a50d9744a40ac4c96e2cc6451a6703",
+    "87ec6541cddfa394ab540dd13399d319",
+    "8976de442862f82488a4b138a0a89907",
+    "8a6a1920019c45d40b4561f05dcb3240",
+    "8ac59959b1b23c347a0361dc97cc786d",
+    "8f3d1e6b4be006f4d896081f2f889665",
+    "90e54424d682d104ab36436bd527af09",
+    "92c7e14b4da24549a9219e990b30d723",
+    "92db263bfb7445d4aa592a5d15128fc5",
+    "95ef0ff14771f2549897f300ce62c95c",
+    "9719015edcbf142409592e2cbaab7fe1",
+    "97e216dbb46ae3c4faef90cf6bbe6fd5",
+    "992fd59da1783de49b135ad89142c6d7",
+    "9972f33f977fc724c838e59641b2fca5",
+    "9a01b6815d6c3684cb25f30b8bf20932",
+    "9af88f3ed8a017b45a6837eab7437629",
+    "9c928dc570bb9e54a9649b3ebfe47a41",
+    "a0e95a17fed549bcbf85a977811f6094",
+    "a29a582c3daa4c24bb0e991c596ccb28",
+    "a2e947d6be234abba7c3ac0bd5dc9b1d",
+    "ac57069b6bf8c904086171683992a92a",
+    "ac8aaf29054f5b74eb18f2af950e752d",
+    "adf54af2a681792489826f7fd1b62889",
+    "aed0b33e17a3b3d44a718852e87305bd",
+    "af0aae1b973114f47a19ea532237b5fc",
+    "afd05ca5363036c44817c071189b67e1",
+    "b186cea78dce3a04aacff0a81786008c",
+    "b3614622866fe7046b787a548bbd7f59",
+    "b46bf228d6b2427abd028e2fe7b84600",
+    "bcbd674ec70ff6f4894bb5f07b6f4095",
+    "bdf58317985383540920c723db07aa3b",
+    "bfd867bce95e420e82b3c96abb133876",
+    "c126adbdf6ddd8245bda33694cd774e8",
+    "c3453e7e215c1f149b938be27ac754c6",
+    "c36562b8e7ae12d408487ba8b532d966",
+    "c3a66c1bbd2fb65498b130802d5f183a",
+    "c450b2902b1f4ebdbdd5063260823b57",
+    "c4b555225f565bb40a855c1bfeeff07e",
+    "c5a39c8f1a2d6824ca565e6c1e4075a5",
+    "c5e2aa13b1b6470d8ec70a962ddabdbd",
+    "c610310d31414edabcedf0c8a6fe32c4",
+    "c62ba548b1a34b94b9802925b35737c2",
+    "c806103e27cce6f429e5bf47067966cf",
+    "c920f2cd2244d284aa69a146aeefcb2c",
+    "cb8686e7357a68c42bdd9d4e65334633",
+    "cc198d726ac34b4599bd1b4d22a7f2b7",
+    "cc9c862ef2e03af4f89be5088851ea35",
+    "ceea53555d83f2547ae5fc47e0399e14",
+    "d05cbf9cca8c4385a76bb6d65f65a717",
+    "d26eb8ab2aabd0e45a4d7eec0340bbce",
+    "d41d5bd9a775d7245929256d58a3e03e",
+    "d76497bfc48516e45a0831628f767a0f",
+    "d809b6c4ff2aaff4fa70d712a70f7d7b",
+    "dbec636d84482944f87435bd31522fcc",
+    "e2d1fa11f6b095e4fb2fd1dcf5e36eb3",
+    "e5bee904e6724fc44aae8887dcefae51",
+    "e70ecf1ed95ca2f40b754f1adb22bbdd",
+    "e92cb7c4c900dcf4282def347af42b9c",
+    "eb6eb946c68ef094f89c7633f5bfdc9b",
+    "ed699d64870044b43bb5a7fbe3f29494",
+    "f09b89812cc94b89a09069671002b899",
+    "f308a03bea0d69843a8ed0af003d47a9",
+    "f3ef866a9da642c4b9f7dcd76c3567fe",
+    "f4201c85a991369408740c6888362e20",
+    "f47df34d53f8c904f9981a3ee8e84892",
+    "f7de245bb20f12f47864c7cb8b1d1abb",
+    "f979ed68d1e74d21962edc66f0a1d169",
+    "fc37b70e3d064a147a3a99db4a86ee12",
+    "fc85925cd241dd0408ab2f4cb171b7e3",
+    "ffa1b373190af4f4db7a5501904a1983",
+];
+const TACTICIAN_FEATS: [&str; 12] = [
+    "9093ceeefe9b84746a5993d619d7c86f",
+    "c920f2cd2244d284aa69a146aeefcb2c",
+    "992fd59da1783de49b135ad89142c6d7",
+    "b186cea78dce3a04aacff0a81786008c",
+    "422dab7309e1ad343935f33a4d6e9f11",
+    "5662d1b793db90c4b9ba68037fd2a768",
+    "6337b37f2a7c11b4ab0831d6780bce2a",
+    "0b707584fc2ea724aa72c396c2230dc7",
+    "8976de442862f82488a4b138a0a89907",
+    "1191ef3065e6f8e4f9fbe1b7e3c0f760",
+    "d26eb8ab2aabd0e45a4d7eec0340bbce",
+    "c4b555225f565bb40a855c1bfeeff07e",
+];
+
+fn blueprints_of(key: &str) -> BTreeSet<String> {
+    let list = selection(key);
+    assert!(!list.ignores_prerequisites, "{key} checks prerequisites");
+    list.feats
+        .iter()
+        .map(|feat| {
+            let blueprint = feat_blueprint(feat.as_str());
+            blueprint.unwrap_or_else(|| panic!("{feat} has no blueprint"))
+        })
+        .collect()
+}
+
+fn feat_blueprint(key: &str) -> Option<String> {
+    feat(key).blueprint.as_ref().map(|guid| guid.to_string())
+}
+
+/// 306m: the cavalier's bonus feats (6, 12, 18), its Tactician's teamwork feats (1, 9, 17) and the Gendarme's bonus
+/// feats (1, 3, 6, 9, 12, 15, 18, 20) are three lists of their own, each the game's full member set (the cavalier's and
+/// the Gendarme's less the four members the planner has no feat for yet).
+// Game: CavalierProgression aa70326bdaa7015438df585cf2ab93b9 grants CavalierBonusFeatSelection at 6, 12 and 18 and
+// CavalierTacticianFeatSelection at 1, 9 and 17; GendarmeArchetype 48fd69254e9e5c540bd65101d3252184 `AddFeatures`
+// GendarmeFeatSelection at 1, 3, 6, 9, 12, 15, 18 and 20 and `RemoveFeatures` CavalierBonusFeatSelection at 6, 12 and 18
+// and CavalierTacticianFeatSelection at 1, 9 and 17; FearsomeLeaderArchetype 13cc5ccd5cef4c98a5806f033e19a8bb,
+// GhostRiderArchetype c0503d9864b94134ab1237a2bf2d38a0 and KnightOfTheWallArchetype 112dd0e61f95c3a459ac0a565472e685
+// remove the Tactician's (the others keep both). All three have `IgnorePrerequisites` false.
+#[test]
+fn the_cavaliers_three_feat_lists_are_the_games() {
+    for (key, guid, members) in [
+        (
+            "cavalier/bonus-feats",
+            "dd17090d14958ef48ba601688b611970",
+            CAVALIER_BONUS_FEATS.as_slice(),
+        ),
+        (
+            "cavalier/tactician-feats",
+            "7bc55b5e381358c45b42153b8b2603a6",
+            TACTICIAN_FEATS.as_slice(),
+        ),
+        (
+            "cavalier/gendarme/bonus-feats",
+            "ef1cd58e0b7fc7f45baedb09407a1cd1",
+            GENDARME_FEATS.as_slice(),
+        ),
+    ] {
+        assert_eq!(
+            selection(key).blueprint.as_ref().map(|guid| guid.as_str()),
+            Some(guid),
+            "{key}"
+        );
+        let expected: BTreeSet<String> = members.iter().map(|guid| guid.to_string()).collect();
+        assert_eq!(
+            expected.len(),
+            members.len(),
+            "{key}: a member listed twice"
+        );
+        assert_eq!(blueprints_of(key), expected, "{key}");
+    }
+    // The old pool's five feats are in the cavalier's list; Mounted Combat is the game's first (a member by its
+    // GUID in the list above), and the list is no longer the Mounted Combat category.
+    assert!(feat_keys(selection("cavalier/bonus-feats")).contains("mounted-combat"));
+    assert!(feat_keys(selection("cavalier/bonus-feats")).contains("improved-initiative"));
+    assert!(!feat_keys(selection("cavalier/tactician-feats")).contains("mounted-combat"));
+
+    let class_levels = |selection: &str| levels_naming(class_rows("cavalier"), selection);
+    assert_eq!(class_levels("cavalier/bonus-feats"), [6, 12, 18]);
+    assert_eq!(class_levels("cavalier/tactician-feats"), [1, 9, 17]);
+    assert_eq!(class_levels("combat-feats"), Vec::<u8>::new());
+    assert_eq!(class_levels("teamwork-feats"), Vec::<u8>::new());
+    for (archetype, bonus, tactician) in [
+        ("cavalier/beast-rider", vec![], vec![1]),
+        ("cavalier/cavalier-of-the-paw", vec![8], vec![1]),
+        ("cavalier/disciple-of-the-pike", vec![6, 12], vec![1, 9, 17]),
+        ("cavalier/fearsome-leader", vec![6, 12, 18], vec![]),
+        ("cavalier/standard-bearer", vec![], vec![1]),
+    ] {
+        assert_eq!(
+            levels_naming(archetype_rows(archetype), "cavalier/bonus-feats"),
+            bonus,
+            "{archetype}"
+        );
+        assert_eq!(
+            levels_naming(archetype_rows(archetype), "cavalier/tactician-feats"),
+            tactician,
+            "{archetype}"
+        );
+    }
+    let gendarme = archetype_rows("cavalier/gendarme");
+    assert_eq!(
+        levels_naming(gendarme.clone(), "cavalier/gendarme/bonus-feats"),
+        [1, 3, 6, 9, 12, 15, 18, 20]
+    );
+    for gone in [
+        "cavalier/bonus-feats",
+        "cavalier/tactician-feats",
+        "combat-feats",
+    ] {
+        assert_eq!(
+            levels_naming(gendarme.clone(), gone),
+            Vec::<u8>::new(),
+            "{gone}"
+        );
+    }
+}

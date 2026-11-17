@@ -725,8 +725,9 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   feats: a row, a race or a path rank names it in its `selections` as it names any selection, and the slot it makes is
   a Feat slot. The general feat at odd levels is the engine's `feats` (the game's `BasicFeatSelection`, every feat the
   planner has); the category ones are `combat-feats` (`FighterFeatSelection`), `teamwork-feats` (the inquisitor's
-  `TeamworkFeat`), `magic-feats` (`WizardFeatSelection`) and `mounted-combat-feats` (`CavalierBonusFeatSelection`),
-  each listing the planner's feats of its category (the game's lists are 293's); a race's or row's `feats` reads
+  `TeamworkFeat`) and `magic-feats` (`WizardFeatSelection`), each listing the planner's feats of its category (the
+  game's lists are 293's; the cavalier's own lists are `cavalier/bonus-feats`, `cavalier/tactician-feats` and
+  `cavalier/gendarme/bonus-feats`, the game's since ticket 306m); a race's or row's `feats` reads
   "Bonus feat" on the sheet. A named list is its own selection, `selections/monk/bonus-feats-1.ron`: `(key:
   "monk/bonus-feats-1", blueprint: …, name: "Monk Bonus Feats", guide: "monk#monk-bonus-feats",
   ignores_prerequisites: true, feats: ["crane-style", "dodge"])`. The key starts with the owner's key; any row may

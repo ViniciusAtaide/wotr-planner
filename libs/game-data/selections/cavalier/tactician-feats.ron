@@ -1,0 +1,20 @@
+(
+    key: "cavalier/tactician-feats",
+    blueprint: "7bc55b5e381358c45b42153b8b2603a6",
+    name: "Cavalier teamwork feat",
+    summary: "A teamwork feat from the cavalier's own list, taken at 1st, 9th and 17th level for the Tactician ability.",
+    feats: [
+        "allied-spellcaster",
+        "back-to-back",
+        "coordinated-defense",
+        "coordinated-maneuvers",
+        "outflank",
+        "precise-strike",
+        "seize-the-moment",
+        "shake-it-off",
+        "shield-wall",
+        "shielded-caster",
+        "tandem-trip",
+        "volley-fire",
+    ],
+)
