@@ -1,0 +1,7 @@
+// Its blueprint is not in the dump.
+(
+    key: "ghost-feats",
+    blueprint: "000000000000000000000000000000b4f",
+    name: "Ghost feat",
+    feats: ["bonus-one"],
+)

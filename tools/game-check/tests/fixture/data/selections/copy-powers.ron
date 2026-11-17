@@ -1,0 +1,7 @@
+// The copy: the game's list holds Power A and Power X, which the base defines now.
+(
+    key: "copy-powers",
+    blueprint: "000000000000000000000000000000b44",
+    name: "Copy power",
+    shared_options: ["power-a"],
+)
