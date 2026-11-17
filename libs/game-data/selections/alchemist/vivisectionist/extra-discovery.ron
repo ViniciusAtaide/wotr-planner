@@ -5,9 +5,6 @@
     summary: "One more of the Vivisectionist's medical discoveries whose prerequisites you meet; up to 3 times.",
     guide: "feats#extra-discovery",
     option_levels: ["alchemist"],
-    needs_slot_of: [
-        "alchemist/vivisectionist/medical-discovery",
-    ],
     shared_options: [
         "alchemist/discovery/cognatogen",
         "alchemist/discovery/enhance-potion",

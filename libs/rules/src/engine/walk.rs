@@ -251,9 +251,6 @@ struct Walker<'a> {
     holdings: Vec<Holding>,
     /// The slots granted at this level that have no slot yet: options' rows' and feats'.
     pending: Vec<Pending>,
-    /// The Feature selections the walk has reached a slot of, in the order it first reached each: what a nested
-    /// selection's [`needs_slot_of`](crate::FeatureSelection::needs_slot_of) reads (ticket 302).
-    selections_had: Vec<FeatureSelectionKey>,
     /// While an option row's selection slot is filled: the option whose row granted it, for a selection levelled
     /// by [`LevelFrom::GrantingOption`](crate::LevelFrom::GrantingOption).
     granting: Option<SelectionOptionKey>,
@@ -389,7 +386,6 @@ impl<'a> Walker<'a> {
             class_skill_holds: BTreeMap::new(),
             holdings: Vec::new(),
             pending: Vec::new(),
-            selections_had: Vec::new(),
             granting: None,
             option_slots: 0,
             option_feat_slots: 0,

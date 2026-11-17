@@ -79,6 +79,9 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
             Prerequisite::DeityOffers(_) => ("deity offers", "Not for a deity offering the "),
             // Ticket 303: a selection's own `PrerequisiteNoFeature` (Second Bloodline, Advanced Weapon Training).
             Prerequisite::Feat(_) => ("feat", "Not with "),
+            // Ticket 306aa: Evasion's own `PrerequisiteNoFeature` (Evasion 576933720c440aa4d8d42b0c54b77e80), the class
+            // feature `evasion` the Extra Rogue Talent's list would give a second time.
+            Prerequisite::Feature { .. } => ("feature", "Not with "),
             Prerequisite::MythicAbility(_) => ("mythic ability", "Not with "),
             // Ticket 303: a selection's cap on its own rank (Extra Hex: `Not` of its rank 3).
             Prerequisite::Rank { .. } => ("rank", "Only below "),
@@ -94,6 +97,7 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
             "class level",
             "deity offers",
             "feat",
+            "feature",
             "mythic ability",
             "option",
             "picked through",

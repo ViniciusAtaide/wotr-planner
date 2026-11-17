@@ -130,7 +130,6 @@ pub const SELECTION_FIELDS: &[&str] = &[
     "options",
     "feats",
     "mythic_abilities",
-    "needs_slot_of",
     "ignores_prerequisites",
     "skips_proficiency",
     "shared_options",

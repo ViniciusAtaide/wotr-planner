@@ -570,8 +570,8 @@ fn the_battle_scions_selection_offers_21_rage_powers() {
 /// The game's Extra Rage Power needs the barbarian's, the Instinctual Warrior's or the skald's rage power selection:
 /// a Battle Scion with none of them can't take it, and the feat's slot is never Battle Prowess.
 #[test]
-#[ignore = "waits on ticket 264: the game gives Extra Rage Power no Battle Prowess slot and closes it \
-            to a Battle Scion"]
+#[ignore = "waits on ticket 308: the game closes Extra Rage Power to a Battle Scion by its prerequisite, which the \
+            importer writes in S4 (the feat's slot is its own selection's since 306aa)"]
 fn extra_rage_power_is_closed_to_a_battle_scion_with_no_other_rage_power_selection() {
     // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a (RagePowerSelection,
     // InstinctualWarriorRagePowerSelection or SkaldRagePowerSelection, Group Any); BattleScionArchetype

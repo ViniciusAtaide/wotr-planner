@@ -985,12 +985,15 @@ fn a_scoundrel_with_only_uncanny_dodge_may_take_extra_rogue_talent() {
     assert!(possible(&both));
 }
 
-/// Extra Rogue Talent's pick is its own list: the rogue's 38 talents and Evasion, one more than a rogue's talent slot.
+/// Extra Rogue Talent's pick is its own list: the rogue's 38 talents and Evasion. Evasion is refused to anyone who
+/// holds it (a rogue has it from 2) and open to a Dark Lurker, who loses it.
 // Game: ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 (39: RogueTalentSelection
-// c074a5d615200494b8f2a9c845799d93's 38 and Evasion 576933720c440aa4d8d42b0c54b77e80)
+// c074a5d615200494b8f2a9c845799d93's 38 and Evasion 576933720c440aa4d8d42b0c54b77e80); Evasion
+// 576933720c440aa4d8d42b0c54b77e80 carries a PrerequisiteNoFeature of itself; DarkLurkerArchetype
+// 33eb002078e5437b8c25db4b80b4a4fe removes it (`RemoveFeatures`)
 #[test]
-#[ignore = "waits on ticket 264: the game gives Extra Rogue Talent its own list of 39, the rogue talents and Evasion"]
 fn extra_rogue_talent_offers_the_rogue_talents_and_evasion() {
+    const EVASION: &str = "rogue/rogue-talents/evasion";
     let mut build = with_selections_filled(build("rogue", 3));
     build
         .picks
@@ -998,5 +1001,25 @@ fn extra_rogue_talent_offers_the_rogue_talents_and_evasion() {
     let extra = offered_at(&build, &extra_slot(3, 0));
     let slot = offered_at(&build, &selection_slot(2));
     assert!(slot.is_subset(&extra));
-    assert_eq!(extra.len(), slot.len() + 1);
+    assert_eq!(
+        extra,
+        slot.iter()
+            .cloned()
+            .chain([EVASION.to_owned()])
+            .collect::<BTreeSet<_>>()
+    );
+    assert_eq!(extra.len(), 39);
+    // A rogue 3 holds Evasion (RogueProgression, from 2): the game refuses it a second.
+    assert!(offered_in(&build, &extra_slot(3, 0))[EVASION].is_err());
+
+    // A Dark Lurker 5 doesn't, and the feat is its own (DarkLurkerRogueTalentSelection, held from 4).
+    let mut lurker = with_selections_filled(archetype_build("rogue", "rogue/dark-lurker", 5));
+    assert_eq!(
+        feat_status(&lurker, &general_slot(5), "extra-rogue-talent"),
+        Ok(())
+    );
+    lurker
+        .picks
+        .insert(general_slot(5), feat_pick_plain("extra-rogue-talent"));
+    assert_eq!(offered_in(&lurker, &extra_slot(5, 0))[EVASION], Ok(()));
 }

@@ -17,14 +17,6 @@ pub fn compare(ctx: &Ctx, out: &mut Out) {
     let data = ctx.planner.data;
     for selection in &data.selections {
         let at = DataAt::FeatureSelection(selection.key.clone());
-        // An Extra feat's planner list: the slot is of the first selection it names the character had (ticket 302).
-        if !selection.has_list() {
-            out.skip(
-                AREA,
-                "a selection standing for the first selection had (293)",
-            );
-            continue;
-        }
         // A filtered pool (`filtered_by`, ticket 243) offers all its options, as the game's one selection does
         // before its options' prerequisites filter it (an oracle's revelations).
         let offered = (selection.offered().into_iter())

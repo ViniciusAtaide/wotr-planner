@@ -4,11 +4,5 @@
     name: "Rage Power",
     summary: "One more rage power; can be taken more than once.",
     guide: "feats#extra-rage-power",
-    needs_slot_of: [
-        "barbarian/instinctual-warrior/rage-power",
-        "barbarian/rage-power",
-        "barbarian/skald-rage-power",
-        "skald/battle-scion/rage-power-or-teamwork-feat",
-    ],
     shared_options: ["barbarian/rage-power/animal-fury", "barbarian/rage-power/beast-totem", "barbarian/rage-power/beast-totem-greater", "barbarian/rage-power/beast-totem-lesser", "barbarian/rage-power/celestial-totem", "barbarian/rage-power/celestial-totem-greater", "barbarian/rage-power/celestial-totem-lesser", "barbarian/rage-power/clear-mind", "barbarian/rage-power/come-and-get-me", "barbarian/rage-power/crippling-blows", "barbarian/rage-power/daemon-totem", "barbarian/rage-power/daemon-totem-greater", "barbarian/rage-power/daemon-totem-lesser", "barbarian/rage-power/deadly-accuracy", "barbarian/rage-power/deflect-arrows-instinctual-warrior", "barbarian/rage-power/diamond-body-instinctual-warrior", "barbarian/rage-power/diamond-soul-instinctual-warrior", "barbarian/rage-power/fearless-rage", "barbarian/rage-power/fiend-totem", "barbarian/rage-power/fiend-totem-greater", "barbarian/rage-power/fiend-totem-lesser", "barbarian/rage-power/guarded-stance", "barbarian/rage-power/increased-damage-reduction", "barbarian/rage-power/inspire-ferocity", "barbarian/rage-power/internal-fortitude", "barbarian/rage-power/lethal-accuracy", "barbarian/rage-power/lethal-stance", "barbarian/rage-power/perfect-self-instinctual-warrior", "barbarian/rage-power/powerful-stance", "barbarian/rage-power/protect-vitals", "barbarian/rage-power/purity-of-body-instinctual-warrior", "barbarian/rage-power/reckless-stance", "barbarian/rage-power/reflexive-dodge", "barbarian/rage-power/renewed-vigor", "barbarian/rage-power/rolling-dodge", "barbarian/rage-power/scent", "barbarian/rage-power/swift-foot", "barbarian/rage-power/wrecking-blows"],
 )

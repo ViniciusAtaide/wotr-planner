@@ -46,6 +46,10 @@ fn split_for_the_slayer(data: &mut GameData) {
     let talents = selection_mut(data, "slayer/slayer-talents");
     talents.shared_options.remove(&option(FAST_STEALTH));
     talents.options.insert(option(SLAYER_STEALTH));
+    // Slayer Trick's own list holds the slayer's talents as they are.
+    let trick = selection_mut(data, "slayer/slayer-trick");
+    trick.shared_options.remove(&option(FAST_STEALTH));
+    trick.shared_options.insert(option(SLAYER_STEALTH));
     // Slayer Camouflage needed the rogue's; it now needs the slayer's.
     option_mut(data, "slayer/slayer-talents/slayer-camouflage").prerequisite =
         Some(Prerequisite::SelectionOption(option(SLAYER_STEALTH)));
@@ -61,9 +65,16 @@ fn rename_the_rogues(data: &mut GameData, alias: bool) {
     let talents = selection_mut(data, "rogue/rogue-talents");
     talents.options.remove(&option(FAST_STEALTH));
     talents.options.insert(option(ROGUE_STEALTH));
-    let slayer = selection_mut(data, "slayer/slayer-talents");
-    if slayer.shared_options.remove(&option(FAST_STEALTH)) {
-        slayer.shared_options.insert(option(ROGUE_STEALTH));
+    // The slayer's talents and the Extra selections that list them share it.
+    for key in [
+        "slayer/slayer-talents",
+        "slayer/slayer-trick",
+        "rogue/extra-rogue-talent",
+    ] {
+        let list = selection_mut(data, key);
+        if list.shared_options.remove(&option(FAST_STEALTH)) {
+            list.shared_options.insert(option(ROGUE_STEALTH));
+        }
     }
     let camouflage = option_mut(data, "slayer/slayer-talents/slayer-camouflage");
     if camouflage.prerequisite == Some(Prerequisite::SelectionOption(option(FAST_STEALTH))) {

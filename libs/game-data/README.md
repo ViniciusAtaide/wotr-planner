@@ -33,7 +33,7 @@ with one, and keys that links name never change.
 | `feats/` | `Feat`; one that grants a pick names the selection it grants (`selection`, ticket 302: Extra Rage Power's) |
 | `classes/`, `prestige/` | one base or prestige `Class`: its tables and level rows |
 | `archetypes/` | `Archetype`, naming its `class`: the rows where it differs from its class |
-| `features/`, `selections/`, `options/` | `Feature`; `FeatureSelection`, whose `options` are the keys of its own options and `shared_options` others', or whose `feats` are the feats it offers (a selection of feats, ticket 301: what `feat-lists/` and the feat slots were), or whose `mythic_abilities` are the mythic abilities it offers (Extra Mythic Ability's, ticket 302); `needs_slot_of`, the planner's condition on a selection a feat grants until ticket 293 (`notes/302-nested-selections.md`); `SelectionOption` |
+| `features/`, `selections/`, `options/` | `Feature`; `FeatureSelection`, whose `options` are the keys of its own options and `shared_options` others', or whose `feats` are the feats it offers (a selection of feats, ticket 301: what `feat-lists/` and the feat slots were), or whose `mythic_abilities` are the mythic abilities it offers (Extra Mythic Ability's, ticket 302); `SelectionOption` |
 | `mythic/abilities/`, `mythic/feats/`, `mythic/paths/` | `MythicAbility`; `MythicFeat` (each naming the selection it grants, if any: `selection`, ticket 302); `MythicPath`: its rank table and switch rule |
 | `backgrounds/` | `Background`: the user's list (ticket 34) |
 | `deities/` | `Deity`: the guide's deity table (`character-creation#deities`, ticket 86): the alignments a follower may have, the favoured weapons and the domains (`cleric/domain` options) |
@@ -388,14 +388,13 @@ class's), and BAB and saves (from the class's progressions, or an archetype's fo
   bonus-feat wild talent's reads "Wild talent feat" (`OptionList(selection: "kineticist/element", label: "Wild
   talent feat")`).
 - Ticket 49 (ticket 45's decision 2, user, 2026-11-02): a feat whose guide entry says "gain
-  one additional …" names the selection it grants in `selection`, whose `needs_slot_of` names the selections its
-  "Prerequisites" names (ticket 302; `witch/extra-hex`: `shaman/hex`, `witch/hex`), and each pick of it gives one
-  more slot of the one the character had a slot of first, at the
-  level it's taken (a `FeatSelection` slot); a character who had a slot of none gets none. Eight feats: Extra
-  Arcana, Extra Arcanist Exploit, Extra Discovery (the alchemist's and the Underground Chemist's), Extra Hex, Extra
-  Rage Power, Extra Rogue Talent (the rogue's and the Sylvan Trickster's Fey Tricks), Extra Slayer Talent and Extra
-  Wild Talent. Extra Mercy says it too, but the paladin's mercies were a feature, not a selection, so it named none
-  until ticket 54.
+  one additional …" names the selection it grants in `selection` (ticket 302), which holds the game's own list, and
+  each pick of it gives one more slot of that selection at the level it's taken (a `FeatSelection` slot), whatever
+  slots the character had before (`SelectFeature.Apply`, ticket 306aa; until then the data named in `needs_slot_of`
+  the selections the slot needed first, which is gone). Which classes may take the feat is its prerequisite's. Eight
+  feats: Extra Arcana, Extra Arcanist Exploit, Extra Discovery, Extra Hex, Extra Rage Power, Extra Rogue Talent,
+  Extra Slayer Talent and Extra Wild Talent. Extra Mercy says it too, but the paladin's mercies were a feature, not a
+  selection, so it named none until ticket 54.
 - Ticket 54 (ticket 49's decisions 1 and 5, user, 2026-11-02): the paladin's
   "Mercy" feature is the selection `paladin/mercy` on the rows that held it (each archetype's where its table has
   "Mercy": the Divine Hunter's 3, 9, 12, 15, the Stonelord's 6, 12, 18), with the guide's 15 mercies, each needing

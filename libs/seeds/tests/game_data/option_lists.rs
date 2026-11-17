@@ -12,42 +12,22 @@ use crate::support::{DATA, feat, mythic_feat, picks_of};
 /// option key prefix (a full key names one option; a prefix ending in `/` names every option under it), and why
 /// that is no gap. An entry that covers nothing, or covers an option the prerequisite names, fails
 /// [`every_exception_covers_an_option_the_prerequisite_leaves_out`].
-const EXCEPTIONS: [(&str, &str, &str); 5] = [
-    (
-        "extra-rage-power",
-        "skald/battle-scion/rage-power-or-teamwork-feat/teamwork-feat",
-        "a teamwork feat is no rage power (ticket 189): the Battle Scion's slot offers it, the feat's prerequisite \
-         names rage powers only",
-    ),
-    (
-        "extra-arcanist-exploit",
-        "arcanist/greater-exploits/",
-        "the six greater exploits are in the game's list (306i), and the feat's prerequisite still names the sixteen \
-         exploits only: the importer's prerequisite stage (293) writes the game's selections",
-    ),
-    (
-        "extra-arcana",
-        "witch/hex/",
-        "the witch hexes are Hex Arcana only for the Hexcrafter, whose branch of the prerequisite (Archetype, magus 6, \
-         its first Hex Arcana slot) holds the feat (ticket 64)",
-    ),
-    (
-        "extra-discovery",
-        "rogue/rogue-talents/",
-        "rogue talents are discoveries only for the Vivisectionist and the Underground Chemist, whose branches \
-         (Archetype; the Feature) hold the feat (ticket 64)",
-    ),
-    (
-        "extra-rogue-talent",
-        "witch/hex/",
-        "the witch hexes are Fey Tricks only for the Sylvan Trickster, whose Feature branch holds the feat",
-    ),
-];
+const EXCEPTIONS: [(&str, &str, &str); 1] = [(
+    "extra-arcanist-exploit",
+    "arcanist/greater-exploits/",
+    "the six greater exploits are in the game's list (306i), and the feat's prerequisite still names the sixteen \
+     exploits only: the importer's prerequisite stage (293) writes the game's selections",
+)];
 
 /// The extra feats whose prerequisite names no option, so the rule doesn't apply: a class level is their guide's
-/// "Slayer Talents or Talented Slayer" and "Wild Talents". A new extra feat of that shape needs a decision.
-const NO_OPTIONS_NAMED: [&str; 3] = [
+/// "Slayer Talents or Talented Slayer" and "Wild Talents"; the game's own names the class's selection (Extra
+/// Discovery's DiscoverySelection, Extra Hex's WitchHexSelection, Extra Rogue Talent's RogueTalentSelection and its two
+/// others, 306aa). A new extra feat of that shape needs a decision.
+const NO_OPTIONS_NAMED: [&str; 6] = [
+    "extra-discovery",
     "extra-discovery-vivisectionist",
+    "extra-hex",
+    "extra-rogue-talent",
     "extra-slayer-talent",
     "extra-wild-talent",
 ];

@@ -16,12 +16,6 @@ fn guid_of(blueprint: &Option<rules::BlueprintGuid>) -> Option<&str> {
     blueprint.as_ref().map(|guid| guid.as_str())
 }
 
-fn selection_keys(keys: &[&str]) -> BTreeSet<FeatureSelectionKey> {
-    keys.iter()
-        .map(|key| FeatureSelectionKey::new(*key))
-        .collect()
-}
-
 /// Each Extra feat that gives a pick grants a selection carrying the feat's own blueprint: the game's Extra feat is a
 /// `BlueprintFeatureSelection`, so one GUID names both entries.
 #[test]
@@ -119,8 +113,8 @@ fn each_extra_feat_grants_a_selection_with_its_blueprint() {
 
 /// The Extra feats whose game list is the list of the one selection they stand for list it as their own (the game's
 /// `m_AllFeatures` of each Extra selection equals that selection's, as the planner holds it), with that selection's
-/// header, so an option taken through them has the level and the label it had. Each opens its slot only for a
-/// character who had a slot of that selection first: the planner's rule until 293.
+/// header, so an option taken through them has the level and the label it had. Each opens its slot whenever it is
+/// taken (306aa).
 #[test]
 fn the_own_list_extra_feats_list_the_selection_they_stand_for() {
     // Game: ExtraArcanistExploitSelection 0a7065e13f4449fa81bfb33199bf7f6a and ArcanistExploitSelection
@@ -129,22 +123,13 @@ fn the_own_list_extra_feats_list_the_selection_they_stand_for() {
     // 53f7237f5b1447bb851ba68045a00e41 and ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471 their own (41, 40),
     // which the planner's wild talents stand for (293 writes the game's); the slayer's own list is written (306g) and
     // `the_slayers_extra_talent_list_is_the_games_41` pins it.
-    for (extra, base, needs) in [
+    for (extra, base) in [
         (
             "arcanist/extra-arcanist-exploit",
             "arcanist/arcanist-exploits",
-            &["arcanist/arcanist-exploits", "arcanist/exploiter-exploits"][..],
         ),
-        (
-            "paladin/extra-mercy",
-            "paladin/mercy",
-            &["paladin/mercy"][..],
-        ),
-        (
-            "kineticist/extra-wild-talent",
-            "kineticist/wild-talents",
-            &["kineticist/wild-talents"][..],
-        ),
+        ("paladin/extra-mercy", "paladin/mercy"),
+        ("kineticist/extra-wild-talent", "kineticist/wild-talents"),
     ] {
         let (extra_selection, base_selection) = (any_selection(extra), any_selection(base));
         assert_eq!(
@@ -162,56 +147,36 @@ fn the_own_list_extra_feats_list_the_selection_they_stand_for() {
             extra_selection.option_levels, base_selection.option_levels,
             "{extra}"
         );
-        assert_eq!(
-            extra_selection.needs_slot_of,
-            selection_keys(needs),
-            "{extra}"
-        );
     }
 }
 
-/// The Extra feats whose game list the planner doesn't have as one selection's offer a slot of the first selection
-/// the character had a slot of, among those it names: a marked planner list until 293 writes the game's.
+/// The Extra feats' own lists are the game's: Extra Rogue Talent's is the rogue's 38 talents and Evasion, Extra
+/// Discovery's 28, the Vivisectionist's 25, the witch's 27 (306aa; the others are pinned by their own tests).
 #[test]
-fn the_first_had_extra_feats_name_the_selections_they_reach() {
-    let extra = "rogue/extra-rogue-talent";
-    let selection = any_selection(extra);
+fn the_extra_feats_list_the_games_own_selections() {
+    // Game: ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 (39: RogueTalentSelection
+    // c074a5d615200494b8f2a9c845799d93's 38 and Evasion 576933720c440aa4d8d42b0c54b77e80)
+    let rogue = any_selection("rogue/extra-rogue-talent");
+    let mut talents: BTreeSet<_> = any_selection("rogue/rogue-talents").offered();
+    let evasion = rules::SelectionOptionKey::new("rogue/rogue-talents/evasion");
+    talents.insert(&evasion);
+    assert_eq!(rogue.offered(), talents);
+    assert_eq!(rogue.offered().len(), 39);
+    assert!(rogue.feats.is_empty());
+    // ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 (28) and ExtraVivsectionistDiscoverySelection
+    // 10287e7b8cee479e82ea88bd6d2d4dae (25): an Underground Chemist's discovery is in neither.
     assert_eq!(
-        selection.needs_slot_of,
-        selection_keys(&[
-            "rogue/rogue-talents",
-            "rogue/sylvan-trickster/fey-tricks",
-            "shifter/feyform-shifter/rogue-talent",
-        ]),
-        "{extra}"
+        any_selection("alchemist/extra-discovery").offered().len(),
+        28
     );
-    assert!(
-        selection.offered().is_empty(),
-        "{extra}: no list of its own"
-    );
-    assert!(selection.feats.is_empty(), "{extra}");
-    // The alchemist's has the game's 28 of its own since 306k (ExtraDiscoverySelection
-    // 537965879fc24ad3948aaffa7a1a3a66), and the Vivisectionist's own feat the 25 (ExtraVivsectionistDiscoverySelection
-    // 10287e7b8cee479e82ea88bd6d2d4dae); an Underground Chemist still reaches it until 264.
-    let alchemist = any_selection("alchemist/extra-discovery");
     assert_eq!(
-        alchemist.needs_slot_of,
-        selection_keys(&["alchemist/discovery", "rogue/underground-chemist/discovery"])
+        any_selection("alchemist/vivisectionist/extra-discovery")
+            .offered()
+            .len(),
+        25
     );
-    assert_eq!(alchemist.offered().len(), 28);
-    let vivisectionist = any_selection("alchemist/vivisectionist/extra-discovery");
-    assert_eq!(
-        vivisectionist.needs_slot_of,
-        selection_keys(&["alchemist/vivisectionist/medical-discovery"])
-    );
-    assert_eq!(vivisectionist.offered().len(), 25);
-    // The witch's has the game's 27 of its own since 306j (ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35).
-    let witch = any_selection("witch/extra-hex");
-    assert_eq!(
-        witch.needs_slot_of,
-        selection_keys(&["witch/hex", "witch/wandering-hex"])
-    );
-    assert_eq!(witch.offered().len(), 27);
+    // ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35 (27)
+    assert_eq!(any_selection("witch/extra-hex").offered().len(), 27);
 }
 
 /// The mythic abilities that grant a pick each grant one selection with the ability's blueprint (the game's ability
