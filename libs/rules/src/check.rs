@@ -324,7 +324,8 @@ pub enum DataIssue {
     HeldBonusWithoutSkillOrStat,
     /// A second `interactions.ron` note on the same item.
     InteractionsTwice,
-    /// A gear item with no bonus.
+    /// A gear item with no bonus and no `other_effects` line saying what it does instead (ticket 293k: an item whose
+    /// bonuses come from a toggle, as Trusted Friend's, keeps them in `other_effects`).
     GearWithoutBonus,
     /// A gear bonus of 0, or a negative one that isn't untyped (every penalty is).
     GearAmountInvalid,
@@ -1681,7 +1682,7 @@ impl Checker {
             if let Some(guide) = &item.guide {
                 self.not_empty(&at, &guide.0, "guide reference");
             }
-            if item.stats().next().is_none() {
+            if item.stats().next().is_none() && item.other_effects.is_empty() {
                 self.problem(&at, DataIssue::GearWithoutBonus);
             }
             for component in &item.components {

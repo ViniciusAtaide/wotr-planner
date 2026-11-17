@@ -1767,11 +1767,15 @@ fn gear_mistakes_are_found() {
     );
     both.always_on = vec!["DR 3/-".to_owned()];
     both.other_effects = vec!["DR 3/-".to_owned()];
+    // An item with no always-on bonus is fine when `other_effects` says what it does (a toggle's, ticket 293k).
+    let mut toggle = gear_item("toggle", "Toggle", Vec::new());
+    toggle.other_effects = vec!["While switched on: Cha +2.".to_owned()];
     data.gear = vec![
         bad,
         both,
         gear_item("empty", "Same", Vec::new()),
         gear_item("empty", "Other", Vec::new()),
+        toggle,
     ];
     let at = |key: &str| DataAt::Gear(rules::GearKey::new(key));
     let found = issues(&data);
@@ -1794,6 +1798,7 @@ fn gear_mistakes_are_found() {
         at("bad"),
         DataIssue::UnknownKey(DataAt::Skill(rules::SkillKey::new("cooking")))
     )));
+    assert!(!found.iter().any(|(place, _)| *place == at("toggle")));
 }
 
 /// Ticket 187: the database's `text_key` constraint, now the check's.

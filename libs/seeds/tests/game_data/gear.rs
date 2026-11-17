@@ -4,7 +4,7 @@
 
 use std::collections::BTreeMap;
 
-use rules::{Ability, Descriptor as BonusType, GearItem, GearSlot, GearTarget};
+use rules::{Ability, Descriptor as BonusType, GearItem, GearSlot, GearTarget, Save};
 
 use crate::support::*;
 
@@ -39,7 +39,8 @@ fn summary(key: &str) -> String {
 
 #[test]
 fn every_item_has_a_positive_ability_score_bonus() {
-    for item in &DATA.gear {
+    // Trusted Friend's bonuses are its toggle's (`trusted_friends_bonuses_are_its_toggles_not_always_on`).
+    for item in DATA.gear.iter().filter(|item| !item.components.is_empty()) {
         assert!(
             bonuses(item).iter().any(|bonus| {
                 matches!(bonus.target, GearTarget::Ability(_)) && bonus.amount > 0
@@ -116,7 +117,7 @@ fn guide_references_are_one_of_the_three_pages_and_match_the_slot() {
 }
 
 #[test]
-fn exactly_the_users_twenty_two_generic_items_have_no_guide_reference() {
+fn exactly_the_users_twenty_three_generic_items_have_no_guide_reference() {
     // The user's items: each is the game's, with an Enhancement bonus of its size.
     let mut expected: Vec<String> = Vec::new();
     for name in [
@@ -135,6 +136,8 @@ fn exactly_the_users_twenty_two_generic_items_have_no_guide_reference() {
     ] {
         expected.extend([2, 4].map(|n| format!("{name} +{n}")));
     }
+    // The +8 the user added (ticket 288, line 15). Game: HeadbandOfPerfection8 f94d69b19fe07ca4a8ade7993a1a7510
+    expected.push("Headband of Mental Perfection +8".to_owned());
     expected.sort();
     let mut without: Vec<String> = DATA
         .gear
@@ -168,7 +171,6 @@ fn exactly_the_users_twenty_two_generic_items_have_no_guide_reference() {
 /// Wisdom and Charisma (the user approved the game's +8 items).
 // Game: HeadbandOfPerfection8 f94d69b19fe07ca4a8ade7993a1a7510; BeltOfPerfection8 dc2f2613634c2f947b306fa3379232c2
 #[test]
-#[ignore = "waits on ticket 288: the game gives a Headband of Mental Perfection +8"]
 fn the_game_has_a_headband_of_mental_perfection_8() {
     let headband = DATA
         .gear
@@ -221,7 +223,7 @@ fn the_items_count_per_slot_matches_the_extraction_report() {
             (GearSlot::Usable, 9),
         ])
     );
-    assert_eq!(DATA.gear.len(), 92);
+    assert_eq!(DATA.gear.len(), 93);
 }
 
 #[test]
@@ -308,14 +310,26 @@ fn the_elixir_of_inconceivable_transmutations_gives_alchemical_bonuses() {
 /// The usable item whose bonuses the game makes Alchemical.
 const ELIXIR: &str = "elixir-of-inconceivable-transmutations-of-body-and-soul-and-also-mind";
 
+/// Trusted Friend's Charisma +2 and Persuasion +5 come from a toggle, so they are an `other_effects` line and no
+/// always-on bonus (ticket 293k, decision 2).
+// Game: TokenOfHonor 905ec00744cd4627b0e00f187e215d4b (no always-on bonus); TokenOfHonorBuff
+// ab092ad237384b46b2fb192e6305f673 (the toggle's: Cha +2 and Persuasion +5 circumstance)
 #[test]
-fn trusted_friend_is_a_necklace() {
-    // The slot is the game's otherwise: `trusted_friend_is_a_usable_toggle`.
-    // Game: TokenOfHonorBuff ab092ad237384b46b2fb192e6305f673 (Cha +2 and Persuasion +5 circumstance)
-    assert_eq!(
-        summary("trusted-friend"),
-        "Cha +2 circumstance; Persuasion +5 circumstance"
+fn trusted_friends_bonuses_are_its_toggles_not_always_on() {
+    let friend = item("trusted-friend");
+    assert!(bonuses(friend).is_empty());
+    assert!(friend.always_on.is_empty());
+    assert!(
+        friend
+            .other_effects
+            .iter()
+            .any(|line| line.contains("+2 circumstance bonus to Charisma")
+                && line.contains("+5 circumstance bonus to Persuasion")),
+        "{:?}",
+        friend.other_effects
     );
+    // Its slot is the game's otherwise: `trusted_friend_is_a_usable_toggle`.
+    assert_eq!(friend.slot, GearSlot::Necklace);
 }
 
 /// Trusted Friend is a usable item (a toggle), not a necklace.
@@ -329,7 +343,7 @@ fn trusted_friend_is_a_usable_toggle() {
 
 #[test]
 fn an_armour_and_a_weapon_name_their_own_enhancement_and_base_type() {
-    // The Half-Plate of Vigor's is the game's otherwise: `the_half_plate_of_vigor_is_a_2_half_plate_with_con_2_enhancement`.
+    // The Half-Plate of Vigor's is the game's otherwise: `the_half_plate_of_vigor_is_a_2_half_plate`.
     for (key, line) in [
         ("snakeskin", "A +4 leather armour"), // Game: DLC3_DemonhideLeatherArmorItem f125e2f29ffd44e7acfb7619586a7e24
         ("life-infuser", "A +5 breastplate"), // Game: LifeInfuser e5d3c2148c854b5ba5d56390f8fcc72c
@@ -343,14 +357,58 @@ fn an_armour_and_a_weapon_name_their_own_enhancement_and_base_type() {
     }
 }
 
-/// The Half-Plate of Vigor is a +2 half-plate, and its Constitution bonus is an enhancement bonus.
-// Game: HalfplateOfVigorItem 053873b9eca18854696dfc0e49d260fe (+2; Con +2 Enhancement)
+/// The Half-Plate of Vigor's Constitution bonus is an enhancement bonus.
+// Game: HalfplateOfVigorItem 65b74eead51fefb468ef4afcc213b0ba; its enchantment HalfplateOfVigorEnchantment
+// 2b5234450dfbd7e4a844820674a20f39 (AddStatBonusEquipment: Constitution +2, Descriptor Enhancement)
 #[test]
-#[ignore = "waits on ticket 288: the game gives the Half-Plate of Vigor +2 and Con +2 enhancement"]
-fn the_half_plate_of_vigor_is_a_2_half_plate_with_con_2_enhancement() {
+fn the_half_plate_of_vigor_gives_con_2_enhancement() {
+    let bonuses = bonuses(item("half-plate-of-vigor"));
+    assert_eq!(bonuses.len(), 1);
     assert_eq!(
-        summary("half-plate-of-vigor"),
-        "Con +2 enhancement; A +2 half-plate"
+        (
+            bonuses[0].target.clone(),
+            bonuses[0].amount,
+            bonuses[0].kind
+        ),
+        (
+            GearTarget::Ability(Ability::Constitution),
+            2,
+            BonusType::Enhancement
+        )
+    );
+}
+
+/// The Half-Plate of Vigor is a +2 half-plate.
+// Game: HalfplateOfVigorItem 65b74eead51fefb468ef4afcc213b0ba (+2)
+#[test]
+#[ignore = "waits on ticket 288: the game gives the Half-Plate of Vigor +2"]
+fn the_half_plate_of_vigor_is_a_2_half_plate() {
+    assert!(
+        item("half-plate-of-vigor")
+            .always_on
+            .iter()
+            .any(|line| line == "A +2 half-plate")
+    );
+}
+
+/// Sarkoris' Dirge's Strength bonus is an enhancement bonus.
+// Game: SarkorisDirgeEnchantment e02dedda1d5248b3aa9016f918722c2e (AddStatBonusEquipment: Strength +2, Descriptor
+// Enhancement); SarkorisDirgeItem cffc4037c224475ca2a0c0b6bfda8688
+#[test]
+fn sarkoris_dirge_gives_str_2_enhancement() {
+    let bonuses = bonuses(item("dirge-for-sarkoris"));
+    assert_eq!(bonuses.len(), 1);
+    assert_eq!(
+        (
+            bonuses[0].target.clone(),
+            bonuses[0].amount,
+            bonuses[0].kind
+        ),
+        (
+            GearTarget::Ability(Ability::Strength),
+            2,
+            BonusType::Enhancement
+        )
     );
 }
 
@@ -361,18 +419,21 @@ fn the_venerated_champion_gives_con_6_enhancement() {
     assert!(summary("belt-of-the-venerated-champion").starts_with("Con +6 enhancement"));
 }
 
-/// The Venerated Champion's belt gives an always-on +2 untyped bonus to Fortitude.
-// Game: BeltOfVeneratedChampionFeature 49fb12e9d6cac0041b6de3507049e7d0 (Fortitude +2, untyped, always on)
+/// The Venerated Champion's belt gives an always-on +2 untyped bonus to Fortitude, and only its +1 insight to AC
+/// against evil creatures is conditional.
+// Game: BeltOfVeneratedChampionFeature 49fb12e9d6cac0041b6de3507049e7d0 (AddStatBonus SaveFortitude +2,
+// UntypedStackable, always on; ArmorClassBonusAgainstAlignment Evil +1 Insight)
 #[test]
-#[ignore = "waits on ticket 288: the game gives the Venerated Champion's belt an always-on Fortitude +2"]
 fn the_venerated_champions_fortitude_bonus_is_always_on() {
-    assert!(
-        item("belt-of-the-venerated-champion")
-            .always_on
-            .iter()
-            .any(|line| line.contains("Fortitude +2")),
-        "{:?}",
-        item("belt-of-the-venerated-champion").always_on
+    let belt = item("belt-of-the-venerated-champion");
+    assert!(bonuses(belt).iter().any(|bonus| {
+        bonus.target == GearTarget::Save(Save::Fortitude)
+            && bonus.amount == 2
+            && bonus.kind == BonusType::Untyped
+    }));
+    assert_eq!(
+        belt.other_effects,
+        ["Against evil creatures: +1 insight bonus to AC."]
     );
 }
 
@@ -422,7 +483,7 @@ fn an_item_with_other_effects_matches_its_page_line() {
         summary("life-infuser"),
         "Str, Con +8 armour; A +5 breastplate; Moderate fortification"
     );
-    // The Half-Plate of Vigor's: `the_half_plate_of_vigor_is_a_2_half_plate_with_con_2_enhancement`.
+    // The Half-Plate of Vigor's: `the_half_plate_of_vigor_is_a_2_half_plate`.
     // Game: SinmageStaffFeature a37d1e737e21433392b8292e2810906c (all three untyped, UntypedStackable)
     assert_eq!(
         summary("sin-mages-staff"),
@@ -539,7 +600,12 @@ fn no_line_is_in_both_lists_and_every_line_is_short() {
 #[test]
 fn every_summary_is_non_empty_and_every_other_effect_is_short() {
     for item in &DATA.gear {
-        assert!(!item.summary(&DATA.skills).is_empty(), "{}", item.name);
+        // Trusted Friend's bonuses are its toggle's: its `other_effects` hold them, so its summary is empty.
+        assert!(
+            !item.summary(&DATA.skills).is_empty() || !item.other_effects.is_empty(),
+            "{}",
+            item.name
+        );
         for line in &item.other_effects {
             assert!(line.chars().count() <= 140, "{}: {line}", item.name);
         }

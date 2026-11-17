@@ -9,6 +9,6 @@
         "A +1 half-plate",
     ],
 components: [
-    GearStat(stat: Ability(Constitution), value: 2),
+    GearStat(stat: Ability(Constitution), value: 2, descriptor: Enhancement),
 ],
 )

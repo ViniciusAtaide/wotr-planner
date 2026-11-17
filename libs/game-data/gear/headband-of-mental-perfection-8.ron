@@ -1,0 +1,11 @@
+(
+    key: "headband-of-mental-perfection-8",
+    blueprint: "f94d69b19fe07ca4a8ade7993a1a7510",
+    name: "Headband of Mental Perfection +8",
+    slot: Headwear,
+    components: [
+        GearStat(stat: Ability(Intelligence), value: 8, descriptor: Enhancement),
+        GearStat(stat: Ability(Wisdom), value: 8, descriptor: Enhancement),
+        GearStat(stat: Ability(Charisma), value: 8, descriptor: Enhancement),
+    ],
+)
