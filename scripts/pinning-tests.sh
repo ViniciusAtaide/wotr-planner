@@ -37,16 +37,16 @@ done
 # Tests that list every entry holding a field, so they pin an entry that names no key a slice touches
 # (306k's rescue retro: a new selection with `band: Path` broke `pick_order`). Give the field as a key, as
 # `band: Path`, to see its tests. Add a row when a full run finds another such test.
-#   field<TAB>test
+#   field|test
 enumerating=(
-    "band: Path	pick_order::the_selections_outside_the_features_band_are_the_games"
+    "band: Path|pick_order::the_selections_outside_the_features_band_are_the_games"
 )
 for key in "$@"; do
     for row in "${enumerating[@]}"; do
-        field="${row%%	*}"
+        field="${row%%|*}"
         if [ "$key" = "$field" ]; then
             echo "== $key (lists every entry with it)"
-            echo "  ${row#*	}"
+            echo "  ${row#*|}"
         fi
     done
 done
