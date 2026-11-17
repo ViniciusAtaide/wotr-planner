@@ -148,8 +148,9 @@ fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
     // and the half-elf's Skill Focus. Ticket 61 adds the Titan Fighter's three Massive Attacks lists.
     // Ticket 301: each a selection of feats, every feat named. Ticket 306l: the magus's, the Arcane Rider's and the
     // warpriest's bonus lists (three more). Ticket 306m: the cavalier's, its Tactician's and the Gendarme's (three more).
-    // Ticket 306n: the sorcerer's, the two Seekers' and the skald's bonus lists (four more).
-    assert_eq!(feat_lists().count(), 88);
+    // Ticket 306n: the sorcerer's, the two Seekers' and the skald's bonus lists (four more). Ticket 306s: Extra Feat's own list
+    // (one more).
+    assert_eq!(feat_lists().count(), 89);
     let every: Vec<_> = feat_lists()
         .filter(|list| list.feats.len() + 3 == DATA.feats.len())
         .map(|list| {

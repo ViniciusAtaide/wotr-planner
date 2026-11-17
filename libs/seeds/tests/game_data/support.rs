@@ -369,6 +369,43 @@ pub fn without_unproficient_picks(mut build: Build) -> Build {
     build
 }
 
+/// A Build without the picks of a `combat-feats` slot that the game's fighter list lacks ([`THE_FIGHTERS_LIST_LACKS`],
+/// ticket 306s): those make an older link's Build impossible. A pick of such a feat in any other slot (a wizard's, a
+/// teamwork slot, Extra Feat's) is left in, and so is every other kind of failure.
+pub fn without_picks_the_fighters_list_lacks(mut build: Build) -> Build {
+    let sheet = engine().evaluate(&build);
+    for failure in engine().failures(&build) {
+        if let (rules::Choice::Slot(slot), Issue::NotAllowed) = (failure.choice, failure.issue) {
+            let in_combat_feats = sheet
+                .slot(&slot)
+                .is_some_and(|found| found.kind == feat_kind("combat-feats"));
+            if in_combat_feats && THE_FIGHTERS_LIST_LACKS.contains(&build.picks[&slot].key()) {
+                build.picks.remove(&slot);
+            }
+        }
+    }
+    build
+}
+
+/// The feats the planner's combat feat list held until ticket 306s that the game's does not: FighterFeatSelection
+/// 41c8486641f7d6d4283ca9dae4147a9f lists none of Diehard 86669ce8759f9d7478565db69b8c19ad, Toughness
+/// d09b20029e9abfe4480b356c92095623, IronWill 175d1577bb6c9a04baf88eec99c66334, GreatFortitude
+/// 79042cb55f030614ea29956177977c52, LightningReflexes 15e7da6645a7f3d41bdad7c8c4b9de1e, ThrowAnything
+/// 65c538dcfd91930489ad3ab18ad9204b, nor their Improved, Dragon Roar or Stat Focus.
+pub const THE_FIGHTERS_LIST_LACKS: [&str; 11] = [
+    "diehard",
+    "dragon-roar",
+    "great-fortitude",
+    "improved-great-fortitude",
+    "improved-iron-will",
+    "improved-lightning-reflexes",
+    "iron-will",
+    "lightning-reflexes",
+    "stat-focus",
+    "throw-anything",
+    "toughness",
+];
+
 pub fn feat_pick(key: &str, value: Parameter) -> Pick {
     Pick::feat_for(FeatKey::new(key), value)
 }

@@ -320,7 +320,7 @@ fn extra_feat_and_extra_mythic_ability_are_the_mythic_feats_that_give_a_pick() {
         [
             (
                 "extra-feat".to_owned(),
-                rules::BASIC_FEAT_SELECTION.to_owned(),
+                "mythic/extra-feat".to_owned(),
                 Repeat::WhileOptionLeft
             ),
             (
@@ -346,12 +346,12 @@ fn extra_feat_at_mr_2_gives_a_feat_slot_at_level_7_offering_what_the_general_slo
         rank_2,
         [
             (SlotId::Mythic { rank: 2 }, SlotKind::MythicFeat),
-            (mythic_extra(2), feat_kind(rules::BASIC_FEAT_SELECTION)),
+            (mythic_extra(2), feat_kind("mythic/extra-feat")),
         ]
     );
     assert_eq!(sheet.ranks[1].character_level, 7);
     assert_eq!(engine.slot_label(&sheet.ranks[1].slots[1]), "Feat");
-    // Every feat but the Trickster's five, each open or locked as in level 7's general slot (those five wait in
+    // Every feat but the Trickster's five, each open or locked as in level 7's general slot (those five are checked in
     // `extra_feat_offers_the_general_slots_feats_but_the_tricksters_five`).
     let but_tricksters = |slot: &SlotId| -> Vec<_> {
         picks_and_statuses(&build, slot)
@@ -408,7 +408,6 @@ const TRICKSTERS_FIVE: [&str; 5] = [
 /// Extra Feat offers the basic feats but the Trickster's five: Stat Focus, Completely Normal Spell and the three
 /// Improved Critical tiers; each open or locked as in level 7's general slot.
 #[test]
-#[ignore = "waits on ticket 265: the game gives Extra Feat the basic feats but the Trickster's five"]
 fn extra_feat_offers_the_general_slots_feats_but_the_tricksters_five() {
     let build = with_mythic_feat("fighter", 7, "extra-feat");
     // Game: ExtraFeatMythicFeat e10c4f18a6c8b4342afe6954bde0587b lists BasicFeatSelection
@@ -442,7 +441,7 @@ fn extra_mythic_ability_gives_a_mythic_ability_slot_offering_what_a_ranks_does()
             .map(|option| option.pick)
             .collect()
     };
-    // What a rank's slot offers, but the two the game leaves out (which wait in
+    // What a rank's slot offers, but the two the game leaves out (which are checked in
     // `extra_mythic_ability_leaves_out_emergency_help_and_any_means_necessary`).
     let but_left_out = |slot: &SlotId| -> BTreeSet<Pick> {
         picks(slot)
@@ -482,7 +481,6 @@ const LEFT_OUT_OF_EXTRA_MYTHIC_ABILITY: [&str; 2] = ["emergency-help", "any-mean
 /// (and the Divine Herbalist's and Lone Strider's second mysteries, which the planner holds as Second Mystery);
 /// a parameterised ability once per value (Favorite Metamagic: each metamagic, ticket 125).
 #[test]
-#[ignore = "waits on ticket 265: the game gives Extra Mythic Ability no Emergency Help, Any Means Necessary"]
 fn extra_mythic_ability_leaves_out_emergency_help_and_any_means_necessary() {
     let build = with_mythic_feat("fighter", 7, "extra-mythic-ability");
     let picks = |slot: &SlotId| -> BTreeSet<Pick> {

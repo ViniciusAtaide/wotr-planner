@@ -56,7 +56,9 @@ fn extra_feat_mythic_is_taken_twice() {
         sheet
             .slot(&SlotId::MythicExtra { rank: 4 })
             .map(|slot| &slot.kind),
-        Some(&SlotKind::Feat(FeatureSelectionKey::new("feats")))
+        Some(&SlotKind::Feat(FeatureSelectionKey::new(
+            "mythic/extra-feat"
+        )))
     );
     assert_eq!(at(&build, 20).feat_count(&FeatKey::new("iron-will")), 1);
 }

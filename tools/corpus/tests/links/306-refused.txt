@@ -170,3 +170,76 @@ full cleanup sorcerer/seeker-sorcerer sorcerer/bloodline/undead
 full decision geomancer abyssal
 full t60 skald/court-poet 20 / empty
 full t60 skald/court-poet 20 / empty / legend
+
+bench fighter20
+bench fighter20_nopath
+full alchemist alchemist/chirurgeon
+full alchemist alchemist/chirurgeon / legend
+full fighter fighter/defender-of-the-hearth
+full fighter fighter/defender-of-the-hearth / legend
+full fighter fighter/titan-fighter
+full fighter fighter/titan-fighter / legend
+full inquisitor inquisitor/faith-hunter
+full inquisitor inquisitor/faith-hunter / legend
+full inquisitor inquisitor/living-grimoire
+full inquisitor inquisitor/living-grimoire / legend
+full inquisitor inquisitor/monster-tactician
+full inquisitor inquisitor/monster-tactician / legend
+full inquisitor inquisitor/sacred-huntsmaster
+full inquisitor inquisitor/sacred-huntsmaster / legend
+full inquisitor inquisitor/tactical-leader
+full inquisitor inquisitor/tactical-leader / legend
+full magus magus/bladebound
+full magus magus/bladebound / legend
+full shifter shifter/rageshaper
+full shifter shifter/rageshaper / legend
+full wizard 
+full wizard  / legend
+full wizard wizard/arcane-bomber
+full wizard wizard/arcane-bomber / legend
+full wizard wizard/elemental-specialist
+full wizard wizard/elemental-specialist / legend
+full wizard wizard/exploiter-wizard
+full wizard wizard/exploiter-wizard / legend
+full wizard wizard/scroll-savant
+full wizard wizard/scroll-savant / legend
+full wizard wizard/spell-master
+full wizard wizard/spell-master / legend
+full wizard wizard/thassilonian-specialist
+full wizard wizard/thassilonian-specialist / legend
+full cleanup inquisitor animal
+full bg acrobat
+full bg andoran-diplomat
+full bg bounty-hunter
+full bg mercenary
+full bg smith
+full bg ustalavic-peasant
+full t55 fighter extra-mythic-ability / empty
+full t55 trickster both / empty
+full t55 trickster both / empty / legend
+full t55 trickster both / filled
+full t55 trickster both / filled / legend
+full t57 exploiter 13 / empty
+full t57 exploiter 13 / filled
+full t57 exploiter 20 / empty
+full t57 exploiter 20 / empty / legend
+full t57 exploiter extra exploit / feat
+full t57 exploiter extra exploit / filled
+full t57 exploiter hellfire ray
+full t60 bard 20 / filled
+full t60 bard 20 / filled / legend
+full t60 feyform 9 extra rogue talent
+full t61 titan 18 massive attacks
+full t61 titan 18 massive attacks / legend
+full t61 titan 10 greater twf without improved
+full t61 ranger 2 titan 6 style and massive attacks
+full t67 fighter 1 dual-cursed oracle 5 / filled
+full t91 fighter 20 azata / first trickster
+full t91 fighter 20 azata / first trickster / legend
+full t91 fighter 8 / first lich
+full t91 fighter 20 trickster legend / first aeon
+full t91 fighter 20 trickster legend / first aeon / gold-dragon
+full t91 fighter 20 trickster legend / first aeon / legend
+full t91 fighter 20 aeon devil / first angel
+full t91 fighter 20 aeon devil / first angel / devil
+full t91 fighter 20 aeon devil / first angel / legend

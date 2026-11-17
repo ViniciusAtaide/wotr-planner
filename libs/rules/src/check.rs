@@ -216,7 +216,7 @@ pub enum DataIssue {
     SlotBeforePathChoice(u8),
     /// A Path switch open from a path that is itself a switch: no Build can be on it at the switch rank.
     SwitchFromASwitchPath(MythicPathKey),
-    /// A selection of feats that nothing names: no row, race or option row, and not the general slot's
+    /// A selection of feats that nothing names: no row, race, option row or mythic feat, and not the general slot's
     /// ([`BASIC_FEAT_SELECTION`]).
     UnusedFeatList,
     /// A selection that shares one of its own options: an own option is offered already.
@@ -734,6 +734,8 @@ impl GameData {
             let at = DataAt::MythicFeat(feat.key.clone());
             check.key(&at);
             check.names_each(&at, &feat.selection, DataAt::FeatureSelection);
+            // Extra Feat's own list of feats is named by the mythic feat that grants it.
+            check.named_lists.extend(feat.selection.iter().cloned());
             check.ranks(&at, feat.ranks);
             check.prerequisite(&at, feat.prerequisite.as_ref(), feat.parameter);
         }

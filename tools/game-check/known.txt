@@ -23,12 +23,9 @@ option lists / * / selection kineticist/element/air/wild-talent-feats -> 293
 option lists / * / selection kineticist/element/earth/wild-talent-feats -> 293
 option lists / * / selection kineticist/element/fire/wild-talent-feats -> 293
 option lists / * / selection kineticist/element/water/wild-talent-feats -> 293
-# From 301 (feat slots and lists as selections, decision 2): the general and category selections and Gold Dragon's Dragon
-# Feats list the planner's feats (every feat; every feat of a category), not the game's selection's; 293 writes the
-# game's.
-option lists / * / selection combat-feats -> 293
-option lists / * / selection magic-feats -> 293
-option lists / * / selection teamwork-feats -> 293
+# From 301 (feat slots and lists as selections, decision 2): Gold Dragon's Dragon Feats lists the planner's feats (every
+# feat of its category), not the game's selection's; 293 writes the game's. (The general and category selections are the
+# game's lists since 306s.)
 option lists / * / selection gold-dragon/dragon-feats -> 293
 # From 303 (repeats from the header, decision Q3): entries holding several of the game's blueprints, whose `ranks`, or
 # Beneficial Curse's once, is the planner's: the Primalist's rage
@@ -44,10 +41,11 @@ prerequisites / not in game / mythic ability beneficial-curse -> 293
 
 # From 302 (nested selections, decisions Q1, Q2 and Q4): the selections an Extra feat, a mythic ability and Extra
 # Mythic Ability grant list the planner's list of the selection each stands for (every mythic ability for Extra Mythic
-# Ability), not the game's own; 293 writes the game's.
+# Ability), not the game's own; 293 writes the game's. Extra Mythic Ability's list is the game's since 306s but for
+# SecondMysteryEnlightenedPhilosopher, which has no mythic ability until 306v.
 option lists / * / selection bloodrager/second-bloodline -> 293
 option lists / * / selection kineticist/extra-wild-talent -> 293
-option lists / * / selection mythic/extra-mythic-ability -> 293
+option lists / in game only / selection mythic/extra-mythic-ability -> 306v
 option lists / * / selection oracle/beneficial-curse -> 293
 
 # From 304 (the progression header, decision Q4): the nested lists' gates. The game opens a bloodline's feat list
