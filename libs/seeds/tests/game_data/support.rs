@@ -339,6 +339,54 @@ pub fn possible(build: &Build) -> bool {
     engine().is_possible(build)
 }
 
+/// A Build from an older link without the two mythic abilities whose prerequisites ticket 308d made the game's, where
+/// they fail on exactly that: Over-Infused Blasts in a Mythic rank's slot without kineticist 1
+/// (DoubleKineticistInfusions 7410cc35ae6aa9d4a82f1d23c081a1ac's PrerequisiteClassLevel KineticistClass), and
+/// Impossible Domain in one without a domain selection (ExtraDomain 213a8480d22206b45acbfa0619ca5aaf: DomainsSelection
+/// 48525e5da45c9c243a343fc6545dbdb9, DivineHunterDomainsSelection 72909a37a1ed5344f88ec9d1d31f5c5b or
+/// FakeDivineSparkSelection e6d337e709b4478cb6e5389d3f85b601), with the domain picked in its selection. Every other
+/// failure is left in.
+pub fn without_mythic_abilities_the_game_refuses_since_308d(mut build: Build) -> Build {
+    let kineticist_1 = Prerequisite::ClassLevel {
+        class: ClassKey::new("kineticist"),
+        level: 1,
+    };
+    // Every condition an `Any` of failures names is a domain selection.
+    fn domain_selections(unmet: &Unmet) -> bool {
+        match unmet {
+            Unmet::Any(children) => children.iter().all(domain_selections),
+            Unmet::Condition {
+                needs: Prerequisite::Selection(selection),
+                ..
+            } => selection.as_str().ends_with("/domain"),
+            _ => false,
+        }
+    }
+    for failure in engine().failures(&build) {
+        let (rules::Choice::Slot(slot), Issue::Unmet(unmet)) = (&failure.choice, &failure.issue)
+        else {
+            continue;
+        };
+        let SlotId::Mythic { rank } = *slot else {
+            continue;
+        };
+        let refused = match build.picks.get(slot).map(Pick::key) {
+            Some("over-infused-blasts") => {
+                matches!(unmet, Unmet::Condition { needs, .. } if *needs == kineticist_1)
+            }
+            Some("impossible-domain") => domain_selections(unmet),
+            _ => false,
+        };
+        if refused {
+            build.picks.remove(slot);
+            build
+                .picks
+                .remove(&SlotId::MythicSelection { rank, index: 0 });
+        }
+    }
+    build
+}
+
 /// A Build from a link made before ticket 251, without the weapon feats in it that the game refuses for a weapon the
 /// character isn't proficient with (`RequireProficiency`, which `BlueprintParametrizedFeature.CanSelect` checks,
 /// WrathDecompiled 6ce4a6b): those make the link stale. So do a Build's feats that fail only on base attack bonus

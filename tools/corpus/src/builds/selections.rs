@@ -54,8 +54,9 @@ fn options_of(data: &GameData, selection: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
-/// Half-elf subraces, a ranger/slayer's combat styles, a Living Deity and a Hellknight with Impossible Domain, a
-/// lawful good Separatist, a bloodrager's Second Bloodline, a Hellknight who becomes a Signifer (`targeted …`).
+/// Half-elf subraces, a ranger/slayer's combat styles, a Living Deity with Second Mystery, a Hellknight with
+/// Pentamic Faith and (after a cleric level) Impossible Domain, a lawful good Separatist, a bloodrager's Second
+/// Bloodline, a Hellknight who becomes a Signifer (`targeted …`).
 /// Quirk kept: most name no class choice for their classes.
 pub(super) fn targeted() -> Vec<Named> {
     let mut out = Vec::new();
@@ -79,6 +80,9 @@ pub(super) fn targeted() -> Vec<Named> {
         option("slayer/slayer-talents/combat-style-feat-2"),
     );
     out.push(("targeted ranger10-slayer2".into(), build));
+    // A Living Deity holds a domain selection only from arcanist 20, which Impossible Domain needs (ExtraDomain
+    // 213a8480d22206b45acbfa0619ca5aaf: FakeDivineSparkSelection e6d337e709b4478cb6e5389d3f85b601, ticket 308d), so
+    // its MR 1 selection at 8 is Second Mystery's, a mystery levelled by arcanist levels as the domain was.
     let mut build = start("human", None, TrueNeutral);
     build.levels = levels(&[("arcanist", 8)]);
     build.class_choices.insert(
@@ -100,13 +104,12 @@ pub(super) fn targeted() -> Vec<Named> {
         SlotId::OptionSelection { level: 1, index: 2 },
         option("oracle/oracles-curse/plagued"),
     );
-    build.picks.insert(
-        SlotId::Mythic { rank: 1 },
-        mythic_ability("impossible-domain"),
-    );
+    build
+        .picks
+        .insert(SlotId::Mythic { rank: 1 }, mythic_ability("second-mystery"));
     build.picks.insert(
         SlotId::MythicSelection { rank: 1, index: 0 },
-        option("cleric/domain/nobility"),
+        option("oracle/mystery/flame"),
     );
     out.push(("targeted living-deity-8".into(), build));
     let mut build = start("human", None, LawfulNeutral);
@@ -136,6 +139,16 @@ pub(super) fn targeted() -> Vec<Named> {
         option("cleric/domain/law"),
     );
     out.push(("targeted hellknight-pentamic".into(), build.clone()));
+    // Impossible Domain needs a domain selection Pentamic Faith's isn't (ExtraDomain 213a8480d22206b45acbfa0619ca5aaf:
+    // DomainsSelection 48525e5da45c9c243a343fc6545dbdb9, ticket 308d), so this Hellknight's first level is a cleric
+    // of Abadar's.
+    build.levels[0] = rules::LevelUp::new(ClassKey::new("cleric"));
+    build.levels[0].skill_ranks = [
+        (rules::SkillKey::new("knowledge-arcana"), 1),
+        (rules::SkillKey::new("persuasion"), 1),
+    ]
+    .into();
+    build.start.deity = Some(rules::Faith::Deity(rules::DeityKey::new("abadar")));
     build.picks.insert(
         SlotId::Mythic { rank: 3 },
         mythic_ability("impossible-domain"),

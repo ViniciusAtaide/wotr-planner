@@ -320,3 +320,52 @@ full warpriest warpriest/shieldbearer
 full warpriest warpriest/shieldbearer / legend
 
 full t61 urban hunter 12 captor
+
+full alchemist alchemist/preservationist
+full alchemist alchemist/preservationist / legend
+full arcanist arcanist/unlettered-arcanist
+full arcanist arcanist/unlettered-arcanist / legend
+full bloodrager bloodrager/bloodrider
+full bloodrager bloodrager/bloodrider / legend
+full cavalier cavalier/ghost-rider
+full cavalier cavalier/ghost-rider / legend
+full fighter fighter/two-handed-fighter
+full fighter fighter/two-handed-fighter / legend
+full rogue rogue/sylvan-trickster
+full rogue rogue/sylvan-trickster / legend
+full shaman shaman/prophet-of-pestilence
+full shaman shaman/prophet-of-pestilence / legend
+full shifter shifter/fiendflesh-shifter
+full shifter shifter/fiendflesh-shifter / legend
+full sorcerer sorcerer/geomancer
+full sorcerer sorcerer/geomancer / legend
+full t54 paladin / filled
+full t54 paladin / filled / legend
+full t54 tortured-crusader / filled
+full t60 bard/flame-dancer 20 / empty
+full t60 bard/flame-dancer 20 / empty / legend
+full t60 bard/flame-dancer 20 / filled
+full t60 bard/flame-dancer 20 / filled / legend
+full t60 skald 20 / filled
+full t60 skald 20 / filled / legend
+full t61 ranger 20 / filled
+full t61 ranger 20 / filled / legend
+full t61 ranger/stormwalker 20 / empty
+full t61 ranger/stormwalker 20 / empty / legend
+full t62 oracle 20 / filled
+full t62 oracle 20 / filled / legend
+full t63 drunken master 4 rogue 4 / filled
+
+kineticist kineticist/dark-elementalist
+full kineticist kineticist/dark-elementalist
+full kineticist kineticist/dark-elementalist / legend
+t59 dark-elementalist 20 / empty
+t59 dark-elementalist 20 / filled
+full t59 dark-elementalist 20 / empty
+full t59 dark-elementalist 20 / empty / legend
+full t59 dark-elementalist 20 / filled
+full t59 dark-elementalist 20 / filled / legend
+
+targeted living-deity-8
+full targeted living-deity-8
+targeted hellknight-pentamic-impossible

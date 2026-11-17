@@ -85,6 +85,16 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
             Prerequisite::MythicAbility(_) => ("mythic ability", "Not with "),
             // Ticket 303: a selection's cap on its own rank (Extra Hex: `Not` of its rank 3).
             Prerequisite::Rank { .. } => ("rank", "Only below "),
+            // Ticket 308d: the oracle's PrerequisiteNoFeature ApsuFeature 772e2673945e4583a804ae01f67efea0 (OracleClass
+            // 20ce9bf8af32bee4c8557a045ab499b1).
+            Prerequisite::Deity(_) => ("deity", "Not for a follower of "),
+            // Ticket 308d: a selection's own PrerequisiteNoFeature of a blueprint it shares with another entry
+            // (SecondMystery 277b0164740b97945a3f8022bd572f48, SecondBloodragerBloodline
+            // b7f62628915bdb14d8888c25da3fac56), each held entry named once.
+            Prerequisite::Any(_) => {
+                assert!(!text.contains('('), "{child:?} reads {text:?}");
+                ("any held", "Not with ")
+            }
             other => panic!("a new negated kind: {other:?} reads {text:?}"),
         };
         assert!(text.starts_with(lead), "{child:?} reads {text:?}");
@@ -93,8 +103,10 @@ fn every_negated_prerequisite_in_the_data_reads_as_what_rules_the_option_out() {
     assert_eq!(
         kinds,
         BTreeSet::from([
+            "any held",
             "archetype",
             "class level",
+            "deity",
             "deity offers",
             "feat",
             "feature",

@@ -19,4 +19,8 @@
         (level: 19),
         (level: 20),
     ],
+    components: [
+        Requires(condition: NoClassLevel("loremaster")),
+        Requires(condition: NoClassLevel("mystic-theurge")),
+    ],
 )

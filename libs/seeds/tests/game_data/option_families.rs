@@ -431,7 +431,7 @@ fn domain_zealot_needs_a_domain_held_whoever_gave_it() {
 
 /// A druid's domain doesn't open Domain Zealot: a Winter Child druid can't take it.
 #[test]
-#[ignore = "waits on ticket 265: the game gives Domain Zealot no druid's domain"]
+#[ignore = "waits on ticket 307: the game gives Domain Zealot no druid's domain"]
 fn domain_zealot_isnt_open_to_a_druids_domain() {
     let domain_zealot = DATA
         .mythic_abilities

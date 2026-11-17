@@ -142,7 +142,12 @@ fn a_blueprint_entry_holds_its_prerequisite_as_requires_components() {
     // (LightArmorProficiency 6d3728d4e9c9898458fe5e9532951132, ShieldsProficiency cb8686e7357a68c42bdd9d4e65334633),
     // and Spell Chain its PrerequisiteFeature SpellPenetration ee7dc126939e4d9438357fbd5980d459; Rapid Shot holds none,
     // RapidShotFeature 9c928dc570bb9e54a9649b3ebfe47a41's one prerequisite being Intelligence 3, which no Build fails.
-    assert_eq!((moved, fields), (652, 62));
+    // Ticket 308d: five entries that held none hold the game's: Over-Infused Blasts (DoubleKineticistInfusions
+    // 7410cc35ae6aa9d4a82f1d23c081a1ac's kineticist 1), the oracle (OracleClass 20ce9bf8af32bee4c8557a045ab499b1's
+    // NoFeature ApsuFeature), the Magic Deceiver (MagicDeceiver 5c77110cd0414e7eb4c2e485659c9a46's NoClassLevel
+    // Loremaster and Mystic Theurge), and the alignments of DarkElementalistArchetype f12f18ae8842425489d29f302e69134c
+    // and RageshaperShifterArchetype 41d5b44e421048d09d32623689173e11.
+    assert_eq!((moved, fields), (657, 62));
 
     // The planner-made entries keep what they hold: their fields, and no `Requires`.
     let planner_requires = (files.feats.iter())

@@ -54,41 +54,9 @@ selection option paladin/mercy/sickened -> MercySickened 7ee2ef06226a4884f80b764
 selection option paladin/mercy/sickened / drops class paladin
 selection option slayer/slayer-talents/combat-style-feat-2 -> RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9 names only its own NoFeature, no slayer level
 selection option slayer/slayer-talents/combat-style-feat-2 / drops class slayer
-archetype witch/hag-of-gyronna -> DarkSisterArchetype 411fa458481e44f0855d47a19358874b names only an alignment, no deity
-archetype witch/hag-of-gyronna / drops deity gyronna
 
 # A class or an archetype the game names, or refuses (PrerequisiteNoClassLevel, PrerequisiteNoArchetype): each maps
 # one entry exactly.
-mythic ability kinetic-overcharge -> KineticOvercharge 4236ca275c6fa9b4a9945b2645262616 names KineticistClass 42a455d9ec1ad924d889272429eb8391 level 1, not Gather Power
-mythic ability kinetic-overcharge / drops feature kineticist/gather-power
-mythic ability witch-wandering-hex -> WitchWanderingHex fb8490d1721bd5a4883c3b6559310351 names WitchClass 1b9873f1e7bfe5449bc84d03e9c8e3cc level 1, SylvanTricksterArchetype 490394869f666c141bf8647b1a365220 rogue 2 or HexcrafterArchetype 79ccf7a306a5d5547bebd97299f6fc89 magus 4, not a hex
-mythic ability witch-wandering-hex / drops selection option witch/hex/agony
-mythic ability witch-wandering-hex / drops selection option witch/hex/ameliorating
-mythic ability witch-wandering-hex / drops selection option witch/hex/animal-servant
-mythic ability witch-wandering-hex / drops selection option witch/hex/animal-skin
-mythic ability witch-wandering-hex / drops selection option witch/hex/aura-of-purity
-mythic ability witch-wandering-hex / drops selection option witch/hex/beasts-gift
-mythic ability witch-wandering-hex / drops selection option witch/hex/cackle
-mythic ability witch-wandering-hex / drops selection option witch/hex/channel
-mythic ability witch-wandering-hex / drops selection option witch/hex/death-curse
-mythic ability witch-wandering-hex / drops selection option witch/hex/delicious-fright
-mythic ability witch-wandering-hex / drops selection option witch/hex/evil-eye
-mythic ability witch-wandering-hex / drops selection option witch/hex/fortune
-mythic ability witch-wandering-hex / drops selection option witch/hex/healing-hex
-mythic ability witch-wandering-hex / drops selection option witch/hex/hoarfrost
-mythic ability witch-wandering-hex / drops selection option witch/hex/iceplant
-mythic ability witch-wandering-hex / drops selection option witch/hex/lay-to-rest
-mythic ability witch-wandering-hex / drops selection option witch/hex/life-giver
-mythic ability witch-wandering-hex / drops selection option witch/hex/major-ameliorating
-mythic ability witch-wandering-hex / drops selection option witch/hex/major-healing
-mythic ability witch-wandering-hex / drops selection option witch/hex/misfortune
-mythic ability witch-wandering-hex / drops selection option witch/hex/nails
-mythic ability witch-wandering-hex / drops selection option witch/hex/protective-luck
-mythic ability witch-wandering-hex / drops selection option witch/hex/regenerative-sinew
-mythic ability witch-wandering-hex / drops selection option witch/hex/restless-slumber
-mythic ability witch-wandering-hex / drops selection option witch/hex/slumber
-mythic ability witch-wandering-hex / drops selection option witch/hex/vulnerability-curse
-mythic ability witch-wandering-hex / drops selection option witch/hex/ward
 selection option alchemist/discovery/mummification -> Mummification daf854d84d442e941aa3a2fdc041b37c names UndergroundChemistArchetype b4f5741d42c4cb04abf5ab3fe33f6fc5 rogue 10 (PrerequisiteArchetypeLevel), not the Underground Chemist's discovery feature
 selection option alchemist/discovery/mummification / drops feature rogue/underground-chemist/discovery
 selection option rogue/rogue-talents/improved-uncanny-dodge -> ImprovedUncannyDodgeTalent e821c61b2711cea4cb993725b910e7e8 names level 12 of the Eldritch Scoundrel rogue, slayer, bard or skald, not Uncanny Dodge: the user's rule (276; user-facts.txt, applied 276)
@@ -123,11 +91,6 @@ selection option rogue/rogue-talents/mystery-seeker / adds Not archetype rogue/m
 selection option rogue/rogue-talents/survivalist -> Survivalist 9836ea18e56af8249bdda4a4b11ea78c: PrerequisiteNoArchetype MasterOfAllArchetype bd4e70bfb89a452b876713d61b9b8eb2 and SylvanTricksterArchetype 490394869f666c141bf8647b1a365220
 selection option rogue/rogue-talents/survivalist / adds Not archetype rogue/master-of-all
 selection option rogue/rogue-talents/survivalist / adds Not archetype rogue/sylvan-trickster
-archetype arcanist/magic-deceiver -> MagicDeceiver 5c77110cd0414e7eb4c2e485659c9a46: PrerequisiteNoClassLevel LoremasterClass 4a7c05adfbaf05446a6bf664d28fb103 and MysticTheurgeClass 0920ea7e4fd7a404282e3d8b0ac41838
-archetype arcanist/magic-deceiver / adds Not class loremaster
-archetype arcanist/magic-deceiver / adds Not class mystic-theurge
-class mystic-theurge -> MysticTheurgeClass 0920ea7e4fd7a404282e3d8b0ac41838: PrerequisiteNoArchetype MagicDeceiver 5c77110cd0414e7eb4c2e485659c9a46
-class mystic-theurge / adds Not archetype arcanist/magic-deceiver
 
 # A PrerequisiteNoFeature of a blueprint one planner entry alone maps.
 selection option rogue/rogue-talents/blinding-strike -> BlindingStrike fd01c15d9e74cd247b1fdbd6eb4d4713: PrerequisiteNoFeature BlindingCriticalFeature 787e56055e3ef864d9c78a3ec21e56be, which the feat blinding-critical alone maps
@@ -138,16 +101,6 @@ selection option witch/hex/iceplant -> WitchHexIceplantFeature 9af6dc2697c8ef24e
 selection option witch/hex/iceplant / adds Not selection option shaman/hex/iceplant
 selection option shaman/hex/intimidating-display -> ShamanHexIntimidatingDisplayFeature 2eacbef4be7c6434e9cfaa9632fdc429: PrerequisiteNoFeature DazzlingDisplayFeature bcbd674ec70ff6f4894bb5f07b6f4095, which the feat dazzling-display alone maps
 selection option shaman/hex/intimidating-display / adds Not feat dazzling-display
-class oracle -> OracleClass 20ce9bf8af32bee4c8557a045ab499b1: PrerequisiteNoFeature ApsuFeature 772e2673945e4583a804ae01f67efea0, which the deity apsu alone maps
-class oracle / adds Not deity apsu
-
-# A member the game's list or feature doesn't name: the planner's holder of it isn't granted the game's blueprint.
-mythic ability defensive-study -> DefensiveStudy ec041312142ba1f48a0044521f68fc0a names SlayerStudyTargetFeature 09bdd9445ac38044389476689ae8d5a1; the Tandem Executioner's (TandemExecutionerStudyTargetFeature 3dac0ae65dec4b619c035df07751b59d) and the Sanctified Slayer's (SanctifiedSlayerStudyTargetFeature 6d9d3fbc30564e64d966dba27cd6357a) are other blueprints, HunterProgression names it only in a UI group, and SlayerSwiftStudyTargetFeature 40d4f55a5ac0e4f469d67d36c0dfc40b is not it
-mythic ability defensive-study / drops feature hunter/tandem-executioner/studied-target
-mythic ability defensive-study / drops feature inquisitor/sanctified-slayer/studied-target
-mythic ability defensive-study / drops feature studied-target-swift
-class winter-witch -> WinterWitchClass eb24ca44debf6714aabe1af1fd905a07: its FeaturesFromList of 1 names the Winter Child's, the frost spirit's and the winter patron's blueprints, not the archetype; archetypes/druid/winter-child.ron grants the Winter Child's, and the check finds no game grant of them missing
-class winter-witch / drops archetype druid/winter-child
 
 # A selection the game names in place of its options or a class level, which the planner's rows grant wherever the
 # game's do: the check finds no `progression rows / … game only` row of it.
@@ -163,31 +116,3 @@ selection option ranger/combat-style-feats-10/two-weapon-combat -> RangerStyleTw
 selection option ranger/combat-style-feats-10/two-weapon-combat / drops selection option ranger/combat-style-feat/two-weapon-combat-feats
 selection option ranger/combat-style-feats-10/weapon-and-shield -> RangerStyleShieldSelection10 b2e73b554839a314a8c716dbf33fcfc3 names RangerStyleShieldSelection6 10d8245011456224cb6358f640364e26, not the level-2 style; classes/ranger.ron grants ranger/combat-style-feats-6
 selection option ranger/combat-style-feats-10/weapon-and-shield / drops selection option ranger/combat-style-feat/weapon-and-shield-feats
-mythic ability beneficial-curse -> BeneficialCurse 2dda67424ee8e0b4d83ef01a73ca6bff names OracleCurseSelection b0a5118b4fb793241bc7042464b23fab, not a curse
-mythic ability beneficial-curse / drops selection option oracle/oracles-curse/blackened
-mythic ability beneficial-curse / drops selection option oracle/oracles-curse/demonic
-mythic ability beneficial-curse / drops selection option oracle/oracles-curse/hellbound
-mythic ability beneficial-curse / drops selection option oracle/oracles-curse/lame
-mythic ability beneficial-curse / drops selection option oracle/oracles-curse/plagued
-mythic ability beneficial-curse / drops selection option oracle/oracles-curse/powerless-prophecy
-mythic ability beneficial-curse / drops selection option oracle/oracles-curse/pranked
-mythic ability beneficial-curse / drops selection option oracle/oracles-curse/wasting
-mythic ability beneficial-curse / drops selection option oracle/oracles-curse/wolf-scarred-face
-mythic ability second-bloodrager-bloodline -> SecondBloodragerBloodline b7f62628915bdb14d8888c25da3fac56 names BloodragerBloodlineSelection 62b33ac8ceb18dd47ad4c8f06849bc01, not a bloodrager level
-mythic ability second-bloodrager-bloodline / drops class bloodrager
-mythic ability second-mystery -> SecondMystery 277b0164740b97945a3f8022bd572f48 names OracleMysterySelection 5531b975dcdf0e24c98f1ff7e017e741 or MysteryGiftFeatureMisterySelection e9629fc4de4c4b3ea1c26e9c13c2402d, not a mystery
-mythic ability second-mystery / drops selection option oracle/mystery/ancestor
-mythic ability second-mystery / drops selection option oracle/mystery/battle
-mythic ability second-mystery / drops selection option oracle/mystery/bones
-mythic ability second-mystery / drops selection option oracle/mystery/flame
-mythic ability second-mystery / drops selection option oracle/mystery/life
-mythic ability second-mystery / drops selection option oracle/mystery/nature
-mythic ability second-mystery / drops selection option oracle/mystery/stone
-mythic ability second-mystery / drops selection option oracle/mystery/waves
-mythic ability second-mystery / drops selection option oracle/mystery/wind
-mythic ability impossible-domain -> ExtraDomain 213a8480d22206b45acbfa0619ca5aaf names DomainsSelection 48525e5da45c9c243a343fc6545dbdb9, DivineHunterDomainsSelection 72909a37a1ed5344f88ec9d1d31f5c5b or FakeDivineSparkSelection e6d337e709b4478cb6e5389d3f85b601, not a class, an archetype or a way (308g)
-mythic ability impossible-domain / drops class cleric -> ClericProgression b2cd67193d1199f41bc6ecec3a2f2c87 grants DomainsSelection and refs of DomainsSelection hold no cleric archetype; classes/cleric.ron and the 7 cleric archetypes grant cleric/domain at 1
-mythic ability impossible-domain / drops class inquisitor -> InquisitorProgression 4e945c2fe5e252f4ea61eee7fb560017 grants DomainsSelection and FaithHunterArchetype ac87f40932cfd324c90b441f93857c40 removes it at 1, as archetypes/inquisitor/faith-hunter.ron's row 1 lacks inquisitor/domain; every other inquisitor holds inquisitor/domain or inquisitor/sacred-huntsmaster/domain, both DomainsSelection
-mythic ability impossible-domain / drops archetype hunter/divine-hunter -> DivineHunterArchetype f996f0a18e5d945459e710ee3a6dd485 adds DivineHunterDomainsSelection at 1, which archetypes/hunter/divine-hunter.ron grants at 1 as hunter/divine-hunter/domain
-mythic ability impossible-domain / drops selection option arcanist/magic-deceiver/ways-of-the-deceiver/living-deity -> MagicDeceiverWayOfLivingGodProgression 464ffaf88140474a949618bec7955e78 grants FakeDivineSparkSelection only at 20, as the way's row 20 grants arcanist/magic-deceiver/domain
-mythic ability impossible-domain / drops selection option hellknight/disciplines/pentamic-faith -> the user's answer, as the game (research/308/decisions.md item 1, 2026-11-17): HellknightDisciplinePentamicFaith b9750875e9d7454e85347d739a1bc894 is none of the three

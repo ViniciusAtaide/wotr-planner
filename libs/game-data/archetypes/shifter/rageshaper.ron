@@ -22,4 +22,7 @@
         (level: 19, features: ["shifter/rageshaper/terrible-slam-adamantine-and-universal"]),
         (level: 20, features: ["shifter/rageshaper/devastating-form", "shifter/rageshaper/invulnerable-defenses"]),
     ],
+    components: [
+        Requires(condition: Alignment([NeutralGood, ChaoticGood, TrueNeutral, ChaoticNeutral, NeutralEvil, ChaoticEvil])),
+    ],
 )

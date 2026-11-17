@@ -348,7 +348,7 @@ fn domain_zealot_and_boon_companion_follow_a_druids_nature_bond() {
 // 096fc02f6cc817a43991c4b437e12b8e and WinterChildArchetype 9f835c539f6e4a96a7b64461f4267d06 give none of them;
 // LevelUpHelper.AddFeaturesFromProgression, WrathDecompiled 6ce4a6b (a selection is added as a fact)
 #[test]
-#[ignore = "waits on ticket 265: the game closes Domain Zealot to every druid, Blight Druid and Winter Child"]
+#[ignore = "waits on ticket 307: the game closes Domain Zealot to every druid, Blight Druid and Winter Child"]
 fn domain_zealot_is_closed_to_a_druids_domain() {
     let domain_zealot = domain_zealot();
     assert!(weather_druid().check(&domain_zealot).is_err());

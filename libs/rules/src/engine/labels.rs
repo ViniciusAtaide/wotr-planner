@@ -856,6 +856,22 @@ impl Engine {
             Prerequisite::NoOtherOptionOfGroup(group) => {
                 (Lead::With, format!("another {} option", group.name()))
             }
+            // Any of what the character holds, each named once: the game's own NoFeature of a blueprint several
+            // entries share (Second Mystery's, ticket 308d) reads "with Second Mystery", not "with (A or A)".
+            Prerequisite::Any(members)
+                if members
+                    .iter()
+                    .all(|member| self.held_text(member).0 == Lead::With) =>
+            {
+                let mut names: Vec<String> = Vec::new();
+                for member in members {
+                    let name = self.held_text(member).1;
+                    if !names.contains(&name) {
+                        names.push(name);
+                    }
+                }
+                (Lead::With, names.join(" or "))
+            }
             Prerequisite::All(_) | Prerequisite::Any(_) | Prerequisite::AtLeast(..) => {
                 (Lead::With, format!("({})", text()))
             }

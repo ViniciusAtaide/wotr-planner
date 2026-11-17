@@ -267,9 +267,10 @@ pub enum Repeat {
 
 impl Repeat {
     /// The repeat an entry's header gives: once per value for a selection that takes a value; for another selection,
-    /// once with a `Not` of itself among its prerequisite's `All`, up to `n` times with a `Not` of its own rank `n`
-    /// there, else while an option is left; for anything else its `ranks`. `own` is the entry as a fact, made only for
-    /// a selection that takes no value.
+    /// once with a `Not` of itself among its prerequisite's `All` (or of an `Any` naming itself: the game's own
+    /// `PrerequisiteNoFeature` of a blueprint the entry shares with others), up to `n` times with a `Not` of its own
+    /// rank `n` there, else while an option is left; for anything else its `ranks`. `own` is the entry as a fact, made
+    /// only for a selection that takes no value.
     pub(crate) fn derive(
         takes_value: bool,
         selection: bool,
@@ -298,6 +299,7 @@ impl Repeat {
             match inner {
                 Prerequisite::Rank { fact, rank } if *fact == own => return Self::of_ranks(*rank),
                 inner if *inner == leaf => return Self::Once,
+                Prerequisite::Any(members) if members.contains(&leaf) => return Self::Once,
                 _ => {}
             }
         }

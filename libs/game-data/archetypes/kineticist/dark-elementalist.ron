@@ -12,4 +12,7 @@
     levels: [
         (level: 1, features: ["kineticist/dark-elementalist/dark-studies", "kineticist/dark-elementalist/soul-power", "kineticist/gather-power", "kineticist/infusion", "kineticist/kinetic-blast"], feats: ["armor-proficiency-light-armor", "simple-weapon-proficiency"], selections: ["kineticist/element"]),
     ],
+    components: [
+        Requires(condition: Alignment([LawfulEvil, NeutralEvil, ChaoticEvil])),
+    ],
 )

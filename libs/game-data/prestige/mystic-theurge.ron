@@ -11,11 +11,11 @@ Class(
     will: Good,
     class_skills: ["knowledge-arcana", "lore-religion", "perception"],
     components: [
-        Requires(condition: Stat(stat: Skill("knowledge-arcana"), value: 5)),
-        Requires(condition: Stat(stat: Skill("lore-religion"), value: 5)),
+        Requires(condition: Stat(stat: Skill("knowledge-arcana"), value: 3)),
+        Requires(condition: Stat(stat: Skill("lore-religion"), value: 3)),
         Requires(condition: CasterTypeSpellLevel(caster: Arcane, level: 2)),
         Requires(condition: CasterTypeSpellLevel(caster: Divine, level: 2)),
-        Requires(condition: CharacterLevel(7)),
+        Requires(condition: NoArchetype("arcanist/magic-deceiver")),
     ],
     levels: [
         (level: 1, advances_arcane: true, advances_divine: true, features: ["mystic-theurge/arcane-spellcasting", "mystic-theurge/combined-spells-1st", "mystic-theurge/divine-spellcasting"]),

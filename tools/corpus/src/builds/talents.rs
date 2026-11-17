@@ -537,7 +537,8 @@ pub(super) fn ki_powers(engine: &Engine) -> Vec<Named> {
 /// Kinetic Blade, Grappling Infusion and Foxfire Infusion (after the Foxfire wild talent); a Kinetic Sharpshooter 13
 /// holding Exploding Arrows, Burning Infusion, Spindle, Rending Arrows and Wall; and Builds no sheet holds (Detonation
 /// at 3, Spray on Fire alone, Extended Range twice, Exploding Arrows on the base class, Extended Range on the
-/// Sharpshooter, an infusion at a Blood Kineticist's 5 or a Kinetic Knight's 3). True neutral humans.
+/// Sharpshooter, an infusion at a Blood Kineticist's 5 or a Kinetic Knight's 3). True neutral humans, the Dark
+/// Elementalist neutral evil.
 pub(super) fn infusions(engine: &Engine) -> Vec<Named> {
     let infusion = |name: &str| option(&format!("kineticist/infusions/{name}"));
     let make = |parts: &[(&str, Option<&str>, usize)], element: Option<&str>| {
@@ -580,10 +581,12 @@ pub(super) fn infusions(engine: &Engine) -> Vec<Named> {
         } else {
             fire
         };
-        plain.push((
-            format!("{archetype} 20"),
-            kineticist(20, Some(&format!("kineticist/{archetype}")), element),
-        ));
+        let mut build = kineticist(20, Some(&format!("kineticist/{archetype}")), element);
+        // The Dark Elementalist is evil (DarkElementalistArchetype f12f18ae8842425489d29f302e69134c, ticket 308d).
+        if archetype == "dark-elementalist" {
+            build.start.alignment = Some(NeutralEvil);
+        }
+        plain.push((format!("{archetype} 20"), build));
     }
     plain.push((
         "kineticist 3 rogue 3".to_owned(),

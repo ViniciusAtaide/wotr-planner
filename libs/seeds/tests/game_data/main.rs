@@ -40,6 +40,7 @@ mod ki_powers;
 mod life_bonding_friendship;
 mod mercies_and_exploits;
 mod mythic;
+mod mythic_class_prerequisites;
 mod negated_prerequisites;
 mod nested_selections;
 mod numbers_as_components;

@@ -34,4 +34,7 @@ Class(
         (level: 19, divine_spell_level: 9, selections: ["oracle/revelations"]),
         (level: 20, divine_spell_level: 9),
     ],
+    components: [
+        Requires(condition: HasNot(Deity("apsu"))),
+    ],
 )
