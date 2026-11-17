@@ -11,6 +11,10 @@
 //!   ([`rules::compile_requires`]) and canonical; equal, the file is untouched, whatever its `Requires` say in form.
 //! - **A blueprint several entries share** is held once, by whichever entry holds it: a `Has` of it is an `Any` of
 //!   each entry's fact, a `HasNot` a `Not` of that `Any`.
+//! - **A rewrite never narrows unasked** (the fix round): one that drops a fact the old tree accepts, or refuses a
+//!   fact the old tree didn't, leaves the entry whole, listed `narrows: … -> 308`, unless
+//!   `prerequisite-narrowing.txt` names it with the reason it moves toward the game ([`Narrowings`]). The check
+//!   compares GUIDs, so it can't see a GUID turned into the wrong entry; this guard does.
 //!
 //! The written components are the `Requires` in the blueprint's component order, then the entry's other components in
 //! theirs.
@@ -148,10 +152,87 @@ pub(crate) fn unmatched<'a>(data: &GameData, only: &'a BTreeSet<String>) -> Opti
         .find(|name| !names.iter().any(|entry| takes(name, entry)))
 }
 
+/// The rewrites that narrow who qualifies and are written all the same (`prerequisite-narrowing.txt`): each an entry,
+/// as the report names it, and one of its narrowings, `drops <fact>` or `adds Not <fact>`.
+#[derive(Debug, Default)]
+pub struct Narrowings {
+    allowed: BTreeSet<(String, String)>,
+}
+
+impl Narrowings {
+    /// The repo's own list, `tools/game-check/prerequisite-narrowing.txt`.
+    pub fn embedded() -> Result<Narrowings, crate::Error> {
+        Narrowings::parse(include_str!("../../prerequisite-narrowing.txt"))
+    }
+
+    /// One line each, `#` starting a comment: a narrowing, `<entry> / drops <fact>` or `<entry> / adds Not <fact>`,
+    /// with ` -> <reason>`; or an entry's reason for each of its narrowings, `<entry> -> <reason>`. A narrowing with
+    /// no reason of its own nor its entry's is refused.
+    pub fn parse(text: &str) -> Result<Narrowings, crate::Error> {
+        let bad = |number: usize, why: &str| {
+            crate::Error::Known(format!("prerequisite-narrowing.txt line {number}: {why}"))
+        };
+        let mut allowed = BTreeSet::new();
+        let mut reasoned = BTreeSet::new();
+        // Each narrowing without a reason of its own, with its line, for its entry's.
+        let mut unreasoned = Vec::new();
+        for (index, line) in text.lines().enumerate() {
+            let number = index + 1;
+            let line = line.split('#').next().unwrap_or("").trim();
+            if line.is_empty() {
+                continue;
+            }
+            let (said, reason) = match line.split_once(" -> ") {
+                Some((_, reason)) if reason.trim().is_empty() => {
+                    return Err(bad(number, "an empty reason"));
+                }
+                Some((said, _)) => (said, true),
+                None => (line, false),
+            };
+            let Some((entry, narrowing)) = said.split_once(" / ") else {
+                if !reason {
+                    return Err(bad(number, "neither a narrowing nor a reason"));
+                }
+                reasoned.insert(said.trim().to_owned());
+                continue;
+            };
+            let (entry, narrowing) = (entry.trim().to_owned(), narrowing.trim().to_owned());
+            if !(narrowing.starts_with("drops ") || narrowing.starts_with("adds Not ")) {
+                return Err(bad(
+                    number,
+                    "a narrowing is `drops <fact>` or `adds Not <fact>`",
+                ));
+            }
+            if !reason {
+                unreasoned.push((number, entry.clone()));
+            }
+            if !allowed.insert((entry, narrowing)) {
+                return Err(bad(number, "a narrowing said twice"));
+            }
+        }
+        if let Some((number, _)) = unreasoned
+            .iter()
+            .find(|(_, entry)| !reasoned.contains(entry))
+        {
+            return Err(bad(
+                *number,
+                "a narrowing with no reason, its own or its entry's",
+            ));
+        }
+        Ok(Narrowings { allowed })
+    }
+
+    fn allows(&self, entry: &str, narrowing: &str) -> bool {
+        self.allowed
+            .contains(&(entry.to_owned(), narrowing.to_owned()))
+    }
+}
+
 /// The changes, in entry order, and the entries left whole with each gap that holds them.
 pub(crate) fn changes(
     ctx: &Ctx,
     only: Option<&BTreeSet<String>>,
+    narrowings: &Narrowings,
 ) -> (Vec<Change>, Vec<Unexpressed>) {
     let data = ctx.planner.data;
     let classes: BTreeMap<&ArchetypeKey, &ClassKey> = data
@@ -206,6 +287,18 @@ pub(crate) fn changes(
         if before == after {
             continue;
         }
+        let blocked: Vec<Unexpressed> = narrowings_of(ctx, own, before.as_ref(), after.as_ref())
+            .into_iter()
+            .filter(|(narrowing, _)| !narrowings.allows(&name, narrowing))
+            .map(|(narrowing, blueprint)| Unexpressed {
+                at: entry.at.clone(),
+                what: format!("narrows: {narrowing} ({blueprint}) -> 308"),
+            })
+            .collect();
+        if !blocked.is_empty() {
+            left.extend(blocked);
+            continue;
+        }
         let tree =
             |tree: Option<Prerequisite>| tree.map_or_else(|| "-".to_owned(), |t| format!("{t:?}"));
         out.push(Change {
@@ -219,6 +312,130 @@ pub(crate) fn changes(
         });
     }
     (out, left)
+}
+
+/// The facts a compiled tree names, by the report's name (`feat power-attack`), each with its entry: those it accepts
+/// (under an even number of `Not`s) and those it refuses (an odd number). A refused leaf that is no fact (an ability
+/// score) is named by its form, with no entry.
+#[derive(Default)]
+struct Named {
+    accepted: BTreeMap<String, DataAt>,
+    refused: BTreeMap<String, Option<DataAt>>,
+}
+
+impl Named {
+    fn of(tree: Option<&Prerequisite>) -> Named {
+        let mut named = Named::default();
+        if let Some(tree) = tree {
+            named.walk(tree, false);
+        }
+        named
+    }
+
+    fn walk(&mut self, node: &Prerequisite, refused: bool) {
+        match node {
+            Prerequisite::All(children)
+            | Prerequisite::Any(children)
+            | Prerequisite::AtLeast(_, children) => {
+                for child in children {
+                    self.walk(child, refused);
+                }
+            }
+            Prerequisite::Not(child) => self.walk(child, !refused),
+            leaf => match (leaf_at(leaf), refused) {
+                (Some(at), false) => {
+                    self.accepted.insert(at.to_string(), at);
+                }
+                (Some(at), true) => {
+                    self.refused.insert(at.to_string(), Some(at));
+                }
+                (None, true) => {
+                    self.refused.insert(format!("{leaf:?}"), None);
+                }
+                (None, false) => {}
+            },
+        }
+    }
+
+    fn names(&self, fact: &str) -> bool {
+        self.accepted.contains_key(fact) || self.refused.contains_key(fact)
+    }
+}
+
+/// The entry a fact leaf names, whatever its count, rank or value: a feat for `Weapon Focus (Longsword)`, a class for
+/// a class level.
+fn leaf_at(leaf: &Prerequisite) -> Option<DataAt> {
+    Some(match leaf {
+        Prerequisite::Feat(feat)
+        | Prerequisite::FeatFor { feat, .. }
+        | Prerequisite::FeatForSameValue(feat)
+        | Prerequisite::FeatIfValue { feat, .. } => DataAt::Feat(feat.clone()),
+        Prerequisite::MythicFeat(key) => DataAt::MythicFeat(key.clone()),
+        Prerequisite::MythicAbility(key) => DataAt::MythicAbility(key.clone()),
+        Prerequisite::ClassLevel { class, .. } => DataAt::Class(class.clone()),
+        Prerequisite::Archetype(key) => DataAt::Archetype(key.clone()),
+        Prerequisite::Feature { feature, .. } => DataAt::Feature(feature.clone()),
+        Prerequisite::SelectionOption(key) => DataAt::SelectionOption(key.clone()),
+        Prerequisite::Selection(key) => DataAt::FeatureSelection(key.clone()),
+        Prerequisite::Race(key) => DataAt::Race(key.clone()),
+        Prerequisite::Deity(key) => DataAt::Deity(key.clone()),
+        Prerequisite::Rank { fact, .. } => match fact {
+            Fact::Feat(key) => DataAt::Feat(key.clone()),
+            Fact::Feature(key) => DataAt::Feature(key.clone()),
+            Fact::Option(key) => DataAt::SelectionOption(key.clone()),
+            Fact::Selection(key) => DataAt::FeatureSelection(key.clone()),
+            Fact::MythicAbility(key) => DataAt::MythicAbility(key.clone()),
+            Fact::MythicFeat(key) => DataAt::MythicFeat(key.clone()),
+            Fact::Class(key) => DataAt::Class(key.clone()),
+            Fact::Archetype(key) => DataAt::Archetype(key.clone()),
+            Fact::Race(key) => DataAt::Race(key.clone()),
+            Fact::Deity(key) => DataAt::Deity(key.clone()),
+        },
+        _ => return None,
+    })
+}
+
+/// How a rewrite narrows who qualifies, each `drops <fact>` or `adds Not <fact>` with the fact's blueprint:
+/// - a fact the old tree accepts and the new one doesn't name: where the planner holds the game's blueprint under
+///   another entry, or a grantor's rows are still the planner's, the rewrite would refuse a character the game allows;
+/// - a fact the new tree refuses and the old one didn't, but an entry of the entry's own blueprint (itself, or another
+///   entry sharing its GUID), which is the game's own `PrerequisiteNoFeature` exactly.
+fn narrowings_of(
+    ctx: &Ctx,
+    own: &BlueprintGuid,
+    before: Option<&Prerequisite>,
+    after: Option<&Prerequisite>,
+) -> Vec<(String, String)> {
+    let (old, new) = (Named::of(before), Named::of(after));
+    let itself: BTreeSet<String> = ctx
+        .planner
+        .entries_of(own)
+        .into_iter()
+        .map(ToString::to_string)
+        .collect();
+    let dropped = old
+        .accepted
+        .iter()
+        .filter(|(fact, _)| !new.names(fact))
+        .map(|(fact, at)| (format!("drops {fact}"), blueprint_of(ctx, Some(at))));
+    let refused = new
+        .refused
+        .iter()
+        .filter(|(fact, _)| !old.refused.contains_key(*fact) && !itself.contains(*fact))
+        .map(|(fact, at)| (format!("adds Not {fact}"), blueprint_of(ctx, at.as_ref())));
+    dropped.chain(refused).collect()
+}
+
+/// A fact's blueprint for a narrowing's line: its asset name and GUID, or why there is none.
+fn blueprint_of(ctx: &Ctx, at: Option<&DataAt>) -> String {
+    let Some(at) = at else {
+        return "no fact".to_owned();
+    };
+    match ctx.planner.guid(at.clone()) {
+        Some(guid) if ctx.dump.kind(guid).is_some() => format!("{} {guid}", ctx.name(guid)),
+        Some(guid) => format!("{guid}, not in the dump"),
+        None => "no blueprint, the planner's own entry".to_owned(),
+    }
 }
 
 /// The entry's `Requires`, in the blueprint's component order, or every gap.

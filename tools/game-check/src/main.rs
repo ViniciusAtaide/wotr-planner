@@ -35,7 +35,8 @@ use std::process::ExitCode;
 use std::time::Instant;
 
 use game_check::write::facts::Facts;
-use game_check::write::{WriteArea, log, run as write};
+use game_check::write::prerequisites::Narrowings;
+use game_check::write::{WriteArea, log, run_with as write};
 use game_check::{Known, Library, Pins, Report, binz, check, default_dump};
 
 fn main() -> ExitCode {
@@ -243,8 +244,18 @@ fn write_run(
     };
     let (areas, only) = wanted;
     let facts = Facts::embedded().map_err(|error| error.to_string())?;
-    let outcome = write(&dump, data_dir, areas, only, dry_run, &facts, validate)
-        .map_err(|error| error.to_string())?;
+    let narrowings = Narrowings::embedded().map_err(|error| error.to_string())?;
+    let outcome = write(
+        &dump,
+        data_dir,
+        areas,
+        only,
+        dry_run,
+        &facts,
+        &narrowings,
+        validate,
+    )
+    .map_err(|error| error.to_string())?;
     let mut text = String::new();
     if dry_run {
         text.push_str("dry run: nothing written\n");

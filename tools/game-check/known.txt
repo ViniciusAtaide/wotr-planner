@@ -258,7 +258,7 @@ prerequisites / * / feat dragon-ferocity -> 263
 prerequisites / * / feat dragon-roar -> 263
 prerequisites / * / feat energized-wild-shape -> 263
 prerequisites / * / feat extended-aspects -> 263
-prerequisites / * / feat favored-enemy-spellcasting -> 263
+prerequisites / * / feat favored-enemy-spellcasting -> 275
 prerequisites / * / feat feint -> 263
 prerequisites / * / feat fencing-grace -> 263
 prerequisites / * / feat final-feint -> 263
@@ -311,7 +311,7 @@ prerequisites / missing in planner, a blueprint it doesn't map / feat armor-prof
 prerequisites / * / feat extra-arcana -> 264
 prerequisites / * / feat extra-arcanist-exploit -> 264
 prerequisites / * / feat extra-bombs -> 264
-prerequisites / * / feat extra-channel -> 264
+prerequisites / * / feat extra-channel -> 267
 # The Life spirit's channel: the game's ExtraChannelShaman names ShamanLifeSpiritChannelEnergyFeature b8ec9dcc…, which only
 # ShamanLifeSpiritBaseFeature 9ae3ba76… grants (refs), and the planner holds the channel as that base feature; the check
 # compares by GUID, so each side shows (307's carriers).
@@ -338,7 +338,7 @@ prerequisites / * / mythic ability defensive-study -> 265
 prerequisites / * / mythic ability domain-zealot -> 265
 prerequisites / * / mythic ability everlasting-judgement -> 265
 prerequisites / * / mythic ability greater-enduring-spells -> 265
-prerequisites / * / mythic ability impossible-domain -> 265
+prerequisites / * / mythic ability impossible-domain -> 294
 prerequisites / * / mythic ability kinetic-overcharge -> 265
 prerequisites / * / mythic ability limitless-rage -> 265
 prerequisites / * / mythic ability mythical-beast -> 265
@@ -809,20 +809,20 @@ prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-dis
 prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-virulence -> 278
 prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-vulnerable-host -> 278
 prerequisites / * / selection option shaman/prophet-of-pestilence/carrier-of-disease/plague-mutation-withering -> 278
-prerequisites / * / selection option witch/hex/agony -> 278
-prerequisites / * / selection option witch/hex/animal-servant -> 278
-prerequisites / * / selection option witch/hex/animal-skin -> 278
-prerequisites / * / selection option witch/hex/beasts-gift -> 278
-prerequisites / * / selection option witch/hex/death-curse -> 278
-prerequisites / * / selection option witch/hex/delicious-fright -> 278
-prerequisites / * / selection option witch/hex/hoarfrost -> 278
+prerequisites / * / selection option witch/hex/agony -> 283
+prerequisites / * / selection option witch/hex/animal-servant -> 283
+prerequisites / * / selection option witch/hex/animal-skin -> 283
+prerequisites / * / selection option witch/hex/beasts-gift -> 283
+prerequisites / * / selection option witch/hex/death-curse -> 283
+prerequisites / * / selection option witch/hex/delicious-fright -> 283
+prerequisites / * / selection option witch/hex/hoarfrost -> 283
 prerequisites / * / selection option witch/hex/iceplant -> 278
-prerequisites / * / selection option witch/hex/lay-to-rest -> 278
-prerequisites / * / selection option witch/hex/life-giver -> 278
-prerequisites / * / selection option witch/hex/major-ameliorating -> 278
-prerequisites / * / selection option witch/hex/major-healing -> 278
-prerequisites / * / selection option witch/hex/regenerative-sinew -> 278
-prerequisites / * / selection option witch/hex/restless-slumber -> 278
+prerequisites / * / selection option witch/hex/lay-to-rest -> 283
+prerequisites / * / selection option witch/hex/life-giver -> 283
+prerequisites / * / selection option witch/hex/major-ameliorating -> 283
+prerequisites / * / selection option witch/hex/major-healing -> 283
+prerequisites / * / selection option witch/hex/regenerative-sinew -> 283
+prerequisites / * / selection option witch/hex/restless-slumber -> 283
 progression rows / * / archetype shaman/possessed-shaman -> 278
 progression rows / * / archetype shaman/prophet-of-pestilence -> 278
 progression rows / * / archetype shaman/shadow-shaman -> 278
@@ -1110,3 +1110,16 @@ prerequisites / missing in planner / feat armor-proficiency-medium-armor -> 308
 prerequisites / missing in planner / feat shield-master -> 308
 prerequisites / missing in planner / feat shield-proficiency -> 308
 prerequisites / missing in planner / feat tower-shield-proficiency -> 308
+# 308a's fix round: the writer's narrowing guard leaves an entry whole when its rewrite would refuse a character the game
+# allows, because the planner grants the game's blueprint under another entry or a grantor's rows are still the
+# planner's. Their lines above name the owner, which unblocks them: feat extra-channel -> 267 (the cleric's
+# cleric/channel-energy is ChannelEnergySelection d332c1748445e8f4f9e92763123e31bd; the game names
+# ChannelEnergyFeature a79013ff4bcd4864cb669622a29ddafb, which ClericProgression grants), feat
+# favored-enemy-spellcasting -> 275 (RangerProgression grants FavoriteEnemySelection 16cc2c937ea8d714193017780e7d4fc6,
+# the ranger's rows don't), the 13 Hexcrafter major and grand hexes -> 283 (HexcrafterArchetype grants WitchMajorHex
+# 8ac781b33e380c84aa578f1b006dd6c5 and WitchGrandHex d24c2467804ce0e4497d9978bafec1f9, its rows don't), mythic ability
+# impossible-domain -> 294 (do the cleric archetypes' rows keep cleric/domain where the game's keep DomainsSelection
+# 48525e5da45c9c243a343fc6545dbdb9?). Mantis Zealot's NoFeature of DeitySelection 59e7a76987fe3b547b9cce045f4db3e4
+# stays 267's, Battle Master's ShamanBattleSpiritProgression 26e81d83d13dbf6448b10019c802612d (the Wildland Shaman's
+# rows lack it) 278's; Extra Mercy, which has no line, waits on 274 (SelectionMercy 02b187038a8dce545bb34bbfb346428d,
+# the Divine Hunter paladin's rows lack it).

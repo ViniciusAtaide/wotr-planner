@@ -5,7 +5,8 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use game_check::write::facts::Facts;
-use game_check::write::{Outcome, WriteArea, WriteError, run};
+use game_check::write::prerequisites::Narrowings;
+use game_check::write::{Outcome, WriteArea, WriteError, run, run_with};
 use rules::{
     Ability, Alignment, ArchetypeKey, ClassKey, Component, Condition, Fact, FeatKey, GameData,
     Group, Prerequisite, SelectionOptionKey, StatRef,
@@ -92,6 +93,10 @@ fn blueprint(n: u32, name: &str, type_name: &str, ranks: u8, parts: &[String]) -
 /// - `hand-feat` (207): a hand prerequisite. `same-feat` (208): the game's two features, in the other order, with a
 ///   comment inside its components.
 /// - the mythic ability `deep-path` (210): a Mythic rank and a feature.
+/// - the narrowings: `wide-feat` (211) accepts `keen-feat` or `once-feat` and the game names `once-feat` alone;
+///   `deny-feat` (212) gains the game's refusal of `once-feat`; `both-feat` (213) does both, dropping `keen-feat` and
+///   refusing `lost-feat`; `shun-twin` (214) refuses the shared blueprint 260.
+/// - `kept-feat` (215): a `WeaponFocus` before its one `Requires`, and the game names a second feature.
 fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
     let dir = data_copy();
     let put = |file: &str, text: String| std::fs::write(dir.path().join(file), text).unwrap();
@@ -112,6 +117,16 @@ fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
     feat("extra-thing", 205, ", ranks: 3");
     feat("extra-odd", 206, ", ranks: 2");
     feat("hand-feat", 207, ", prerequisite: Feat(\"bonus-one\")");
+    let either = ", components: [Requires(condition: Any([Has(Feat(\"keen-feat\")), Has(Feat(\"once-feat\"))]))]";
+    feat("wide-feat", 211, either);
+    feat("deny-feat", 212, "");
+    feat("both-feat", 213, either);
+    feat("shun-twin", 214, "");
+    feat(
+        "kept-feat",
+        215,
+        ", components: [WeaponFocus, Requires(condition: Has(Feat(\"bonus-one\")))]",
+    );
     put(
         "feats/same-feat.ron",
         format!(
@@ -241,6 +256,23 @@ fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
             1,
             &[mythic_rank, needs("All", BONUS_ONE)],
         ),
+        blueprint(211, "WideFeat", FEATURE, 1, &[needs("All", &guid(203))]),
+        blueprint(212, "DenyFeat", FEATURE, 1, &[no_feature(&guid(203))]),
+        blueprint(
+            213,
+            "BothFeat",
+            FEATURE,
+            1,
+            &[needs("All", &guid(203)), no_feature(&guid(201))],
+        ),
+        blueprint(214, "ShunTwinFeat", FEATURE, 1, &[no_feature(&guid(260))]),
+        blueprint(
+            215,
+            "KeptFeat",
+            FEATURE,
+            1,
+            &[needs("All", BONUS_ONE), needs("All", BONUS_TWO)],
+        ),
     ];
     let (pins, dump) = dump(&binz(&records, 1));
     (dir, pins, dump)
@@ -274,6 +306,21 @@ fn write_with(
 
 fn write(dir: &Path, dump: &game_check::Dump) -> Outcome {
     write_with(dir, dump, &[WriteArea::Prerequisites], None, "").unwrap()
+}
+
+/// A run with these narrowings allowed (`prerequisite-narrowing.txt`'s grammar).
+fn write_allowing(dir: &Path, dump: &game_check::Dump, allowed: &str) -> Outcome {
+    run_with(
+        dump,
+        dir,
+        &[WriteArea::Prerequisites],
+        None,
+        false,
+        &Facts::default(),
+        &Narrowings::parse(allowed).unwrap(),
+        valid,
+    )
+    .unwrap()
 }
 
 fn read(dir: &Path, file: &str) -> String {
@@ -618,6 +665,109 @@ fn a_held_prerequisite_fact_goes_to_the_user() {
         .collect();
     assert_eq!(held, ["feat keen-feat"]);
     assert!(changed(&outcome).contains(&"feat once-feat".to_owned()));
+}
+
+#[test]
+fn a_rewrite_that_drops_an_old_alternative_is_left_whole_and_listed() {
+    let (dir, _, dump) = world();
+    let before = read(dir.path(), "feats/wide-feat.ron");
+    let outcome = write(dir.path(), &dump);
+    assert_eq!(read(dir.path(), "feats/wide-feat.ron"), before);
+    assert!(!changed(&outcome).contains(&"feat wide-feat".to_owned()));
+    assert_eq!(
+        unexpressed(&outcome, "feat wide-feat"),
+        [format!(
+            "narrows: drops feat keen-feat (KeenFeat {}) -> 308",
+            guid(200)
+        )]
+    );
+}
+
+#[test]
+fn a_rewrite_that_adds_a_negation_is_left_whole_and_listed() {
+    let (dir, _, dump) = world();
+    let before = read(dir.path(), "feats/deny-feat.ron");
+    let outcome = write(dir.path(), &dump);
+    assert_eq!(read(dir.path(), "feats/deny-feat.ron"), before);
+    assert!(!changed(&outcome).contains(&"feat deny-feat".to_owned()));
+    assert_eq!(
+        unexpressed(&outcome, "feat deny-feat"),
+        [format!(
+            "narrows: adds Not feat once-feat (OnceFeat {}) -> 308",
+            guid(203)
+        )]
+    );
+}
+
+#[test]
+fn an_allowlisted_narrowing_is_written() {
+    let (dir, _, dump) = world();
+    let both = read(dir.path(), "feats/both-feat.ron");
+    let outcome = write_allowing(
+        dir.path(),
+        &dump,
+        "# Planted.\n\
+         feat wide-feat -> planted: the game's WideFeat names OnceFeat alone\n\
+         feat wide-feat / drops feat keen-feat\n\
+         feat deny-feat / adds Not feat once-feat -> planted: the game's DenyFeat refuses OnceFeat\n\
+         feat both-feat / drops feat keen-feat -> planted: one of its two narrowings\n",
+    );
+    assert_eq!(
+        feat_components(dir.path(), "wide-feat"),
+        [requires(Condition::Has(feat("once-feat")), Group::All)]
+    );
+    assert_eq!(
+        feat_components(dir.path(), "deny-feat"),
+        [requires(Condition::HasNot(feat("once-feat")), Group::All)]
+    );
+    // All or nothing: one narrowing of two allowed leaves the entry whole, listing the other.
+    assert_eq!(read(dir.path(), "feats/both-feat.ron"), both);
+    assert_eq!(
+        unexpressed(&outcome, "feat both-feat"),
+        [format!(
+            "narrows: adds Not feat lost-feat (LostFeat {}) -> 308",
+            guid(201)
+        )]
+    );
+}
+
+#[test]
+fn an_entrys_non_requires_components_are_kept() {
+    let (dir, _, dump) = world();
+    write(dir.path(), &dump);
+    assert_eq!(
+        feat_components(dir.path(), "kept-feat"),
+        [
+            requires(Condition::Has(feat("bonus-one")), Group::All),
+            requires(Condition::Has(feat("bonus-two")), Group::All),
+            Component::WeaponFocus,
+        ]
+    );
+}
+
+/// The game's `PrerequisiteNoFeature` refuses a character holding the blueprint
+/// (`Blueprints/Classes/Prerequisites/PrerequisiteNoFeature.cs` `CheckInternal`, WrathDecompiled 6ce4a6b:
+/// `!unit.HasFact(Feature)`), and a blueprint several entries share is held through any of
+/// them: so it refuses each, `Not` of the `Any`.
+#[test]
+fn a_no_feature_on_a_shared_guid_becomes_a_not_of_each_entry() {
+    let (dir, _, dump) = world();
+    write_allowing(
+        dir.path(),
+        &dump,
+        "feat shun-twin / adds Not feat twin-feat -> planted: the game's TwinFeature\n\
+         feat shun-twin / adds Not selection option twin-option -> planted: the game's TwinFeature\n",
+    );
+    assert_eq!(
+        feat_components(dir.path(), "shun-twin"),
+        [requires(
+            Condition::Not(Box::new(Condition::Any(vec![
+                Condition::Has(feat("twin-feat")),
+                Condition::Has(option("twin-option")),
+            ]))),
+            Group::All
+        )]
+    );
 }
 
 #[test]

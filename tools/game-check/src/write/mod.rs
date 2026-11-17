@@ -670,11 +670,7 @@ pub struct Outcome {
     pub applied: Applied,
 }
 
-/// Plans the changes of `areas` from the data under `dir` and the dump, and [`apply`]s them, or with `dry_run` only
-/// [`plan`]s them (the guards run, nothing is written). `only` limits the option-lists area to the selections it
-/// names, the carriers areas to GUIDs, and the prerequisites area, run alone, to the entries it names as the report
-/// does (`feat extra-hex`; a trailing `*` takes every entry the rest begins: `selection option rogue/*`). The data is
-/// read with `seeds::read_game_data_files`, the model as the files hold it, not compiled.
+/// [`run_with`] allowing no narrowing of a prerequisite.
 pub fn run(
     dump: &crate::Dump,
     dir: &Path,
@@ -682,6 +678,28 @@ pub fn run(
     only: Option<&BTreeSet<String>>,
     dry_run: bool,
     facts: &facts::Facts,
+    validate: impl Fn(&Path) -> Result<(), String>,
+) -> Result<Outcome, WriteError> {
+    let none = prerequisites::Narrowings::default();
+    run_with(dump, dir, areas, only, dry_run, facts, &none, validate)
+}
+
+/// Plans the changes of `areas` from the data under `dir` and the dump, and [`apply`]s them, or with `dry_run` only
+/// [`plan`]s them (the guards run, nothing is written). `only` limits the option-lists area to the selections it
+/// names, the carriers areas to GUIDs, and the prerequisites area, run alone, to the entries it names as the report
+/// does (`feat extra-hex`; a trailing `*` takes every entry the rest begins: `selection option rogue/*`). The data is
+/// read with `seeds::read_game_data_files`, the model as the files hold it, not compiled. `narrowings` are the
+/// prerequisite rewrites that narrow who qualifies and may be written all the same
+/// ([`prerequisites::Narrowings`]).
+#[allow(clippy::too_many_arguments)]
+pub fn run_with(
+    dump: &crate::Dump,
+    dir: &Path,
+    areas: &[WriteArea],
+    only: Option<&BTreeSet<String>>,
+    dry_run: bool,
+    facts: &facts::Facts,
+    narrowings: &prerequisites::Narrowings,
     validate: impl Fn(&Path) -> Result<(), String>,
 ) -> Result<Outcome, WriteError> {
     let data =
@@ -756,7 +774,7 @@ pub fn run(
                 (Vec::new(), left)
             }
             WriteArea::CarrierGrants => carriers::attachments(&ctx, &created, dry_run, only),
-            WriteArea::Prerequisites => prerequisites::changes(&ctx, only),
+            WriteArea::Prerequisites => prerequisites::changes(&ctx, only, narrowings),
         };
         for change in more {
             let entry = change.at.to_string();
