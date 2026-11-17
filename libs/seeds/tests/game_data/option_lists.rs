@@ -12,12 +12,18 @@ use crate::support::{DATA, feat, mythic_feat, picks_of};
 /// option key prefix (a full key names one option; a prefix ending in `/` names every option under it), and why
 /// that is no gap. An entry that covers nothing, or covers an option the prerequisite names, fails
 /// [`every_exception_covers_an_option_the_prerequisite_leaves_out`].
-const EXCEPTIONS: [(&str, &str, &str); 4] = [
+const EXCEPTIONS: [(&str, &str, &str); 5] = [
     (
         "extra-rage-power",
         "skald/battle-scion/rage-power-or-teamwork-feat/teamwork-feat",
         "a teamwork feat is no rage power (ticket 189): the Battle Scion's slot offers it, the feat's prerequisite \
          names rage powers only",
+    ),
+    (
+        "extra-arcanist-exploit",
+        "arcanist/greater-exploits/",
+        "the six greater exploits are in the game's list (306i), and the feat's prerequisite still names the sixteen \
+         exploits only: the importer's prerequisite stage (293) writes the game's selections",
     ),
     (
         "extra-arcana",

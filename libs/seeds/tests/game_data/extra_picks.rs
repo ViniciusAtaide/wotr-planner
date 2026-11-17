@@ -14,7 +14,10 @@ use crate::support::*;
 /// selection; the Vivisectionist's Medical Discovery since ticket 64. The rows of `WAITING` differ from the data.
 const EXTRA_PICKS: [(&str, &[&str]); 9] = [
     ("extra-arcana", &["magus/magus-arcana"]), // Game: ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8 (its own list of the 15 magus arcana; met by MagusArcanaSelection, HexcrafterMagusHexArcanaSelection or EldritchMagusArcanaSelection)
-    ("extra-arcanist-exploit", &["arcanist/arcanist-exploits"]), // Game: ExtraArcanistExploitSelection 0a7065e13f4449fa81bfb33199bf7f6a (ArcanistExploitSelection or ExploiterExploitSelection)
+    (
+        "extra-arcanist-exploit",
+        &["arcanist/arcanist-exploits", "arcanist/exploiter-exploits"],
+    ), // Game: ExtraArcanistExploitSelection 0a7065e13f4449fa81bfb33199bf7f6a (ArcanistExploitSelection or ExploiterExploitSelection)
     (
         "extra-discovery",
         &[
@@ -334,7 +337,7 @@ fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
             exploiter(1),
             "extra-arcanist-exploit",
             1,
-            "arcanist/arcanist-exploits",
+            "arcanist/exploiter-exploits",
         ),
         // Ticket 60: talents taken through another class.
         // Game: FeyformShifterShifterArchetype 1cdfc7d306d1430eac19427539b62091 (RogueTalentSelection at 8)
@@ -506,7 +509,6 @@ fn a_vivisectionists_extra_discovery_gives_a_medical_discovery_slot_at_the_level
 /// decision 3, a Hex Arcana slot, was the guide's reading).
 // Game: ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8 (its own list of the 15 magus arcana, no hexes)
 #[test]
-#[ignore = "waits on ticket 264: the game gives a Hexcrafter's Extra Arcana one of the 15 magus arcana, no hex"]
 fn a_hexcrafters_extra_arcana_gives_a_magus_arcana() {
     let mut build = with_selections_filled(borrower("magus", Some(HEXCRAFTER), 7));
     build
@@ -516,7 +518,7 @@ fn a_hexcrafters_extra_arcana_gives_a_magus_arcana() {
     let slot = extra_slot(7, 0);
     assert_eq!(
         kind_at(&build, &slot),
-        Some(selection_kind("magus/magus-arcana"))
+        Some(selection_kind("magus/extra-arcana"))
     );
     assert_eq!(offered_keys(&build, &slot).len(), 15);
 }
@@ -633,7 +635,10 @@ fn a_plain_alchemists_and_magus_extra_picks_are_unchanged() {
         build.picks.insert(general_slot(3), feat_pick_plain(feat));
         assert!(possible(&build), "{feat}");
         let slot = extra_slot(3, 0);
-        assert_eq!(kind_at(&build, &slot), Some(selection_kind(selection)));
+        assert_eq!(
+            kind_at(&build, &slot),
+            Some(selection_kind(slot_selection(feat, selection)))
+        );
         assert_eq!(label_at(&build, &slot), label);
         assert_eq!(
             offered_keys(&build, &slot),

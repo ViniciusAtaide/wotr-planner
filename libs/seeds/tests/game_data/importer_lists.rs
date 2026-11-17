@@ -264,3 +264,49 @@ fn the_skald_and_the_instinctual_warrior_have_their_own_rage_powers() {
         }
     }
 }
+
+/// 306i: the Exploiter Wizard's exploits are their own selection, and the arcanist's, the Exploiter's and Extra
+/// Arcanist Exploit's lists are the game's 22: the sixteen exploits and the six greater ones, which stay the Greater
+/// Exploits' own options and join the others as shared ones. Extra Arcana's is the 15 magus arcana, Extra Mercy's the
+/// paladin's 15 mercies.
+// Game: the `m_AllFeatures` of ArcanistExploitSelection b8bf3d5023f2d8c428fdf6438cecaea7 (22),
+// ExploiterExploitSelection 2ba8a0040e0149e9ae9bfcb01a8ff01d (22; ExploiterWizardArchetype
+// 6d2027b4eec590c41adb5caeb7bb026d `AddFeatures` at 1, 5, 9, 13, 17), ExtraArcanistExploitSelection
+// 0a7065e13f4449fa81bfb33199bf7f6a (22), ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8 (15) and
+// ExtraMercySelection 8a49abed5be9473da1e1fd1e2457562e (15). The six greater exploits: ArcanistExploitBurningFlameFeature
+// 9677876c5dbb6074780c392e68f5929c, DancingElectricity 72eb9635…, GreaterSpellResistance 1eba9b43…, HellfireRay 7d563761…,
+// IcyTomb 0e7d6f93…, LingeringAcid 479ab600….
+#[test]
+fn the_exploiters_and_extra_arcanist_exploits_lists_are_the_games() {
+    let greater = keys(selection("arcanist/greater-exploits"));
+    assert_eq!(greater.len(), 6);
+    for list in [
+        "arcanist/arcanist-exploits",
+        "arcanist/exploiter-exploits",
+        "arcanist/extra-arcanist-exploit",
+    ] {
+        let offers = keys(selection(list));
+        assert_eq!(offers.len(), 22, "{list}");
+        assert!(greater.is_subset(&offers), "{list} lacks a greater exploit");
+    }
+    assert_eq!(keys(selection("magus/extra-arcana")).len(), 15);
+    assert_eq!(keys(selection("paladin/extra-mercy")).len(), 15);
+    // The Exploiter Wizard's rows name its own selection, in the slot order the arcanist's key had.
+    let exploiter = DATA
+        .archetypes
+        .iter()
+        .find(|archetype| archetype.key.as_str() == "wizard/exploiter-wizard")
+        .expect("exploiter wizard");
+    for level in [1, 5, 9, 13, 17] {
+        let row = exploiter
+            .levels
+            .iter()
+            .find(|row| row.level == level)
+            .unwrap_or_else(|| panic!("no row {level}"));
+        let held = row
+            .selections
+            .iter()
+            .any(|key| key.as_str() == "arcanist/exploiter-exploits");
+        assert!(held, "{level}");
+    }
+}

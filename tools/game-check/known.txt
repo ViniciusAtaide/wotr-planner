@@ -62,7 +62,6 @@ option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> 293
 # From 302 (nested selections, decisions Q1, Q2 and Q4): the selections an Extra feat, a mythic ability and Extra
 # Mythic Ability grant list the planner's list of the selection each stands for (every mythic ability for Extra Mythic
 # Ability), not the game's own; 293 writes the game's.
-option lists / * / selection arcanist/extra-arcanist-exploit -> 293
 option lists / * / selection bloodrager/second-bloodline -> 293
 option lists / * / selection kineticist/extra-wild-talent -> 293
 option lists / * / selection mythic/extra-mythic-ability -> 293
@@ -246,12 +245,6 @@ prerequisites / * / mythic ability witch-wandering-hex -> 259
 
 # 260, Greater Exploits opens the greater exploits in the exploit picks.
 option lists / * / selection arcanist/greater-exploits -> 260
-prerequisites / * / selection option arcanist/greater-exploits/burning-flame -> 260
-prerequisites / * / selection option arcanist/greater-exploits/dancing-electricity -> 260
-prerequisites / * / selection option arcanist/greater-exploits/greater-spell-resistance -> 260
-prerequisites / * / selection option arcanist/greater-exploits/hellfire-ray -> 260
-prerequisites / * / selection option arcanist/greater-exploits/icy-tomb -> 260
-prerequisites / * / selection option arcanist/greater-exploits/lingering-acid -> 260
 
 # 263, feats' prerequisites.
 option lists / in game only / pool general feats -> 263
@@ -966,7 +959,6 @@ progression rows / a further rank in planner only / archetype sorcerer/nine-tail
 progression rows / in game only / archetype sorcerer/nine-tailed-heir -> 281
 
 # 282, arcanist and wizard.
-option lists / * / selection arcanist/arcanist-exploits -> 282
 option lists / * / selection arcanist/magic-deceiver/ways-of-the-deceiver/living-deity/curse -> 282
 option lists / * / selection wizard/cruromancer/blood-infusion -> 282
 option lists / * / selection wizard/cruromancer/school -> 282

@@ -74,3 +74,7 @@ full t60 skald/battle-scion 20 / empty / legend
 full t60 skald/battle-scion 20 / filled
 full t60 skald/battle-scion 20 / filled / legend
 t60 skald/battle-scion 20 / filled
+full t64 hexcrafter arcana / feat
+full t64 hexcrafter arcana thrice / feat
+full t64 hexcrafter arcana thrice / feat / legend
+full t64 hexcrafter hexes only
