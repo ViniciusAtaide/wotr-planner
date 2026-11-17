@@ -1328,6 +1328,7 @@ fn writing_a_feat_list_brings_it_to_the_game() {
     let planned: Vec<_> = outcome
         .changes
         .iter()
+        .filter(|c| !matches!(c.field, "options" | "shared_options"))
         .map(|c| (c.at.to_string(), c.field, c.old.as_str(), c.new.as_str()))
         .collect();
     assert_eq!(
@@ -1383,17 +1384,12 @@ fn a_member_with_no_feat_entry_leaves_the_selection_unwritten() {
             .iter()
             .all(|c| c.at.to_string() != "selection short-feats")
     );
-    assert_eq!(outcome.unexpressed.len(), 1, "{:?}", outcome.unexpressed);
-    assert_eq!(
-        outcome.unexpressed[0].at.to_string(),
-        "selection short-feats"
-    );
+    let left = unexpressed_of(&outcome, "selection short-feats");
+    assert_eq!(left.len(), 1, "{left:?}");
     assert!(
-        outcome.unexpressed[0]
-            .what
-            .contains("no feat entry: TestBonusLostFeat"),
+        left[0].contains("no feat entry: TestBonusLostFeat"),
         "{}",
-        outcome.unexpressed[0].what
+        left[0]
     );
 }
 
@@ -1420,4 +1416,124 @@ fn a_second_option_lists_run_writes_nothing() {
     let again = write_lists(dir.path(), None).unwrap();
     assert!(again.changes.is_empty(), "{:?}", again.changes);
     assert_eq!(all_files(dir.path()), written);
+}
+
+fn unexpressed_of(outcome: &game_check::write::Outcome, entry: &str) -> Vec<String> {
+    (outcome.unexpressed.iter())
+        .filter(|item| item.at.to_string() == entry)
+        .map(|item| item.what.clone())
+        .collect()
+}
+
+fn lists_of(
+    outcome: &game_check::write::Outcome,
+    entry: &str,
+) -> Vec<(&'static str, String, String)> {
+    (outcome.changes.iter())
+        .filter(|c| c.at.to_string() == entry)
+        .map(|c| (c.field, c.old.clone(), c.new.clone()))
+        .collect()
+}
+
+// Options and ownership (ticket 306b). `base-powers` and `copy-powers` are an Improved-Weapon-shaped pair: the game's
+// list of the base (TestBasePowers ...b43) holds TestPowerA ...b41, that of the copy (TestCopyPowers ...b44) holds
+// TestPowerA and TestPowerX ...b42, and the data's base defines Power X and Power Z.
+
+#[test]
+fn an_option_moves_to_the_selection_whose_game_list_holds_it() {
+    let dir = data_copy();
+    let outcome = write_lists(dir.path(), None).unwrap();
+    let base = read(dir.path(), "selections/base-powers.ron");
+    assert!(
+        base.contains("options: [\"power-a\", \"power-z\"],"),
+        "{base}"
+    );
+    let copy = read(dir.path(), "selections/copy-powers.ron");
+    assert!(copy.contains("options: [\"power-x\"],"), "{copy}");
+    // Power A stays the base's and the copy shares it.
+    assert!(copy.contains("shared_options: [\"power-a\"],"), "{copy}");
+    assert_eq!(
+        lists_of(&outcome, "selection copy-powers"),
+        [("options", String::new(), "power-x".to_owned())]
+    );
+}
+
+#[test]
+fn an_option_no_game_list_holds_stays_and_is_listed() {
+    let dir = data_copy();
+    let outcome = write_lists(dir.path(), None).unwrap();
+    // Power Z names no blueprint and no game list holds it: it stays in the base's options.
+    assert!(read(dir.path(), "selections/base-powers.ron").contains("\"power-z\""));
+    let left = unexpressed_of(&outcome, "selection option power-z");
+    assert_eq!(left.len(), 1, "{left:?}");
+    assert!(left[0].contains("no game list holds it"), "{left:?}");
+}
+
+#[test]
+fn a_guid_two_options_hold_resolves_to_the_offered_one() {
+    let dir = data_copy();
+    let twin = read(dir.path(), "selections/twin-list.ron");
+    let outcome = write_lists(dir.path(), None).unwrap();
+    // TestTwinList lists TestTwin ...b46, which Twin A and Twin B both name; the list offers Twin B.
+    assert_eq!(read(dir.path(), "selections/twin-list.ron"), twin);
+    assert!(lists_of(&outcome, "selection twin-list").is_empty());
+    assert!(unexpressed_of(&outcome, "selection twin-list").is_empty());
+}
+
+#[test]
+fn a_move_outside_only_is_not_made() {
+    let dir = data_copy();
+    let base = read(dir.path(), "selections/base-powers.ron");
+    let outcome = write_lists(dir.path(), Some(&["base-powers"])).unwrap();
+    // The copy is outside the set, so Power X stays the base's and is listed.
+    assert_eq!(read(dir.path(), "selections/base-powers.ron"), base);
+    assert!(outcome.changes.is_empty(), "{:?}", outcome.changes);
+    let left = unexpressed_of(&outcome, "selection option power-x");
+    assert_eq!(left.len(), 1, "{left:?}");
+    assert!(left[0].contains("not made"), "{left:?}");
+    // With the copy alone, it shares the option the base still defines.
+    let outcome = write_lists(dir.path(), Some(&["copy-powers"])).unwrap();
+    assert_eq!(
+        lists_of(&outcome, "selection copy-powers"),
+        [("shared_options", String::new(), "power-x".to_owned())]
+    );
+}
+
+#[test]
+fn the_written_lists_pass_the_data_check() {
+    let dir = data_copy();
+    let defined_once = |path: &Path| {
+        let data = seeds::read_game_data_files(path).unwrap();
+        (data.check().iter())
+            .map(|p| format!("{p:?}"))
+            .filter(|p| p.contains("OptionNotDefinedOnce"))
+            .count()
+    };
+    assert_eq!(defined_once(dir.path()), 0);
+    write_lists(dir.path(), None).unwrap();
+    assert_eq!(defined_once(dir.path()), 0);
+}
+
+// 306a's review.
+
+#[test]
+fn a_selection_with_no_blueprint_or_none_in_the_dump_is_listed() {
+    let dir = data_copy();
+    let outcome = write_lists(dir.path(), None).unwrap();
+    assert_eq!(
+        unexpressed_of(&outcome, "selection twin-other"),
+        ["no blueprint"]
+    );
+    assert_eq!(
+        unexpressed_of(&outcome, "selection ghost-feats"),
+        ["blueprint not in the dump"]
+    );
+}
+
+#[test]
+fn an_only_key_that_is_no_selection_is_a_usage_error() {
+    let dir = data_copy();
+    let error = write_lists(dir.path(), Some(&["no-such-selection"])).unwrap_err();
+    assert!(matches!(error, WriteError::Usage(_)), "{error}");
+    assert!(!error.to_string().contains("fails its check"), "{error}");
 }

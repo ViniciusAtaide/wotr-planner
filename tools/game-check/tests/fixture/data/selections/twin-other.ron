@@ -1,0 +1,6 @@
+// A planner selection with no blueprint, which defines Twin A.
+(
+    key: "twin-other",
+    name: "Twin other",
+    options: ["twin-a"],
+)

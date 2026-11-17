@@ -37,3 +37,13 @@ fn write_with_a_stray_word_is_refused_and_runs_no_lookup() {
     assert_eq!(code, Some(2));
     assert!(stderr.contains("not an area"), "{stderr}");
 }
+
+#[test]
+fn only_without_the_option_lists_area_is_refused() {
+    let (code, stderr) = game_check(&["--write", "items", "--only", "magic-feats"]);
+    assert_eq!(code, Some(2));
+    assert!(
+        stderr.contains("--only limits the option-lists area"),
+        "{stderr}"
+    );
+}

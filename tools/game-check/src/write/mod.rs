@@ -62,6 +62,8 @@ pub enum WriteError {
     /// A change on a planner-made file, which the importer never writes.
     Planner(PathBuf),
     Missing(PathBuf),
+    /// A request the writer can't take: an `--only` key that is no selection.
+    Usage(String),
     /// A change to a field the importer doesn't own in that folder (design §1.2's table).
     NotOwned {
         file: PathBuf,
@@ -116,6 +118,7 @@ impl fmt::Display for WriteError {
                 "{}: after writing `{field}` the file differs in more than the written field",
                 file.display()
             ),
+            WriteError::Usage(why) => f.write_str(why),
             WriteError::Invalid(why) => write!(f, "the written data fails its check: {why}"),
             WriteError::Io { file, error } => write!(f, "{}: {error}", file.display()),
             WriteError::StaleFacts(lines) => write!(
@@ -596,7 +599,7 @@ pub fn run(
                 .any(|s| s.key.as_str() == key.as_str())
         })
     }) {
-        return Err(WriteError::Invalid(format!(
+        return Err(WriteError::Usage(format!(
             "--only names no selection: {unknown}"
         )));
     }

@@ -1517,5 +1517,66 @@
     "!bp_000000000000000000000000000000b22"
    ]
   }
+ },
+ {
+  "guid": "000000000000000000000000000000b41",
+  "name": "TestPowerA",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b42",
+  "name": "TestPowerX",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b46",
+  "name": "TestTwin",
+  "type": "Kingmaker.Blueprints.Classes.BlueprintFeature",
+  "raw": {
+   "$type": "0, BlueprintFeature",
+   "Components": []
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b43",
+  "name": "TestBasePowers",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "Feat",
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000b41"
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b44",
+  "name": "TestCopyPowers",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "Feat",
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000b41",
+    "!bp_000000000000000000000000000000b42"
+   ]
+  }
+ },
+ {
+  "guid": "000000000000000000000000000000b47",
+  "name": "TestTwinList",
+  "type": "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection",
+  "raw": {
+   "Group": "Feat",
+   "m_AllFeatures": [
+    "!bp_000000000000000000000000000000b46"
+   ]
+  }
  }
 ]

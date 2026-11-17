@@ -1,0 +1,7 @@
+// An Improved-Weapon-shaped pair (base): the game's list holds only Power A.
+(
+    key: "base-powers",
+    blueprint: "000000000000000000000000000000b43",
+    name: "Base power",
+    options: ["power-a", "power-x", "power-z"],
+)

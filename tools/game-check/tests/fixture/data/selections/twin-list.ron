@@ -1,0 +1,7 @@
+// Two options name the game's one blueprint; this selection offers Twin B.
+(
+    key: "twin-list",
+    blueprint: "000000000000000000000000000000b47",
+    name: "Twin",
+    options: ["twin-b"],
+)
