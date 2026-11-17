@@ -914,12 +914,11 @@ pub fn all_path_grants() -> Grants {
 // ---- feat slots and feat lists as selections (ticket 301) ------------------------------------------------------
 
 /// The general and category selections of feats: what the `General`, `CombatFeat` and `Category` feat slots were.
-pub const FEAT_POOLS: [&str; 5] = [
+pub const FEAT_POOLS: [&str; 4] = [
     rules::BASIC_FEAT_SELECTION,
     "combat-feats",
     "magic-feats",
     "teamwork-feats",
-    "mounted-combat-feats",
 ];
 
 /// A Feature selection by key.

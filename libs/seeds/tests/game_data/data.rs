@@ -141,14 +141,14 @@ fn a_wizards_scribe_scrolls_is_held_with_no_pick() {
 #[test]
 fn every_feat_list_holds_two_feats_or_more_or_every_feat() {
     // A lone feat is granted; the data check refuses a shorter list unless its one feat takes a value (a bonus feat
-    // of the player's choosing). The real data has 81: 76 named lists (34 of them the bloodlines' and the ranger
+    // of the player's choosing). The real data has 84: 79 named lists (34 of them the bloodlines' and the ranger
     // styles' since ticket 30, 4 the kineticist elements' wild-talent bonus feats since ticket 31; ticket 32's three
     // slayer stage lists went in ticket 33, the slayer picking a ranger style), Gold Dragon's Dragon Feats (a list of
     // every feat), and the warpriest's Weapon Focus, the Master of All's Skill Focus, the Sword Saint's Weapon Focus
     // and the half-elf's Skill Focus. Ticket 61 adds the Titan Fighter's three Massive Attacks lists.
     // Ticket 301: each a selection of feats, every feat named. Ticket 306l: the magus's, the Arcane Rider's and the
-    // warpriest's bonus lists (three more).
-    assert_eq!(feat_lists().count(), 81);
+    // warpriest's bonus lists (three more). Ticket 306m: the cavalier's, its Tactician's and the Gendarme's (three more).
+    assert_eq!(feat_lists().count(), 84);
     let every: Vec<_> = feat_lists()
         .filter(|list| list.feats.len() == DATA.feats.len())
         .map(|list| {

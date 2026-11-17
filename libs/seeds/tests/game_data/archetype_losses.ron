@@ -401,7 +401,7 @@
         loses: [
             (item: Feature("cavalier/greater-tactician")),
             (item: Feature("cavalier/tactician")),
-            (item: Selection("teamwork-feats")),
+            (item: Selection("cavalier/tactician-feats")),
         ],
     ),
     // Game: GendarmeArchetype 48fd69254e9e5c540bd65101d3252184
@@ -411,7 +411,8 @@
             (item: Feature("cavalier/greater-tactician")),
             (item: Feature("cavalier/supreme-charge")),
             (item: Feature("cavalier/tactician")),
-            (item: Selection("teamwork-feats")),
+            (item: Selection("cavalier/bonus-feats"), at: [6, 12, 18], replaced_by: [Selection("cavalier/gendarme/bonus-feats")], why: "the game removes CavalierBonusFeatSelection at 6, 12 and 18 and adds GendarmeFeatSelection there"),
+            (item: Selection("cavalier/tactician-feats")),
         ],
     ),
     // Game: GhostRiderArchetype c0503d9864b94134ab1237a2bf2d38a0
@@ -425,7 +426,7 @@
             (item: Feature("cavalier/greater-tactician")),
             (item: Feature("cavalier/mighty-charge")),
             (item: Feature("cavalier/tactician")),
-            (item: Selection("teamwork-feats")),
+            (item: Selection("cavalier/tactician-feats")),
         ],
     ),
     // Game: KnightOfTheWallArchetype 112dd0e61f95c3a459ac0a565472e685: the entries waiting on a ticket are the game's
@@ -434,7 +435,7 @@
         loses: [
             (item: Feature("cavalier/greater-tactician")),
             (item: Feature("cavalier/tactician")),
-            (item: Selection("teamwork-feats")),
+            (item: Selection("cavalier/tactician-feats")),
             (item: Feature("cavalier/demanding-challenge"), waits_on: "ticket 273", why: "the game removes Demanding Challenge at 12 for its own challenge"),
         ],
     ),

@@ -6,6 +6,6 @@
     summary: "Cavalier who can take any animal companion as a mount, losing heavy armour proficiency.",
     guide: "cavalier#beast-rider",
     levels: [
-        (level: 1, features: ["cavalier/beast-rider/animal-companion-beast-rider", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cavalier/order", "teamwork-feats"]),
+        (level: 1, features: ["cavalier/beast-rider/animal-companion-beast-rider", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cavalier/order", "cavalier/tactician-feats"]),
     ],
 )

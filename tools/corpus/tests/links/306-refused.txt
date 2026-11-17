@@ -120,3 +120,13 @@ full t64 hexcrafter arcana thrice / before / legend
 full t64 hexcrafter 20 / filled
 full t64 hexcrafter 20 / filled / legend
 full t64 hexcrafter hexes only
+
+full cavalier 
+full cavalier  / legend
+full cavalier cavalier/beast-rider
+full cavalier cavalier/beast-rider / legend
+full cavalier cavalier/gendarme
+full cavalier cavalier/gendarme / legend
+full cavalier cavalier/knight-of-the-wall
+full cavalier cavalier/knight-of-the-wall / legend
+full option cavalier cavalier/order/order-of-the-sword

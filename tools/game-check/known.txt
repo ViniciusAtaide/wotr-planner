@@ -30,7 +30,6 @@ option lists / * / selection feats -> 293
 option lists / * / selection combat-feats -> 293
 option lists / * / selection magic-feats -> 293
 option lists / * / selection teamwork-feats -> 293
-option lists / * / selection mounted-combat-feats -> 293
 option lists / * / selection gold-dragon/dragon-feats -> 293
 # From 303 (repeats from the header, decision Q3): entries holding several of the game's blueprints, whose `ranks`, or
 # Beneficial Curse's once, is the planner's: Magical Tail's eight (MagicalTail1 and its copies), the Primalist's rage
@@ -684,9 +683,7 @@ progression rows / * / archetype cavalier/ghost-rider -> 273
 progression rows / * / archetype cavalier/knight-of-the-wall -> 273
 progression rows / * / archetype cavalier/standard-bearer -> 273
 progression rows / * / class cavalier -> 273
-progression rows / a bonus pick of another group / archetype cavalier/cavalier-of-the-paw -> 273
 progression rows / a further rank in planner only / archetype cavalier/cavalier-of-the-paw -> 273
-progression rows / at another level / archetype cavalier/cavalier-of-the-paw -> 273
 progression rows / in game only / archetype cavalier/cavalier-of-the-paw -> 273
 progression rows / in planner only / archetype cavalier/cavalier-of-the-paw -> 273
 
@@ -1136,3 +1133,13 @@ option lists / in game only / selection warpriest/bonus-feats / AdvancedWeaponTr
 option lists / in game only / selection warpriest/bonus-feats / AdvancedWeaponTraining3 -> 306q-multi-blueprint-feats-1
 option lists / in game only / selection warpriest/bonus-feats / AdvancedWeaponTraining4 -> 306q-multi-blueprint-feats-1
 option lists / in game only / selection warpriest/bonus-feats / BleedingCriticalFeature -> 306r-multi-blueprint-feats-2
+
+# Ticket 306m (the cavalier's and the Gendarme's bonus feat lists): the game's members the planner has no feat for yet.
+option lists / in game only / selection cavalier/bonus-feats / AdvancedWeaponTraining2 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection cavalier/bonus-feats / AdvancedWeaponTraining3 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection cavalier/bonus-feats / AdvancedWeaponTraining4 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection cavalier/bonus-feats / BleedingCriticalFeature -> 306r-multi-blueprint-feats-2
+option lists / in game only / selection cavalier/gendarme/bonus-feats / AdvancedWeaponTraining2 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection cavalier/gendarme/bonus-feats / AdvancedWeaponTraining3 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection cavalier/gendarme/bonus-feats / AdvancedWeaponTraining4 -> 306q-multi-blueprint-feats-1
+option lists / in game only / selection cavalier/gendarme/bonus-feats / BleedingCriticalFeature -> 306r-multi-blueprint-feats-2

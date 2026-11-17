@@ -9,9 +9,9 @@
         Requires(condition: Has(Race("halfling"))),
     ],
     levels: [
-        (level: 1, features: ["cavalier-mount", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["teamwork-feats"]),
+        (level: 1, features: ["cavalier-mount", "cavalier/challenge", "cavalier/tactician"], feats: ["armor-proficiency-heavy-armor", "armor-proficiency-light-armor", "armor-proficiency-medium-armor", "martial-weapons-proficiency", "shield-proficiency", "simple-weapon-proficiency"], selections: ["cavalier/tactician-feats"]),
         (level: 2, features: ["cavalier/cavalier-of-the-paw/danger-ward"]),
-        (level: 8, features: ["cavalier/cavalier-of-the-paw/canine-ferocity"], selections: ["mounted-combat-feats"]),
+        (level: 8, features: ["cavalier/cavalier-of-the-paw/canine-ferocity"], selections: ["cavalier/bonus-feats"]),
         (level: 15, features: ["banner", "cavalier/cavalier-of-the-paw/giant-slayer", "cavalier/tactician"]),
     ],
 )
