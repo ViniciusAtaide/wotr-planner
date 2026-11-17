@@ -4,7 +4,8 @@
 # The writer turns each GUID the game's prerequisite names into whichever planner entry maps it. Where the planner
 # grants the game's blueprint under another entry, or a grantor's rows are still the planner's, a rewrite would refuse
 # characters the game allows, and the game check can't see it, since it compares GUIDs. So the writer compares each
-# entry's compiled tree before and after, and leaves the entry whole (listed `narrows: … -> 308`) when the rewrite
+# entry's compiled tree before and after, and leaves the entry whole (listed `narrows: … -> <ticket>`, the ticket that
+# owns the fact's blueprint by the writer's `owner`, or 308 when it names none) when the rewrite
 #   - drops a fact the old tree accepts outside a `Not` and the new one doesn't name, or
 #   - adds a `Not` of a fact the old tree doesn't refuse (the entry's own blueprint aside: refusing itself, or another
 #     entry of its own GUID, is the game's NoFeature exactly),
@@ -21,6 +22,10 @@
 # check's `progression rows / … game only` findings, none of which names the blueprint); for an added `Not`, that the
 # planner entry it refuses is the only one mapping the game's blueprint. A narrowing this file doesn't name stays
 # blocked, its `known.txt` line naming the ticket that owns it.
+#
+# A narrowing line no rewrite makes (its entry written, or the data changed) would allow that narrowing again unseen:
+# the game check lists it and fails (ticket 308g), as it does a stale `known.txt` line. A data slice removes the lines
+# of the entries it writes. A reason line with no narrowing of its entry is refused.
 
 # A requirement the game doesn't state, dropped: the rewrite only widens there.
 feat manyshot -> Manyshot adf54af2a681792489826f7fd1b62889 names RapidShotFeature 9c928dc570bb9e54a9649b3ebfe47a41 and a stat, not Point-Blank Shot
@@ -255,3 +260,25 @@ mythic ability second-mystery / drops selection option oracle/mystery/nature
 mythic ability second-mystery / drops selection option oracle/mystery/stone
 mythic ability second-mystery / drops selection option oracle/mystery/waves
 mythic ability second-mystery / drops selection option oracle/mystery/wind
+feat extra-mercy -> ExtraMercySelection 8a49abed5be9473da1e1fd1e2457562e names SelectionMercy 02b187038a8dce545bb34bbfb346428d, not a mercy (308g); selections/paladin/mercy.ron maps it and is the only selection a paladin's rows grant that offers a mercy (paladin/extra-mercy offers them only to a holder of Extra Mercy, which needs one), and every paladin holds it from 3: PaladinProgression grants it, DivineHunterArchetype fec08c1a3187da549abd6b85f27e4432 removes it at 6 alone (archetypes/paladin/divine-hunter-paladin.ron grants it at 3)
+feat extra-mercy / drops selection option paladin/mercy/blinded
+feat extra-mercy / drops selection option paladin/mercy/confused
+feat extra-mercy / drops selection option paladin/mercy/cursed
+feat extra-mercy / drops selection option paladin/mercy/dazed
+feat extra-mercy / drops selection option paladin/mercy/diseased
+feat extra-mercy / drops selection option paladin/mercy/exhausted
+feat extra-mercy / drops selection option paladin/mercy/fatigued
+feat extra-mercy / drops selection option paladin/mercy/frightened
+feat extra-mercy / drops selection option paladin/mercy/nauseated
+feat extra-mercy / drops selection option paladin/mercy/paralyzed
+feat extra-mercy / drops selection option paladin/mercy/poisoned
+feat extra-mercy / drops selection option paladin/mercy/shaken
+feat extra-mercy / drops selection option paladin/mercy/sickened
+feat extra-mercy / drops selection option paladin/mercy/staggered
+feat extra-mercy / drops selection option paladin/mercy/stunned
+mythic ability impossible-domain -> ExtraDomain 213a8480d22206b45acbfa0619ca5aaf names DomainsSelection 48525e5da45c9c243a343fc6545dbdb9, DivineHunterDomainsSelection 72909a37a1ed5344f88ec9d1d31f5c5b or FakeDivineSparkSelection e6d337e709b4478cb6e5389d3f85b601, not a class, an archetype or a way (308g)
+mythic ability impossible-domain / drops class cleric -> ClericProgression b2cd67193d1199f41bc6ecec3a2f2c87 grants DomainsSelection and refs of DomainsSelection hold no cleric archetype; classes/cleric.ron and the 7 cleric archetypes grant cleric/domain at 1
+mythic ability impossible-domain / drops class inquisitor -> InquisitorProgression 4e945c2fe5e252f4ea61eee7fb560017 grants DomainsSelection and FaithHunterArchetype ac87f40932cfd324c90b441f93857c40 removes it at 1, as archetypes/inquisitor/faith-hunter.ron's row 1 lacks inquisitor/domain; every other inquisitor holds inquisitor/domain or inquisitor/sacred-huntsmaster/domain, both DomainsSelection
+mythic ability impossible-domain / drops archetype hunter/divine-hunter -> DivineHunterArchetype f996f0a18e5d945459e710ee3a6dd485 adds DivineHunterDomainsSelection at 1, which archetypes/hunter/divine-hunter.ron grants at 1 as hunter/divine-hunter/domain
+mythic ability impossible-domain / drops selection option arcanist/magic-deceiver/ways-of-the-deceiver/living-deity -> MagicDeceiverWayOfLivingGodProgression 464ffaf88140474a949618bec7955e78 grants FakeDivineSparkSelection only at 20, as the way's row 20 grants arcanist/magic-deceiver/domain
+mythic ability impossible-domain / drops selection option hellknight/disciplines/pentamic-faith -> the user's answer, as the game (research/308/decisions.md item 1, 2026-11-17): HellknightDisciplinePentamicFaith b9750875e9d7454e85347d739a1bc894 is none of the three

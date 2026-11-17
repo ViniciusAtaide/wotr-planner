@@ -12,9 +12,10 @@
 //! - **A blueprint several entries share** is held once, by whichever entry holds it: a `Has` of it is an `Any` of
 //!   each entry's fact, a `HasNot` a `Not` of that `Any`.
 //! - **A rewrite never narrows unasked** (the fix round): one that drops a fact the old tree accepts, or refuses a
-//!   fact the old tree didn't, leaves the entry whole, listed `narrows: … -> 308`, unless
-//!   `prerequisite-narrowing.txt` names it with the reason it moves toward the game ([`Narrowings`]). The check
-//!   compares GUIDs, so it can't see a GUID turned into the wrong entry; this guard does.
+//!   fact the old tree didn't, leaves the entry whole, listed `narrows: … -> <ticket>` with the fact's owner (308
+//!   when [`owner`] names none), unless `prerequisite-narrowing.txt` names it with the reason it moves toward the
+//!   game ([`Narrowings`]). The check compares GUIDs, so it can't see a GUID turned into the wrong entry; this guard
+//!   does. A line of that file no rewrite makes fails the check ([`stale`], 308g).
 //!
 //! The written components are the `Requires` in the blueprint's component order, then the entry's other components in
 //! theirs.
@@ -153,10 +154,11 @@ pub(crate) fn unmatched<'a>(data: &GameData, only: &'a BTreeSet<String>) -> Opti
 }
 
 /// The rewrites that narrow who qualifies and are written all the same (`prerequisite-narrowing.txt`): each an entry,
-/// as the report names it, and one of its narrowings, `drops <fact>` or `adds Not <fact>`.
+/// as the report names it, and one of its narrowings, `drops <fact>` or `adds Not <fact>`, with its line (number and
+/// text) for [`stale`].
 #[derive(Debug, Default)]
 pub struct Narrowings {
-    allowed: BTreeSet<(String, String)>,
+    allowed: BTreeMap<(String, String), (usize, String)>,
 }
 
 impl Narrowings {
@@ -167,13 +169,14 @@ impl Narrowings {
 
     /// One line each, `#` starting a comment: a narrowing, `<entry> / drops <fact>` or `<entry> / adds Not <fact>`,
     /// with ` -> <reason>`; or an entry's reason for each of its narrowings, `<entry> -> <reason>`. A narrowing with
-    /// no reason of its own nor its entry's is refused.
+    /// no reason of its own nor its entry's is refused, as is an entry's reason with no narrowing of that entry.
     pub fn parse(text: &str) -> Result<Narrowings, crate::Error> {
         let bad = |number: usize, why: &str| {
             crate::Error::Known(format!("prerequisite-narrowing.txt line {number}: {why}"))
         };
-        let mut allowed = BTreeSet::new();
-        let mut reasoned = BTreeSet::new();
+        let mut allowed = BTreeMap::new();
+        // Each entry's reason, with its line.
+        let mut reasoned = BTreeMap::new();
         // Each narrowing without a reason of its own, with its line, for its entry's.
         let mut unreasoned = Vec::new();
         for (index, line) in text.lines().enumerate() {
@@ -182,7 +185,11 @@ impl Narrowings {
             if line.is_empty() {
                 continue;
             }
-            let (said, reason) = match line.split_once(" -> ") {
+            // The line is trimmed, so a reason left empty ends it in ` ->`.
+            let split = line
+                .split_once(" -> ")
+                .or_else(|| line.strip_suffix(" ->").map(|said| (said, "")));
+            let (said, reason) = match split {
                 Some((_, reason)) if reason.trim().is_empty() => {
                     return Err(bad(number, "an empty reason"));
                 }
@@ -193,7 +200,7 @@ impl Narrowings {
                 if !reason {
                     return Err(bad(number, "neither a narrowing nor a reason"));
                 }
-                reasoned.insert(said.trim().to_owned());
+                reasoned.insert(said.trim().to_owned(), number);
                 continue;
             };
             let (entry, narrowing) = (entry.trim().to_owned(), narrowing.trim().to_owned());
@@ -206,26 +213,61 @@ impl Narrowings {
             if !reason {
                 unreasoned.push((number, entry.clone()));
             }
-            if !allowed.insert((entry, narrowing)) {
+            if allowed
+                .insert((entry, narrowing), (number, line.to_owned()))
+                .is_some()
+            {
                 return Err(bad(number, "a narrowing said twice"));
             }
         }
         if let Some((number, _)) = unreasoned
             .iter()
-            .find(|(_, entry)| !reasoned.contains(entry))
+            .find(|(_, entry)| !reasoned.contains_key(entry))
         {
             return Err(bad(
                 *number,
                 "a narrowing with no reason, its own or its entry's",
             ));
         }
+        if let Some(number) = reasoned
+            .iter()
+            .filter(|(entry, _)| !allowed.keys().any(|(each, _)| each == *entry))
+            .map(|(_, number)| *number)
+            .min()
+        {
+            return Err(bad(number, "a reason with no narrowing of its entry"));
+        }
         Ok(Narrowings { allowed })
     }
 
     fn allows(&self, entry: &str, narrowing: &str) -> bool {
         self.allowed
-            .contains(&(entry.to_owned(), narrowing.to_owned()))
+            .contains_key(&(entry.to_owned(), narrowing.to_owned()))
     }
+}
+
+/// Each narrowing line no rewrite of `data` makes, `line <n>: <line>` in the file's order: its entry since written
+/// or its data changed, it would allow that narrowing again unseen, so the check lists it and fails (308g), as it
+/// does a stale `known.txt` line. `data` is read as the files hold it (`seeds::read_game_data_files`), not compiled:
+/// the writer reads an entry's `Requires`.
+pub fn stale(dump: &crate::Dump, data: &GameData, narrowings: &Narrowings) -> Vec<String> {
+    let planner = crate::planner::Planner::new(data);
+    let ctx = Ctx {
+        dump,
+        planner: &planner,
+    };
+    let (_, _, made) = plan(&ctx, None, narrowings);
+    let mut stale: Vec<&(usize, String)> = narrowings
+        .allowed
+        .iter()
+        .filter(|(said, _)| !made.contains(*said))
+        .map(|(_, line)| line)
+        .collect();
+    stale.sort();
+    stale
+        .into_iter()
+        .map(|(number, line)| format!("line {number}: {line}"))
+        .collect()
 }
 
 /// The changes, in entry order, and the entries left whole with each gap that holds them.
@@ -234,6 +276,16 @@ pub(crate) fn changes(
     only: Option<&BTreeSet<String>>,
     narrowings: &Narrowings,
 ) -> (Vec<Change>, Vec<Unexpressed>) {
+    let (changes, left, _) = plan(ctx, only, narrowings);
+    (changes, left)
+}
+
+/// [`changes`], and every narrowing a rewrite makes, by entry, allowed or not.
+fn plan(
+    ctx: &Ctx,
+    only: Option<&BTreeSet<String>>,
+    narrowings: &Narrowings,
+) -> (Vec<Change>, Vec<Unexpressed>, BTreeSet<(String, String)>) {
     let data = ctx.planner.data;
     let classes: BTreeMap<&ArchetypeKey, &ClassKey> = data
         .archetypes
@@ -246,7 +298,7 @@ pub(crate) fn changes(
             tree
         })
     };
-    let (mut out, mut left) = (Vec::new(), Vec::new());
+    let (mut out, mut left, mut made) = (Vec::new(), Vec::new(), BTreeSet::new());
     for entry in entries(data) {
         let name = entry.at.to_string();
         if only.is_some_and(|only| !only.iter().any(|each| takes(each, &name))) {
@@ -287,12 +339,21 @@ pub(crate) fn changes(
         if before == after {
             continue;
         }
-        let blocked: Vec<Unexpressed> = narrowings_of(ctx, own, before.as_ref(), after.as_ref())
+        let found = narrowings_of(ctx, own, before.as_ref(), after.as_ref());
+        made.extend(
+            found
+                .iter()
+                .map(|narrowing| (name.clone(), narrowing.said.clone())),
+        );
+        let blocked: Vec<Unexpressed> = found
             .into_iter()
-            .filter(|(narrowing, _)| !narrowings.allows(&name, narrowing))
-            .map(|(narrowing, blueprint)| Unexpressed {
+            .filter(|narrowing| !narrowings.allows(&name, &narrowing.said))
+            .map(|narrowing| Unexpressed {
                 at: entry.at.clone(),
-                what: format!("narrows: {narrowing} ({blueprint}) -> 308"),
+                what: format!(
+                    "narrows: {} ({}) -> {}",
+                    narrowing.said, narrowing.blueprint, narrowing.owner
+                ),
             })
             .collect();
         if !blocked.is_empty() {
@@ -311,7 +372,7 @@ pub(crate) fn changes(
             new: tree(after),
         });
     }
-    (out, left)
+    (out, left, made)
 }
 
 /// The facts a compiled tree names, by the report's name (`feat power-attack`), each with its entry: those it accepts
@@ -395,7 +456,15 @@ fn leaf_at(leaf: &Prerequisite) -> Option<DataAt> {
     })
 }
 
-/// How a rewrite narrows who qualifies, each `drops <fact>` or `adds Not <fact>` with the fact's blueprint:
+/// One way a rewrite narrows who qualifies: `drops <fact>` or `adds Not <fact>`, the fact's blueprint, and the ticket
+/// that owns it ([`owner`] of the fact's blueprint, 308 when none does).
+struct Narrowing {
+    said: String,
+    blueprint: String,
+    owner: &'static str,
+}
+
+/// How a rewrite narrows who qualifies:
 /// - a fact the old tree accepts and the new one doesn't name: where the planner holds the game's blueprint under
 ///   another entry, or a grantor's rows are still the planner's, the rewrite would refuse a character the game allows;
 /// - a fact the new tree refuses and the old one didn't, but an entry of the entry's own blueprint (itself, or another
@@ -405,7 +474,7 @@ fn narrowings_of(
     own: &BlueprintGuid,
     before: Option<&Prerequisite>,
     after: Option<&Prerequisite>,
-) -> Vec<(String, String)> {
+) -> Vec<Narrowing> {
     let (old, new) = (Named::of(before), Named::of(after));
     let itself: BTreeSet<String> = ctx
         .planner
@@ -413,16 +482,24 @@ fn narrowings_of(
         .into_iter()
         .map(ToString::to_string)
         .collect();
+    let narrowing = |said: String, at: Option<&DataAt>| {
+        let guid = at.and_then(|at| ctx.planner.guid(at.clone()));
+        Narrowing {
+            said,
+            blueprint: blueprint_of(ctx, at),
+            owner: guid.and_then(|guid| owner(ctx, guid)).unwrap_or("308"),
+        }
+    };
     let dropped = old
         .accepted
         .iter()
         .filter(|(fact, _)| !new.names(fact))
-        .map(|(fact, at)| (format!("drops {fact}"), blueprint_of(ctx, Some(at))));
+        .map(|(fact, at)| narrowing(format!("drops {fact}"), Some(at)));
     let refused = new
         .refused
         .iter()
         .filter(|(fact, _)| !old.refused.contains_key(*fact) && !itself.contains(*fact))
-        .map(|(fact, at)| (format!("adds Not {fact}"), blueprint_of(ctx, at.as_ref())));
+        .map(|(fact, at)| narrowing(format!("adds Not {fact}"), at.as_ref()));
     dropped.chain(refused).collect()
 }
 

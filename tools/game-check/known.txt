@@ -336,7 +336,7 @@ prerequisites / * / mythic ability defensive-study -> 265
 prerequisites / * / mythic ability domain-zealot -> 265
 prerequisites / * / mythic ability everlasting-judgement -> 265
 prerequisites / * / mythic ability greater-enduring-spells -> 265
-prerequisites / * / mythic ability impossible-domain -> 294
+prerequisites / * / mythic ability impossible-domain -> 265
 prerequisites / * / mythic ability kinetic-overcharge -> 265
 prerequisites / * / mythic ability limitless-rage -> 265
 prerequisites / * / mythic ability mythical-beast -> 265
@@ -1115,9 +1115,9 @@ prerequisites / missing in planner / feat tower-shield-proficiency -> 308
 # ChannelEnergyFeature a79013ff4bcd4864cb669622a29ddafb, which ClericProgression grants), feat
 # favored-enemy-spellcasting -> 275 (RangerProgression grants FavoriteEnemySelection 16cc2c937ea8d714193017780e7d4fc6,
 # the ranger's rows don't), the 13 Hexcrafter major and grand hexes -> 283 (HexcrafterArchetype grants WitchMajorHex
-# 8ac781b33e380c84aa578f1b006dd6c5 and WitchGrandHex d24c2467804ce0e4497d9978bafec1f9, its rows don't), mythic ability
-# impossible-domain -> 294 (do the cleric archetypes' rows keep cleric/domain where the game's keep DomainsSelection
-# 48525e5da45c9c243a343fc6545dbdb9?). Mantis Zealot's NoFeature of DeitySelection 59e7a76987fe3b547b9cce045f4db3e4
-# stays 267's, Battle Master's ShamanBattleSpiritProgression 26e81d83d13dbf6448b10019c802612d (the Wildland Shaman's
-# rows lack it) 278's; Extra Mercy, which has no line, waits on 274 (SelectionMercy 02b187038a8dce545bb34bbfb346428d,
-# the Divine Hunter paladin's rows lack it).
+# 8ac781b33e380c84aa578f1b006dd6c5 and WitchGrandHex d24c2467804ce0e4497d9978bafec1f9, its rows don't). Mantis
+# Zealot's NoFeature of DeitySelection 59e7a76987fe3b547b9cce045f4db3e4 stays 267's, Battle Master's
+# ShamanBattleSpiritProgression 26e81d83d13dbf6448b10019c802612d (the Wildland Shaman's rows lack it) 278's. The writer
+# prints `-> 308` for these, as its `owner` names none of their facts' blueprints; the lines above name the owners.
+# 308g allowlisted Impossible Domain's narrowings (its line is 265's again, with the mythic abilities 308d writes) and
+# Extra Mercy's (it has no line), each with its evidence in prerequisite-narrowing.txt.

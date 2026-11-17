@@ -5,14 +5,14 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use game_check::write::facts::Facts;
-use game_check::write::prerequisites::Narrowings;
+use game_check::write::prerequisites::{self, Narrowings};
 use game_check::write::{Outcome, WriteArea, WriteError, run, run_with};
 use rules::{
     Ability, Alignment, ArchetypeKey, ClassKey, Component, Condition, Fact, FeatKey, GameData,
     Group, Prerequisite, SelectionOptionKey, StatRef,
 };
 
-use crate::support::{Record, assert_agrees, binz, data_copy, dump};
+use crate::support::{Record, assert_agrees, binz, data_copy, dump, report_with};
 
 const FEATURE: &str = "Kingmaker.Blueprints.Classes.BlueprintFeature";
 const SELECTION: &str = "Kingmaker.Blueprints.Classes.Selection.BlueprintFeatureSelection";
@@ -97,6 +97,9 @@ fn blueprint(n: u32, name: &str, type_name: &str, ranks: u8, parts: &[String]) -
 ///   `deny-feat` (212) gains the game's refusal of `once-feat`; `both-feat` (213) does both, dropping `keen-feat` and
 ///   refusing `lost-feat`; `shun-twin` (214) refuses the shared blueprint 260.
 /// - `kept-feat` (215): a `WeaponFocus` before its one `Requires`, and the game names a second feature.
+/// - the narrowings' shapes and owners (308g): `narrow-domain` (217) accepts `domain-feat` (216, a blueprint named as a
+///   domain progression, which 294 owns) or `once-feat`; `nested-not` (218) accepts `keen-feat` under two `Not`s;
+///   `all-any` (219) needs `bonus-one` and `keen-feat` or `once-feat`. The game names `once-feat` alone in each.
 fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
     let dir = data_copy();
     let put = |file: &str, text: String| std::fs::write(dir.path().join(file), text).unwrap();
@@ -126,6 +129,22 @@ fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
         "kept-feat",
         215,
         ", components: [WeaponFocus, Requires(condition: Has(Feat(\"bonus-one\")))]",
+    );
+    feat("domain-feat", 216, "");
+    feat(
+        "narrow-domain",
+        217,
+        ", components: [Requires(condition: Any([Has(Feat(\"domain-feat\")), Has(Feat(\"once-feat\"))]))]",
+    );
+    feat(
+        "nested-not",
+        218,
+        ", components: [Requires(condition: Not(Not(Has(Feat(\"keen-feat\")))))]",
+    );
+    feat(
+        "all-any",
+        219,
+        ", components: [Requires(condition: Has(Feat(\"bonus-one\"))), Requires(condition: Any([Has(Feat(\"keen-feat\")), Has(Feat(\"once-feat\"))]))]",
     );
     put(
         "feats/same-feat.ron",
@@ -272,6 +291,28 @@ fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
             FEATURE,
             1,
             &[needs("All", BONUS_ONE), needs("All", BONUS_TWO)],
+        ),
+        blueprint(216, "PlantedDomainProgression", FEATURE, 1, &[]),
+        blueprint(
+            217,
+            "NarrowDomainFeat",
+            FEATURE,
+            1,
+            &[needs("All", &guid(203))],
+        ),
+        blueprint(
+            218,
+            "NestedNotFeat",
+            FEATURE,
+            1,
+            &[needs("All", &guid(203))],
+        ),
+        blueprint(
+            219,
+            "AllAnyFeat",
+            FEATURE,
+            1,
+            &[needs("All", BONUS_ONE), needs("All", &guid(203))],
         ),
     ];
     let (pins, dump) = dump(&binz(&records, 1));
@@ -728,6 +769,134 @@ fn an_allowlisted_narrowing_is_written() {
             "narrows: adds Not feat lost-feat (LostFeat {}) -> 308",
             guid(201)
         )]
+    );
+}
+
+#[test]
+fn a_blocked_narrowing_names_its_facts_owner() {
+    let (dir, _, dump) = world();
+    let outcome = write(dir.path(), &dump);
+    // A domain progression is 294's (`owner`, research/308/slices.md §1.2), as it is for a gap.
+    assert_eq!(
+        unexpressed(&outcome, "feat narrow-domain"),
+        [format!(
+            "narrows: drops feat domain-feat (PlantedDomainProgression {}) -> 294",
+            guid(216)
+        )]
+    );
+}
+
+#[test]
+fn a_drop_under_two_nots_is_left_whole_and_listed() {
+    let (dir, _, dump) = world();
+    let before = read(dir.path(), "feats/nested-not.ron");
+    let outcome = write(dir.path(), &dump);
+    assert_eq!(read(dir.path(), "feats/nested-not.ron"), before);
+    assert_eq!(
+        unexpressed(&outcome, "feat nested-not"),
+        [format!(
+            "narrows: drops feat keen-feat (KeenFeat {}) -> 308",
+            guid(200)
+        )]
+    );
+}
+
+#[test]
+fn a_drop_from_an_any_inside_an_all_is_left_whole_and_listed() {
+    let (dir, _, dump) = world();
+    let before = read(dir.path(), "feats/all-any.ron");
+    let outcome = write(dir.path(), &dump);
+    assert_eq!(read(dir.path(), "feats/all-any.ron"), before);
+    assert_eq!(
+        unexpressed(&outcome, "feat all-any"),
+        [format!(
+            "narrows: drops feat keen-feat (KeenFeat {}) -> 308",
+            guid(200)
+        )]
+    );
+}
+
+/// Refusing another entry of its own blueprint is the game's `PrerequisiteNoFeature` exactly, so it needs no line.
+#[test]
+fn a_shared_own_refusal_is_written_with_no_allowlist_line() {
+    let (dir, _, dump) = world();
+    let outcome = write(dir.path(), &dump);
+    for entry in ["feat twin-feat", "selection option twin-option"] {
+        assert!(changed(&outcome).contains(&entry.to_owned()), "{entry}");
+        assert!(unexpressed(&outcome, entry).is_empty(), "{entry}");
+    }
+}
+
+#[test]
+fn the_allowlist_parser_refuses_a_malformed_line() {
+    let refusals = [
+        ("feat a / drops feat b ->\n", "line 1: an empty reason"),
+        (
+            "# A comment.\nfeat a\n",
+            "line 2: neither a narrowing nor a reason",
+        ),
+        (
+            "feat a / widens feat b -> r\n",
+            "line 1: a narrowing is `drops <fact>` or `adds Not <fact>`",
+        ),
+        (
+            "feat a / drops feat b -> r\nfeat a / drops feat b -> s\n",
+            "line 2: a narrowing said twice",
+        ),
+        (
+            "feat a / drops feat b\n",
+            "line 1: a narrowing with no reason, its own or its entry's",
+        ),
+        (
+            "feat a -> r\nfeat b -> s\nfeat b / drops feat c\n",
+            "line 1: a reason with no narrowing of its entry",
+        ),
+    ];
+    for (text, why) in refusals {
+        let error = Narrowings::parse(text).unwrap_err().to_string();
+        assert!(error.contains(why), "{text:?}: {error}");
+    }
+}
+
+#[test]
+fn the_embedded_allowlist_parses() {
+    Narrowings::embedded().expect("prerequisite-narrowing.txt parses");
+}
+
+/// A line whose narrowing no rewrite makes (its entry written, or the data changed) would allow that narrowing again
+/// unseen, so the check lists it and fails, as it does a stale `known.txt` line.
+#[test]
+fn an_allowlist_line_that_matches_no_narrowing_fails_the_check() {
+    let (dir, _, dump) = world();
+    let narrowings = Narrowings::parse(
+        "feat wide-feat -> planted: the game's WideFeat names OnceFeat alone\n\
+         feat wide-feat / drops feat keen-feat\n\
+         feat wide-feat / drops feat bonus-one\n\
+         feat same-feat / adds Not feat keen-feat -> planted: same-feat's rewrite narrows nothing\n",
+    )
+    .unwrap();
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    let stale = prerequisites::stale(&dump, &data, &narrowings);
+    assert_eq!(
+        stale,
+        [
+            "line 3: feat wide-feat / drops feat bonus-one",
+            "line 4: feat same-feat / adds Not feat keen-feat -> planted: same-feat's rewrite narrows nothing",
+        ]
+    );
+    let every_area = "mapping -> a\nprerequisites -> a\nclass tables -> a\nprogression rows -> a\noption lists -> a\n\
+                      mythic ranks -> a\nitems -> a\n";
+    let passing = report_with(every_area);
+    assert!(!passing.failed(), "{}", passing.text());
+    assert!(!report_with(every_area).with_stale_narrowings(&[]).failed());
+    let failing = passing.with_stale_narrowings(&stale);
+    assert!(failing.failed());
+    assert!(
+        failing.text().contains(
+            "\nprerequisite-narrowing.txt lines that match no narrowing:\n  line 3: feat wide-feat / drops feat bonus-one\n"
+        ),
+        "{}",
+        failing.text()
     );
 }
 
