@@ -8,14 +8,14 @@ use crate::support::*;
 
 const KI_POWER: &str = "monk/ki-power";
 
-/// The guide's ki powers (`monk#ki-powers`): each one's key and the monk level it unlocks at.
+/// The guide's ki powers (`monk#ki-powers`): each one's key and the monk level its blueprint needs (0: none).
 const KI_POWERS: [(&str, u8); 14] = [
     // Game: KiBarskinFeature 7259ec579682c2f45a6444b9e64f122d
     ("barkskin", 4),
     // Game: KiScorchingRayFeature 16612cc8d88ef83458d05fd063709af7
     ("scorching-ray", 4),
-    // Game: KiSuddenSpeedFeature 96d96f5b6f71004418e7a7e42a81c94d (equivalent model: no level, the first slot is at 4)
-    ("sudden-speed", 4),
+    // Game: KiSuddenSpeedFeature 96d96f5b6f71004418e7a7e42a81c94d (no prerequisite: the first slot is at 4; 308e)
+    ("sudden-speed", 0),
     // Game: KiTrueStrikeFeature 98e18d4659f390d4d84c9cc2765ac9c3
     ("true-strike", 4),
     // Game: KiAbudantStepFeature 008466f45b3e2e64793b30f3d16e41c0
@@ -60,7 +60,8 @@ fn monk_of(archetype: &str, levels: usize) -> Build {
 }
 
 /// "At 4th level and every 2 levels thereafter a Monk may select a ki power": the guide's 14 ki powers, each needing
-/// the monk level its table gives; no feature stands for the pick any more, and no feat gives one.
+/// the monk level its table gives (but Sudden Speed, whose blueprint names none); no feature stands for the pick any
+/// more, and no feat gives one.
 #[test]
 fn ki_powers_are_a_selection_of_14_with_their_level() {
     let monk = class("monk");
@@ -76,7 +77,7 @@ fn ki_powers_are_a_selection_of_14_with_their_level() {
     for (name, level) in KI_POWERS {
         assert_eq!(
             selection_option(&ki_power(name)).prerequisite,
-            Some(Prerequisite::ClassLevel {
+            (level > 0).then(|| Prerequisite::ClassLevel {
                 class: ClassKey::new("monk"),
                 level,
             }),

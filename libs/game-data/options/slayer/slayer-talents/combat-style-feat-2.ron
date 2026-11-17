@@ -5,9 +5,7 @@
     summary: "A Ranger combat style feat taken as a slayer talent at 2nd or 4th level.",
     guide: "slayer#slayer-talents",
     components: [
-        Requires(condition: Not(ClassLevel("slayer", 6))),
-        Requires(condition: ClassLevel("slayer", 2)),
-        Requires(condition: HasNot(Option("slayer/slayer-talents/combat-style-feat-2"))),
+        Requires(condition: Not(Any([Has(Selection("ranger/combat-style-feat")), Has(Option("slayer/slayer-talents/combat-style-feat-2"))]))),
     ],
     levels: [
         (level: 1, selections: ["slayer/combat-style", "slayer/combat-style-feats-2"]),

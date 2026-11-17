@@ -587,6 +587,10 @@ fn enforcer() -> Build {
             option("arcanist/arcanist-exploits/dimensional-slide"),
         ),
         (general(7), feat("combat-reflexes")),
+        // Game: SlayerTalentSelection6 43d1b15873e926848be2abf0ea3ad9a8 lists UncannyDodgeTalent
+        // ca5274d057152fa45b7527cad0927840, whose PrerequisiteClassLevel SlayerClass 4 the slayer meets (ticket 276,
+        // the user 2026-11-15: "Apply the game's"; written by 308e).
+        (selection(8, 0), option("rogue/rogue-talents/uncanny-dodge")),
         (general(9), feat_for("improved-critical", battle_axe())),
         (
             selection(10, 0),
@@ -1478,17 +1482,13 @@ fn start(
 
 // ---- the known gaps -------------------------------------------------------------------------------------------
 
-/// What a known gap waits on: always a ticket, of one of three kinds.
+/// What a known gap waits on: always a ticket, of one of two kinds.
 enum Why {
     /// A bug in the engine or the data.
     Bug(u16),
     /// A map decision that kept the planner from modelling the line, reopened by the user (2026-11-11) as this
     /// ticket.
     Reopened(u16, &'static str),
-    /// The write-up is mistaken against the guide, whose list the data files (the planner's source of truth)
-    /// follow. The user decided it in this design ticket, so the gap is permanent, the one place the gold standard
-    /// and the guide disagree.
-    WriteUpMistaken(u16, &'static str),
 }
 
 impl fmt::Display for Why {
@@ -1497,12 +1497,6 @@ impl fmt::Display for Why {
             Why::Bug(ticket) => write!(f, "a bug, ticket {ticket}"),
             Why::Reopened(ticket, decision) => {
                 write!(f, "a reopened map decision, ticket {ticket}: {decision}")
-            }
-            Why::WriteUpMistaken(ticket, decision) => {
-                write!(
-                    f,
-                    "the write-up is mistaken, decided by the user, ticket {ticket}: {decision}"
-                )
             }
         }
     }
@@ -1564,24 +1558,6 @@ const KNOWN_GAPS: &[Gap] = &[
         "Animal Companion - Elk",
         Covers::NoPlannerItem("Animal Companion (Elk)"),
         Why::Reopened(174, "animal companions"),
-    ),
-    // ---- the write-up is mistaken (permanent) ----
-    // Game: SlayerTalentSelection6 43d1b15873e926848be2abf0ea3ad9a8 (as SlayerTalentSelection2
-    // 04430ad24988baa4daa0bcd4f1c7d118 and SlayerTalentSelection10 913b9cf25c9536949b43a2651b7ffb66) lists UncannyDodgeTalent
-    // ca5274d057152fa45b7527cad0927840, open from slayer 4: the game sides with the write-up, against this entry's reason.
-    // The user approved the game's value (2026-11-15); the entry goes with the ticket that brings the talent to the
-    // slayer (ticket 276).
-    gap(
-        "enforcer",
-        Place::Level(8),
-        "Uncanny Dodge",
-        Covers::NotGained("Uncanny Dodge"),
-        Why::WriteUpMistaken(
-            173,
-            "the write-up takes Uncanny Dodge as a slayer talent; the guide's slayer talents, which the data \
-             follows, have none. The user (2026-11-14): \"Uncanny dodge is only available through the imitator \
-             slayer archetype.\"",
-        ),
     ),
 ];
 

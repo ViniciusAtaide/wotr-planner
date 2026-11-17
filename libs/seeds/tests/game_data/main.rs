@@ -59,6 +59,7 @@ mod ranks_and_pools;
 mod repeating_talents;
 mod repeats_from_the_header;
 mod report_gaps;
+mod rogue_slayer_alchemist_prerequisites;
 mod scaling_features;
 mod skald_rage_powers;
 mod spells;

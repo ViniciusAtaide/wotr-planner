@@ -369,3 +369,51 @@ full t59 dark-elementalist 20 / filled / legend
 targeted living-deity-8
 full targeted living-deity-8
 targeted hellknight-pentamic-impossible
+
+t49 magus arcana / filled
+t60 magus/hexcrafter 20 / filled
+t62 magus/hexcrafter 20 / filled
+t64 hexcrafter arcana / filled
+t64 hexcrafter arcana thrice / before
+t64 hexcrafter arcana thrice / feat
+t64 hexcrafter arcana thrice / filled
+t64 magus arcana / filled
+t64 hexcrafter 20 / filled
+full magus magus/eldritch-archer
+full magus magus/eldritch-archer / legend
+full magus magus/hexcrafter
+full magus magus/hexcrafter / legend
+full t49 magus arcana / feat
+full t49 magus arcana / filled
+full t60 magus/hexcrafter 20 / filled
+full t60 magus/hexcrafter 20 / filled / legend
+full t62 magus/hexcrafter 20 / filled
+full t62 magus/hexcrafter 20 / filled / legend
+full t64 hexcrafter arcana thrice / filled
+full t64 hexcrafter arcana thrice / filled / legend
+full t64 magus arcana / filled
+
+full alchemist 
+full alchemist  / legend
+full alchemist alchemist/incense-synthesizer
+full alchemist alchemist/incense-synthesizer / legend
+full alchemist alchemist/metamorph
+full alchemist alchemist/metamorph / legend
+full alchemist alchemist/vivisectionist
+full alchemist alchemist/vivisectionist / legend
+full t60 alchemist/vivisectionist 20 / empty
+full t60 alchemist/vivisectionist 20 / empty / legend
+full t64 alchemist discovery / feat
+
+t63 slayer/bloodseeker NeutralEvil 20 / filled
+full t63 slayer/bloodseeker NeutralEvil 20 / empty
+full t63 slayer/bloodseeker NeutralEvil 20 / empty / legend
+full t63 slayer/bloodseeker NeutralEvil 20 / filled
+full t63 slayer/bloodseeker NeutralEvil 20 / filled / legend
+
+targeted ranger10-slayer2
+full targeted ranger10-slayer2
+
+full t49 sylvan trickster fey trick / feat
+
+full t86 hunter/divine-hunter desna / empty

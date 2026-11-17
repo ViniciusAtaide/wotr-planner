@@ -147,7 +147,12 @@ fn a_blueprint_entry_holds_its_prerequisite_as_requires_components() {
     // NoFeature ApsuFeature), the Magic Deceiver (MagicDeceiver 5c77110cd0414e7eb4c2e485659c9a46's NoClassLevel
     // Loremaster and Mystic Theurge), and the alignments of DarkElementalistArchetype f12f18ae8842425489d29f302e69134c
     // and RageshaperShifterArchetype 41d5b44e421048d09d32623689173e11.
-    assert_eq!((moved, fields), (657, 62));
+    // Ticket 308e: 31 options that held none hold the game's (Cognatogen, Feral Mutagen, Nauseating Flesh, Preserve
+    // Organs, Potent Magic, Swift Consume, the two otherworldly companions, the ten magus arcana named by level, Mystery
+    // Seeker, Survivalist, the ten nocturnal abilities, Clear Mind), and four hold none, as their blueprints
+    // (MercyFatigued e5aa306af9b91974a9b2f2cbe702f562, MercyShaken c4732ca5b0af7214a98f9b4dafe87da9, MercySickened
+    // 7ee2ef06226a4884f80b7647a2aa2dee, KiSuddenSpeedFeature 96d96f5b6f71004418e7a7e42a81c94d).
+    assert_eq!((moved, fields), (684, 62));
 
     // The planner-made entries keep what they hold: their fields, and no `Requires`.
     let planner_requires = (files.feats.iter())

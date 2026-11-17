@@ -1,1 +1,1 @@
-(key: "magus/magus-arcana/maximized-magic-level-12", blueprint: "6c44c7fe4cf35644ea5ed25e48aa6db6", name: "Maximized Magic (Level 12)", summary: "Cast three spells a day as if with Maximize Spell.", guide: "magus#maximized-magic-level-12")
+(key: "magus/magus-arcana/maximized-magic-level-12", blueprint: "6c44c7fe4cf35644ea5ed25e48aa6db6", name: "Maximized Magic (Level 12)", summary: "Cast three spells a day as if with Maximize Spell.", guide: "magus#maximized-magic-level-12", components: [Requires(condition: ClassLevel("magus", 12))])

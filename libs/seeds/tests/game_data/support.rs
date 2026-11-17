@@ -387,6 +387,38 @@ pub fn without_mythic_abilities_the_game_refuses_since_308d(mut build: Build) ->
     build
 }
 
+/// A Build from an older link without Nauseating Flesh where it fails on exactly the level ticket 308e made the game's:
+/// NauseatingFlesh de112af9600e0e446af0c7ef0707e1c8 needs level 12 of an alchemist, a Mutation Warrior fighter or an
+/// Underground Chemist rogue (PrerequisiteClassLevel, PrerequisiteArchetypeLevel, Group Any). Every other failure is
+/// left in.
+pub fn without_discoveries_the_game_refuses_since_308e(mut build: Build) -> Build {
+    // Every condition the failure names is level 12 of a class, or one of the two archetypes.
+    fn level_12(unmet: &Unmet) -> bool {
+        match unmet {
+            Unmet::Any(children) | Unmet::All(children) => children.iter().all(level_12),
+            Unmet::Condition {
+                needs: Prerequisite::ClassLevel { level: 12, .. },
+                ..
+            } => true,
+            Unmet::Condition {
+                needs: Prerequisite::Archetype(archetype),
+                ..
+            } => ["fighter/mutation-warrior", "rogue/underground-chemist"]
+                .contains(&archetype.as_str()),
+            _ => false,
+        }
+    }
+    for failure in engine().failures(&build) {
+        if let (rules::Choice::Slot(slot), Issue::Unmet(unmet)) = (&failure.choice, &failure.issue)
+            && build.picks.get(slot).map(Pick::key) == Some("alchemist/discovery/nauseating-flesh")
+            && level_12(unmet)
+        {
+            build.picks.remove(slot);
+        }
+    }
+    build
+}
+
 /// A Build from a link made before ticket 251, without the weapon feats in it that the game refuses for a weapon the
 /// character isn't proficient with (`RequireProficiency`, which `BlueprintParametrizedFeature.CanSelect` checks,
 /// WrathDecompiled 6ce4a6b): those make the link stale. So do a Build's feats that fail only on base attack bonus

@@ -5,9 +5,11 @@
     summary: "A Ranger combat style feat taken as a slayer talent at 6th or 8th level.",
     guide: "slayer#slayer-talents",
     components: [
-        Requires(condition: Not(ClassLevel("slayer", 10))),
-        Requires(condition: ClassLevel("slayer", 6)),
-        Requires(condition: HasNot(Option("slayer/slayer-talents/combat-style-feat-6"))),
+        Requires(condition: Any([Has(Selection("ranger/combat-style-feat")), Has(Option("slayer/slayer-talents/combat-style-feat-2"))])),
+        Requires(condition: Not(Any([Has(Selection("ranger/combat-style-feats-6")), Has(Option("slayer/slayer-talents/combat-style-feat-6"))]))),
+        Requires(condition: ClassLevel("ranger", 6), group: Any),
+        Requires(condition: ClassLevel("slayer", 6), group: Any),
+        Requires(condition: ArchetypeLevel("inquisitor/sanctified-slayer", 6), group: Any),
     ],
     levels: [
         (level: 1, selections: ["slayer/combat-style", "slayer/combat-style-feats-6"]),

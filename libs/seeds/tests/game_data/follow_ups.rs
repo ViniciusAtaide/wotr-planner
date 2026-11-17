@@ -396,7 +396,6 @@ fn a_slayer_takes_three_combat_style_feats_and_not_a_fourth() {
 /// The first combat style feat has no upper level: a slayer 6 may take it at 6.
 // Game: RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9 (no class-level prerequisite, only not held)
 #[test]
-#[ignore = "waits on stage S4 (the prerequisites writer): the first combat style talent's option still carries the old level bounds, the game gives it none (known.txt, 276)"]
 fn a_slayer_may_take_the_first_combat_style_feat_at_6() {
     let style = |level: u8| pick(&format!("slayer/slayer-talents/combat-style-feat-{level}"));
     let mut late = build("slayer", 6);
@@ -482,7 +481,8 @@ fn destiny_beyond_birth_removes_a_dwarfs_charisma_penalty() {
 /// The Razmiri Infiltrator is any alignment but a good one (it also needs a deity, not asserted here).
 // Game: MagicDeceiverWayOfRazmiriInfiltratorProgression cd96109ca30b45dcb6d7390945c8487d (LN, TN, CN, LE, NE, CE)
 #[test]
-#[ignore = "waits on ticket 282: the game gives the Razmiri Infiltrator LN, TN, CN, LE, NE and CE"]
+#[ignore = "waits on ticket 267: the game gives the Razmiri Infiltrator LN, TN, CN, LE, NE and CE, beside deity \
+            features no entry maps, so 308e's writer leaves it whole"]
 fn the_razmiri_infiltrator_is_any_alignment_but_good() {
     let way = DATA
         .options

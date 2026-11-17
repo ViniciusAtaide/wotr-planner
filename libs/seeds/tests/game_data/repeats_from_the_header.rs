@@ -254,23 +254,39 @@ fn the_selections_with_their_own_no_feature_are_taken_once() {
     // LoremasterRogueTalentSelection 4b7018b1ed4b27140a5e7adfacaaf9c6, LoremasterWizardFeatSelection
     // 689959eef3e972e458b52598dcc2c752, OracleRevelationBondedMount 0234d0dd1cead22428e71a2500afa2e1, Familiar
     // 363cab72f77c47745bf3a8807074d183, RangerStyleSelection2 c6d0da9124735a44f93ac31df803b9a9, RangerStyleSelection6
-    // 61f82ba786fe05643beb3cd3910233a8, RangerStyleSelection10 78177315fc63b474ea3cbb8df38fafcd.
-    for key in [
-        "hellknight/disciplines/pentamic-faith",
-        "kineticist/wild-talents/elemental-whispers",
-        "loremaster/secret/combat-feat",
-        "loremaster/secret/rogue-secret",
-        "loremaster/secret/wizard-feat",
-        "oracle/revelations/nature/animal-companion",
-        "rogue/rogue-talents/familiar",
-        "slayer/slayer-talents/combat-style-feat-2",
-        "slayer/slayer-talents/combat-style-feat-6",
-        "slayer/slayer-talents/combat-style-feat-10",
+    // 61f82ba786fe05643beb3cd3910233a8, RangerStyleSelection10 78177315fc63b474ea3cbb8df38fafcd. The three slayer
+    // talents 308e wrote share their blueprint with the ranger's stage selection, so the NoFeature is a `Not` of an `Any`
+    // of both.
+    for (key, sharer) in [
+        ("hellknight/disciplines/pentamic-faith", None),
+        ("kineticist/wild-talents/elemental-whispers", None),
+        ("loremaster/secret/combat-feat", None),
+        ("loremaster/secret/rogue-secret", None),
+        ("loremaster/secret/wizard-feat", None),
+        ("oracle/revelations/nature/animal-companion", None),
+        ("rogue/rogue-talents/familiar", None),
+        (
+            "slayer/slayer-talents/combat-style-feat-2",
+            Some("ranger/combat-style-feat"),
+        ),
+        (
+            "slayer/slayer-talents/combat-style-feat-6",
+            Some("ranger/combat-style-feats-6"),
+        ),
+        (
+            "slayer/slayer-talents/combat-style-feat-10",
+            Some("ranger/combat-style-feats-10"),
+        ),
     ] {
         let option = selection_option(key);
-        let own = not(rules::Prerequisite::SelectionOption(
-            SelectionOptionKey::new(key),
-        ));
+        let itself = rules::Prerequisite::SelectionOption(SelectionOptionKey::new(key));
+        let own = match sharer {
+            None => not(itself),
+            Some(selection) => not(rules::Prerequisite::Any(vec![
+                itself,
+                rules::Prerequisite::Selection(rules::FeatureSelectionKey::new(selection)),
+            ])),
+        };
         assert!(holds(option.prerequisite.as_ref(), &own), "{key}");
         assert_eq!(option.repeat(), Repeat::Once, "{key}");
     }
