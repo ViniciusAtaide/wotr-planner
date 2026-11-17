@@ -171,13 +171,6 @@ fn the_first_had_extra_feats_name_the_selections_they_reach() {
             &["shaman/hex", "witch/hex", "witch/wandering-hex"],
         ),
         (
-            "barbarian/extra-rage-power",
-            &[
-                "barbarian/rage-power",
-                "skald/battle-scion/rage-power-or-teamwork-feat",
-            ],
-        ),
-        (
             "rogue/extra-rogue-talent",
             &[
                 "rogue/rogue-talents",

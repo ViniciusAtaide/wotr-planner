@@ -24,7 +24,14 @@ const EXTRA_PICKS: [(&str, &[&str]); 9] = [
     ), // Game: ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 and ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae (equivalent model: two feats, one key); UndergroundChemistSelection c3d08fdb481aa2e4a9f71c4349141826 meets neither
     ("extra-hex", &["witch/hex"]), // Game: ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35; the shaman's is another feat, ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6
     ("extra-mercy", &["paladin/mercy"]), // Game: ExtraMercySelection 8a49abed5be9473da1e1fd1e2457562e (SelectionMercy 02b187038a8dce545bb34bbfb346428d)
-    ("extra-rage-power", &["barbarian/rage-power"]), // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a (RagePowerSelection, InstinctualWarriorRagePowerSelection or SkaldRagePowerSelection; BattleScionArchetype 71d41dd6309ea994886908c34c87ccd9's BattleProwessSelection meets none)
+    (
+        "extra-rage-power",
+        &[
+            "barbarian/instinctual-warrior/rage-power",
+            "barbarian/rage-power",
+            "barbarian/skald-rage-power",
+        ],
+    ), // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a (RagePowerSelection, InstinctualWarriorRagePowerSelection or SkaldRagePowerSelection; BattleScionArchetype 71d41dd6309ea994886908c34c87ccd9's BattleProwessSelection meets none)
     (
         "extra-rogue-talent",
         &[
@@ -130,7 +137,7 @@ fn a_barbarian_with_extra_rage_power_at_3_gets_a_rage_power_slot_there() {
     assert!(possible(&build));
     assert_eq!(
         kind_at(&build, &extra_slot(3, 0)),
-        Some(selection_kind("barbarian/rage-power"))
+        Some(selection_kind("barbarian/extra-rage-power"))
     );
     let keys = |slot: &SlotId| -> BTreeSet<String> {
         engine
@@ -159,7 +166,6 @@ fn a_barbarian_with_extra_rage_power_at_3_gets_a_rage_power_slot_there() {
 // Game: RagePowerSelection 28710502f46848d48b3f0d6132817c4e (33); ExtraRagePowerSelection
 // 0c7f01fbbe687bb4baff8195cb02fe6a (38)
 #[test]
-#[ignore = "waits on ticket 264: the game gives the barbarian's rage power slot 33 powers and Extra Rage Power its own 38"]
 fn the_barbarians_rage_power_slot_offers_33_and_extra_rage_power_38() {
     let mut build = with_selections_filled(barbarian(3));
     build
@@ -185,7 +191,7 @@ fn extra_rage_power_taken_again_gives_a_second_slot() {
     for level in [3, 5] {
         assert_eq!(
             kind_at(&build, &extra_slot(level, 0)),
-            Some(selection_kind("barbarian/rage-power")),
+            Some(selection_kind("barbarian/extra-rage-power")),
             "at {level}"
         );
         assert!(build.picks.contains_key(&extra_slot(level, 0)));

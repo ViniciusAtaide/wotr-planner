@@ -541,8 +541,6 @@ progression rows / in planner only / archetype warpriest/shieldbearer -> 268
 progression rows / in planner only / class warpriest -> 268
 
 # 269, barbarian rows and rage powers.
-option lists / * / selection barbarian/pack-rager/bonus-feats -> 269
-option lists / * / selection barbarian/rage-power -> 269
 prerequisites / * / selection option barbarian/rage-power/beast-totem -> 269
 prerequisites / * / selection option barbarian/rage-power/beast-totem-greater -> 269
 prerequisites / * / selection option barbarian/rage-power/beast-totem-lesser -> 269

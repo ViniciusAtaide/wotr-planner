@@ -11,6 +11,8 @@ use crate::support::*;
 
 const RAGE_POWER: &str = "barbarian/rage-power";
 const INSTINCTUAL_WARRIOR: &str = "barbarian/instinctual-warrior";
+/// The Instinctual Warrior's own rage power selection (ticket 306h).
+const INSTINCTUAL_RAGE_POWER: &str = "barbarian/instinctual-warrior/rage-power";
 
 /// The guide's monk abilities and ki powers an Instinctual Warrior may take as rage powers
 /// (`barbarian#rage-power-instinctual-warrior`): each one's key in the rage power selection, its name, and the
@@ -133,12 +135,12 @@ fn the_instinctual_warriors_monk_powers_are_rage_power_options_for_it_alone() {
         );
     }
     let selection = DATA
-        .selection(&rules::FeatureSelectionKey::new(RAGE_POWER))
-        .expect("the rage power selection");
-    // Game: RagePowerSelection 28710502f46848d48b3f0d6132817c4e (33) and InstinctualWarriorRagePowerSelection
-    // 609f0e5336084442a0dafa3abd4d31c5 (the same 33 and the five) (equivalent model: one list, the five gated by the
-    // archetype).
-    assert_eq!(selection.options.len(), 38);
+        .selection(&rules::FeatureSelectionKey::new(INSTINCTUAL_RAGE_POWER))
+        .expect("the Instinctual Warrior's rage power selection");
+    // Game: InstinctualWarriorRagePowerSelection 609f0e5336084442a0dafa3abd4d31c5 (the 33 of RagePowerSelection
+    // 28710502f46848d48b3f0d6132817c4e and the five): the five are its own options, the 33 shared with the barbarian's.
+    assert_eq!(selection.options.len(), 5);
+    assert_eq!(selection.shared_options.len(), 33);
 }
 
 /// The game's Purity of Body needs Instinctual Warrior level 5 and Diamond Soul 14, and Deflect Arrows Dex 13 as well
@@ -210,7 +212,7 @@ fn an_instinctual_warrior_is_offered_each_monk_power_from_its_level_and_not_befo
     // Game: InstinctualWarriorArchetype adffdd8a99094a89823a79292a503ee9: InstinctualWarriorRagePowerSelection
     // 609f0e5336084442a0dafa3abd4d31c5 at 4, 8, 10, 12, 16, 18, 20.
     assert_eq!(
-        levels_with_slot_of(&build, RAGE_POWER),
+        levels_with_slot_of(&build, INSTINCTUAL_RAGE_POWER),
         INSTINCTUAL_RAGE_POWER_LEVELS
     );
     // Game: each row's blueprint in MONK_RAGE_POWERS (Purity of Body's 5 and Diamond Soul's 14 fall between slots).
@@ -275,11 +277,11 @@ fn an_instinctual_warrior_is_offered_each_monk_power_from_its_level_and_not_befo
     );
 }
 
-/// The ticket's: a barbarian without the archetype (plain, or another archetype) has them locked in every rage power
-/// slot, needing the archetype (and the level, before it), and can't take one.
+/// The ticket's: a barbarian without the archetype (plain, or another archetype) is offered none of them in any rage power
+/// slot (the game's list for the barbarian holds none; ticket 306h), and can't take one.
 #[test]
 fn a_barbarian_without_the_archetype_is_not_offered_the_monk_powers() {
-    // Game: RagePowerSelection 28710502f46848d48b3f0d6132817c4e holds none of them, and each blueprint in
+    // Game: RagePowerSelection 28710502f46848d48b3f0d6132817c4e holds none of them; each blueprint in
     // MONK_RAGE_POWERS needs InstinctualWarriorArchetype adffdd8a99094a89823a79292a503ee9.
     for archetype in [None, Some("barbarian/armored-hulk")] {
         let mut build = match archetype {
@@ -293,23 +295,10 @@ fn a_barbarian_without_the_archetype_is_not_offered_the_monk_powers() {
         let levels = levels_with_slot_of(&build, RAGE_POWER);
         assert!(!levels.is_empty());
         for level in levels {
-            let open = open_at(&build, level);
-            for (key, name, needs) in MONK_RAGE_POWERS {
-                assert!(!open.contains(key), "{name} at {level} ({archetype:?})");
-                // The reasons of the rows of WAITING follow their data (the game's are
-                // `the_instinctual_warriors_monk_powers_need_the_levels_and_dex_their_blueprints_name`'s).
-                if WAITING.contains(&key) {
-                    continue;
-                }
-                let reason = match needs {
-                    Some(needs) if needs > level => format!(
-                        "Needs Barbarian level {needs} (have {level}), the Instinctual Warrior archetype"
-                    ),
-                    _ => "Needs the Instinctual Warrior archetype".to_owned(),
-                };
-                assert_eq!(
-                    lock_reason(&build, level, key),
-                    reason,
+            let offered = offered(&build, level);
+            for (key, name, _) in MONK_RAGE_POWERS {
+                assert!(
+                    !offered.contains_key(key),
                     "{name} at {level} ({archetype:?})"
                 );
             }
@@ -345,7 +334,7 @@ fn extra_rage_power_offers_an_instinctual_warrior_its_monk_powers() {
     for level in [5, 9] {
         assert_eq!(
             kind_at(&build, &extra_slot(level, 0)),
-            Some(selection_kind(RAGE_POWER)),
+            Some(selection_kind("barbarian/extra-rage-power")),
             "at {level}"
         );
     }

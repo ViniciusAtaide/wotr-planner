@@ -256,14 +256,15 @@ fn a_battle_scion_link_from_the_s2_base_still_opens() {
         let (name, link) = line.split_once('\t').expect("`name<TAB>link`");
         let old = decode_build(link, &keys)
             .map_or_else(|_| String::new(), |build| format!("{:?}", build.picks));
-        // A pick the skald's own list lacks may be refused (the game's list, listed in `306-refused.txt`); a rage
-        // power or teamwork feat at 12 never.
+        // A pick the game's lists lack may be refused (listed in `306-refused.txt`): a rogue talent the skald's list
+        // lacks, or a rage power Battle Prowess lacks (306h). A teamwork feat never is.
         match fate(&engine, &data, &keys, link, &old) {
             Fate::Same | Fate::Heirs(_) => {}
             Fate::Refused(picks) => assert!(
                 picks
                     .iter()
-                    .all(|(_, key)| key.starts_with("rogue/rogue-talents/")),
+                    .all(|(_, key)| key.starts_with("rogue/rogue-talents/")
+                        || key.starts_with("barbarian/rage-power/")),
                 "{name}: {picks:?}"
             ),
             Fate::Changed(why) => panic!("{name}: {why}"),

@@ -9,6 +9,10 @@ use rules::{ClassKey, Prerequisite, Repeat, SlotId};
 use crate::support::*;
 
 const RAGE_POWER: &str = "barbarian/rage-power";
+/// The skald's own rage power selection (ticket 306h); its key sorts before `rogue/skald-talents`, as the barbarian's did.
+const SKALD_RAGE_POWER: &str = "barbarian/skald-rage-power";
+/// Extra Rage Power's own list: the slot the feat gives is one of it.
+const EXTRA_RAGE_POWER: &str = "barbarian/extra-rage-power";
 const BATTLE_SCION: &str = "skald/battle-scion";
 /// The Battle Scion's slot in the Rage Power cells: a rage power or a teamwork feat.
 const SCION_SLOT: &str = "skald/battle-scion/rage-power-or-teamwork-feat";
@@ -134,7 +138,7 @@ fn the_skald_and_each_archetype_have_a_rage_power_slot_at_their_tables_levels() 
         let build = skald(archetype, 20);
         assert!(possible(&build), "{archetype:?}");
         assert_eq!(
-            levels_with_slot_of(&build, RAGE_POWER),
+            levels_with_slot_of(&build, SKALD_RAGE_POWER),
             levels,
             "{archetype:?}"
         );
@@ -406,7 +410,10 @@ fn barbarian_and_skald_levels_do_not_stack() {
         level: 10,
         index: 0,
     };
-    assert_eq!(kind_at(&build, &skald_6), Some(selection_kind(RAGE_POWER)));
+    assert_eq!(
+        kind_at(&build, &skald_6),
+        Some(selection_kind(SKALD_RAGE_POWER))
+    );
     let open = offered_in(&build, &skald_6);
     assert!(open[&rage_option("clear-mind")].is_err());
     let reason = reason_in(&build, &skald_6, &rage_option("clear-mind"));
@@ -431,7 +438,7 @@ fn a_rage_power_is_taken_once_across_barbarian_and_skald() {
     let build = with_picks(build, &[(2, pick(&animal_fury))]);
     assert_eq!(
         kind_at(&build, &skald_slot),
-        Some(selection_kind(RAGE_POWER))
+        Some(selection_kind(SKALD_RAGE_POWER))
     );
     assert_eq!(
         reason_in(&build, &skald_slot, &animal_fury),
@@ -446,7 +453,7 @@ fn a_rage_power_is_taken_once_across_barbarian_and_skald() {
 fn extra_rage_power_reaches_a_skald() {
     let animal_fury = rage_option("animal-fury");
     // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a needs SkaldRagePowerSelection
-    // 2476514e31791394fa140f1a07941c96 among others, and offers the same rage powers.
+    // 2476514e31791394fa140f1a07941c96 among others, and lists the 33 of the barbarian's and the five monk powers.
     let mut build = with_picks(skald(None, 3), &[(3, pick(&animal_fury))]);
     assert_eq!(
         feat_status(&build, &general_slot(3), "extra-rage-power"),
@@ -457,25 +464,28 @@ fn extra_rage_power_reaches_a_skald() {
         .insert(general_slot(3), feat_pick_plain("extra-rage-power"));
     assert!(possible(&build));
     let slot = extra_slot(3, 0);
-    assert_eq!(kind_at(&build, &slot), Some(selection_kind(RAGE_POWER)));
     assert_eq!(
-        offered_in(&build, &slot).keys().collect::<BTreeSet<_>>(),
-        offered_in(&build, &selection_slot(3))
-            .keys()
-            .collect::<BTreeSet<_>>()
+        kind_at(&build, &slot),
+        Some(selection_kind(EXTRA_RAGE_POWER))
     );
+    // The skald's own slot offers the 33; Extra Rage Power's 38 add the Instinctual Warrior's five monk powers.
+    let extra = offered_in(&build, &slot);
+    let skalds = offered_in(&build, &selection_slot(3));
+    assert_eq!(skalds.len(), 33);
+    assert_eq!(extra.len(), 38);
+    assert!(skalds.keys().all(|key| extra.contains_key(key)));
 }
 
-/// The rage power selection is the barbarian's alone: no option level, no teamwork feat, 38 options. The Battle
+/// The rage power selection is the barbarian's alone: no option level, no teamwork feat, 33 options. The Battle
 /// Scion's selection shares every one of them (read from the data, so a new rage power joins it or fails here) and
 /// has one option of its own, the repeatable Teamwork Feat, whose row gives a Teamwork feat slot.
 #[test]
 fn the_battle_scions_selection_shares_every_rage_power_and_adds_a_teamwork_feat() {
     let rage = rage_power_selection();
     assert!(rage.option_levels.is_empty());
-    // Game: RagePowerSelection 28710502f46848d48b3f0d6132817c4e (33) and InstinctualWarriorRagePowerSelection
-    // 609f0e5336084442a0dafa3abd4d31c5 (38) (equivalent model: one list, the five gated by the archetype).
-    assert_eq!(rage.options.len(), 38);
+    // Game: RagePowerSelection 28710502f46848d48b3f0d6132817c4e (33; the Instinctual Warrior's five monk powers are
+    // InstinctualWarriorRagePowerSelection 609f0e5336084442a0dafa3abd4d31c5's own, ticket 306h)
+    assert_eq!(rage.options.len(), 33);
     let selection = any_selection(SCION_SLOT);
     assert_eq!(selection.name, "Rage Power or Teamwork Feat");
     // The shared rage powers are `the_battle_scions_selection_offers_21_rage_powers`'s.
@@ -520,7 +530,6 @@ fn a_skald_takes_extra_rage_power_once_it_has_a_rage_power_slot() {
 /// their lesser forms neither), Rolling Dodge, Crippling Blows, Powerful Stance, Wrecking Blows, Clear Mind nor Come
 /// and Get Me.
 #[test]
-#[ignore = "waits on ticket 286: the game gives Battle Prowess 21 rage powers"]
 fn the_battle_scions_selection_offers_21_rage_powers() {
     // Game: BattleProwessSelection 29b480a26a88f9e47a10d8c9fab84ee6: 21 rage powers and 12 teamwork feats.
     let selection = any_selection(SCION_SLOT);
@@ -671,7 +680,11 @@ fn the_rogue_talent_slot_at_skald_12_follows_the_rage_power_slot() {
     for archetype in [None, Some("skald/demon-dancer")] {
         let build = skald(archetype, 12);
         let kind = |index| kind_at(&build, &SlotId::Selection { level: 12, index });
-        assert_eq!(kind(0), Some(selection_kind(RAGE_POWER)), "{archetype:?}");
+        assert_eq!(
+            kind(0),
+            Some(selection_kind(SKALD_RAGE_POWER)),
+            "{archetype:?}"
+        );
         assert_eq!(
             kind(1),
             Some(selection_kind(SKALD_TALENTS)),
@@ -694,7 +707,7 @@ fn the_rogue_talent_slot_at_skald_12_follows_the_rage_power_slot() {
                 index: 0
             }
         ),
-        Some(selection_kind(RAGE_POWER))
+        Some(selection_kind(SKALD_RAGE_POWER))
     );
     assert_eq!(
         kind_at(

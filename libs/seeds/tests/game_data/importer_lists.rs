@@ -225,3 +225,42 @@ fn the_slayers_extra_talent_list_is_the_games_41() {
         assert!(offers.contains(&format!("rogue/rogue-talents/{talent}")));
     }
 }
+
+/// 306h: the skald's and the Instinctual Warrior's rage powers are their own lists; the barbarian's has 33, and Extra
+/// Rage Power's is the game's 38.
+// Game: the `m_AllFeatures` of RagePowerSelection 28710502f46848d48b3f0d6132817c4e (33), SkaldRagePowerSelection
+// 2476514e31791394fa140f1a07941c96 (33; SkaldProgression 26418fed2bc153245972a5b54204ed75 at 3, 6, 9, 12, 15, 18),
+// InstinctualWarriorRagePowerSelection 609f0e5336084442a0dafa3abd4d31c5 (38; InstinctualWarriorArchetype
+// adffdd8a99094a89823a79292a503ee9 `AddFeatures` at 4, 8, 10, 12, 16, 18, 20) and ExtraRagePowerSelection
+// 0c7f01fbbe687bb4baff8195cb02fe6a (38). The five monk powers are RageDeflectArrowsFeature
+// d971bbb15f354621ac37fd51d0ab9044 and its four siblings, which only the Instinctual Warrior's list and Extra Rage
+// Power's hold.
+#[test]
+fn the_skald_and_the_instinctual_warrior_have_their_own_rage_powers() {
+    let monk_powers = [
+        "barbarian/rage-power/deflect-arrows-instinctual-warrior",
+        "barbarian/rage-power/diamond-body-instinctual-warrior",
+        "barbarian/rage-power/diamond-soul-instinctual-warrior",
+        "barbarian/rage-power/perfect-self-instinctual-warrior",
+        "barbarian/rage-power/purity-of-body-instinctual-warrior",
+    ];
+    let lists = [
+        ("barbarian/rage-power", 33, false),
+        ("barbarian/skald-rage-power", 33, false),
+        ("barbarian/instinctual-warrior/rage-power", 38, true),
+        ("barbarian/extra-rage-power", 38, true),
+    ];
+    for (key, count, has_monk_powers) in lists {
+        let offers = keys(selection(key));
+        assert_eq!(offers.len(), count, "{key}");
+        for power in monk_powers {
+            assert_eq!(offers.contains(power), has_monk_powers, "{key}: {power}");
+        }
+        for power in [
+            "barbarian/rage-power/clear-mind",
+            "barbarian/rage-power/come-and-get-me",
+        ] {
+            assert!(offers.contains(power), "{key}: {power}");
+        }
+    }
+}
