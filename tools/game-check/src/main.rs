@@ -30,6 +30,10 @@
 //! with what grants it): pick the blueprint by what grants it, never the first one printed.
 //!
 //! A lookup exits 0, or 2 when the dump is refused, the name is unknown or the pattern doesn't parse.
+//!
+//! `game-check --carrier-audit [--data <dir>] [--binz <file>]` (ticket 308h): the prerequisites writer's carrier guard
+//! over every entry, one line a hit, `<entry> | holds: <gap>` for the tree the data holds and `<entry> | left whole:
+//! <gap>` for the game's tree the writer now leaves whole, then the count. It exits 0, or 2 as a lookup does.
 
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -69,7 +73,7 @@ enum Outcome {
     Written(String),
 }
 
-const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--only <key>[,<key>...]] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items, class-tables, option-lists, carriers, carrier-grants, prerequisites; --only takes selection keys for option-lists, GUIDs for carriers and carrier-grants, never both, and entry names for prerequisites alone: `feat extra-hex`, `selection option rogue/*`)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>";
+const USAGE: &str = "usage: game-check [--binz <file>] [--data <dir>]\n       game-check --write <area>[,<area>...] [--only <key>[,<key>...]] [--dry-run] [--log <file>] [--data <dir>] [--binz <file>]   (areas: items, class-tables, option-lists, carriers, carrier-grants, prerequisites; --only takes selection keys for option-lists, GUIDs for carriers and carrier-grants, never both, and entry names for prerequisites alone: `feat extra-hex`, `selection option rogue/*`)\n       game-check [--binz <file>] show <name|guid>... | grep <regex> | refs <name|guid> | granted-by <name|guid>\n       game-check --carrier-audit [--data <dir>] [--binz <file>]";
 
 fn run() -> Result<Outcome, String> {
     let mut binz_path = None;
@@ -77,6 +81,7 @@ fn run() -> Result<Outcome, String> {
     let mut write_areas: Option<String> = None;
     let mut log_path = None;
     let mut dry_run = false;
+    let mut carrier_audit = false;
     let mut only: Option<std::collections::BTreeSet<String>> = None;
     let mut words = Vec::new();
     let mut args = std::env::args().skip(1);
@@ -91,6 +96,7 @@ fn run() -> Result<Outcome, String> {
             "--data" => data_dir = Some(value(&mut args)?),
             "--log" => log_path = Some(value(&mut args)?),
             "--dry-run" => dry_run = true,
+            "--carrier-audit" => carrier_audit = true,
             "--only" => {
                 let list = args
                     .next()
@@ -127,6 +133,25 @@ fn run() -> Result<Outcome, String> {
             &pins.asset,
         )
     });
+    if carrier_audit {
+        if write_areas.is_some()
+            || !words.is_empty()
+            || dry_run
+            || log_path.is_some()
+            || only.is_some()
+        {
+            return Err(format!(
+                "--carrier-audit runs alone, with --data and --binz\n{USAGE}"
+            ));
+        }
+        let data_dir = data_dir.unwrap_or_else(seeds::game_data_dir);
+        let read = seeds::read_game_data_files(&data_dir).map_err(|error| error.to_string())?;
+        let dump = binz::read(&binz_path, &pins).map_err(|error| error.to_string())?;
+        let hits = prerequisites::audit(&dump, &read);
+        let mut text: String = hits.iter().map(|hit| format!("{hit}\n")).collect();
+        text.push_str(&format!("{} carrier hits\n", hits.len()));
+        return Ok(Outcome::Lookup(text));
+    }
     if !words.is_empty() {
         return lookup(&words, &binz_path, &pins).map(Outcome::Lookup);
     }

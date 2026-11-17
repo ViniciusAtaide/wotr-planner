@@ -68,6 +68,14 @@ fn cap(own: &str, rank: u8) -> String {
     )
 }
 
+/// The game's `AddFacts` of one fixture blueprint.
+fn add_facts(n: u32) -> String {
+    format!(
+        "{{\"$type\": \"0, AddFacts\", \"m_Facts\": [{}]}}",
+        bp(&guid(n))
+    )
+}
+
 fn blueprint(n: u32, name: &str, type_name: &str, ranks: u8, parts: &[String]) -> Record {
     let kind = type_name.rsplit('.').next().unwrap();
     Record {
@@ -100,8 +108,19 @@ fn blueprint(n: u32, name: &str, type_name: &str, ranks: u8, parts: &[String]) -
 /// - the narrowings' shapes and owners (308g): `narrow-domain` (217) accepts `domain-feat` (216, a blueprint named as a
 ///   domain progression, which 294 owns) or `once-feat`; `nested-not` (218) accepts `keen-feat` under two `Not`s;
 ///   `all-any` (219) needs `bonus-one` and `keen-feat` or `once-feat`. The game names `once-feat` alone in each.
+/// - the carriers (308h): `sworn-feat` (221) and `held-sworn` (226, whose data already says so) need `carried-feat`
+///   (220), which `PlantedGranterFeature` (230, the feature `granter`) grants through `AddFacts`; `leveled-feat` (223)
+///   needs `ranked-feat` (222), which `PlantedLevelGranterFeature` (231, `level-granter`) grants through
+///   `AddFeatureOnClassLevel`. Neither planner feature grants it. `thankful-feat` (225) needs `given-feat` (224), which
+///   `PlantedGiverFeature` (232, `giver`) grants, and `PlantedFarGiverFeature` (234, `far-giver`) through the unmapped
+///   `PlantedMiddleFeature` (233): both planner features grant `given-feat`. `either-feat` (227) needs `carried-feat`
+///   or the feature `granter` itself. `kept-cover` (229) needs `covered-fact` (228), which `PlantedProficienciesFeature`
+///   (235, `proficiencies`) grants and the planner's class `keeper` gives beside it, as a class row gives a class's
+///   proficiencies; `fist-feat` (238) needs `improved-unarmed-strike` (237), which `PlantedGodFeature` (236, the deity
+///   `keeper-god`, whose favoured weapon is the unarmed strike) grants.
 fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
     let dir = data_copy();
+    std::fs::create_dir_all(dir.path().join("features")).unwrap();
     let put = |file: &str, text: String| std::fs::write(dir.path().join(file), text).unwrap();
     let feat = |key: &str, n: u32, more: &str| {
         put(
@@ -146,6 +165,49 @@ fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
         219,
         ", components: [Requires(condition: Has(Feat(\"bonus-one\"))), Requires(condition: Any([Has(Feat(\"keen-feat\")), Has(Feat(\"once-feat\"))]))]",
     );
+    feat("carried-feat", 220, "");
+    feat("sworn-feat", 221, "");
+    feat("ranked-feat", 222, "");
+    feat("leveled-feat", 223, "");
+    feat("given-feat", 224, "");
+    feat("thankful-feat", 225, "");
+    feat(
+        "held-sworn",
+        226,
+        ", components: [Requires(condition: Has(Feat(\"carried-feat\")))]",
+    );
+    feat("either-feat", 227, "");
+    let feature = |key: &str, n: u32, more: &str| {
+        put(
+            &format!("features/{key}.ron"),
+            format!(
+                "(key: \"{key}\", blueprint: \"{}\", name: \"Planted {key}\"{more})\n",
+                guid(n)
+            ),
+        );
+    };
+    feature("granter", 230, "");
+    feature("level-granter", 231, "");
+    let gives = ", components: [Grant([Feat(\"given-feat\")])]";
+    feature("giver", 232, gives);
+    feature("far-giver", 234, gives);
+    feat("covered-fact", 228, "");
+    feat("kept-cover", 229, "");
+    feature("proficiencies", 235, "");
+    put(
+        "classes/keeper.ron",
+        "(key: \"keeper\", name: \"Keeper\", skill_points: 2, bab: Full, fort: Good, reflex: Poor, will: Poor, levels: [(level: 1, features: [\"proficiencies\"], feats: [\"covered-fact\"])])\n".to_owned(),
+    );
+    std::fs::create_dir_all(dir.path().join("deities")).unwrap();
+    put(
+        "deities/keeper-god.ron",
+        format!(
+            "(key: \"keeper-god\", blueprint: \"{}\", name: \"Keeper God\", alignments: [LawfulGood], favoured_weapons: [\"unarmed-strike\"], domains: [])\n",
+            guid(236)
+        ),
+    );
+    feat("improved-unarmed-strike", 237, "");
+    feat("fist-feat", 238, "");
     put(
         "feats/same-feat.ron",
         format!(
@@ -314,6 +376,69 @@ fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
             1,
             &[needs("All", BONUS_ONE), needs("All", &guid(203))],
         ),
+        blueprint(220, "CarriedFeat", FEATURE, 1, &[]),
+        blueprint(221, "SwornFeat", FEATURE, 1, &[needs("All", &guid(220))]),
+        blueprint(222, "RankedFeat", FEATURE, 1, &[]),
+        blueprint(223, "LeveledFeat", FEATURE, 1, &[needs("All", &guid(222))]),
+        blueprint(224, "GivenFeat", FEATURE, 1, &[]),
+        blueprint(225, "ThankfulFeat", FEATURE, 1, &[needs("All", &guid(224))]),
+        blueprint(
+            226,
+            "HeldSwornFeat",
+            FEATURE,
+            1,
+            &[needs("All", &guid(220))],
+        ),
+        blueprint(
+            227,
+            "EitherFeat",
+            FEATURE,
+            1,
+            &[needs("Any", &guid(220)), needs("Any", &guid(230))],
+        ),
+        blueprint(230, "PlantedGranterFeature", FEATURE, 1, &[add_facts(220)]),
+        blueprint(
+            231,
+            "PlantedLevelGranterFeature",
+            FEATURE,
+            1,
+            &[format!(
+                "{{\"$type\": \"0, AddFeatureOnClassLevel\", \"m_Feature\": {}, \"m_Class\": {}, \"Level\": 1}}",
+                bp(&guid(222)),
+                bp(WARDEN)
+            )],
+        ),
+        blueprint(232, "PlantedGiverFeature", FEATURE, 1, &[add_facts(224)]),
+        blueprint(233, "PlantedMiddleFeature", FEATURE, 1, &[add_facts(224)]),
+        blueprint(234, "PlantedFarGiverFeature", FEATURE, 1, &[add_facts(233)]),
+        blueprint(228, "CoveredFeat", FEATURE, 1, &[]),
+        blueprint(
+            229,
+            "KeptCoverFeat",
+            FEATURE,
+            1,
+            &[needs("All", &guid(228))],
+        ),
+        blueprint(
+            235,
+            "PlantedProficienciesFeature",
+            FEATURE,
+            1,
+            &[add_facts(228)],
+        ),
+        blueprint(
+            236,
+            "PlantedGodFeature",
+            FEATURE,
+            1,
+            &[format!(
+                "{{\"$type\": \"0, AddFeatureOnClassLevel\", \"m_Feature\": {}, \"m_Class\": {}, \"Level\": 1}}",
+                bp(&guid(237)),
+                bp(WARDEN)
+            )],
+        ),
+        blueprint(237, "ImprovedUnarmedStrike", FEATURE, 1, &[]),
+        blueprint(238, "FistFeat", FEATURE, 1, &[needs("All", &guid(237))]),
     ];
     let (pins, dump) = dump(&binz(&records, 1));
     (dir, pins, dump)
@@ -951,5 +1076,118 @@ fn a_mythic_abilitys_components_are_owned() {
             requires(Condition::MythicLevel(3), Group::All),
             requires(Condition::Has(feat("bonus-one")), Group::All),
         ]
+    );
+}
+
+/// 308h: the game's `PrerequisiteFeature` passes on `HasFact`
+/// (`Blueprints/Classes/Prerequisites/PrerequisiteFeature.cs` `CheckInternal`, WrathDecompiled 6ce4a6b), and `AddFacts`
+/// makes a fact held while its source is (`UnitLogic/FactLogic/AddFacts.cs` `OnActivate`). A planner entry of the
+/// granting blueprint that doesn't grant the fact would refuse its holder, so the entry is left whole.
+#[test]
+fn a_fact_an_add_facts_carrier_grants_and_its_planner_entry_doesnt_leaves_the_entry_whole() {
+    let (dir, _, dump) = world();
+    let before = read(dir.path(), "feats/sworn-feat.ron");
+    let outcome = write(dir.path(), &dump);
+    assert_eq!(read(dir.path(), "feats/sworn-feat.ron"), before);
+    assert_eq!(
+        unexpressed(&outcome, "feat sworn-feat"),
+        [format!(
+            "feat carried-feat granted by PlantedGranterFeature {}, which feature granter doesn't grant -> 307",
+            guid(230)
+        )]
+    );
+}
+
+/// 308h: `AddFeatureOnClassLevel` (`Designers/Mechanics/Facts/AddFeatureOnClassLevel.cs` `Apply`) is a carrier too.
+#[test]
+fn a_fact_an_add_feature_on_class_level_carrier_grants_and_its_planner_entry_doesnt_leaves_the_entry_whole()
+ {
+    let (dir, _, dump) = world();
+    let before = read(dir.path(), "feats/leveled-feat.ron");
+    let outcome = write(dir.path(), &dump);
+    assert_eq!(read(dir.path(), "feats/leveled-feat.ron"), before);
+    assert_eq!(
+        unexpressed(&outcome, "feat leveled-feat"),
+        [format!(
+            "feat ranked-feat granted by PlantedLevelGranterFeature {}, which feature level-granter doesn't grant -> 307",
+            guid(231)
+        )]
+    );
+}
+
+/// 308h: a grantor whose planner entry grants the fact under the fact's own key refuses no one, directly or through a
+/// blueprint no entry maps.
+#[test]
+fn a_fact_each_planner_grantor_grants_is_written() {
+    let (dir, _, dump) = world();
+    let outcome = write(dir.path(), &dump);
+    assert!(unexpressed(&outcome, "feat thankful-feat").is_empty());
+    assert_eq!(
+        feat_components(dir.path(), "thankful-feat"),
+        [requires(Condition::Has(feat("given-feat")), Group::All)]
+    );
+}
+
+/// 308h: a holder of the grantor meets the `Any` through the grantor itself, so it is no gap (Defensive Study's
+/// base shape).
+#[test]
+fn a_grantor_the_same_any_accepts_is_no_gap() {
+    let (dir, _, dump) = world();
+    let outcome = write(dir.path(), &dump);
+    assert!(unexpressed(&outcome, "feat either-feat").is_empty());
+    assert!(changed(&outcome).contains(&"feat either-feat".to_owned()));
+}
+
+/// 308h: the audit runs the guard over every entry's tree as the data holds it (`holds`) and over the game's tree
+/// the writer would write (`left whole`).
+#[test]
+fn the_carrier_audit_lists_what_the_data_holds_and_what_the_writer_leaves_whole() {
+    let (dir, _, dump) = world();
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    let audit: BTreeSet<String> = prerequisites::audit(&dump, &data).into_iter().collect();
+    let granter = format!(
+        "feat carried-feat granted by PlantedGranterFeature {}, which feature granter doesn't grant -> 307",
+        guid(230)
+    );
+    assert_eq!(
+        audit,
+        BTreeSet::from([
+            format!("feat held-sworn | holds: {granter}"),
+            format!("feat sworn-feat | left whole: {granter}"),
+            format!(
+                "feat leveled-feat | left whole: feat ranked-feat granted by PlantedLevelGranterFeature {}, which feature level-granter doesn't grant -> 307",
+                guid(231)
+            ),
+        ])
+    );
+}
+
+/// 308h: a grantor the planner gives only in a row that gives the fact too refuses no one (the rogue's class row gives
+/// `rogue/rogue-proficiencies` and Armor Proficiency (Light Armor) at 1, where the game's `RogueProficiencies`
+/// 33e2a7e4ad9daa54eaf808e1483bb43c gives the second through `AddFacts`).
+#[test]
+fn a_grantor_every_planner_row_gives_beside_the_fact_is_no_gap() {
+    let (dir, _, dump) = world();
+    let outcome = write(dir.path(), &dump);
+    assert!(unexpressed(&outcome, "feat kept-cover").is_empty());
+    assert_eq!(
+        feat_components(dir.path(), "kept-cover"),
+        [requires(Condition::Has(feat("covered-fact")), Group::All)]
+    );
+}
+
+/// 308h: a deity gives its favoured weapon's feat as the engine holds it (`engine/catalog.rs` `favoured_weapon_feats`): the game's
+/// `IroriFeature` 23a77a5985de08349820429ce1b5a234 grants Improved Unarmed Strike through `AddFeatureOnClassLevel`.
+#[test]
+fn a_deitys_favoured_unarmed_strike_gives_improved_unarmed_strike() {
+    let (dir, _, dump) = world();
+    let outcome = write(dir.path(), &dump);
+    assert!(unexpressed(&outcome, "feat fist-feat").is_empty());
+    assert_eq!(
+        feat_components(dir.path(), "fist-feat"),
+        [requires(
+            Condition::Has(feat("improved-unarmed-strike")),
+            Group::All
+        )]
     );
 }

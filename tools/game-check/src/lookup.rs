@@ -250,40 +250,18 @@ impl Library {
     /// each is by a shortest path; a granting blueprint is not climbed past). A granting blueprint's own chain is
     /// itself.
     fn grant_chains(&self, start: &str) -> Vec<Vec<String>> {
-        let granting = |guid: &str| GRANTING_KINDS.contains(&self.entries[guid].kind.as_str());
+        let granting = |guid: &String| GRANTING_KINDS.contains(&self.entries[guid].kind.as_str());
+        let Some((start, _)) = self.entries.get_key_value(start) else {
+            return Vec::new();
+        };
         if granting(start) {
-            return vec![vec![start.to_owned()]];
+            return vec![vec![start.clone()]];
         }
         let referrers = self.referrers();
-        let mut parent: BTreeMap<&str, &str> = BTreeMap::new();
-        let mut seen: BTreeSet<&str> = BTreeSet::from([start]);
-        let mut queue = VecDeque::from([start]);
-        let mut found = Vec::new();
-        while let Some(at) = queue.pop_front() {
-            for above in referrers.get(at).into_iter().flatten() {
-                if !seen.insert(above.as_str()) {
-                    continue;
-                }
-                parent.insert(above, at);
-                if granting(above) {
-                    found.push(above.as_str());
-                } else {
-                    queue.push_back(above);
-                }
-            }
-        }
-        let mut chains: Vec<Vec<String>> = found
+        let above = |guid: &String| referrers.get(guid).map_or(&[][..], Vec::as_slice);
+        let mut chains: Vec<Vec<String>> = chains_up(start, above, granting)
             .into_iter()
-            .map(|top| {
-                let mut chain = vec![top.to_owned()];
-                let mut at = top;
-                while let Some(below) = parent.get(at) {
-                    chain.push((*below).to_owned());
-                    at = below;
-                }
-                chain.reverse();
-                chain
-            })
+            .map(|chain| chain.into_iter().cloned().collect())
             .collect();
         chains.sort_by_key(|chain| {
             let top = chain.last().map(|g| &self.entries[g.as_str()]);
@@ -349,6 +327,47 @@ impl Library {
             _ => value.clone(),
         }
     }
+}
+
+/// The paths from `start` up `above` to each node `stops` holds that it reaches first, each `[start, …, top]`: breadth
+/// first, so each is by a shortest path, and a stop is not climbed past. `start` is climbed from whether it stops or
+/// not. `granted-by` walks it up every reference to a progression, archetype, class, race or unit; the prerequisites
+/// writer's carrier guard (308h) up the game's grants to a blueprint the planner maps.
+pub(crate) fn chains_up<'a, T: Ord>(
+    start: &'a T,
+    above: impl Fn(&T) -> &'a [T],
+    stops: impl Fn(&T) -> bool,
+) -> Vec<Vec<&'a T>> {
+    let mut parent: BTreeMap<&T, &T> = BTreeMap::new();
+    let mut seen: BTreeSet<&T> = BTreeSet::from([start]);
+    let mut queue = VecDeque::from([start]);
+    let mut found = Vec::new();
+    while let Some(at) = queue.pop_front() {
+        for up in above(at) {
+            if !seen.insert(up) {
+                continue;
+            }
+            parent.insert(up, at);
+            if stops(up) {
+                found.push(up);
+            } else {
+                queue.push_back(up);
+            }
+        }
+    }
+    found
+        .into_iter()
+        .map(|top| {
+            let mut chain = vec![top];
+            let mut at = top;
+            while let Some(below) = parent.get(at) {
+                chain.push(below);
+                at = below;
+            }
+            chain.reverse();
+            chain
+        })
+        .collect()
 }
 
 fn parse_json(entry: &Entry, guid: &str) -> Result<Value, String> {
