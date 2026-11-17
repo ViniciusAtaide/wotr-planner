@@ -98,6 +98,7 @@ pub fn world() -> GameData {
     nested::flatten(nested, &mut data);
     data.selections.extend(pools(&data.feats));
     data.selections.extend(granted_selections());
+    own_lists(&mut data);
     list_feats_in_pools(&mut data);
     attach_bonuses(&mut data);
     data
@@ -129,26 +130,40 @@ pub fn list_feats_in_pools(data: &mut GameData) {
 /// [`list_feats_in_pools`]).
 const EXTRA_MYTHIC_ABILITY: &str = "mythic/extra-mythic-ability";
 
-/// The selections the Extra feats and Extra Mythic Ability grant (ticket 302): the feats' name the selections a
-/// character must have had a slot of, and give a slot of the first it had; Extra Mythic Ability's lists every mythic
-/// ability.
+/// The selections the Extra feats and Extra Mythic Ability grant (ticket 302): the feats' list what the class
+/// selection they stand for lists ([`own_lists`]), and open their slot whenever taken; Extra Mythic Ability's lists
+/// every mythic ability.
 fn granted_selections() -> Vec<FeatureSelection> {
-    let first_had = |key: &str, of: &[&str]| FeatureSelection {
-        needs_slot_of: of.iter().map(|key| feat_list(key)).collect(),
-        ..feat_selection(key, "")
-    };
     vec![
-        first_had(
-            "rogue/extra-rogue-talent",
-            &["rogue/rogue-talents", "slayer/slayer-talents"],
-        ),
-        first_had("witch/extra-hex", &["witch/hex"]),
-        first_had("slayer/slayer-trick", &["slayer/slayer-talents"]),
+        feat_selection("rogue/extra-rogue-talent", ""),
+        feat_selection("witch/extra-hex", ""),
+        feat_selection("slayer/slayer-trick", ""),
         FeatureSelection {
             band: Band::MythicAbility,
             ..feat_selection(EXTRA_MYTHIC_ABILITY, "Mythic ability")
         },
     ]
+}
+
+/// Gives each selection an Extra feat grants the name, levels and list of the class selection it stands for, as the
+/// game's Extra selections list what the class's do.
+fn own_lists(data: &mut GameData) {
+    for (extra, base) in [
+        ("rogue/extra-rogue-talent", "rogue/rogue-talents"),
+        ("witch/extra-hex", "witch/hex"),
+        ("slayer/slayer-trick", "slayer/slayer-talents"),
+    ] {
+        let base = (data.selections.iter())
+            .find(|selection| selection.key == feat_list(base))
+            .cloned()
+            .expect("the class selection");
+        let own = (data.selections.iter_mut())
+            .find(|selection| selection.key == feat_list(extra))
+            .expect("the Extra selection");
+        own.name.clone_from(&base.name);
+        own.option_levels.clone_from(&base.option_levels);
+        own.shared_options = base.offered().into_iter().cloned().collect();
+    }
 }
 
 /// The selections of feats of the general slot and the category slots, each listing the feats it offers (ticket
@@ -187,7 +202,6 @@ fn feat_selection(key: &str, name: &str) -> FeatureSelection {
         options: BTreeSet::new(),
         feats: BTreeSet::new(),
         mythic_abilities: BTreeSet::new(),
-        needs_slot_of: BTreeSet::new(),
         ignores_prerequisites: false,
         skips_proficiency: false,
         shared_options: BTreeSet::new(),

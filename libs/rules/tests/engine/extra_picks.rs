@@ -1,5 +1,5 @@
 //! Feats that give one more slot of a Feature selection each time they're taken (Extra Rage Power, Extra Hex,
-//! ticket 49): the slot is at the level the feat is taken, of the selection the character had a slot of first.
+//! ticket 49): the slot is at the level the feat is taken, of the feat's own selection (ticket 306aa).
 
 use std::collections::BTreeSet;
 
@@ -42,7 +42,7 @@ fn a_feat_with_an_extra_pick_gives_a_slot_of_its_selection_at_its_level() {
     // After the level's other slots.
     let last = sheet.levels[2].slots.last().expect("slots at 3");
     assert_eq!(last.id, extra_slot(3, 0));
-    assert_eq!(last.kind, selection("rogue/rogue-talents"));
+    assert_eq!(last.kind, selection("rogue/extra-rogue-talent"));
     assert_eq!(engine.slot_label(last), "Rogue Talents");
 
     // It offers the rogue talents, as the rogue's own slot at 2 does.
@@ -94,11 +94,11 @@ fn each_time_its_taken_gives_another_slot() {
     witch.picks.insert(general_slot(1), pick_feat("extra-hex"));
     assert_eq!(
         kind_of(&witch, &extra_slot(1, 0)),
-        Some(selection("witch/hex"))
+        Some(selection("witch/extra-hex"))
     );
     assert_eq!(
         kind_of(&witch, &extra_slot(1, 1)),
-        Some(selection("witch/hex"))
+        Some(selection("witch/extra-hex"))
     );
     witch
         .picks
@@ -110,47 +110,53 @@ fn each_time_its_taken_gives_another_slot() {
 }
 
 #[test]
-fn the_slot_is_of_the_selection_the_character_had_a_slot_of_first() {
-    // Slayer talents at 2, rogue talents at 4: Extra Rogue Talent at 5 gives a slayer talent.
-    let mut slayer_first = build("human", &["slayer", "slayer", "rogue", "rogue", "rogue"]);
-    slayer_first
-        .picks
-        .insert(general_slot(5), pick_feat("extra-rogue-talent"));
-    assert_eq!(
-        kind_of(&slayer_first, &extra_slot(5, 0)),
-        Some(selection("slayer/slayer-talents"))
-    );
-
-    // Rogue talents at 2, slayer talents at 4: a rogue talent.
-    let mut rogue_first = build("human", &["rogue", "rogue", "slayer", "slayer", "slayer"]);
-    rogue_first
-        .picks
-        .insert(general_slot(5), pick_feat("extra-rogue-talent"));
-    assert_eq!(
-        kind_of(&rogue_first, &extra_slot(5, 0)),
-        Some(selection("rogue/rogue-talents"))
-    );
+fn the_slot_is_the_feats_own_whatever_slots_the_character_had_first() {
+    // Slayer talents at 2, rogue talents at 4, or the other way round: Extra Rogue Talent at 5 gives a slot of its
+    // own selection either way.
+    for classes in [
+        ["slayer", "slayer", "rogue", "rogue", "rogue"],
+        ["rogue", "rogue", "slayer", "slayer", "slayer"],
+    ] {
+        let mut build = build("human", &classes);
+        build
+            .picks
+            .insert(general_slot(5), pick_feat("extra-rogue-talent"));
+        assert_eq!(
+            kind_of(&build, &extra_slot(5, 0)),
+            Some(selection("rogue/extra-rogue-talent")),
+            "{classes:?}"
+        );
+    }
 }
 
 #[test]
-fn a_character_without_a_slot_of_its_selections_gets_none() {
-    // A rogue 1 has had no rogue talent slot yet; a wizard never has a hex slot.
+fn a_character_with_no_slot_of_a_class_selection_still_gets_the_feats_slot() {
+    // A rogue 1 has had no rogue talent slot yet; a wizard never has a hex slot: the game opens the selection's
+    // slot whenever it is taken (`SelectFeature.Apply`, WrathDecompiled 6ce4a6b).
     let mut rogue = build("human", &["rogue"]);
     rogue
         .picks
         .insert(general_slot(1), pick_feat("extra-rogue-talent"));
     let mut wizard = build("human", &["wizard"]);
     wizard.picks.insert(general_slot(1), pick_feat("extra-hex"));
-    for build in [rogue, wizard] {
+    for (build, selection_key, option) in [
+        (
+            rogue,
+            "rogue/extra-rogue-talent",
+            "rogue/rogue-talents/fast-stealth",
+        ),
+        (wizard, "witch/extra-hex", "witch/hex/slumber"),
+    ] {
         assert!(engine().is_possible(&build));
-        assert_eq!(kind_of(&build, &extra_slot(1, 0)), None);
-        // A pick for the slot is a pick for a slot the Build doesn't have.
-        let mut with_pick = build;
-        with_pick.picks.insert(
-            extra_slot(1, 0),
-            pick_option("rogue/rogue-talents/fast-stealth"),
+        assert_eq!(
+            kind_of(&build, &extra_slot(1, 0)),
+            Some(selection(selection_key))
         );
-        assert!(!engine().is_possible(&with_pick));
+        let mut with_pick = build;
+        with_pick
+            .picks
+            .insert(extra_slot(1, 0), pick_option(option));
+        assert!(engine().is_possible(&with_pick), "{selection_key}");
     }
 }
 

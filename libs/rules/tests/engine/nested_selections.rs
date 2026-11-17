@@ -1,11 +1,10 @@
 //! Nested selections (ticket 302): a picked feat, mythic feat or mythic ability that names a selection opens a slot of
 //! it, as the game adds a picked selection to the level-up's selections (`SelectFeature.Apply`, WrathDecompiled
-//! 6ce4a6b). The slot is of the selection itself when it lists its own picks; one naming only the selections a
-//! character must have had a slot of first gives a slot of the first of those it had (the planner's form until 293).
+//! 6ce4a6b). The slot is of the selection itself, whenever the pick is taken (ticket 306aa).
 
 use std::collections::BTreeSet;
 
-use rules::{Build, GameData, Issue, MythicAbilityKey, Pick, SlotId, SlotKind};
+use rules::{Build, Issue, MythicAbilityKey, Pick, SlotId, SlotKind};
 
 use crate::support::*;
 
@@ -22,18 +21,9 @@ fn offered(engine: &rules::Engine, build: &Build, slot: &SlotId) -> BTreeSet<Pic
         .collect()
 }
 
-/// Extra Rogue Talent as a selection listing the rogue talents itself, after a rogue talent slot.
-fn with_own_list(data: &mut GameData) {
-    let talents = selection_mut(data, "rogue/rogue-talents").clone();
-    let own = selection_mut(data, "rogue/extra-rogue-talent");
-    own.shared_options = talents.offered().into_iter().cloned().collect();
-    own.name = talents.name.clone();
-    own.needs_slot_of = BTreeSet::from([feat_list("rogue/rogue-talents")]);
-}
-
 #[test]
 fn a_feat_granting_a_selection_with_its_own_list_gives_a_slot_of_that_selection() {
-    let engine = engine_with(with_own_list);
+    let engine = engine();
     let mut rogue = build("human", &times("rogue", 3));
     rogue
         .picks
@@ -56,48 +46,24 @@ fn a_feat_granting_a_selection_with_its_own_list_gives_a_slot_of_that_selection(
     assert!(engine.is_possible(&rogue));
 }
 
+/// A feat's selection opens its slot whenever the feat is taken, for any class and before the class's own slot: the
+/// game adds the picked selection with its own list (`SelectFeature.Apply`, WrathDecompiled 6ce4a6b), and that is
+/// the selection's, not a class's.
 #[test]
-fn a_selection_needing_a_slot_not_had_gives_none() {
-    // A slayer 3 had no rogue talent slot: the own-list selection that needs one gives no slot, as before.
-    let engine = engine_with(with_own_list);
-    let mut slayer = build("human", &times("slayer", 3));
-    slayer
-        .picks
-        .insert(general_slot(3), pick_feat("extra-rogue-talent"));
-    assert!(engine.evaluate(&slayer).slot(&extra_slot(3)).is_none());
-    // Without the condition, the selection is the slot.
-    let engine = engine_with(|data| {
-        with_own_list(data);
-        selection_mut(data, "rogue/extra-rogue-talent")
-            .needs_slot_of
-            .clear();
-    });
-    let sheet = engine.evaluate(&slayer);
-    assert_eq!(
-        sheet.slot(&extra_slot(3)).map(|slot| slot.kind.clone()),
-        Some(SlotKind::Selection(feat_list("rogue/extra-rogue-talent")))
-    );
-}
-
-#[test]
-fn a_first_had_selection_gives_a_slot_of_the_first_selection_had() {
-    // The test world's Extra Rogue Talent lists none of its own: a rogue's slot is a rogue talent's, a slayer's a
-    // slayer talent's.
+fn an_extra_feat_opens_its_own_list_for_any_class() {
     let engine = engine();
-    for (class, selection) in [
-        ("rogue", "rogue/rogue-talents"),
-        ("slayer", "slayer/slayer-talents"),
-    ] {
-        let mut build = build("human", &times(class, 3));
+    // A slayer 3 and a rogue 1 (no talent slot yet) both get a slot of the Extra selection.
+    for (class, levels) in [("slayer", 3u8), ("rogue", 1)] {
+        let mut build = build("human", &times(class, usize::from(levels)));
         build
             .picks
-            .insert(general_slot(3), pick_feat("extra-rogue-talent"));
+            .insert(general_slot(levels), pick_feat("extra-rogue-talent"));
         assert_eq!(
             engine
                 .evaluate(&build)
-                .slot(&extra_slot(3))
+                .slot(&extra_slot(levels))
                 .map(|slot| slot.kind.clone()),
-            Some(SlotKind::Selection(feat_list(selection))),
+            Some(SlotKind::Selection(feat_list("rogue/extra-rogue-talent"))),
             "{class}"
         );
     }

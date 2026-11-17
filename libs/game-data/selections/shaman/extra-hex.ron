@@ -4,8 +4,5 @@
     name: "Extra Hex",
     summary: "One more shaman hex whose prerequisites you meet; up to 3 times.",
     guide: "feats#extra-hex",
-    needs_slot_of: [
-        "shaman/hex",
-    ],
     shared_options: ["shaman/hex/air-barrier", "shaman/hex/ameliorating", "shaman/hex/aura-of-purity", "shaman/hex/battle-master", "shaman/hex/battle-ward", "shaman/hex/beckoning-chill", "shaman/hex/bone-lock", "shaman/hex/bone-ward", "shaman/hex/chant", "shaman/hex/draconic-resilience", "shaman/hex/entangling-curse", "shaman/hex/evil-eye", "shaman/hex/fearful-gaze", "shaman/hex/fire-nimbus", "shaman/hex/flame-curse", "shaman/hex/fortune", "shaman/hex/friend-to-animals", "shaman/hex/fury", "shaman/hex/hampering-hex", "shaman/hex/healing-hex", "shaman/hex/hypothermia", "shaman/hex/iceplant", "shaman/hex/intimidating-display", "shaman/hex/metal-curse", "shaman/hex/misfortune", "shaman/hex/nails", "shaman/hex/protective-luck", "shaman/hex/secret", "shaman/hex/slumber", "shaman/hex/stone-stability", "shaman/hex/vortex-spells", "shaman/hex/ward", "shaman/hex/ward-of-flame", "shaman/hex/wind-ward"],
 )

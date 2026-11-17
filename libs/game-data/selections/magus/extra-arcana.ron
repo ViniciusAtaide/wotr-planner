@@ -4,9 +4,5 @@
     name: "Magus Arcana",
     summary: "One more magus arcana whose prerequisites you meet; up to 3 times.",
     guide: "feats#extra-arcana",
-    needs_slot_of: [
-        "magus/hexcrafter/hex-arcana",
-        "magus/magus-arcana",
-    ],
     shared_options: ["magus/magus-arcana/arcane-accuracy", "magus/magus-arcana/bane-blade-level-15", "magus/magus-arcana/devoted-blade-level-12", "magus/magus-arcana/dimension-strike-level-9", "magus/magus-arcana/empowered-magic-level-6", "magus/magus-arcana/enduring-blade-level-6", "magus/magus-arcana/extended-magic", "magus/magus-arcana/ghost-blade-level-9", "magus/magus-arcana/hasted-assault-level-9", "magus/magus-arcana/maximized-magic-level-12", "magus/magus-arcana/prescient-attack-level-6", "magus/magus-arcana/quickened-magic-level-15", "magus/magus-arcana/reach-magic", "magus/magus-arcana/wand-mastery", "magus/magus-arcana/wand-wielder"],
 )

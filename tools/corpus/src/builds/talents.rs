@@ -750,6 +750,8 @@ pub(super) fn borrowed_talents(engine: &Engine) -> Vec<Named> {
     let mut out = empty_and_filled(engine, "t60", plain);
     let hex = |name: &str| option(&format!("witch/hex/{name}"));
     let fixed = vec![
+        // Extra Rogue Talent's slot is its own list since 306aa (the rogue's talents and Evasion), which a hex isn't
+        // in: the Build doesn't open, as the bard's Build with a talent in it did before the slot existed.
         (
             "bard 3 extra rogue talent",
             with(
@@ -757,7 +759,7 @@ pub(super) fn borrowed_talents(engine: &Engine) -> Vec<Named> {
                 vec![
                     (selection(2, 0), talent("combat-trick")),
                     (general(3), feat("extra-rogue-talent")),
-                    (feat_selection(3), talent("fast-stealth")),
+                    (feat_selection(3), hex("cackle")),
                 ],
             ),
         ),

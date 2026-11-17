@@ -12,9 +12,7 @@ use crate::engine::catalog::Catalog;
 use crate::engine::{
     SkillPoints, Slot, SlotKind, advanced_spellcasting, class_level_cap, most_advanced,
 };
-use crate::game_data::{
-    Ability, BASIC_FEAT_SELECTION, Band, Class, CountsToward, FeatureSelection, Save, SpellType,
-};
+use crate::game_data::{Ability, BASIC_FEAT_SELECTION, Band, Class, CountsToward, Save, SpellType};
 use crate::keys::{ClassKey, FeatureKey, FeatureSelectionKey};
 use crate::state::{CharacterState, ClassLevels};
 
@@ -568,7 +566,7 @@ impl<'a> Walker<'a> {
         match pending {
             Pending::Row(kind, _) => catalog.band(kind),
             Pending::Feat(feat) => (catalog.feat(feat))
-                .and_then(|feat| self.nested_selection(feat.selection.as_ref()?))
+                .and_then(|feat| catalog.selection(feat.selection.as_ref()?))
                 .map_or(Band::Features, |selection| catalog.slot_band(selection)),
         }
     }
@@ -580,35 +578,20 @@ impl<'a> Walker<'a> {
         }
     }
 
-    /// The slot a picked entry's selection opens (ticket 302), granted from `source`: a slot of its
-    /// [`nested_selection`](Self::nested_selection), unless that one is granted with no pick
-    /// ([`opens_slot`](Self::opens_slot)). `None`: no slot.
+    /// The slot a picked entry's selection opens (ticket 302), granted from `source`: a slot of the selection itself,
+    /// whenever it is taken, as the game adds a picked selection to the level-up's (`SelectFeature.Apply`,
+    /// WrathDecompiled 6ce4a6b), unless that one is granted with no pick ([`opens_slot`](Self::opens_slot)). `None`:
+    /// no slot.
     pub(super) fn granted_slot(
         &mut self,
         key: &FeatureSelectionKey,
         source: Option<&GrantSource>,
     ) -> Option<SlotKind> {
-        let kind = self.engine.catalog.slot_kind(self.nested_selection(key)?);
+        let kind = self
+            .engine
+            .catalog
+            .slot_kind(self.engine.catalog.selection(key)?);
         self.opens_slot(&kind, source).then_some(kind)
-    }
-
-    /// The selection whose slot a picked entry's selection opens: the selection itself, as the game adds a picked
-    /// selection to the level-up's (`SelectFeature.Apply`, WrathDecompiled 6ce4a6b). The planner's condition until
-    /// 293 ([`needs_slot_of`](crate::FeatureSelection::needs_slot_of)): only after a slot of one of the selections it
-    /// names, and the first of them the walk reached a slot of when it lists nothing of its own. `None`: no slot.
-    fn nested_selection(&self, key: &FeatureSelectionKey) -> Option<&'a FeatureSelection> {
-        let catalog = &self.engine.catalog;
-        let selection = catalog.selection(key)?;
-        if selection.needs_slot_of.is_empty() {
-            return Some(selection);
-        }
-        let had =
-            (self.selections_had.iter()).find(|had| selection.needs_slot_of.contains(*had))?;
-        if selection.has_list() {
-            Some(selection)
-        } else {
-            catalog.selection(had)
-        }
     }
 
     /// Whether a granted selection's slot of `kind` takes a pick: a Feature selection granted with no pick

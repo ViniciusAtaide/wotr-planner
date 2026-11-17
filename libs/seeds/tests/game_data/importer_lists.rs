@@ -115,26 +115,46 @@ fn the_bard_skald_and_inciter_talents_are_their_own_lists() {
     }
 }
 
-/// 306e: a bard and a skald get no pick from Extra Rogue Talent: the game's feat needs a rogue's, a Sylvan Trickster's or a
-/// Dark Lurker's talent selection, and their own are another feature. (306aa reworks the feat's `needs_slot_of`.)
+/// 306e: a bard and a skald can't take Extra Rogue Talent: the game's feat needs a rogue's, a Sylvan Trickster's or a
+/// Dark Lurker's talent selection, and their own are another feature. Its slot is the feat's own for any class that
+/// holds the feat (306aa), so the refusal is the feat's prerequisite, which S4 (308) writes as the game's.
 // Game: ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 has PrerequisiteFeature (Group Any) of
 // RogueTalentSelection c074a5d615200494b8f2a9c845799d93, SylvanTricksterTalentSelection
 // 290bbcc3c3bb92144b853fd8fb8ff452 and DarkLurkerRogueTalentSelection 1edbb68422c046f98a86f4726f6721b2; BardTalentSelection
 // 94e2cd84bf3a8e04f8609fe502892f4f and SkaldTalentSelection d2a8fde8985691045b90e1ec57e3cc57 are none of them.
 #[test]
+#[ignore = "waits on ticket 308: the importer writes Extra Rogue Talent's prerequisite as the game's selections, \
+            which a bard's and a skald's talent selections aren't"]
 fn a_bard_and_a_skald_cant_take_extra_rogue_talent() {
-    let with_extra = |class: &str| {
+    for class in ["bard", "skald"] {
+        let build = with_selections_filled(classes_build(&[class, class, class]));
+        assert!(
+            feat_status(&build, &general_slot(3), "extra-rogue-talent").is_err(),
+            "{class}"
+        );
+    }
+}
+
+/// 306aa: a rogue's pick in Extra Rogue Talent's slot stands, and the slot is the feat's own selection's, the rogue's
+/// talents and Evasion, whatever class takes the feat.
+// Game: ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 (RogueTalentSelection
+// c074a5d615200494b8f2a9c845799d93's 38 and Evasion 576933720c440aa4d8d42b0c54b77e80); `SelectFeature.Apply`,
+// WrathDecompiled 6ce4a6b, adds the picked selection with its own list.
+#[test]
+fn a_pick_in_extra_rogue_talents_slot_stands_for_a_rogue_and_a_bard() {
+    for class in ["rogue", "bard"] {
         let mut build = with_selections_filled(classes_build(&[class, class, class]));
         build
             .picks
             .insert(general_slot(3), feat_pick_plain("extra-rogue-talent"));
-        with_pick(build, extra_slot(3, 0), &rogue_talent("fast-stealth"))
-    };
-    // A rogue's pick in the feat's slot stands; a bard's or a skald's is refused (the planner still lets them take
-    // the feat itself: its prerequisite reads the talents held, which 306aa/S4 write as the game's).
-    assert!(possible(&with_extra("rogue")));
-    for class in ["bard", "skald"] {
-        assert!(!possible(&with_extra(class)), "{class}");
+        assert!(
+            possible(&with_pick(
+                build,
+                extra_slot(3, 0),
+                &rogue_talent("fast-stealth")
+            )),
+            "{class}"
+        );
     }
 }
 
@@ -358,10 +378,9 @@ fn the_shamans_hexes_are_their_own_and_open_old_links_through_aliases() {
     assert_eq!(keys(selection("magus/hexcrafter/hex")), witch);
     assert_eq!(keys(selection("shaman/extra-hex")), keys(shaman));
     assert!(
-        !selection("witch/extra-hex")
-            .needs_slot_of
+        !keys(selection("witch/extra-hex"))
             .iter()
-            .any(|key| key.as_str() == "shaman/hex")
+            .any(|key| key.starts_with("shaman/hex/"))
     );
     let feat = DATA
         .feats
@@ -640,10 +659,9 @@ fn the_heir_the_vivisectionists_extra_discovery_and_the_angel_have_the_games_lis
     );
     assert_eq!(keys(selection("alchemist/extra-discovery")).len(), 28);
     assert!(
-        !selection("alchemist/extra-discovery")
-            .needs_slot_of
+        !keys(selection("alchemist/extra-discovery"))
             .iter()
-            .any(|key| key.as_str() == "alchemist/vivisectionist/medical-discovery")
+            .any(|key| key.starts_with("alchemist/vivisectionist/medical-discovery/"))
     );
 
     let greater = guids("angel/greater-sword-of-heaven");

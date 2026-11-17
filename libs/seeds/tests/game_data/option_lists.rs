@@ -12,13 +12,7 @@ use crate::support::{DATA, feat, mythic_feat, picks_of};
 /// option key prefix (a full key names one option; a prefix ending in `/` names every option under it), and why
 /// that is no gap. An entry that covers nothing, or covers an option the prerequisite names, fails
 /// [`every_exception_covers_an_option_the_prerequisite_leaves_out`].
-const EXCEPTIONS: [(&str, &str, &str); 5] = [
-    (
-        "extra-rage-power",
-        "skald/battle-scion/rage-power-or-teamwork-feat/teamwork-feat",
-        "a teamwork feat is no rage power (ticket 189): the Battle Scion's slot offers it, the feat's prerequisite \
-         names rage powers only",
-    ),
+const EXCEPTIONS: [(&str, &str, &str); 2] = [
     (
         "extra-arcanist-exploit",
         "arcanist/greater-exploits/",
@@ -26,21 +20,10 @@ const EXCEPTIONS: [(&str, &str, &str); 5] = [
          exploits only: the importer's prerequisite stage (293) writes the game's selections",
     ),
     (
-        "extra-arcana",
-        "witch/hex/",
-        "the witch hexes are Hex Arcana only for the Hexcrafter, whose branch of the prerequisite (Archetype, magus 6, \
-         its first Hex Arcana slot) holds the feat (ticket 64)",
-    ),
-    (
-        "extra-discovery",
-        "rogue/rogue-talents/",
-        "rogue talents are discoveries only for the Vivisectionist and the Underground Chemist, whose branches \
-         (Archetype; the Feature) hold the feat (ticket 64)",
-    ),
-    (
         "extra-rogue-talent",
-        "witch/hex/",
-        "the witch hexes are Fey Tricks only for the Sylvan Trickster, whose Feature branch holds the feat",
+        "rogue/rogue-talents/evasion",
+        "Evasion is a rogue talent only in the game's Extra Rogue Talent list (306aa), where it sits beside the \
+         rogue's 38; the feat's prerequisite names the talents",
     ),
 ];
 

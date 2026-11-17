@@ -5,9 +5,6 @@
     option_levels: ["kineticist"],
     summary: "One more wild talent whose prerequisites you meet; up to 3 times.",
     guide: "feats#extra-wild-talent",
-    needs_slot_of: [
-        "kineticist/wild-talents",
-    ],
     options: [],
     shared_options: [
         "kineticist/wild-talents/aerial-adaptation",

@@ -510,6 +510,7 @@ fn an_option_taken_again_grants_its_rows_slot_again() {
             ..OptionLevelRow::default()
         }];
         selection_mut(data, "rogue/rogue-talents").option_levels = [class("rogue")].into();
+        selection_mut(data, "rogue/extra-rogue-talent").option_levels = [class("rogue")].into();
     });
     let trick_slot = |level| SlotId::OptionFeat { level, index: 0 };
     let mut build = build("elf", &times("rogue", 4));

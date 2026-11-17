@@ -49,11 +49,6 @@ impl<'a> Walker<'a> {
             self.probed.kind = Some(kind.clone());
         }
         self.reached.insert(id.clone());
-        if let SlotKind::Selection(selection) = &kind
-            && !self.selections_had.contains(selection)
-        {
-            self.selections_had.push(selection.clone());
-        }
         let pick = self.build.picks.get(&id).cloned();
         if let Some(pick) = &pick {
             match self.check_pick(&kind, pick) {

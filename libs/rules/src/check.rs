@@ -1328,11 +1328,6 @@ impl Checker {
             );
             self.names_each(
                 &selection_at,
-                &selection.needs_slot_of,
-                DataAt::FeatureSelection,
-            );
-            self.names_each(
-                &selection_at,
                 selection.option_level_archetypes.keys(),
                 DataAt::Archetype,
             );

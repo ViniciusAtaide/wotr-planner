@@ -1171,13 +1171,6 @@ pub struct FeatureSelection {
     /// left out when written.
     #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
     pub mythic_abilities: BTreeSet<MythicAbilityKey>,
-    /// The planner's form until 293 writes the game's lists (ticket 302): a pick that grants this selection opens its
-    /// slot only for a character who had a slot of one of these first, as the planner's Extra feats always have. A
-    /// selection with no list of its own then gives a slot of the first of these the character had a slot of (Extra
-    /// Rogue Talent: a rogue's talents, a Sylvan Trickster's fey tricks or a Feyform Shifter's talents). Empty: no
-    /// such condition, and left out when written.
-    #[serde(default, skip_serializing_if = "BTreeSet::is_empty")]
-    pub needs_slot_of: BTreeSet<FeatureSelectionKey>,
     /// Set on a bonus list, a class's own bonus-feat list (a monk's bonus feats, a ranger's combat style): a pick of
     /// one of its `feats` ignores the feat's prerequisites (the game's `IgnorePrerequisites`). It still has to be on the
     /// list and not already held, and it counts as held afterwards.
@@ -1404,8 +1397,7 @@ impl FeatureSelection {
         !self.mythic_abilities.is_empty()
     }
 
-    /// Whether it lists anything of its own to pick: options, feats or mythic abilities. One that doesn't stands for
-    /// the first selection had of its [`needs_slot_of`](Self::needs_slot_of) (ticket 302).
+    /// Whether it lists anything of its own to pick: options, feats or mythic abilities.
     pub fn has_list(&self) -> bool {
         !self.feats.is_empty()
             || self.offers_mythic_abilities()

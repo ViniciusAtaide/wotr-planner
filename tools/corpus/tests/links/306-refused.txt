@@ -20,7 +20,6 @@ full skald skald/inciter
 full skald skald/inciter / legend
 full t60 bard 20 / empty
 full t60 bard 20 / empty / legend
-full t60 bard 3 extra rogue talent
 full t60 bard/archaeologist 20 / empty
 full t60 bard/archaeologist 20 / empty / legend
 full t60 bard/chelaxian-diva 20 / empty
@@ -29,7 +28,6 @@ full t60 skald/court-poet 20 / empty
 full t60 skald/court-poet 20 / empty / legend
 full t60 skald/herald-of-the-horn 20 / empty
 full t60 skald/herald-of-the-horn 20 / empty / legend
-t60 bard 3 extra rogue talent
 
 follow slayer sf two skills
 full inquisitor inquisitor/sanctified-slayer
@@ -81,24 +79,17 @@ full t64 hexcrafter hexes only
 full gap shaman None
 full t49 shaman hex / feat
 full t49 shaman hex / filled
-full t60 hexcrafter 18 hexes
-full t60 hexcrafter 18 hexes / legend
 t49 shaman hex / feat
 t49 shaman hex / filled
-t60 hexcrafter 18 hexes
 t62 shaman 6 wandering hex filled
 full shaman 
 full shaman shaman/spirit-hunter
 full shaman shaman/spirit-hunter / legend
 full t62 shaman 6 wandering hex filled
 full t63 shaman/prophet-of-pestilence NeutralEvil 20 / empty
-t64 vivisectionist discovery / filled
-t64 vivisectionist talent only / filled
 full t49 underground chemist discovery / feat
 full t64 vivisectionist discovery / feat
-full t64 vivisectionist discovery / filled
 full t64 vivisectionist talent only
-full t64 vivisectionist talent only / filled
 
 full magus 
 full magus  / legend

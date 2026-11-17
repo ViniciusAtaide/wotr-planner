@@ -989,7 +989,6 @@ fn a_scoundrel_with_only_uncanny_dodge_may_take_extra_rogue_talent() {
 // Game: ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 (39: RogueTalentSelection
 // c074a5d615200494b8f2a9c845799d93's 38 and Evasion 576933720c440aa4d8d42b0c54b77e80)
 #[test]
-#[ignore = "waits on ticket 264: the game gives Extra Rogue Talent its own list of 39, the rogue talents and Evasion"]
 fn extra_rogue_talent_offers_the_rogue_talents_and_evasion() {
     let mut build = with_selections_filled(build("rogue", 3));
     build

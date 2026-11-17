@@ -5,11 +5,6 @@
     option_levels: ["inquisitor", "slayer"],
     summary: "One more slayer talent whose prerequisites you meet; up to 3 times.",
     guide: "feats#extra-slayer-talent",
-    needs_slot_of: [
-        "slayer/slayer-talents",
-        "slayer/slayer-talents-10",
-        "slayer/slayer-talents-6",
-    ],
     options: ["slayer/slayer-talents/combat-style-feat-10", "slayer/slayer-talents/combat-style-feat-6"],
     shared_options: [
         "rogue/rogue-talents/blinding-strike",

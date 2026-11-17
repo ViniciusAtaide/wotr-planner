@@ -4,9 +4,6 @@
     name: "Mercy",
     summary: "One more mercy whose prerequisites you meet; up to 3 times.",
     guide: "feats#extra-mercy",
-    needs_slot_of: [
-        "paladin/mercy",
-    ],
     options: [],
     shared_options: [
         "paladin/mercy/blinded",

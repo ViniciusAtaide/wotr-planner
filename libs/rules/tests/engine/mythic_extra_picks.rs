@@ -143,7 +143,7 @@ fn a_feat_with_an_extra_pick_in_the_extra_slot_gives_its_slot_at_the_ranks_level
     assert_eq!(
         kind_of(&build, &talent),
         Some(SlotKind::Selection(FeatureSelectionKey::new(
-            "rogue/rogue-talents"
+            "rogue/extra-rogue-talent"
         )))
     );
     build

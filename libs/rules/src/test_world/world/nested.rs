@@ -265,7 +265,6 @@ fn selections_into(selections: Vec<FeatureSelection>, data: &mut GameData) {
             options: selection.options.iter().map(|o| o.key.clone()).collect(),
             feats: BTreeSet::new(),
             mythic_abilities: BTreeSet::new(),
-            needs_slot_of: BTreeSet::new(),
             ignores_prerequisites: false,
             skips_proficiency: false,
             shared_options: selection.shared_options,

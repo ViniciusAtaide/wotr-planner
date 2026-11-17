@@ -10,55 +10,28 @@ use crate::support::*;
 // ---- Extra feats' extra picks (ticket 49) ---------------------------------------------------------------------
 
 /// The "Extra …" feats that give one more pick of a class selection ("You gain one additional hex"), with the
-/// selections that pick may be of, as the game gives them. Extra Mercy's since ticket 54 made the paladin's mercies a
-/// selection; the Vivisectionist's Medical Discovery since ticket 64. The rows of `WAITING` differ from the data.
+/// selection each grants: the game's own Extra selection, which holds its own list and opens its slot whenever the
+/// feat is taken (`SelectFeature.Apply`, WrathDecompiled 6ce4a6b; ticket 306aa). Extra Mercy's since ticket 54 made the
+/// paladin's mercies a selection; the Vivisectionist's Medical Discovery since ticket 64. Which classes may take the
+/// feat is its prerequisite's (S4, 308).
 const EXTRA_PICKS: [(&str, &[&str]); 11] = [
-    ("extra-arcana", &["magus/magus-arcana"]), // Game: ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8 (its own list of the 15 magus arcana; met by MagusArcanaSelection, HexcrafterMagusHexArcanaSelection or EldritchMagusArcanaSelection)
+    ("extra-arcana", &["magus/extra-arcana"]), // Game: ExtraArcanaSelection 00727883edf145e2a6bce9ad176ecfd8 (its own list of the 15 magus arcana; met by MagusArcanaSelection, HexcrafterMagusHexArcanaSelection or EldritchMagusArcanaSelection)
     (
         "extra-arcanist-exploit",
-        &["arcanist/arcanist-exploits", "arcanist/exploiter-exploits"],
+        &["arcanist/extra-arcanist-exploit"],
     ), // Game: ExtraArcanistExploitSelection 0a7065e13f4449fa81bfb33199bf7f6a (ArcanistExploitSelection or ExploiterExploitSelection)
-    ("extra-discovery", &["alchemist/discovery"]), // Game: ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 (DiscoverySelection cd86c437488386f438dcc9ae727ea2a6); UndergroundChemistSelection c3d08fdb481aa2e4a9f71c4349141826 meets neither
+    ("extra-discovery", &["alchemist/extra-discovery"]), // Game: ExtraDiscoverySelection 537965879fc24ad3948aaffa7a1a3a66 (DiscoverySelection cd86c437488386f438dcc9ae727ea2a6); UndergroundChemistSelection c3d08fdb481aa2e4a9f71c4349141826 meets neither
     (
         "extra-discovery-vivisectionist",
-        &["alchemist/vivisectionist/medical-discovery"],
+        &["alchemist/vivisectionist/extra-discovery"],
     ), // Game: ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae (VivsectionistDiscoverySelection 67f499218a0e22944abab6fe1c9eaeee)
-    ("extra-hex", &["witch/hex"]), // Game: ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35; the shaman's is another feat, ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6
-    ("extra-hex-shaman", &["shaman/hex"]), // Game: ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6 (ShamanHexSelection 4223fe18c75d4d14787af196a04e14e7)
-    ("extra-mercy", &["paladin/mercy"]), // Game: ExtraMercySelection 8a49abed5be9473da1e1fd1e2457562e (SelectionMercy 02b187038a8dce545bb34bbfb346428d)
-    (
-        "extra-rage-power",
-        &[
-            "barbarian/instinctual-warrior/rage-power",
-            "barbarian/rage-power",
-            "barbarian/skald-rage-power",
-        ],
-    ), // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a (RagePowerSelection, InstinctualWarriorRagePowerSelection or SkaldRagePowerSelection; BattleScionArchetype 71d41dd6309ea994886908c34c87ccd9's BattleProwessSelection meets none)
-    (
-        "extra-rogue-talent",
-        &[
-            "rogue/rogue-talents",
-            "rogue/sylvan-trickster/fey-tricks",
-            "shifter/feyform-shifter/rogue-talent",
-        ],
-    ), // Game: ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 (RogueTalentSelection, SylvanTricksterTalentSelection 290bbcc3c3bb92144b853fd8fb8ff452 or DarkLurkerRogueTalentSelection 1edbb68422c046f98a86f4726f6721b2; FeyformShifterShifterArchetype 1cdfc7d306d1430eac19427539b62091 adds RogueTalentSelection)
-    (
-        "extra-slayer-talent",
-        &[
-            "slayer/slayer-talents",
-            "slayer/slayer-talents-10",
-            "slayer/slayer-talents-6",
-        ],
-    ), // Game: ExtraSlayerTalentSelection 53f7237f5b1447bb851ba68045a00e41
-    ("extra-wild-talent", &["kineticist/wild-talents"]), // Game: ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471 (WildTalentSelection 5c883ae0cd6d7d5448b7a420f51f8459)
-];
-
-/// The rows of `EXTRA_PICKS` whose game value the data doesn't have yet.
-const WAITING: [&str; 4] = [
-    "extra-arcana",
-    "extra-discovery",
-    "extra-hex",
-    "extra-rage-power",
+    ("extra-hex", &["witch/extra-hex"]), // Game: ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35; the shaman's is another feat, ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6
+    ("extra-hex-shaman", &["shaman/extra-hex"]), // Game: ExtraShamanHexSelection d0b4c8245d504b8c9c6d3fccc1f8c5b6 (ShamanHexSelection 4223fe18c75d4d14787af196a04e14e7)
+    ("extra-mercy", &["paladin/extra-mercy"]), // Game: ExtraMercySelection 8a49abed5be9473da1e1fd1e2457562e (SelectionMercy 02b187038a8dce545bb34bbfb346428d)
+    ("extra-rage-power", &["barbarian/extra-rage-power"]), // Game: ExtraRagePowerSelection 0c7f01fbbe687bb4baff8195cb02fe6a (RagePowerSelection, InstinctualWarriorRagePowerSelection or SkaldRagePowerSelection; BattleScionArchetype 71d41dd6309ea994886908c34c87ccd9's BattleProwessSelection meets none)
+    ("extra-rogue-talent", &["rogue/extra-rogue-talent"]), // Game: ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12 (RogueTalentSelection, SylvanTricksterTalentSelection 290bbcc3c3bb92144b853fd8fb8ff452 or DarkLurkerRogueTalentSelection 1edbb68422c046f98a86f4726f6721b2; FeyformShifterShifterArchetype 1cdfc7d306d1430eac19427539b62091 adds RogueTalentSelection)
+    ("extra-slayer-talent", &["slayer/extra-slayer-talent"]), // Game: ExtraSlayerTalentSelection 53f7237f5b1447bb851ba68045a00e41
+    ("extra-wild-talent", &["kineticist/extra-wild-talent"]), // Game: ExtraWildTalentSelection 0f73730cf1b44ee882671e55d5f6e471 (WildTalentSelection 5c883ae0cd6d7d5448b7a420f51f8459)
 ];
 
 /// An Extra feat that gives a pick, with the selections the pick may be of.
@@ -91,16 +64,8 @@ fn game_extra_picks() -> BTreeSet<ExtraPick> {
         .collect()
 }
 
-/// `rows` without the rows of `WAITING`.
-fn settled(rows: BTreeSet<ExtraPick>) -> BTreeSet<ExtraPick> {
-    rows.into_iter()
-        .filter(|(feat, _)| !WAITING.contains(&feat.as_str()))
-        .collect()
-}
-
 #[test]
 fn the_extra_feats_that_give_a_pick_name_their_selections() {
-    assert_eq!(settled(data_extra_picks()), settled(game_extra_picks()));
     // The resource ones give no pick.
     for key in [
         "extra-arcane-pool",  // Game: ExtraArcanePool 42f96fc8d6c80784194262e51b0a1d25
@@ -118,11 +83,10 @@ fn the_extra_feats_that_give_a_pick_name_their_selections() {
     }
 }
 
-/// Extra Arcana is the magus arcana for every magus, the Hexcrafter's too; Extra Discovery is no Underground
-/// Chemist's; Extra Hex is the witch's (the shaman's another feat); Extra Rage Power is no Battle Scion's.
-// Game: the rows of EXTRA_PICKS named by WAITING
+/// Each Extra feat grants the game's own Extra selection, whose slot is of that selection for any class (Extra Hex's
+/// two feats, the witch's and the shaman's, each their own).
+// Game: the rows of EXTRA_PICKS
 #[test]
-#[ignore = "waits on ticket 264: the game gives Extra Arcana the 15 magus arcana, Extra Discovery no Underground Chemist, Extra Hex (Witch) and (Shaman) as two feats, Extra Rage Power no Battle Scion"]
 fn the_extra_feats_that_give_a_pick_name_the_games_selections() {
     assert_eq!(data_extra_picks(), game_extra_picks());
 }
@@ -221,6 +185,26 @@ fn extra_rage_power_isnt_removable_while_its_slots_pick_depends_on_it_and_takes_
     assert_eq!(kind_at(&build, &extra_slot(3, 0)), None);
 }
 
+/// Any Extra feat opens its own selection's slot whenever it is held, whatever slots the character had before: a
+/// bard or a skald (the planner's prerequisite admits them until 308) has none of the rogue's.
+// Game: `SelectFeature.Apply` adds the picked selection with its own list to the level-up's selections (WrathDecompiled
+// 6ce4a6b, UnitLogic/Class/LevelUp/Actions/SelectFeature.cs); that the feat needs a class selection is its
+// prerequisite's (PrerequisiteFeature, S4), not the slot's.
+#[test]
+fn an_extra_feat_opens_its_own_list_for_any_class() {
+    for (classes, level) in [(times("bard", 3), 3), (times("skald", 3), 3)] {
+        let mut build = with_selections_filled(classes_build(&classes));
+        build
+            .picks
+            .insert(general_slot(level), feat_pick_plain("extra-rogue-talent"));
+        assert_eq!(
+            kind_at(&build, &extra_slot(level, 0)),
+            Some(selection_kind(slot_selection("extra-rogue-talent"))),
+            "{classes:?}"
+        );
+    }
+}
+
 #[test]
 fn a_witchs_extra_hex_gives_a_hex_slot() {
     // Game: WitchProgression c5e9e2b086a9814409fb6a29a5acdd0f (WitchHexSelection 9846043cf51251a4897728ed6e24e76f at
@@ -232,7 +216,7 @@ fn a_witchs_extra_hex_gives_a_hex_slot() {
     assert!(possible(&build));
     assert_eq!(
         kind_at(&build, &extra_slot(1, 0)),
-        Some(selection_kind(slot_selection("extra-hex", "witch/hex")))
+        Some(selection_kind(slot_selection("extra-hex")))
     );
     let filled = with_selections_filled(build);
     assert!(filled.picks.contains_key(&extra_slot(1, 0)));
@@ -376,8 +360,8 @@ fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
         assert!(possible(&build), "{feat} at {level}");
         assert_eq!(
             kind_at(&build, &extra_slot(level, 0)),
-            Some(selection_kind(slot_selection(feat, selection))),
-            "{feat} at {level}"
+            Some(selection_kind(slot_selection(feat))),
+            "{feat} at {level} (the game's feat needs {selection})"
         );
         let filled = with_selections_filled(build);
         assert!(
@@ -392,24 +376,17 @@ fn times(class: &'static str, n: usize) -> Vec<&'static str> {
     vec![class; n]
 }
 
-/// The selection of the slot an Extra feat gives a character who had a slot of `had` (ticket 302): the feat's own
-/// when it lists its own picks (standing for `had`, with its header), else `had`.
-fn slot_selection<'a>(feat_key: &str, had: &'a str) -> &'a str {
-    let own = feat(feat_key)
-        .selection
-        .as_ref()
-        .map(|key| any_selection(key.as_str()))
-        .filter(|selection| selection.has_list());
-    match own {
-        Some(own) => {
-            assert!(
-                own.needs_slot_of
-                    .contains(&rules::FeatureSelectionKey::new(had))
-            );
-            own.key.as_str()
-        }
-        None => had,
-    }
+/// The selection of the slot an Extra feat gives (ticket 302): the feat's own, which lists its own picks.
+fn slot_selection(feat_key: &str) -> &'static str {
+    let own = any_selection(
+        feat(feat_key)
+            .selection
+            .as_ref()
+            .expect("a selection")
+            .as_str(),
+    );
+    assert!(own.has_list(), "{feat_key}: lists its own picks");
+    own.key.as_str()
 }
 
 /// The Extra feats the game refuses: Extra Discovery to an Underground Chemist (its discovery selection meets no
@@ -421,7 +398,7 @@ fn slot_selection<'a>(feat_key: &str, had: &'a str) -> &'a str {
 // ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35 (not HexcrafterMagusHexMagusSelection
 // a18b8c3d6251d8641a8094e5c2a7bc78)
 #[test]
-#[ignore = "waits on ticket 264: the game refuses Extra Discovery to an Underground Chemist, Extra Rogue Talent to a bard or a skald, Extra Hex to a Hexcrafter"]
+#[ignore = "waits on ticket 308: the game refuses them by the feats' prerequisites (an Underground Chemist's, a bard's and a skald's selections are none the feat names), which the importer writes in S4"]
 fn the_extra_feats_the_game_refuses_to_an_underground_chemist_a_bard_a_skald_and_a_hexcrafter() {
     let cases: [(Build, &str, u8); 4] = [
         (
@@ -608,7 +585,7 @@ fn a_hexcrafter_5_meets_extra_arcana() {
 // a slot left empty (the game has no unfilled slot; the selection is held from its level whatever is picked).
 #[test]
 fn a_plain_alchemists_and_magus_extra_picks_are_unchanged() {
-    for (class, feat, own, selection, label) in [
+    for (class, feat, own, _needs, label) in [
         (
             "alchemist",
             "extra-discovery",
@@ -640,7 +617,7 @@ fn a_plain_alchemists_and_magus_extra_picks_are_unchanged() {
         let slot = extra_slot(3, 0);
         assert_eq!(
             kind_at(&build, &slot),
-            Some(selection_kind(slot_selection(feat, selection)))
+            Some(selection_kind(slot_selection(feat)))
         );
         assert_eq!(label_at(&build, &slot), label);
         assert_eq!(

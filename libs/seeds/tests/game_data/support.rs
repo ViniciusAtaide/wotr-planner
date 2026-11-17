@@ -923,14 +923,10 @@ pub const FEAT_POOLS: [&str; 5] = [
 ];
 
 /// A Feature selection by key.
-/// The selections a feat's pick may be a slot of, as the planner holds them (ticket 302): those its selection needs a
-/// slot of first ([`needs_slot_of`](rules::FeatureSelection::needs_slot_of)), which every Extra feat's names. Empty
-/// for a feat that grants none.
+/// The selections a feat's pick may be a slot of (ticket 302): the selection it grants, whose own list every pick of
+/// it is of (ticket 306aa). Empty for a feat that grants none.
 pub fn picks_of(feat: &rules::Feat) -> BTreeSet<rules::FeatureSelectionKey> {
-    feat.selection
-        .as_ref()
-        .map(|key| any_selection(key.as_str()).needs_slot_of.clone())
-        .unwrap_or_default()
+    feat.selection.iter().cloned().collect()
 }
 
 pub fn any_selection(key: &str) -> &'static rules::FeatureSelection {
