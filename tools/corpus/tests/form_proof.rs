@@ -41,6 +41,11 @@
 //!   or refused (`links: N the same, N through an heir, N refused, N changed`); one that opens as another Build is a
 //!   difference. `FORM_PROOF_LINKS_OUT=<file>` writes `name<TAB>slot<TAB>key<TAB>kind` of each heir (`old=>new`)
 //!   and each refused pick. `tests/links.rs` pins a stage's base links and refusals.
+//! - **Lost Builds** (ticket 306af): `compare` matches the record's Builds with the corpus's by name, and lists each
+//!   Build the record holds that the corpus doesn't (`lost Build`), each new one, and each that opened on the base and
+//!   not on the tip, with the generator lines that can make it: a string literal of `tools/corpus/src/builds/` or
+//!   `generate.rs` whose fixed text the name has (the best fits first), or its line of `bench-links.tsv`. A name
+//!   built from data may match none. The stage's Answer explains each or fixes the generator.
 //! - **`FORM_PROOF_KIND_MAP=<file>`** is for a ticket that renames a slot kind: a file of `old kind<TAB>new kind` lines
 //!   (the `Debug` text of the kind, as `slots.txt` holds it; `#` comments). `compare` accepts a slot line that
 //!   differs only by its kind through the map, and prints how many it mapped apart from the differences.
@@ -323,6 +328,7 @@ fn record_all() -> Vec<Entry> {
     let (engine, data) = corpus::engine().expect("the game data loads");
     let threads = corpus::threads("FORM_PROOF_THREADS");
     let builds = corpus::builds::all(&engine, &data, threads);
+    no_duplicate_names(builds.iter().map(|(name, _)| name.as_str()), "the corpus");
     let keys = LinkKeys::new(&data);
     in_parallel(&builds, threads, |build| {
         record_entry(&engine, &keys, build)
@@ -424,7 +430,8 @@ fn read_entries(dir: &Path) -> Vec<Entry> {
         sheet_sections.len(),
         number_sections.len()
     );
-    rows.iter()
+    let entries: Vec<Entry> = rows
+        .iter()
         .zip(slot_sections)
         .zip(sheet_sections)
         .zip(number_sections)
@@ -444,7 +451,20 @@ fn read_entries(dir: &Path) -> Vec<Entry> {
                 numbers,
             }
         })
-        .collect()
+        .collect();
+    no_duplicate_names(entries.iter().map(|e| e.name.as_str()), "the record");
+    entries
+}
+
+/// Panics naming each Build name `names` holds twice: the proof matches Builds by name, so a shared name would hide
+/// one of them. `whose` says which list it is.
+fn no_duplicate_names<'a>(names: impl Iterator<Item = &'a str>, whose: &str) {
+    let mut seen = BTreeSet::new();
+    let duplicates: BTreeSet<&str> = names.filter(|name| !seen.insert(*name)).collect();
+    assert!(
+        duplicates.is_empty(),
+        "{whose} holds Builds that share a name (the proof matches by name): {duplicates:?}"
+    );
 }
 
 /// The differences by kind: how many, and the first few.
@@ -464,6 +484,19 @@ impl Differences {
             .unwrap_or(SHOWN);
         if shown.len() < most {
             shown.push(format!("{build}: {}", first_difference(before, now)));
+        }
+    }
+
+    /// A difference that is its own text (a Build the corpus lost, with its generator lines), counted and shown.
+    fn note(&mut self, kind: &'static str, text: String) {
+        let (count, shown) = self.0.entry(kind).or_default();
+        *count += 1;
+        let most = std::env::var("FORM_PROOF_SHOWN")
+            .ok()
+            .and_then(|n| n.parse().ok())
+            .unwrap_or(SHOWN);
+        if shown.len() < most {
+            shown.push(text);
         }
     }
 
@@ -911,10 +944,31 @@ fn compare() {
             &format!("{} Builds", now.len()),
         );
     }
-    for (b, n) in before.iter().zip(&now) {
+    // The Builds are matched by name: one the corpus lost, or gained, shifts every later one by index. Each is
+    // listed with the generator lines that can make it (ticket 306af).
+    let sources = generator_sources();
+    let (lost, gained) = lost_and_gained(&before, &now, &sources);
+    for text in lost {
+        differences.note("lost Build (in the record, not in the corpus)", text);
+    }
+    for text in gained {
+        differences.note("new Build (in the corpus, not in the record)", text);
+    }
+    let by_name: HashMap<&str, &Entry> = now.iter().map(|n| (n.name.as_str(), n)).collect();
+    for (b, n) in before
+        .iter()
+        .filter_map(|b| by_name.get(b.name.as_str()).map(|n| (b, *n)))
+    {
         let build = n.name.as_str();
-        differences.add("name", &b.name, &b.name, build);
-        differences.add("opens", build, &b.opens.to_string(), &n.opens.to_string());
+        if b.opens && !n.opens {
+            let note = generator_note(build, &sources);
+            differences.note(
+                "opened on the base, not on the tip",
+                format!("{build}\n{note}"),
+            );
+        } else {
+            differences.add("opens", build, &b.opens.to_string(), &n.opens.to_string());
+        }
         match attribution.as_mut() {
             // The census attributes each differing line of the Build's files to a change-log row.
             Some(attribution) => {
@@ -1347,6 +1401,163 @@ fn link_census(engine: &Engine, data: &GameData, keys: &LinkKeys, before: &[Entr
     census
 }
 
+// ---- The Builds the regenerated corpus lost (ticket 306af) ----------------------------------------------------
+
+/// A file the corpus's names come from: its path under `tools/corpus/` and its text.
+struct Source {
+    path: String,
+    text: String,
+}
+
+/// The generators' files: `src/builds/*.rs`, `src/generate.rs` and the benchmark's `bench-links.tsv`.
+fn generator_sources() -> Vec<Source> {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let mut paths: Vec<PathBuf> = std::fs::read_dir(root.join("src/builds"))
+        .expect("src/builds is readable")
+        .map(|entry| entry.expect("an entry").path())
+        .filter(|path| path.extension().is_some_and(|ext| ext == "rs"))
+        .collect();
+    paths.sort();
+    paths.push(root.join("src/generate.rs"));
+    paths.push(root.join("bench-links.tsv"));
+    paths
+        .into_iter()
+        .map(|path| Source {
+            text: std::fs::read_to_string(&path).expect("a generator file is readable"),
+            path: format!(
+                "tools/corpus/{}",
+                path.strip_prefix(root).unwrap().display()
+            ),
+        })
+        .collect()
+}
+
+/// The string literals of a line of Rust, each as its fixed pieces: the text between its `{…}` placeholders.
+fn literal_pieces(line: &str) -> Vec<Vec<String>> {
+    let mut literals = Vec::new();
+    let mut parts = line.split('"');
+    parts.next();
+    let mut inside = true;
+    for part in parts {
+        if inside && !part.ends_with('\\') {
+            let mut pieces = vec![String::new()];
+            let mut depth = 0;
+            for c in part.chars() {
+                match c {
+                    '{' => {
+                        depth += 1;
+                        pieces.push(String::new());
+                    }
+                    '}' if depth > 0 => depth -= 1,
+                    _ if depth > 0 => {}
+                    _ => pieces.last_mut().unwrap().push(c),
+                }
+            }
+            literals.push(pieces);
+        }
+        inside = !inside;
+    }
+    literals
+}
+
+/// Whether `name` is a text with `pieces` fixed and the rest filled in: it starts with the first piece, ends with the
+/// last and holds the others in order.
+fn fits(name: &str, pieces: &[String]) -> bool {
+    let (Some(first), Some(last)) = (pieces.first(), pieces.last()) else {
+        return false;
+    };
+    if pieces.len() == 1 {
+        return name == first;
+    }
+    let Some(mut rest) = name.strip_prefix(first.as_str()) else {
+        return false;
+    };
+    for middle in &pieces[1..pieces.len() - 1] {
+        match rest.find(middle.as_str()) {
+            Some(at) => rest = &rest[at + middle.len()..],
+            None => return false,
+        }
+    }
+    rest.ends_with(last.as_str())
+}
+
+/// The lines (`path:line: text`) of the generators that can make a Build named `name`, the best fit first: a string
+/// literal whose fixed text the name has around its placeholders, the more fixed text the better (at most
+/// `shown`). A `full <name>` Build also names the line of the Build it fills. A benchmark Build is its line of
+/// `bench-links.tsv`.
+fn generator_lines(name: &str, sources: &[Source], shown: usize) -> Vec<String> {
+    let mut names = vec![name];
+    if let Some(base) = name.strip_prefix("full ") {
+        names.push(base);
+        if let Some((base, _)) = base.rsplit_once(" / ") {
+            names.push(base);
+        }
+    }
+    let mut found: Vec<(usize, String)> = Vec::new();
+    for source in sources {
+        for (index, line) in source.text.lines().enumerate() {
+            let at = format!("{}:{}", source.path, index + 1);
+            if source.path.ends_with(".tsv") {
+                let bench = line.split('\t').next().unwrap_or_default();
+                if name.strip_prefix("bench ") == Some(bench) {
+                    found.push((usize::MAX, format!("{at}: {bench}")));
+                }
+            } else if !line.trim_start().starts_with("//") {
+                for pieces in literal_pieces(line) {
+                    let fixed: usize = pieces.iter().map(String::len).sum();
+                    if fixed >= 3 && names.iter().any(|name| fits(name, &pieces)) {
+                        found.push((fixed, format!("{at}: {}", line.trim())));
+                    }
+                }
+            }
+        }
+    }
+    found.sort_by(|a, b| b.0.cmp(&a.0).then_with(|| a.1.cmp(&b.1)));
+    found.dedup_by(|a, b| a.1 == b.1);
+    found
+        .into_iter()
+        .take(shown)
+        .map(|(_, line)| line)
+        .collect()
+}
+
+/// A Build's generator lines as the lines a difference prints, or one saying none was found.
+fn generator_note(name: &str, sources: &[Source]) -> String {
+    let lines = generator_lines(name, sources, 3);
+    if lines.is_empty() {
+        return "    generator: none found by name (a name built from data)".to_owned();
+    }
+    lines
+        .iter()
+        .map(|line| format!("    generator: {line}"))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+/// The Builds of the record the corpus no longer holds, and those it holds that the record didn't, as the notes the
+/// differences print: each name with the generator lines that can make it.
+fn lost_and_gained(
+    before: &[Entry],
+    now: &[Entry],
+    sources: &[Source],
+) -> (Vec<String>, Vec<String>) {
+    let names = |entries: &[Entry]| -> BTreeSet<String> {
+        entries.iter().map(|e| e.name.clone()).collect()
+    };
+    let (old, new) = (names(before), names(now));
+    let note =
+        |name: &String, sources: &[Source]| format!("{name}\n{}", generator_note(name, sources));
+    let lost = old
+        .difference(&new)
+        .map(|name| note(name, sources))
+        .collect();
+    let gained = new
+        .difference(&old)
+        .map(|name| note(name, sources))
+        .collect();
+    (lost, gained)
+}
+
 /// The unit tests of the record's and the compare's pieces (they run with `cargo test -p corpus`).
 mod pieces {
     use super::*;
@@ -1409,6 +1620,77 @@ mod pieces {
 
     fn held(keys: &[&str]) -> BTreeSet<String> {
         keys.iter().map(|key| (*key).to_owned()).collect()
+    }
+
+    fn entry(name: &str, opens: bool) -> Entry {
+        Entry {
+            name: name.to_owned(),
+            opens,
+            ..Entry::default()
+        }
+    }
+
+    const PLANTED: &str = "fn old() {\n    // \"t86 {name} / empty\" in a comment\n    let a = format!(\"t86 {} / empty\", key);\n    let b = format!(\n        \"t90 {name} 20\",\n    );\n}\n";
+
+    fn planted() -> Vec<Source> {
+        vec![Source {
+            path: "tools/corpus/src/builds/planted.rs".to_owned(),
+            text: PLANTED.to_owned(),
+        }]
+    }
+
+    #[test]
+    #[should_panic(expected = "share a name (the proof matches by name): {\"t90 witch 20\"}")]
+    fn two_builds_with_one_name_are_refused() {
+        no_duplicate_names(
+            ["t90 witch 20", "t91 new", "t90 witch 20"].into_iter(),
+            "the corpus",
+        );
+    }
+
+    #[test]
+    fn a_lost_build_is_named_with_its_generator_line() {
+        let before = [entry("t86 monk / empty", true), entry("t90 witch 20", true)];
+        let now = [entry("t90 witch 20", true), entry("t91 new", true)];
+        let (lost, gained) = lost_and_gained(&before, &now, &planted());
+        assert_eq!(
+            lost,
+            [
+                "t86 monk / empty\n    generator: tools/corpus/src/builds/planted.rs:3: \
+                 let a = format!(\"t86 {} / empty\", key);"
+            ]
+        );
+        assert_eq!(gained.len(), 1);
+        assert!(gained[0].starts_with("t91 new\n    generator: none found by name"));
+        // A Build that no longer opens is named the same way.
+        assert_eq!(
+            generator_note("t90 witch 20", &planted()),
+            "    generator: tools/corpus/src/builds/planted.rs:5: \"t90 {name} 20\","
+        );
+    }
+
+    #[test]
+    fn a_full_build_names_the_generator_of_the_build_it_fills() {
+        let lines = generator_lines("full t86 monk / empty / ki", &planted(), 3);
+        assert!(lines[0].contains("planted.rs:3:"), "{lines:?}");
+        let benches = [Source {
+            path: "tools/corpus/bench-links.tsv".to_owned(),
+            text: "blank\t\nmonk 5\tabc\n".to_owned(),
+        }];
+        assert_eq!(
+            generator_lines("bench monk 5", &benches, 3),
+            ["tools/corpus/bench-links.tsv:2: monk 5"]
+        );
+    }
+
+    #[test]
+    fn the_real_generators_are_found_by_a_build_s_name() {
+        let lines = generator_lines("t55 fighter some-key / empty", &generator_sources(), 3);
+        assert!(
+            lines[0].starts_with("tools/corpus/src/builds/mythic.rs:")
+                && lines[0].contains("t55 fighter {key} / empty"),
+            "{lines:?}"
+        );
     }
 
     #[test]
