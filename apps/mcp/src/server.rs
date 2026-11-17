@@ -175,7 +175,8 @@ impl Server {
             lines of its `summary` that no number counts) and `places`, the addresses `choose` takes its key at). \
             Each match has the key `describe` takes, its short summary when the data has one, its parent (an \
             archetype's class, an option's selection), its category, its prerequisite in the planner's words (a long \
-            one shortened: \"one of 49 hexes (Air Barrier, …)\"; `describe` gives it whole), and a guide link for \
+            one shortened: \"one of 12 metamagics (Metamagic (Bolster Spell), …)\"; `describe` gives it whole), and \
+            a guide link for \
             the user (never fetch it). `compact: true` gives each match as kind, key, name and category only (no \
             `other_effects`, `uncounted` or `places`). Best \
             match first. `category` filters by a feat's category (\"Weapon\", \"Magic\", …), a mythic pick's group \

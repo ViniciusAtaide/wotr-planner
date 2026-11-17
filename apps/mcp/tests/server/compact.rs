@@ -43,32 +43,37 @@ async fn real_data_compact_search_is_under_half_the_mythic_abilities_size() {
 
 #[tokio::test]
 async fn real_data_a_long_prerequisite_is_shortened_in_search_and_whole_in_describe() {
+    // The Loremaster needs one of the game's list of metamagic feats (LoremasterClass
+    // 4a7c05adfbaf05446a6bf664d28fb103: PrerequisiteFeaturesFromList, Amount 1, of ten metamagic feats, Bolstered,
+    // Completely Normal, Empower and Selective Spell among them), and more (ticket 323).
     let client = Client::start().await;
     let found = client
         .ok(
             "search",
-            json!({ "query": "Witch Wandering Hex", "kinds": ["mythic_ability"], "limit": 1 }),
+            json!({ "query": "Loremaster", "kinds": ["class"], "limit": 1 }),
         )
         .await;
     let short = text(&found["matches"][0]["prerequisite"]);
     assert!(
-        short.starts_with("one of ")
-            && short.contains(" hexes (Air Barrier, ")
-            && short.ends_with(", …)"),
+        short.starts_with("(one of ")
+            && short.contains(
+                " metamagics (Metamagic (Bolster Spell), Metamagic (Completely Normal Spell), "
+            )
+            && short.contains(", …)), "),
         "{short}"
     );
     let described = client
-        .ok(
-            "describe",
-            json!({ "kind": "mythic_ability", "key": "witch-wandering-hex" }),
-        )
+        .ok("describe", json!({ "kind": "class", "key": "loremaster" }))
         .await;
     let whole = text(&described["prerequisite"]);
     assert!(
-        whole.starts_with("Air Barrier or Battle Master or "),
+        whole.starts_with("(Metamagic (Bolster Spell) or Metamagic (Completely Normal Spell) or "),
         "{whole}"
     );
-    assert!(whole.len() > 4 * short.len(), "{short} | {whole}");
+    assert!(
+        whole.contains("Metamagic (Selective Spell)") && !short.contains("Selective"),
+        "{short} | {whole}"
+    );
 
     // A short prerequisite stays as it is.
     let found = client

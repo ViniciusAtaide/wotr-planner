@@ -160,8 +160,8 @@ pub struct Hit {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub descriptors: Option<Vec<String>>,
     /// What taking it needs, in the planner's words ("Spell Focus (Conjuration)"); left out when nothing. In
-    /// `search`, a long one has each group of many alternatives shortened ("one of 49 hexes (Air Barrier, Battle
-    /// Master, Battle Ward, …)"), and `describe` gives it whole; left out by `search`'s `compact`.
+    /// `search`, a long one has each group of many alternatives shortened ("one of 12 metamagics (Metamagic (Bolster
+    /// Spell), …)"), and `describe` gives it whole; left out by `search`'s `compact`.
     #[serde(skip_serializing_if = "no_prerequisite")]
     pub prerequisite: Option<Option<String>>,
     /// Where the guide describes it, for the user to read. Never fetch it.

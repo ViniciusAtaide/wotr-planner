@@ -15,8 +15,8 @@ const EMPTY_QUERY_LIMIT: usize = 50;
 const MAX_LIMIT: usize = 100;
 
 /// A prerequisite text longer than this, in characters, is shortened in `search`'s hits: each group of more than
-/// [`MOST_ALTERNATIVES`] alternatives reads "one of 49 hexes (Air Barrier, Battle Master, Battle Ward, …)"
-/// (ticket 128). `describe` gives the whole text.
+/// [`MOST_ALTERNATIVES`] alternatives reads "one of 12 metamagics (Metamagic (Bolster Spell), Metamagic (Completely
+/// Normal Spell), Metamagic (Empower Spell), …)" (ticket 128). `describe` gives the whole text.
 const LONG_PREREQUISITE: usize = 200;
 const MOST_ALTERNATIVES: usize = 6;
 

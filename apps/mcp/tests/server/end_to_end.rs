@@ -271,9 +271,13 @@ async fn the_users_prompt_bft_summoner_lich_or_aeon() {
     agent.choose(Value::Array(increases)).await;
 
     // The rest of the feats and the exploits, from what `options` offers, then the skill points: one batch per
-    // level, a rank in each skill in turn, which stops when the level's points run out.
+    // level, a rank in each skill in turn, which stops when the level's points run out. Extra Arcanist Exploit is
+    // open before any exploit is picked (the game's ExtraArcanistExploitSelection 0a7065e13f4449fa81bfb33199bf7f6a
+    // needs ArcanistExploitSelection b8bf3d5023f2d8c428fdf6438cecaea7, the selection, not an exploit taken from it;
+    // ticket 323), so the feats reach it, and each one taken opens its own exploit slot.
     agent.fill("slot.feat.", &FEATS).await;
     agent.fill("slot.selection.", &EXPLOITS).await;
+    agent.fill("slot.feat-selection.", &EXPLOITS).await;
     for n in 1..=20 {
         let steps: Vec<Value> = SKILLS
             .iter()
