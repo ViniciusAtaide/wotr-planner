@@ -152,7 +152,7 @@
             (item: Feature("barbarian/tireless-rage")),
             (item: Feat("armor-proficiency-light-armor")),
             (item: Feat("armor-proficiency-medium-armor")),
-            (item: Selection("barbarian/rage-power"), at: [2, 6, 14], why: "table has no Rage Power at these levels; its rows there show 2: Uncanny Dodge, Cunning Elusion; 6: Blind Fight; 14: Greater Blind Fight, Indomitable Will"),
+            (item: Selection("barbarian/rage-power"), at: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], why: "the game swaps in its own rage power selection from 4 (levels 4, 8, 10, 12, 16, 18 and 20 hold it); table has no Rage Power at 2, 6 and 14: 2: Uncanny Dodge, Cunning Elusion; 6: Blind Fight; 14: Greater Blind Fight, Indomitable Will"),
         ],
     ),
     // Game: InvulnerableRagerArchetype a2ccb759dc6f1f94d9aae8061509bf87: own copies stand for the base features the game keeps (equivalent model)
@@ -1567,14 +1567,14 @@
         loses: [
             (item: Feature("skald-bardic-knowledge"), replaced_by: [Feature("skald/battle-scion/bardic-knowledge-battle-scion")]),
             (item: Feature("skald/raging-song"), count: 0, waits_on: "ticket 286", why: "the game keeps Raging Song"),
-            (item: Selection("barbarian/rage-power")),
+            (item: Selection("barbarian/skald-rage-power")),
         ],
     ),
     // Game: BattleSingerArchetype db942e7040084ea289c6be2bfeb3d0a8: own copies stand for the base features the game keeps (equivalent model)
     (
         archetype: "skald/battle-singer",
         loses: [
-            (item: Selection("barbarian/rage-power"), at: [3, 9, 15], why: "table has no Rage Power at these levels; its rows there show 3: Battle Song - First Verse; 9: Battle Song - Second Verse, Damage Reduction; 15: Battle Song - Final Verse"),
+            (item: Selection("barbarian/skald-rage-power"), at: [3, 9, 15], why: "table has no Rage Power at these levels; its rows there show 3: Battle Song - First Verse; 9: Battle Song - Second Verse, Damage Reduction; 15: Battle Song - Final Verse"),
         ],
     ),
     // Game: CourtPoetArchetype 5e63586bebd229649bdafe0fde4caaec: own copies stand for the base features the game keeps (equivalent model)
@@ -1584,14 +1584,14 @@
             (item: Feature("skald/inspired-rage")),
             (item: Feature("skald/song-of-strength")),
             (item: Feature("well-versed")),
-            (item: Selection("barbarian/rage-power")),
+            (item: Selection("barbarian/skald-rage-power")),
         ],
     ),
     // Game: DemonDancerArchetype 9c46c4e4303e5da40b63faa6df18e2c2: own copies stand for the base features the game keeps (equivalent model)
     (
         archetype: "skald/demon-dancer",
         loses: [
-            (item: Selection("barbarian/rage-power"), at: [3, 6, 9], why: "table has no Rage Power at these levels; its rows there show 3: Fiendish Maw; 6: Song of Strength, Fiend Totem; 9: Damage Reduction"),
+            (item: Selection("barbarian/skald-rage-power"), at: [3, 6, 9], why: "table has no Rage Power at these levels; its rows there show 3: Fiendish Maw; 6: Song of Strength, Fiend Totem; 9: Damage Reduction"),
         ],
     ),
     // Game: HeraldOfTheHornArchetype 72fa7b1c7a6ede44eb490080bf4a2f90: own copies stand for the base features the game keeps (equivalent model); the entries waiting on a ticket are the game's
@@ -1609,7 +1609,7 @@
             (item: Feature("skald/song-of-strength")),
             (item: Feature("skald/song-of-the-fallen")),
             (item: Feature("well-versed")),
-            (item: Selection("barbarian/rage-power"), at: [6, 18], why: "table has no Rage Power at these levels; its rows there show 6: Inspire Scent, Scent; 18: Call of the Wild III"),
+            (item: Selection("barbarian/skald-rage-power"), at: [6, 18], why: "table has no Rage Power at these levels; its rows there show 6: Inspire Scent, Scent; 18: Call of the Wild III"),
         ],
     ),
     // Game: ProvocateurArchetype a1f5ab7eb78942f6889304acbd92e945: own copies stand for the base features the game keeps (equivalent model); the entries waiting on a ticket are the game's
@@ -1626,7 +1626,7 @@
             (item: Feature("skald/song-of-the-fallen")),
             (item: Feature("well-versed")),
             (item: Feat("scribe-scrolls")),
-            (item: Selection("barbarian/rage-power"), at: [9, 15], why: "table has no Rage Power at these levels; its rows there show 9: Skald Talent; 15: nothing"),
+            (item: Selection("barbarian/skald-rage-power"), at: [9, 15], why: "table has no Rage Power at these levels; its rows there show 9: Skald Talent; 15: nothing"),
             (item: Selection("rogue/skald-talents")),
         ],
     ),

@@ -19,7 +19,7 @@ fn held(build: &Build, level: u8, selection: &str) -> bool {
 #[test]
 fn a_skald_holds_its_rage_power_selection_from_3_with_no_rage_power_picked() {
     // Game: SkaldProgression 26418fed2bc153245972a5b54204ed75 grants SkaldRagePowerSelection
-    // 2476514e31791394fa140f1a07941c96 at 3 (equivalent model: the barbarian's `barbarian/rage-power`).
+    // 2476514e31791394fa140f1a07941c96 at 3 (`barbarian/skald-rage-power`).
     let skald = build("skald", 3);
     assert!(
         !skald
@@ -27,12 +27,12 @@ fn a_skald_holds_its_rage_power_selection_from_3_with_no_rage_power_picked() {
             .values()
             .any(|pick| pick.key().starts_with("barbarian/"))
     );
-    assert!(!held(&skald, 2, "barbarian/rage-power"));
-    assert!(held(&skald, 3, "barbarian/rage-power"));
+    assert!(!held(&skald, 2, "barbarian/skald-rage-power"));
+    assert!(held(&skald, 3, "barbarian/skald-rage-power"));
     // Game: BattleScionArchetype 71d41dd6309ea994886908c34c87ccd9 removes SkaldRagePowerSelection at 3 and adds
     // BattleProwessSelection 29b480a26a88f9e47a10d8c9fab84ee6.
     let scion = archetype_build("skald", "skald/battle-scion", 3);
-    assert!(!held(&scion, 3, "barbarian/rage-power"));
+    assert!(!held(&scion, 3, "barbarian/skald-rage-power"));
     assert!(held(
         &scion,
         3,

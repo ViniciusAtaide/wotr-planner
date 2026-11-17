@@ -555,7 +555,7 @@ fn extra_rage_power_through_extra_feat_gives_a_rage_power_slot_at_the_ranks_leve
     // e10c4f18a6c8b4342afe6954bde0587b's list.
     assert_eq!(
         kind_at(&build, &extra_slot(7, 0)),
-        Some(selection_kind("barbarian/rage-power"))
+        Some(selection_kind("barbarian/extra-rage-power"))
     );
     let filled = with_selections_filled(build);
     assert!(filled.picks.contains_key(&extra_slot(7, 0)));
