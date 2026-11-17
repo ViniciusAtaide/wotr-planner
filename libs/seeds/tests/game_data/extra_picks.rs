@@ -234,7 +234,7 @@ fn a_witchs_extra_hex_gives_a_hex_slot() {
     assert!(possible(&build));
     assert_eq!(
         kind_at(&build, &extra_slot(1, 0)),
-        Some(selection_kind("witch/hex"))
+        Some(selection_kind(slot_selection("extra-hex", "witch/hex")))
     );
     let filled = with_selections_filled(build);
     assert!(filled.picks.contains_key(&extra_slot(1, 0)));

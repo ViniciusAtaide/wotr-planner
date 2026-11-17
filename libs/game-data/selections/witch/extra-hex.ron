@@ -8,4 +8,5 @@
         "witch/hex",
         "witch/wandering-hex",
     ],
+    shared_options: ["witch/hex/agony", "witch/hex/ameliorating", "witch/hex/animal-servant", "witch/hex/animal-skin", "witch/hex/aura-of-purity", "witch/hex/beasts-gift", "witch/hex/cackle", "witch/hex/channel", "witch/hex/death-curse", "witch/hex/delicious-fright", "witch/hex/evil-eye", "witch/hex/fortune", "witch/hex/healing-hex", "witch/hex/hoarfrost", "witch/hex/iceplant", "witch/hex/lay-to-rest", "witch/hex/life-giver", "witch/hex/major-ameliorating", "witch/hex/major-healing", "witch/hex/misfortune", "witch/hex/nails", "witch/hex/protective-luck", "witch/hex/regenerative-sinew", "witch/hex/restless-slumber", "witch/hex/slumber", "witch/hex/vulnerability-curse", "witch/hex/ward"],
 )

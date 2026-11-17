@@ -20,8 +20,9 @@
 - `rogue/sylvan-trickster/fey-tricks` (`SylvanTricksterTalentSelection` 290bbcc3c3bb92144b853fd8fb8ff452) is the game's 64: the
   writer dropped Weapon Snatcher (the game's list lacks it) and added the rogue's Uncanny Dodge and Improved Uncanny Dodge
   and the channel.
-- `witch-wandering-hex`'s planner prerequisite (any hex held, until 259) names the eleven shaman copies too, so a shaman holding
-  one keeps it open.
+- `witch-wandering-hex`: the planner prerequisite (any hex held, until 259) names the witch hexes and the channel, no shaman hex: the game (`WitchWanderingHex` fb8490d1721bd5a4883c3b6559310351) takes witch 1, Sylvan Trickster 2 or Hexcrafter 4, never a shaman. The planner selection `witch/wandering-hex` names the channel and no copy.
+- `witch/extra-hex` had no list: seeded with `witch/hex/evil-eye`, then `game-check --write option-lists --only witch/extra-hex` wrote the game's 27.
+- The Hexcrafter's Extra Hex prerequisite stays for S4 (264's `known.txt` line).
 
 ## Written by the writer, and by hand
 

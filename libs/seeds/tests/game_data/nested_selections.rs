@@ -177,7 +177,6 @@ fn the_first_had_extra_feats_name_the_selections_they_reach() {
                 "rogue/underground-chemist/discovery",
             ][..],
         ),
-        ("witch/extra-hex", &["witch/hex", "witch/wandering-hex"][..]),
         (
             "rogue/extra-rogue-talent",
             &[
@@ -195,6 +194,13 @@ fn the_first_had_extra_feats_name_the_selections_they_reach() {
         );
         assert!(selection.feats.is_empty(), "{extra}");
     }
+    // The witch's has the game's 27 of its own since 306j (ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35).
+    let witch = any_selection("witch/extra-hex");
+    assert_eq!(
+        witch.needs_slot_of,
+        selection_keys(&["witch/hex", "witch/wandering-hex"])
+    );
+    assert_eq!(witch.offered().len(), 27);
 }
 
 /// The mythic abilities that grant a pick each grant one selection with the ability's blueprint (the game's ability
