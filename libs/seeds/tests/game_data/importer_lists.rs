@@ -705,7 +705,7 @@ fn archetype_rows(key: &str) -> Vec<(u8, &'static [rules::FeatureSelectionKey])>
 }
 
 /// 306l: the magus's, the Arcane Rider's and the warpriest's bonus feats are three lists of their own, each the game's
-/// less the four members the planner has no feat for yet (Advanced Weapon Training 2 to 4 and Bleeding Critical).
+/// full member set (306q and 306r added the four feats the planner had no entry for).
 // Game: the `m_AllFeatures` of MagusFeatSelection 66befe7b24c42dd458952e3c47c93563 (181), ArcaneRiderFeatSelection
 // 8e627812dc034b9db12fa396fdc9ec75 (182 entries, one listed twice: the magus's 181) and
 // WarpriestFeatSelection 303fd456ddb14437946e344bad9a893b (155; the magus's less its spell and metamagic feats), each
@@ -722,9 +722,9 @@ fn the_magus_arcane_rider_and_warpriest_bonus_feats_are_their_own() {
     let magus = list("magus/bonus-feats");
     let rider = list("magus/arcane-rider/bonus-feats");
     let warpriest = list("warpriest/bonus-feats");
-    assert_eq!(magus.len(), 181 - 4);
-    assert_eq!(rider.len(), 182 - 1 - 4);
-    assert_eq!(warpriest.len(), 155 - 4);
+    assert_eq!(magus.len(), 181);
+    assert_eq!(rider.len(), 182 - 1);
+    assert_eq!(warpriest.len(), 155);
     for (key, guid) in [
         ("magus/bonus-feats", "66befe7b24c42dd458952e3c47c93563"),
         (
@@ -811,13 +811,12 @@ fn the_magus_arcane_rider_and_warpriest_bonus_feats_are_their_own() {
     }
 }
 
-// Game: the `m_AllFeatures` of CavalierBonusFeatSelection dd17090d14958ef48ba601688b611970 (146 entries, 142 feats the
-// planner has an entry for: AdvancedWeaponTraining2 70a139f0a4c6c534eaa34feea0d08622, 3 ee9ab0117ca06b84f9c66469f4428c61,
-// 4 0b55d725ded1ae549bb858fba1d84114 and BleedingCriticalFeature 42be7d465db94213baf0578c721803ff have none yet: 306q,
-// 306r), GendarmeFeatSelection ef1cd58e0b7fc7f45baedb09407a1cd1 (155, the same four left out) and
-// CavalierTacticianFeatSelection 7bc55b5e381358c45b42153b8b2603a6 (12). Each GUID is a member the planner's feat of that
-// `blueprint` stands for.
-const CAVALIER_BONUS_FEATS: [&str; 142] = [
+// Game: the `m_AllFeatures` of CavalierBonusFeatSelection dd17090d14958ef48ba601688b611970 (146 entries, among them
+// AdvancedWeaponTraining2 70a139f0a4c6c534eaa34feea0d08622, 3 ee9ab0117ca06b84f9c66469f4428c61, 4
+// 0b55d725ded1ae549bb858fba1d84114 and BleedingCriticalFeature 42be7d465db94213baf0578c721803ff), GendarmeFeatSelection
+// ef1cd58e0b7fc7f45baedb09407a1cd1 (155) and CavalierTacticianFeatSelection 7bc55b5e381358c45b42153b8b2603a6 (12). Each
+// GUID is a member the planner's feat of that `blueprint` stands for.
+const CAVALIER_BONUS_FEATS: [&str; 146] = [
     "006a966007802a0478c9e21007207aac",
     "055fb8dcaf6be334ca13172bafa9e782",
     "05a3b543b0a0a0346a5061e90f293f0b",
@@ -825,6 +824,7 @@ const CAVALIER_BONUS_FEATS: [&str; 142] = [
     "09c9e82965fb4334b984a1e9df3bd088",
     "0ab2f21a922feee4dab116238e3150b4",
     "0b442a7b4aa598d4e912a4ecee0500ff",
+    "0b55d725ded1ae549bb858fba1d84114",
     "0c17102f650d9044290922b0fad9132f",
     "0da0c194d6e1d43419eb8d990b28e0ab",
     "0f15c6f70d8fb2b49aa6cc24239cc5fa",
@@ -852,6 +852,7 @@ const CAVALIER_BONUS_FEATS: [&str; 142] = [
     "3af3476f6034a924e96f3ffa198424b7",
     "4153755355a0b9b4e956c9ca232c22cf",
     "422dab7309e1ad343935f33a4d6e9f11",
+    "42be7d465db94213baf0578c721803ff",
     "453f5181a5ed3a445abfa3bcd3f4ac0c",
     "46f4fb320f35704488ba3d513397789d",
     "46f970a6b9b5d2346b10892673fe6e74",
@@ -882,6 +883,7 @@ const CAVALIER_BONUS_FEATS: [&str; 142] = [
     "697d64669eb2c0543abb9c9b07998a38",
     "6a556375036ac8b4ebd80e74d308d108",
     "6d3728d4e9c9898458fe5e9532951132",
+    "70a139f0a4c6c534eaa34feea0d08622",
     "7115a6c08bd101247b70d72a4ff99453",
     "7213b7bd026d4414da2308df23715d8f",
     "72ba6ad46d94ecd41bad8e64739ea392",
@@ -950,6 +952,7 @@ const CAVALIER_BONUS_FEATS: [&str; 142] = [
     "e92cb7c4c900dcf4282def347af42b9c",
     "eb6eb946c68ef094f89c7633f5bfdc9b",
     "ed699d64870044b43bb5a7fbe3f29494",
+    "ee9ab0117ca06b84f9c66469f4428c61",
     "f09b89812cc94b89a09069671002b899",
     "f308a03bea0d69843a8ed0af003d47a9",
     "f3ef866a9da642c4b9f7dcd76c3567fe",
@@ -961,7 +964,7 @@ const CAVALIER_BONUS_FEATS: [&str; 142] = [
     "fc85925cd241dd0408ab2f4cb171b7e3",
     "ffa1b373190af4f4db7a5501904a1983",
 ];
-const GENDARME_FEATS: [&str; 151] = [
+const GENDARME_FEATS: [&str; 155] = [
     "006a966007802a0478c9e21007207aac",
     "055fb8dcaf6be334ca13172bafa9e782",
     "05a3b543b0a0a0346a5061e90f293f0b",
@@ -969,6 +972,7 @@ const GENDARME_FEATS: [&str; 151] = [
     "09c9e82965fb4334b984a1e9df3bd088",
     "0ab2f21a922feee4dab116238e3150b4",
     "0b442a7b4aa598d4e912a4ecee0500ff",
+    "0b55d725ded1ae549bb858fba1d84114",
     "0c17102f650d9044290922b0fad9132f",
     "0da0c194d6e1d43419eb8d990b28e0ab",
     "0f15c6f70d8fb2b49aa6cc24239cc5fa",
@@ -999,6 +1003,7 @@ const GENDARME_FEATS: [&str; 151] = [
     "3af3476f6034a924e96f3ffa198424b7",
     "4153755355a0b9b4e956c9ca232c22cf",
     "422dab7309e1ad343935f33a4d6e9f11",
+    "42be7d465db94213baf0578c721803ff",
     "453f5181a5ed3a445abfa3bcd3f4ac0c",
     "46f4fb320f35704488ba3d513397789d",
     "46f970a6b9b5d2346b10892673fe6e74",
@@ -1029,6 +1034,7 @@ const GENDARME_FEATS: [&str; 151] = [
     "697d64669eb2c0543abb9c9b07998a38",
     "6a556375036ac8b4ebd80e74d308d108",
     "6d3728d4e9c9898458fe5e9532951132",
+    "70a139f0a4c6c534eaa34feea0d08622",
     "7115a6c08bd101247b70d72a4ff99453",
     "7213b7bd026d4414da2308df23715d8f",
     "72ba6ad46d94ecd41bad8e64739ea392",
@@ -1103,6 +1109,7 @@ const GENDARME_FEATS: [&str; 151] = [
     "e92cb7c4c900dcf4282def347af42b9c",
     "eb6eb946c68ef094f89c7633f5bfdc9b",
     "ed699d64870044b43bb5a7fbe3f29494",
+    "ee9ab0117ca06b84f9c66469f4428c61",
     "f09b89812cc94b89a09069671002b899",
     "f308a03bea0d69843a8ed0af003d47a9",
     "f3ef866a9da642c4b9f7dcd76c3567fe",
@@ -1146,8 +1153,7 @@ fn feat_blueprint(key: &str) -> Option<String> {
 }
 
 /// 306m: the cavalier's bonus feats (6, 12, 18), its Tactician's teamwork feats (1, 9, 17) and the Gendarme's bonus
-/// feats (1, 3, 6, 9, 12, 15, 18, 20) are three lists of their own, each the game's full member set (the cavalier's and
-/// the Gendarme's less the four members the planner has no feat for yet).
+/// feats (1, 3, 6, 9, 12, 15, 18, 20) are three lists of their own, each the game's full member set.
 // Game: CavalierProgression aa70326bdaa7015438df585cf2ab93b9 grants CavalierBonusFeatSelection at 6, 12 and 18 and
 // CavalierTacticianFeatSelection at 1, 9 and 17; GendarmeArchetype 48fd69254e9e5c540bd65101d3252184 `AddFeatures`
 // GendarmeFeatSelection at 1, 3, 6, 9, 12, 15, 18 and 20 and `RemoveFeatures` CavalierBonusFeatSelection at 6, 12 and 18
@@ -1231,4 +1237,322 @@ fn the_cavaliers_three_feat_lists_are_the_games() {
             "{gone}"
         );
     }
+}
+
+/// The feats and options a prerequisite names as `Feat` leaves (a `Not` included), by key.
+fn feat_leaves(prerequisite: &Option<rules::Prerequisite>) -> BTreeSet<String> {
+    (prerequisite.iter().flat_map(|tree| tree.leaves()))
+        .filter_map(|leaf| match leaf {
+            rules::Prerequisite::Feat(key) => Some(key.as_str().to_string()),
+            _ => None,
+        })
+        .collect()
+}
+
+fn class_levels(prerequisite: &Option<rules::Prerequisite>) -> Vec<(String, u8)> {
+    (prerequisite.iter().flat_map(|tree| tree.leaves()))
+        .filter_map(|leaf| match leaf {
+            rules::Prerequisite::ClassLevel { class, level } => {
+                Some((class.as_str().to_string(), *level))
+            }
+            _ => None,
+        })
+        .collect()
+}
+
+fn feature_leaves(prerequisite: &Option<rules::Prerequisite>) -> BTreeSet<String> {
+    (prerequisite.iter().flat_map(|tree| tree.leaves()))
+        .filter_map(|leaf| match leaf {
+            rules::Prerequisite::Feature { feature, .. } => Some(feature.as_str().to_string()),
+            _ => None,
+        })
+        .collect()
+}
+
+fn aliases_of(key: &str) -> BTreeSet<String> {
+    (feat(key).aliases.iter())
+        .map(|alias| alias.as_str().to_string())
+        .collect()
+}
+
+/// 306q: Advanced Weapon Training is the game's four feats, each after the one before; a second pick of the old key
+/// opens as the second feat.
+// Game: AdvancedWeaponTraining1 3aa4cbdd4af5ba54888b0dc7f07f80c4 (Fighter 5, PrerequisiteNoFeature of itself),
+// AdvancedWeaponTraining2 70a139f0a4c6c534eaa34feea0d08622 (PrerequisiteFeature AdvancedWeaponTraining1, Fighter 10),
+// AdvancedWeaponTraining3 ee9ab0117ca06b84f9c66469f4428c61 (the second, Fighter 15), AdvancedWeaponTraining4
+// 0b55d725ded1ae549bb858fba1d84114 (the third, Fighter 20); each `Ranks` 1, a combat feat of `IgnorePrerequisites`
+// true, listed by MagusFeatSelection, ArcaneRiderFeatSelection, WarpriestFeatSelection, CavalierBonusFeatSelection and
+// GendarmeFeatSelection (see the lists' tests above) and by the general `FeatureSelection` 247a4068296e8be42890143f451b4b45.
+#[test]
+fn advanced_weapon_training_is_four_feats_each_after_the_last() {
+    for (key, guid, before, level) in [
+        (
+            "advanced-weapon-training",
+            "3aa4cbdd4af5ba54888b0dc7f07f80c4",
+            None,
+            5,
+        ),
+        (
+            "advanced-weapon-training-2",
+            "70a139f0a4c6c534eaa34feea0d08622",
+            Some("advanced-weapon-training"),
+            10,
+        ),
+        (
+            "advanced-weapon-training-3",
+            "ee9ab0117ca06b84f9c66469f4428c61",
+            Some("advanced-weapon-training-2"),
+            15,
+        ),
+        (
+            "advanced-weapon-training-4",
+            "0b55d725ded1ae549bb858fba1d84114",
+            Some("advanced-weapon-training-3"),
+            20,
+        ),
+    ] {
+        let one = feat(key);
+        assert_eq!(feat_blueprint(key).as_deref(), Some(guid), "{key}");
+        assert_eq!(one.ranks, 1, "{key}");
+        let mut expected = BTreeSet::from([key.to_string()]);
+        expected.extend(before.map(str::to_string));
+        assert_eq!(feat_leaves(&one.prerequisite), expected, "{key}");
+        assert_eq!(
+            class_levels(&one.prerequisite),
+            vec![("fighter".to_string(), level)],
+            "{key}"
+        );
+        for list in [
+            "feats",
+            "magus/bonus-feats",
+            "magus/arcane-rider/bonus-feats",
+            "warpriest/bonus-feats",
+            "cavalier/bonus-feats",
+            "cavalier/gendarme/bonus-feats",
+        ] {
+            assert!(feat_keys(selection(list)).contains(key), "{list} {key}");
+        }
+    }
+    // A second pick of the old key opens as the second feat, the only heir that holds; the third and fourth are no one's heir.
+    assert_eq!(
+        aliases_of("advanced-weapon-training-2"),
+        BTreeSet::from(["advanced-weapon-training".to_string()])
+    );
+    assert!(aliases_of("advanced-weapon-training-3").is_empty());
+    assert!(aliases_of("advanced-weapon-training-4").is_empty());
+}
+
+/// 306q: Magical Tail is the game's one feat of eight ranks, not its first rank's blueprint.
+// Game: MagicalTail febb8fe9a2d142fb80c1be6b0b539d9d (a `BlueprintFeature` with `Ranks` 8, the Kitsune race its
+// prerequisite); MagicalTail1 and the rest are what each rank grants.
+#[test]
+fn magical_tail_is_the_games_one_feat_of_eight_ranks() {
+    assert_eq!(
+        feat_blueprint("magical-tail").as_deref(),
+        Some("febb8fe9a2d142fb80c1be6b0b539d9d")
+    );
+    assert_eq!(feat("magical-tail").ranks, 8);
+}
+
+/// 306q: Abundant Smite and Abundant Smite Chaos are two mythic abilities, as the game's two blueprints.
+// Game: AbundantSmite 7e5b63faeca24474db0bfd019167dda4 (PrerequisiteFeature SmiteEvilFeature
+// 3a6db57fce75b0244a6a5819528ddf26) and AbundantSmiteChaos 4cdc155e26204491ba4d193646cb4443 (SmiteChaosFeature
+// 67d08ed4892de3441a43aae91a7dd7c9), each `Ranks` 1.
+#[test]
+fn abundant_smite_is_two_mythic_abilities() {
+    let ability = |key: &str| {
+        DATA.mythic_abilities
+            .iter()
+            .find(|ability| ability.key.as_str() == key)
+            .unwrap_or_else(|| panic!("no mythic ability {key}"))
+    };
+    for (key, guid, feature) in [
+        (
+            "abundant-smite",
+            "7e5b63faeca24474db0bfd019167dda4",
+            "smite-evil",
+        ),
+        (
+            "abundant-smite-smite-chaos",
+            "4cdc155e26204491ba4d193646cb4443",
+            "hellknight/smite-chaos",
+        ),
+    ] {
+        let one = ability(key);
+        assert_eq!(one.blueprint.as_ref().map(|g| g.as_str()), Some(guid));
+        assert_eq!(
+            feature_leaves(&one.prerequisite),
+            BTreeSet::from([feature.to_string()]),
+            "{key}"
+        );
+    }
+    let list = selection("mythic/extra-mythic-ability");
+    for key in ["abundant-smite", "abundant-smite-smite-chaos"] {
+        assert!(
+            list.mythic_abilities.iter().any(|a| a.as_str() == key),
+            "{key}"
+        );
+    }
+}
+
+/// 306r: Extra Channel is six feats, one per channel the game's Extra Channel blueprints name, each with its own
+/// feature as the prerequisite; the old key keeps the cleric's two.
+// Game: ExtraChannel cd9f19775bd9d3343a31a065e93f0c47 (ChannelEnergyFeature a79013ff… or ChannelNegativeFeature
+// 3adb2c90…), ExtraChannelOracle 53da6bf487997e947960bd6c02be9adf (OracleRevelationChannel ade57ae9…),
+// ExtraChannelShaman 4cc73e43ab814bc48ade2e291729b359 (ShamanLifeSpiritChannelEnergyFeature or
+// WitchDoctorChannelPositiveFeature eb388d17…), ExtraChannelHospitaler 8d4f82fdb4d09b247ae8cd1ae7ce02de
+// (ChannelEnergyHospitalerFeature a9ab1bbc…), ExtraChannelHexChanneler 88f426f13de236642b9585efcb82f1d8
+// (HexChannelerChannelFeature b40316f0…), ExtraChannelEmpyrealSorcerer 347e8d794c9598e4abed70adda868ccd
+// (ChannelEnergyEmpyrealFeature 7d49d7f5…); each `Ranks` 10 and 2 more uses a day (`IncreaseResourceAmount` `Value` 2).
+#[test]
+fn extra_channel_is_six_feats_one_per_channel() {
+    for (key, guid) in [
+        ("extra-channel", "cd9f19775bd9d3343a31a065e93f0c47"),
+        ("extra-channel-oracle", "53da6bf487997e947960bd6c02be9adf"),
+        ("extra-channel-shaman", "4cc73e43ab814bc48ade2e291729b359"),
+        (
+            "extra-channel-hospitaler",
+            "8d4f82fdb4d09b247ae8cd1ae7ce02de",
+        ),
+        (
+            "extra-channel-hex-channeler",
+            "88f426f13de236642b9585efcb82f1d8",
+        ),
+        (
+            "extra-channel-empyreal-sorcerer",
+            "347e8d794c9598e4abed70adda868ccd",
+        ),
+    ] {
+        assert_eq!(feat_blueprint(key).as_deref(), Some(guid), "{key}");
+        assert_eq!(feat(key).ranks, 10, "{key}");
+        assert!(feat_keys(selection("feats")).contains(key), "{key}");
+        let heirs = aliases_of(key);
+        if key == "extra-channel" {
+            assert!(heirs.is_empty());
+        } else {
+            assert_eq!(
+                heirs,
+                BTreeSet::from(["extra-channel".to_string()]),
+                "{key}"
+            );
+        }
+    }
+    let channel = |key: &str| feature_leaves(&feat(key).prerequisite);
+    assert_eq!(
+        channel("extra-channel"),
+        BTreeSet::from([
+            "channel-positive-energy".to_string(),
+            "cleric/channel-energy".to_string(),
+            "cleric/priest-of-balance/channel-negative-energy".to_string(),
+        ])
+    );
+    // The Oracle's and the Hex Channeler's channels are options, not features.
+    let option_leaves = |key: &str| {
+        (feat(key).prerequisite.iter().flat_map(|tree| tree.leaves()))
+            .filter_map(|leaf| match leaf {
+                rules::Prerequisite::SelectionOption(option) => Some(option.as_str().to_string()),
+                _ => None,
+            })
+            .collect::<BTreeSet<_>>()
+    };
+    assert_eq!(
+        option_leaves("extra-channel-oracle"),
+        BTreeSet::from(["oracle/revelations/life/channel".to_string()])
+    );
+    assert_eq!(
+        option_leaves("extra-channel-hex-channeler"),
+        BTreeSet::from(["witch/hex/channel".to_string()])
+    );
+    assert_eq!(
+        channel("extra-channel-hospitaler"),
+        BTreeSet::from(["paladin/hospitaler/channel-positive-energy-hospitaler".to_string()])
+    );
+    assert_eq!(
+        channel("extra-channel-empyreal-sorcerer"),
+        BTreeSet::from(["sorcerer/empyreal-sorcerer/channel-positive-energy".to_string()])
+    );
+}
+
+/// 306q: Extra Rage and Extra Performance each have the class variants the game gives them, naming the old key as
+/// an alias.
+// Game: ExtraRage 1a54bbbafab728348a015cf9ffcf50a7 (RageFeature), ExtraRageInstinctualWarrior
+// dcc338110bab48ddbdc22e82cef7a6db (FocusedRageFeature 17b5ab90…), ExtraPerformance 0d3651b2cb0d89448b112e23214e744e,
+// ExtraPerformanceSkald 15c78493a0ce471cb279e6363d702cc8 (RagingSong 334cb75a…), ExtraPerformancePaladinMartyr
+// 639ce2b85a13404caa618f36748d7fa5 (MartyrInspireCourageFeature c0a1b34b…); each `Ranks` 10, 6 more rounds
+// (`IncreaseResourceAmount` `Value` 6).
+#[test]
+fn extra_rage_and_extra_performance_have_the_games_class_variants() {
+    for (key, guid, old, feature) in [
+        (
+            "extra-rage-instinctual-warrior",
+            "dcc338110bab48ddbdc22e82cef7a6db",
+            "extra-rage",
+            "barbarian/instinctual-warrior/focused-rage",
+        ),
+        (
+            "extra-performance-skald",
+            "15c78493a0ce471cb279e6363d702cc8",
+            "extra-performance",
+            "skald/raging-song",
+        ),
+        (
+            "extra-performance-martyr",
+            "639ce2b85a13404caa618f36748d7fa5",
+            "extra-performance",
+            "paladin/martyr/inspire-courage",
+        ),
+    ] {
+        assert_eq!(feat_blueprint(key).as_deref(), Some(guid), "{key}");
+        assert_eq!(feat(key).ranks, 10, "{key}");
+        assert_eq!(aliases_of(key), BTreeSet::from([old.to_string()]), "{key}");
+        assert_eq!(
+            feature_leaves(&feat(key).prerequisite),
+            BTreeSet::from([feature.to_string()]),
+            "{key}"
+        );
+        assert!(feat_keys(selection("feats")).contains(key), "{key}");
+    }
+}
+
+/// 306r: Bleeding Critical and Spell Bane are feats, and Bleeding Critical is in the game's lists that hold it.
+// Game: BleedingCriticalFeature 42be7d465db94213baf0578c721803ff (PrerequisiteFeature CriticalFocus
+// 8ac59959b1b23c347a0361dc97cc786d, base attack bonus 11) and SpellBane d2d1b1f27bdf4ddfa5bf8b7244786ff9
+// (InquisitorBaneNormalFeatureAdd 7ddf7fbe… or LivingGrimoireSacredWordFeature 0e19c677…, Any), listed by
+// FeatureSelection 247a4068296e8be42890143f451b4b45 and, for Bleeding Critical, by the magus's, warpriest's and
+// cavalier's lists (see their tests above).
+#[test]
+fn bleeding_critical_and_spell_bane_are_feats() {
+    assert_eq!(
+        feat_blueprint("bleeding-critical").as_deref(),
+        Some("42be7d465db94213baf0578c721803ff")
+    );
+    assert_eq!(
+        feat_leaves(&feat("bleeding-critical").prerequisite),
+        BTreeSet::from(["critical-focus".to_string()])
+    );
+    assert_eq!(
+        feat_blueprint("spell-bane").as_deref(),
+        Some("d2d1b1f27bdf4ddfa5bf8b7244786ff9")
+    );
+    assert_eq!(
+        feature_leaves(&feat("spell-bane").prerequisite),
+        BTreeSet::from([
+            "inquisitor/bane".to_string(),
+            "inquisitor/living-grimoire/sacred-word".to_string(),
+        ])
+    );
+    for list in [
+        "feats",
+        "magus/bonus-feats",
+        "magus/arcane-rider/bonus-feats",
+        "warpriest/bonus-feats",
+        "cavalier/bonus-feats",
+        "cavalier/gendarme/bonus-feats",
+    ] {
+        assert!(
+            feat_keys(selection(list)).contains("bleeding-critical"),
+            "{list}"
+        );
+    }
+    assert!(feat_keys(selection("feats")).contains("spell-bane"));
 }

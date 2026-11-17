@@ -125,10 +125,10 @@ fn feats_repeat_and_take_values_as_the_guide_says() {
         .collect();
     // The 16 parameterised feats once per value (ticket 32; Stat Focus since ticket 125), Magical Tail and the 18
     // Extra feats that repeat (not Extra Bane Weapon).
-    // Game (37 since ticket 306k's Extra Discovery (Vivisectionist), ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae; 36 with 306j's Extra Hex (Shaman)): each of the 37 is a BlueprintParametrizedFeature, a selection (BlueprintFeatureSelection.CanSelect skips
+    // Game (45 since tickets 306q and 306r's Extra Channel x5, Extra Rage (Instinctual Warrior) and Extra Performance x2, each a BlueprintFeature of Ranks 10; 37 with ticket 306k's Extra Discovery (Vivisectionist), ExtraVivsectionistDiscoverySelection 10287e7b8cee479e82ea88bd6d2d4dae): each of the 45 is a BlueprintParametrizedFeature, a selection (BlueprintFeatureSelection.CanSelect skips
     // the rank check for one, WrathDecompiled 6ce4a6b) or a feature with Ranks above 1; every other feat's blueprint
     // has Ranks 1.
-    assert_eq!(repeating.len(), 37, "{repeating:?}");
+    assert_eq!(repeating.len(), 45, "{repeating:?}");
 }
 
 /// The game caps the Extra feats that are plain features at their blueprint's ranks: Extra Ki and Extra Reservoir

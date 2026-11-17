@@ -1,0 +1,1 @@
+(key: "abundant-smite", blueprint: "7e5b63faeca24474db0bfd019167dda4", name: "Abundant Smite", summary: "Use Smite Evil MR/2 more times per day.", group: Class, guide: "mythic-paths#abundant-smite-smite-chaos", components: [Requires(condition: Has(Feature("smite-evil")))])

@@ -130,3 +130,8 @@ full cavalier cavalier/gendarme / legend
 full cavalier cavalier/knight-of-the-wall
 full cavalier cavalier/knight-of-the-wall / legend
 full option cavalier cavalier/order/order-of-the-sword
+
+full t54 divine-guardian / empty
+full t54 divine-guardian / empty / legend
+full t54 divine-hunter-paladin / empty
+full t54 divine-hunter-paladin / empty / legend

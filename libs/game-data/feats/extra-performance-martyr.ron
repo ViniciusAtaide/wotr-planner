@@ -1,0 +1,1 @@
+(key: "extra-performance-martyr", blueprint: "639ce2b85a13404caa618f36748d7fa5", name: "Extra Performance (Martyr)", ranks: 10, summary: "6 more rounds of the Martyr's performance a day; up to 10 times.", category: Class, guide: "feats#extra-performance", aliases: ["extra-performance"], components: [Requires(condition: Has(Feature("paladin/martyr/inspire-courage")))])

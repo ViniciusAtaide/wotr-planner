@@ -6,6 +6,9 @@
     feats: [
         "acrobatic-spellcaster",
         "advanced-weapon-training",
+        "advanced-weapon-training-2",
+        "advanced-weapon-training-3",
+        "advanced-weapon-training-4",
         "agile-maneuvers",
         "aldori-dueling-mastery",
         "arcane-armor-mastery",
@@ -20,6 +23,7 @@
         "armor-proficiency-medium-barding",
         "back-to-back",
         "bashing-finish",
+        "bleeding-critical",
         "blind-fight",
         "blinding-critical",
         "boar-ferocity",

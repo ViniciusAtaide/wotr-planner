@@ -1,0 +1,1 @@
+(key: "extra-channel-oracle", blueprint: "53da6bf487997e947960bd6c02be9adf", name: "Extra Channel (Oracle)", ranks: 10, summary: "2 more uses a day of the oracle's Life revelation channel; up to 10 times.", category: Class, guide: "feats#extra-channel", aliases: ["extra-channel"], components: [Requires(condition: Has(Option("oracle/revelations/life/channel")))])

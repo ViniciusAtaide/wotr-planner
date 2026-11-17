@@ -135,7 +135,9 @@ fn a_blueprint_entry_holds_its_prerequisite_as_requires_components() {
     // Painful Strike's five archetypes).
     // Ticket 306j: Extra Hex (Shaman) and the Hex Channeler's channel hold one each.
     // Ticket 306k: Extra Discovery (Vivisectionist) holds one.
-    assert_eq!((moved, fields), (635, 62));
+    // Tickets 306q and 306r: the 13 feats and the mythic ability they add hold one each (Advanced Weapon Training 2 to 4,
+    // the five Extra Channels, Extra Rage and the two Extra Performances, Bleeding Critical, Spell Bane, Abundant Smite).
+    assert_eq!((moved, fields), (649, 62));
 
     // The planner-made entries keep what they hold: their fields, and no `Requires`.
     let planner_requires = (files.feats.iter())

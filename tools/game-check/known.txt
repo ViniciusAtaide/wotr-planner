@@ -26,34 +26,21 @@ option lists / * / selection kineticist/element/water/wild-talent-feats -> 293
 # From 301 (feat slots and lists as selections, decision 2): the general and category selections and Gold Dragon's Dragon
 # Feats list the planner's feats (every feat; every feat of a category), not the game's selection's; 293 writes the
 # game's.
-option lists / * / selection feats -> 293
 option lists / * / selection combat-feats -> 293
 option lists / * / selection magic-feats -> 293
 option lists / * / selection teamwork-feats -> 293
 option lists / * / selection gold-dragon/dragon-feats -> 293
 # From 303 (repeats from the header, decision Q3): entries holding several of the game's blueprints, whose `ranks`, or
-# Beneficial Curse's once, is the planner's: Magical Tail's eight (MagicalTail1 and its copies), the Primalist's rage
+# Beneficial Curse's once, is the planner's: the Primalist's rage
 # powers at five levels (PrimalistTakeRagePowers4 and its copies), an element's two foci (ElementalFocusAir, offered
 # again by SecondatyElementalFocusSelection), and Beneficial Curse's one pick, over the oracle's curses rather than the
 # game's nine NoPenalty progressions.
-mapping / ranks differ / feat magical-tail -> 293
 mapping / ranks differ / selection option bloodrager/primalist/primal-choices/rage-powers -> 293
 mapping / ranks differ / selection option kineticist/element/air -> 293
 mapping / ranks differ / selection option kineticist/element/earth -> 293
 mapping / ranks differ / selection option kineticist/element/fire -> 293
 mapping / ranks differ / selection option kineticist/element/water -> 293
 prerequisites / not in game / mythic ability beneficial-curse -> 293
-option lists / in game only / pool general feats / AdvancedWeaponTraining2 -> 293
-option lists / in game only / pool general feats / AdvancedWeaponTraining3 -> 293
-option lists / in game only / pool general feats / AdvancedWeaponTraining4 -> 293
-option lists / in game only / pool general feats / ExtraChannelEmpyrealSorcerer -> 293
-option lists / in game only / pool general feats / ExtraChannelHexChanneler -> 293
-option lists / in game only / pool general feats / ExtraChannelHospitaler -> 293
-option lists / in game only / pool general feats / ExtraChannelOracle -> 293
-option lists / in game only / pool general feats / ExtraChannelShaman -> 293
-option lists / in game only / pool general feats / MagicalTail -> 293
-option lists / in planner only / pool general feats / magical-tail (MagicalTail1) -> 293
-option lists / in game only / pool mythic abilities / AbundantSmiteChaos -> 293
 
 # From 302 (nested selections, decisions Q1, Q2 and Q4): the selections an Extra feat, a mythic ability and Extra
 # Mythic Ability grant list the planner's list of the selection each stands for (every mythic ability for Extra Mythic
@@ -242,7 +229,6 @@ prerequisites / * / mythic ability witch-wandering-hex -> 259
 option lists / * / selection arcanist/greater-exploits -> 260
 
 # 263, feats' prerequisites.
-option lists / in game only / pool general feats -> 263
 prerequisites / * / feat accomplished-sneak-attacker -> 263
 prerequisites / * / feat advanced-weapon-training -> 263
 prerequisites / * / feat agile-maneuvers -> 263
@@ -334,6 +320,7 @@ prerequisites / * / feat extra-arcana -> 264
 prerequisites / * / feat extra-arcanist-exploit -> 264
 prerequisites / * / feat extra-bombs -> 264
 prerequisites / * / feat extra-channel -> 264
+prerequisites / * / feat extra-channel-shaman -> 264
 prerequisites / * / feat extra-discovery -> 264
 prerequisites / * / feat extra-discovery-vivisectionist -> 264
 prerequisites / * / feat extra-hex -> 264
@@ -351,7 +338,6 @@ option lists / * / pool mythic feats -> 265
 option lists / in game only / pool mythic abilities -> 265
 prerequisites / * / mythic ability abundant-bane -> 265
 prerequisites / * / mythic ability abundant-ki-pool -> 265
-prerequisites / * / mythic ability abundant-smite-smite-chaos -> 265
 prerequisites / * / mythic ability any-means-necessary -> 265
 prerequisites / * / mythic ability bloodline-ascendance -> 265
 prerequisites / * / mythic ability defensive-study -> 265
@@ -1119,27 +1105,3 @@ class tables / class skills differ (the user's facts) / class stalwart-defender 
 mapping / selection or not / selection option monk/zen-archer/way-of-the-bow/bow -> 316
 mapping / selection or not / selection option oracle/revelations/battle/weapon-mastery -> 316
 mapping / selection or not / selection option shaman/hex/battle-master -> 316
-
-# Ticket 306l (the magus's, the Arcane Rider's and the warpriest's bonus feat lists): the game's members the planner has no feat for yet.
-option lists / in game only / selection magus/bonus-feats / AdvancedWeaponTraining2 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection magus/bonus-feats / AdvancedWeaponTraining3 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection magus/bonus-feats / AdvancedWeaponTraining4 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection magus/bonus-feats / BleedingCriticalFeature -> 306r-multi-blueprint-feats-2
-option lists / in game only / selection magus/arcane-rider/bonus-feats / AdvancedWeaponTraining2 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection magus/arcane-rider/bonus-feats / AdvancedWeaponTraining3 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection magus/arcane-rider/bonus-feats / AdvancedWeaponTraining4 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection magus/arcane-rider/bonus-feats / BleedingCriticalFeature -> 306r-multi-blueprint-feats-2
-option lists / in game only / selection warpriest/bonus-feats / AdvancedWeaponTraining2 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection warpriest/bonus-feats / AdvancedWeaponTraining3 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection warpriest/bonus-feats / AdvancedWeaponTraining4 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection warpriest/bonus-feats / BleedingCriticalFeature -> 306r-multi-blueprint-feats-2
-
-# Ticket 306m (the cavalier's and the Gendarme's bonus feat lists): the game's members the planner has no feat for yet.
-option lists / in game only / selection cavalier/bonus-feats / AdvancedWeaponTraining2 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection cavalier/bonus-feats / AdvancedWeaponTraining3 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection cavalier/bonus-feats / AdvancedWeaponTraining4 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection cavalier/bonus-feats / BleedingCriticalFeature -> 306r-multi-blueprint-feats-2
-option lists / in game only / selection cavalier/gendarme/bonus-feats / AdvancedWeaponTraining2 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection cavalier/gendarme/bonus-feats / AdvancedWeaponTraining3 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection cavalier/gendarme/bonus-feats / AdvancedWeaponTraining4 -> 306q-multi-blueprint-feats-1
-option lists / in game only / selection cavalier/gendarme/bonus-feats / BleedingCriticalFeature -> 306r-multi-blueprint-feats-2

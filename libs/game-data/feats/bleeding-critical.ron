@@ -1,0 +1,1 @@
+(key: "bleeding-critical", blueprint: "42be7d465db94213baf0578c721803ff", name: "Bleeding Critical", summary: "Your critical hits make the target bleed.", category: Weapon, guide: "feats#bleeding-critical", components: [Requires(condition: Has(Feat("critical-focus"))), Requires(condition: Stat(stat: BaseAttack, value: 11))])
