@@ -2219,3 +2219,112 @@ fn only_creates_a_carrier_another_ticket_owns() {
     assert_eq!(made(&outcome), ["features/unmodelled-pick.ron"]);
     assert!(dir.path().join("features/unmodelled-pick.ron").is_file());
 }
+
+/// A world shaped as the composite blasts are: the feat `blast-feat` (130) requires `BlueFlameBlastFeature` (131),
+/// which the orphan `BlueFlameBlastProgression` (132) lists in its `LevelEntries`, as does `ListedProgression` (133),
+/// which a selection (134, no entry) lists and `MappedHolderFeature` (135, an entry) adds.
+fn blast_world() -> (tempfile::TempDir, game_check::Dump) {
+    let dir = data_copy();
+    let put = |file: &str, text: String| std::fs::write(dir.path().join(file), text).unwrap();
+    std::fs::create_dir(dir.path().join("features")).unwrap();
+    put(
+        "feats/blast-feat.ron",
+        format!(
+            "(key: \"blast-feat\", blueprint: \"{}\", name: \"Blast\", category: Weapon)\n",
+            guid(130)
+        ),
+    );
+    put(
+        "features/mapped-holder.ron",
+        format!(
+            "(key: \"mapped-holder\", blueprint: \"{}\", name: \"Mapped holder\")\n",
+            guid(135)
+        ),
+    );
+    let progression = |n: u32, name: &str| {
+        record(
+            n,
+            name,
+            PROGRESSION,
+            &format!(
+                "{{\"$type\": \"0, BlueprintProgression\", \"Components\": [], \"LevelEntries\": [{{\"Level\": 1, \"m_Features\": [\"!bp_{}\"]}}]}}",
+                guid(131)
+            ),
+        )
+    };
+    let records = vec![
+        feature_record(130, "BlastFeat", FEATURE, &requires(131)),
+        feature_record(131, "BlueFlameBlastFeature", FEATURE, ""),
+        progression(132, "BlueFlameBlastProgression"),
+        progression(133, "ListedProgression"),
+        record(
+            134,
+            "UnmodelledSelection",
+            SELECTION,
+            &format!(
+                "{{\"$type\": \"0, BlueprintFeatureSelection\", \"m_AllFeatures\": [\"!bp_{}\"]}}",
+                guid(133)
+            ),
+        ),
+        feature_record(135, "MappedHolderFeature", FEATURE, &adds(133)),
+    ];
+    let (_, dump) = crate::support::dump(&crate::support::binz(&records, 1));
+    (dir, dump)
+}
+
+#[test]
+fn a_chain_walk_climbs_only_to_a_blueprint_that_is_held_and_no_pick() {
+    let (dir, dump) = blast_world();
+    let outcome = write_carriers(dir.path(), &dump, None, false).unwrap();
+    // 132 nothing grants and 133 is a pick of a selection's list (held by the entry 135 though): neither is planned,
+    // so the feature keeps its short key.
+    assert_eq!(made(&outcome), ["features/blue-flame-blast.ron"]);
+}
+
+#[test]
+fn a_run_in_pieces_keys_as_one_run_does() {
+    let (whole, dump) = carriers_world();
+    write_carriers(whole.path(), &dump, Some(&[110, 111]), false).unwrap();
+    let (pieces, _) = carriers_world();
+    let first = write_carriers(pieces.path(), &dump, Some(&[110]), false).unwrap();
+    assert_eq!(made(&first), ["features/foo-feature.ron"]);
+    // `FooFeature` is an entry now, and `FooProgression` still doesn't take `foo`.
+    let second = write_carriers(pieces.path(), &dump, Some(&[111]), false).unwrap();
+    assert_eq!(made(&second), ["features/foo-progression.ron"]);
+    let relative = |dir: &Path| -> Vec<(PathBuf, String)> {
+        all_files(dir)
+            .into_iter()
+            .map(|(path, text)| (path.strip_prefix(dir).unwrap().to_owned(), text))
+            .collect()
+    };
+    assert_eq!(relative(whole.path()), relative(pieces.path()));
+}
+
+#[test]
+fn only_refuses_a_value_that_is_no_guid() {
+    let (dir, dump) = carriers_world();
+    let facts = Facts::default();
+    let good = guid(101);
+    for bad in [
+        // Not hex, at 32 characters.
+        "z".repeat(32),
+        // Hex, too short and too long.
+        good[1..].to_owned(),
+        format!("{good}0"),
+        // Uppercase hex.
+        good.to_uppercase(),
+    ] {
+        let only: std::collections::BTreeSet<String> = [bad.clone()].into();
+        let error = run(
+            &dump,
+            dir.path(),
+            &[WriteArea::Carriers],
+            Some(&only),
+            true,
+            &facts,
+            valid,
+        )
+        .unwrap_err();
+        assert!(matches!(error, WriteError::Usage(_)), "{bad}: {error}");
+    }
+}

@@ -11,6 +11,9 @@
 //!   `AddFeatureOnClassLevel`, `AddFeatureIfHasFact`, `AddFeatureOnApply`, a progression's `LevelEntries`, an
 //!   archetype's `AddFeatures`), walked until a blueprint an entry maps, an archetype, or a class's own progression.
 //!   The last two end a walk and are not candidates: the class's rows hold them (the writer's inference).
+//!   A walk adds a parent only where the chain is held (a grant path from it leads up to a mapped blueprint, an
+//!   archetype or a class's progression: the composite blasts' orphan progressions are not on one) and it is no pick of
+//!   any selection's list, but for the four basic blast progressions the research counts.
 //!
 //! Never a candidate: a member of any `m_AllFeatures` (a pick: the selections' stage), or a blueprint an entry maps
 //! (a second run finds a carrier it made by its blueprint).
@@ -27,6 +30,19 @@ use crate::areas::Ctx;
 use crate::dump::{
     component_kind, components, is_feature_kind, level_entries, reference, references,
 };
+
+/// The four basic blast progressions a chain reaches through a selection nothing models: `AirBlastProgression`,
+/// `ColdBlastProgression`, `ElectricBlastProgression`, `WaterBlastProgression` (ticket 307's research, `final-cited.tsv`).
+const BASIC_BLASTS: [&str; 4] = [
+    "6f1d86ae43adf1049834457ce5264003",
+    "dbb1159b0e8137c4ea20434a854ae6a8",
+    "ba7767cb03f7f3949ad08bd3ff8a646f",
+    "e4027e0fec48e8048a172c6627d4eba9",
+];
+
+fn basic_blast(guid: &BlueprintGuid) -> bool {
+    BASIC_BLASTS.contains(&guid.as_str())
+}
 
 /// The finding kind a carrier answers.
 pub const KIND: &str = "carrier";
@@ -50,6 +66,17 @@ pub(crate) fn changes(
         .collect();
     let mut by_short: BTreeMap<String, usize> = BTreeMap::new();
     for guid in &candidates {
+        *by_short.entry(short_key(&ctx.name(guid))).or_default() += 1;
+    }
+    // The features the entries map count too, so a run in pieces keys as one run does: `FooFeature` written first
+    // as `foo-feature` still makes `FooProgression` `foo-progression`.
+    let mapped = ctx.planner.data.features.iter().filter_map(|feature| {
+        feature
+            .blueprint
+            .as_ref()
+            .filter(|guid| ctx.dump.kind(guid).is_some())
+    });
+    for guid in mapped {
         *by_short.entry(short_key(&ctx.name(guid))).or_default() += 1;
     }
     let keyed: Vec<(&BlueprintGuid, String)> = candidates
@@ -215,6 +242,9 @@ fn candidates(ctx: &Ctx) -> BTreeSet<BlueprintGuid> {
                 .kind(guid)
                 .is_some_and(|kind| kind.starts_with("BlueprintFeatureSelection"))
     };
+    // A chain never climbs to a pick of any selection's list, modelled or not, but for the four basic blasts
+    // the research counts (their selections, `AirBlastSelection` and `WaterBlastSelection`, nothing models).
+    let listed: BTreeSet<&BlueprintGuid> = lists.iter().flat_map(|(_, members)| members).collect();
     let mut out: BTreeSet<BlueprintGuid> = BTreeSet::new();
     let mut walk: Vec<BlueprintGuid> = Vec::new();
     for guid in prerequisite_references(ctx) {
@@ -222,9 +252,37 @@ fn candidates(ctx: &Ctx) -> BTreeSet<BlueprintGuid> {
             walk.push(guid);
         }
     }
+    // A chain exists only where it is held: the blueprints from which a grant path leads up to a mapped blueprint,
+    // an archetype or a class's progression. A blueprint nothing grants (the composite blasts' progressions, which
+    // only the game's actions give) is not on a chain.
+    let mut children: BTreeMap<&BlueprintGuid, Vec<&BlueprintGuid>> = BTreeMap::new();
+    let mut held: BTreeSet<&BlueprintGuid> = BTreeSet::new();
+    let mut up: Vec<&BlueprintGuid> = Vec::new();
+    for (child, above) in &parents {
+        for parent in above {
+            children.entry(parent).or_default().push(child);
+            if (planner.maps(parent) || stops.contains(parent))
+                && wanted(child)
+                && held.insert(child)
+            {
+                up.push(child);
+            }
+        }
+    }
+    while let Some(held_guid) = up.pop() {
+        for child in children.get(held_guid).into_iter().flatten() {
+            if wanted(child) && held.insert(child) {
+                up.push(child);
+            }
+        }
+    }
     while let Some(child) = walk.pop() {
         for parent in parents.get(&child).into_iter().flatten() {
-            if wanted(parent) && !stops.contains(parent) && out.insert(parent.clone()) {
+            if wanted(parent)
+                && !stops.contains(parent)
+                && (basic_blast(parent) || (held.contains(parent) && !listed.contains(parent)))
+                && out.insert(parent.clone())
+            {
                 walk.push(parent.clone());
             }
         }
