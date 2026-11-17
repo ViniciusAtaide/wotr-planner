@@ -191,3 +191,48 @@ fn a_mythic_ability_granting_a_selection_of_feats_gives_a_feat_slot() {
     build.picks.insert(nested, pick_feat("toughness"));
     assert!(engine.is_possible(&build));
 }
+
+/// Slayer Trick made to grant the teamwork feats (outflank: base attack 4 and lawful good; shield wall: base attack
+/// 20), for a human fighter 3 with it as the level 3 general pick; `open` drops shield wall's prerequisite.
+fn trick_granting(open: bool) -> (rules::Engine, Build) {
+    let engine = engine_with(|data| {
+        let trick = (data.feats.iter_mut())
+            .find(|feat| feat.key.as_str() == "slayer-trick")
+            .expect("Slayer Trick");
+        trick.selection = Some(feat_list("teamwork-feats"));
+        if open {
+            (data.feats.iter_mut())
+                .find(|feat| feat.key.as_str() == "shield-wall")
+                .expect("Shield Wall")
+                .prerequisite = None;
+        }
+    });
+    let mut build = build("human", &times("fighter", 3));
+    build
+        .picks
+        .insert(general_slot(3), pick_feat("slayer-trick"));
+    (engine, build)
+}
+
+/// A selection none of whose options passes its prerequisite is refused, as the game's `CanSelectAny` runs each
+/// option's `CanSelect` (`FeatureSelectionExtensions.CanSelectAny`, WrathDecompiled 6ce4a6b): a fighter 3 has the base
+/// attack bonus of neither teamwork feat.
+#[test]
+fn a_selection_whose_options_all_fail_their_prerequisites_is_no_option_left() {
+    let (engine, build) = trick_granting(false);
+    assert!(!engine.is_possible(&build));
+    let failures = engine.failures(&build);
+    assert!(
+        failures
+            .iter()
+            .any(|failure| failure.issue == Issue::NoOptionLeft(feat_list("teamwork-feats"))),
+        "{failures:?}"
+    );
+}
+
+#[test]
+fn one_takeable_option_keeps_the_pick_open() {
+    let (engine, build) = trick_granting(true);
+    assert!(engine.is_possible(&build), "{:?}", engine.failures(&build));
+    assert!(engine.evaluate(&build).slot(&extra_slot(3)).is_some());
+}

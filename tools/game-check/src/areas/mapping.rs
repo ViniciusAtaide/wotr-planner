@@ -1,6 +1,8 @@
 //! Each entry's blueprint is in the dump, of a type its kind can be: a class a class (a prestige class a prestige
 //! one), a mythic path a mythic class, an archetype one of its class's archetypes, a feat or feature a feature. A
-//! feat's, an option's, a mythic ability's or a mythic feat's `ranks` is its blueprint's `Ranks` (ticket 303).
+//! feat's, an option's, a mythic ability's or a mythic feat's `ranks` is its blueprint's `Ranks` (ticket 303). An option
+//! the planner takes as a selection (`is_selection`, or a pick that names a value) has a selection's or a parametrised
+//! feature's blueprint (ticket 306ac).
 
 use std::collections::BTreeMap;
 
@@ -115,24 +117,28 @@ fn entry(ctx: &Ctx, out: &mut Out, at: &DataAt, guid: &BlueprintGuid, ranks: u8)
                 );
             }
         }
-        DataAt::Feat(_)
-        | DataAt::SelectionOption(_)
-        | DataAt::MythicAbility(_)
-        | DataAt::MythicFeat(_) => {
+        DataAt::SelectionOption(key) => {
             let Some(json) = json else { return };
-            let game = json.get("Ranks").map_or(1, int);
-            let planner = i64::from(ranks);
-            if game != planner {
-                out.finding(
-                    AREA,
-                    "ranks differ",
-                    at,
-                    guid,
-                    name,
-                    game.to_string(),
-                    planner.to_string(),
-                );
+            ranks_differ(out, at, guid, name, json, ranks);
+            if let Some(option) = ctx.planner.data.selection_option(key) {
+                let game = is_selection_kind(&blueprint.kind);
+                let planner = option_is_selection(option);
+                if planner && !game {
+                    out.finding(
+                        AREA,
+                        "selection or not",
+                        at,
+                        guid,
+                        name,
+                        selection_word(game, &blueprint.kind),
+                        selection_word(planner, "a plain feature"),
+                    );
+                }
             }
+        }
+        DataAt::Feat(_) | DataAt::MythicAbility(_) | DataAt::MythicFeat(_) => {
+            let Some(json) = json else { return };
+            ranks_differ(out, at, guid, name, json, ranks);
         }
         _ => {}
     }
@@ -184,5 +190,50 @@ fn fits(at: &DataAt, kind: &str) -> bool {
         DataAt::SpellList(_) => kind == "BlueprintSpellList",
         DataAt::Gear(_) => kind.starts_with("BlueprintItem"),
         DataAt::Progression | DataAt::Skill(_) => false,
+    }
+}
+
+/// The finding "ranks differ": the blueprint's `Ranks` against the entry's.
+fn ranks_differ(
+    out: &mut Out,
+    at: &DataAt,
+    guid: &BlueprintGuid,
+    name: &str,
+    json: &serde_json::Value,
+    ranks: u8,
+) {
+    let game = json.get("Ranks").map_or(1, int);
+    let planner = i64::from(ranks);
+    if game != planner {
+        out.finding(
+            AREA,
+            "ranks differ",
+            at,
+            guid,
+            name,
+            game.to_string(),
+            planner.to_string(),
+        );
+    }
+}
+
+/// Whether a blueprint's type is one the game picks from: `BlueprintFeatureSelection` and its kin, or a
+/// `BlueprintParametrizedFeature` (ticket 306ac).
+fn is_selection_kind(kind: &str) -> bool {
+    kind.contains("FeatureSelection") || kind == "BlueprintParametrizedFeature"
+}
+
+/// Whether the planner takes an option as a selection: the hand `is_selection`, a pick that names a value (a chosen
+/// feat or a parameter). A game selection with no hand field is no difference: the engine derives it from the
+/// blueprint (ticket 306ac).
+fn option_is_selection(option: &rules::SelectionOption) -> bool {
+    option.is_selection || option.takes_value()
+}
+
+fn selection_word(selection: bool, kind: &str) -> String {
+    if selection {
+        format!("a selection ({kind})")
+    } else {
+        format!("not a selection ({kind})")
     }
 }

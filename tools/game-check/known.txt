@@ -1135,3 +1135,9 @@ option lists / ignores prerequisites or not / selection half-elf/adaptability ->
 
 # 312, the Stalwart Defender's Intimidate: the game's sub-skills in class skills.
 class tables / class skills differ (the user's facts) / class stalwart-defender -> 312
+
+# 316 (306ac), planner choices the game lacks: an option the planner takes a value for (a weapon or a school) whose
+# blueprint is not a selection.
+mapping / selection or not / selection option monk/zen-archer/way-of-the-bow/bow -> 316
+mapping / selection or not / selection option oracle/revelations/battle/weapon-mastery -> 316
+mapping / selection or not / selection option shaman/hex/battle-master -> 316

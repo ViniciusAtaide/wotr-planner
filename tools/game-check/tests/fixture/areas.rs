@@ -465,3 +465,26 @@ fn a_selections_own_no_feature_and_a_feats_ranks_are_compared() {
     assert_finding(&report, "mapping / ranks differ", "feat twice", "1", "2");
     assert_agrees(&report, "mapping", "feat thrice");
 }
+
+/// Ticket 306ac: an option the planner takes as a selection (`is_selection`, or a pick that names a value) must have a
+/// selection's or parametrised feature's blueprint; a game selection with no hand field is derived, not a difference.
+#[test]
+fn an_options_selection_is_checked_against_its_blueprints_type() {
+    let report = report();
+    assert_agrees(&report, "mapping", "selection option pick-kind");
+    assert_agrees(&report, "mapping", "selection option pick-derived");
+    assert_finding(
+        &report,
+        "mapping / selection or not",
+        "selection option pick-plain",
+        "not a selection (BlueprintFeature)",
+        "a selection (a plain feature)",
+    );
+    assert_finding(
+        &report,
+        "mapping / selection or not",
+        "selection option pick-valued",
+        "not a selection (BlueprintFeature)",
+        "a selection (a plain feature)",
+    );
+}
