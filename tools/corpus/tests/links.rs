@@ -4,7 +4,9 @@
 //! gives the new entry the old key as an alias, and this test then reads the old links through it.
 
 use corpus::links::{Fate, assert_same_picks, fate};
-use rules::{Engine, FeatKey, GameData, LinkKeys, Pick, StaleLink, decode_build, encode_build};
+use rules::{
+    Engine, FeatKey, GameData, LinkKeys, Pick, SlotKind, StaleLink, decode_build, encode_build,
+};
 
 /// The benchmark's links as they were made, by name; `blank`, which has none, left out.
 fn bench_links() -> impl Iterator<Item = (&'static str, &'static str)> {
@@ -245,8 +247,13 @@ fn every_s2_base_link_opens_the_same_or_through_an_heir_or_is_listed() {
     assert!(same + heirs + refused > 1_800, "{}", same + heirs + refused);
 }
 
+/// The skald's level-1 bonus feat: the feat slot of this selection, which the skald's and its archetypes' level-1
+/// rows grant, and no other row.
+const SKALD_BONUS_FEAT: &str = "skald/bonus-feat";
+
 /// The Magic feats the skald's level-1 bonus feat no longer offers (306n): the game's SkaldFeatSelection
-/// 0a1999535b4f77b4d89f689a385e5ec9 holds 26 of the planner's 35.
+/// 0a1999535b4f77b4d89f689a385e5ec9 holds 26 of the planner's 35. A pick of one is let through only in a slot of that
+/// selection ([`SKALD_BONUS_FEAT`]); taken in any other slot, its refusal is a bug.
 const SKALD_BONUS_FEAT_LACKS: [&str; 10] = [
     "acrobatic-spellcaster",
     "arcane-armor-mastery",
@@ -291,17 +298,35 @@ fn a_battle_scion_link_from_the_s2_base_still_opens() {
         let old = decode_build(link, &keys)
             .map_or_else(|_| String::new(), |build| format!("{:?}", build.picks));
         // A pick the game's lists lack may be refused (listed in `306-refused.txt`): a rogue talent the skald's list
-        // lacks, or a rage power Battle Prowess lacks (306h). A teamwork feat never is.
+        // lacks, a rage power Battle Prowess lacks (306h), or a Magic feat the skald's level-1 bonus feat lacks, in
+        // that slot (306n). A teamwork feat never is.
         match fate(&engine, &data, &keys, link, &old) {
             Fate::Same | Fate::Heirs(_) => {}
-            Fate::Refused(picks) => assert!(
-                picks
-                    .iter()
-                    .all(|(_, key)| key.starts_with("rogue/rogue-talents/")
-                        || BATTLE_PROWESS_LACKS.contains(&key.as_str())
-                        || SKALD_BONUS_FEAT_LACKS.contains(&key.as_str())),
-                "{name}: {picks:?}"
-            ),
+            Fate::Refused(picks) => {
+                // The Build's slots of the skald's level-1 bonus feat, as `Fate` names a slot (its `Debug`).
+                let bonus_feat_slots: Vec<String> = decode_build(link, &keys).map_or_else(
+                    |_| Vec::new(),
+                    |build| {
+                        let sheet = engine.evaluate(&build);
+                        (sheet.levels.iter().flat_map(|level| &level.slots))
+                            .filter(|slot| {
+                                matches!(&slot.kind, SlotKind::Feat(selection)
+                                    if selection.as_str() == SKALD_BONUS_FEAT)
+                            })
+                            .map(|slot| format!("{:?}", slot.id))
+                            .collect()
+                    },
+                );
+                assert!(
+                    picks.iter().all(|(slot, key)| {
+                        key.starts_with("rogue/rogue-talents/")
+                            || BATTLE_PROWESS_LACKS.contains(&key.as_str())
+                            || (SKALD_BONUS_FEAT_LACKS.contains(&key.as_str())
+                                && bonus_feat_slots.contains(slot))
+                    }),
+                    "{name}: {picks:?} (the skald's bonus feat slots: {bonus_feat_slots:?})"
+                );
+            }
             Fate::Changed(why) => panic!("{name}: {why}"),
         }
         scions += 1;

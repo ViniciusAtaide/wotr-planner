@@ -1051,13 +1051,13 @@ pub const FEAT_POOLS: [&str; 4] = [
     "teamwork-feats",
 ];
 
-/// A Feature selection by key.
 /// The selections a feat's pick may be a slot of (ticket 302): the selection it grants, whose own list every pick of
 /// it is of (ticket 306aa). Empty for a feat that grants none.
 pub fn picks_of(feat: &rules::Feat) -> BTreeSet<rules::FeatureSelectionKey> {
     feat.selection.iter().cloned().collect()
 }
 
+/// A Feature selection by key.
 pub fn any_selection(key: &str) -> &'static rules::FeatureSelection {
     DATA.selection(&rules::FeatureSelectionKey::new(key))
         .unwrap_or_else(|| panic!("no selection {key}"))

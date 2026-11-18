@@ -572,9 +572,25 @@ fn a_living_deity_below_arcanist_20_cant_take_impossible_domain() {
     // Game: ExtraDomain 213a8480d22206b45acbfa0619ca5aaf needs (Any) DomainsSelection
     // 48525e5da45c9c243a343fc6545dbdb9, DivineHunterDomainsSelection 72909a37a1ed5344f88ec9d1d31f5c5b or
     // FakeDivineSparkSelection e6d337e709b4478cb6e5389d3f85b601; MagicDeceiverWayOfLivingGodProgression
-    // 464ffaf88140474a949618bec7955e78 grants the last only at 20 (308d).
-    let status = feat_status(&build, &SlotId::Mythic { rank: 1 }, "impossible-domain");
-    assert!(matches!(status, Err(Issue::Unmet(_))), "{status:?}");
+    // 464ffaf88140474a949618bec7955e78 grants the last only at 20 (308d). Equivalent model: DomainsSelection is the
+    // cleric's, the inquisitor's and the Sacred Huntsmaster's domain selections, FakeDivineSparkSelection
+    // `arcanist/magic-deceiver/domain`.
+    let held = |selection: &str| Unmet::Condition {
+        needs: Prerequisite::Selection(rules::FeatureSelectionKey::new(selection)),
+        has: None,
+    };
+    assert_eq!(
+        feat_status(&build, &SlotId::Mythic { rank: 1 }, "impossible-domain"),
+        Err(Issue::Unmet(Unmet::Any(vec![
+            Unmet::Any(vec![
+                held("cleric/domain"),
+                held("inquisitor/domain"),
+                held("inquisitor/sacred-huntsmaster/domain"),
+            ]),
+            held("arcanist/magic-deceiver/domain"),
+            held("hunter/divine-hunter/domain"),
+        ])))
+    );
 }
 
 /// Fighter 6, then Hellknight 3 (lawful neutral, with the entry's skill ranks): the Order of the Godclaw at
