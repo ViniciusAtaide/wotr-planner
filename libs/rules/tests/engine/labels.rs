@@ -837,6 +837,55 @@ fn an_and_of_two_texts_that_read_alike_reads_once_and_an_or_keeps_every_alternat
     );
 }
 
+/// An "and" inside an "and" reads as its parts, each once (ticket 329: the game's Chain Arrows has a
+/// `PrerequisiteClassLevel` and a `PrerequisiteArchetypeLevel` of the same class and level, which read "(Kineticist
+/// level 16 (have 5), the Kinetic Sharpshooter archetype), Kineticist level 16 (have 5)"); what an "and" refuses
+/// comes after what it needs ("Order of the Godclaw, not with Pentamic Faith").
+#[test]
+fn an_and_inside_an_and_reads_its_parts_once_and_its_refusals_last() {
+    let engine = engine();
+    let level = || Prerequisite::ClassLevel {
+        class: class("fighter"),
+        level: 4,
+    };
+    let scoundrel = || Prerequisite::Archetype(ArchetypeKey::new("rogue/eldritch-scoundrel"));
+    let nested = Prerequisite::All(vec![level(), Prerequisite::All(vec![scoundrel(), level()])]);
+    assert_eq!(
+        engine.prerequisite_text(&nested, None),
+        "Fighter level 4, the Eldritch Scoundrel archetype"
+    );
+    let unmet = Unmet::All(vec![
+        needs(level(), Some(1)),
+        Unmet::All(vec![needs(scoundrel(), None), needs(level(), Some(1))]),
+    ]);
+    assert_eq!(
+        reason(&engine, &Issue::Unmet(unmet.clone())),
+        "Needs Fighter level 4 (have 1), the Eldritch Scoundrel archetype"
+    );
+    assert_eq!(
+        engine.unmet_text(&unmet),
+        "Fighter level 4 (have 1), the Eldritch Scoundrel archetype"
+    );
+    // Beside a refusal, the needs still read once.
+    let refused = Unmet::All(vec![
+        needs(not(Prerequisite::Feat(feat("dodge"))), None),
+        unmet,
+        needs(Prerequisite::Feat(feat("toughness")), None),
+    ]);
+    assert_eq!(
+        reason(&engine, &Issue::Unmet(refused)),
+        "Not with dodge; needs Fighter level 4 (have 1), the Eldritch Scoundrel archetype, toughness"
+    );
+    let refusing = Prerequisite::All(vec![
+        not(Prerequisite::Feat(feat("dodge"))),
+        Prerequisite::Feat(feat("toughness")),
+    ]);
+    assert_eq!(
+        engine.prerequisite_text(&refusing, None),
+        "toughness, not with dodge"
+    );
+}
+
 #[test]
 fn a_group_exclusion_counts_as_a_negation_and_a_plain_need_does_not() {
     // Ticket 192 review: Draconic (Blue) needs "no other Draconic option"; a held Draconic (Red) excludes it, and a

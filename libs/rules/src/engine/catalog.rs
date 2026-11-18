@@ -783,6 +783,12 @@ impl Catalog {
             .map_or(&[], Vec::as_slice)
     }
 
+    /// Whether this Feature selection and another, both named in rows, share a name (the Barbarian's and the Skald's
+    /// Rage Power).
+    pub(super) fn selection_shares_name(&self, selection: &FeatureSelectionKey) -> bool {
+        self.features.shared_selection_names.contains(selection)
+    }
+
     /// What names a Feature selection in its rows, as [`feature_holders`](Self::feature_holders) for a feature.
     pub(super) fn selection_holders(&self, selection: &FeatureSelectionKey) -> &[GrantedBy] {
         self.features
@@ -982,6 +988,9 @@ struct FeatureFacts {
     /// The features whose name another feature shares (the Fighter's and the Sohei's Weapon Training), so a reason
     /// can tell them apart.
     shared_names: FxHashSet<FeatureKey>,
+    /// The Feature selections rows name whose name another such selection shares (the Barbarian's and the Skald's
+    /// Rage Power), so a reason can tell them apart (ticket 329).
+    shared_selection_names: FxHashSet<FeatureSelectionKey>,
 }
 
 impl FeatureFacts {
@@ -996,6 +1005,21 @@ impl FeatureFacts {
             .iter()
             .filter(|feature| name_counts[feature.name.as_str()] > 1)
             .map(|feature| feature.key.clone())
+            .collect();
+        // Only the selections rows name, the ones an owner tells apart: an Extra feat's selection, which takes its
+        // class selection's name as the game's does, makes no other one ambiguous.
+        let owned: Vec<&crate::game_data::FeatureSelection> = (data.selections.iter())
+            .filter(|selection| selection_holders.contains_key(&selection.key))
+            .collect();
+        let mut selection_name_counts: FxHashMap<&str, usize> = FxHashMap::default();
+        for selection in &owned {
+            *selection_name_counts
+                .entry(selection.name.as_str())
+                .or_default() += 1;
+        }
+        let shared_selection_names = (owned.iter())
+            .filter(|selection| selection_name_counts[selection.name.as_str()] > 1)
+            .map(|selection| selection.key.clone())
             .collect();
         let rows = features
             .iter()
@@ -1027,6 +1051,7 @@ impl FeatureFacts {
             weapons,
             names,
             shared_names,
+            shared_selection_names,
             holders,
             selection_holders,
         }

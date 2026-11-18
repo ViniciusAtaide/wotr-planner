@@ -20,9 +20,9 @@ use crate::game_data::{
     MythicPath, SelectionOption, SpellType,
 };
 use crate::keys::{
-    ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey,
-    MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
-    SubraceKey, WeaponKey,
+    ArchetypeKey, BackgroundKey, BlueprintGuid, ClassKey, DeityKey, FeatKey, FeatureKey,
+    FeatureSelectionKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
+    SelectionOptionKey, SkillKey, SubraceKey, WeaponKey,
 };
 use crate::parameter::{Parameter, ParameterKind};
 use crate::prerequisite::Prerequisite;
@@ -710,11 +710,8 @@ impl Engine {
                 ),
             };
         }
-        let children: Vec<&Unmet> = match unmet {
-            Unmet::All(children) => children.iter().collect(),
-            unmet => vec![unmet],
-        };
-        let (refused, needed): (Vec<&Unmet>, Vec<&Unmet>) = children
+        let (refused, needed): (Vec<&Unmet>, Vec<&Unmet>) = unmet
+            .and_parts()
             .into_iter()
             .partition(|child| negated(child).is_some());
         if refused.is_empty() {
@@ -738,10 +735,12 @@ impl Engine {
             [one] => clauses.push(format!("needs {}", self.unmet_text(one))),
             more => clauses.push(format!(
                 "needs {}",
-                more.iter()
-                    .map(|child| self.nested_unmet_text(child))
-                    .collect::<Vec<_>>()
-                    .join(", ")
+                distinct(
+                    more.iter()
+                        .map(|child| self.nested_unmet_text(child))
+                        .collect()
+                )
+                .join(", ")
             )),
         }
         capitalized(&clauses.join("; "))
@@ -857,14 +856,31 @@ impl Engine {
                 (Lead::With, format!("another {} option", group.name()))
             }
             // Any of what the character holds, each named once: the game's own NoFeature of a blueprint several
-            // entries share (Second Mystery's, ticket 308d) reads "with Second Mystery", not "with (A or A)".
+            // entries share (Second Mystery's, ticket 308d) reads "with Second Mystery", not "with (A or A)"; a
+            // selection the planner keeps beside an option of its blueprint is that option (Pentamic Faith's, ticket
+            // 329: "with Pentamic Faith", not "with Pentamic Faith or the Pentamic Faith selection").
             Prerequisite::Any(members)
                 if members
                     .iter()
                     .all(|member| self.held_text(member).0 == Lead::With) =>
             {
+                let options: Vec<&BlueprintGuid> = (members.iter())
+                    .filter_map(|member| match member {
+                        Prerequisite::SelectionOption(option) => {
+                            self.catalog.option(option)?.blueprint.as_ref()
+                        }
+                        _ => None,
+                    })
+                    .collect();
                 let mut names: Vec<String> = Vec::new();
                 for member in members {
+                    if let Prerequisite::Selection(selection) = member
+                        && (self.catalog.selection(selection))
+                            .and_then(|selection| selection.blueprint.as_ref())
+                            .is_some_and(|blueprint| options.contains(&blueprint))
+                    {
+                        continue;
+                    }
                     let name = self.held_text(member).1;
                     if !names.contains(&name) {
                         names.push(name);
@@ -945,11 +961,13 @@ impl Engine {
         }
     }
 
-    /// The failing children of an "and", each once: two that read alike (both "no Bloodline yet") are one.
+    /// The failing children of an "and", each once: two that read alike (both "no Bloodline yet") are one, and an
+    /// "and" among them reads as its parts ([`Unmet::and_parts`]).
     fn unmet_all_texts(&self, children: &[Unmet]) -> Vec<String> {
         distinct(
             children
                 .iter()
+                .flat_map(Unmet::and_parts)
                 .map(|child| self.nested_unmet_text(child))
                 .collect(),
         )
@@ -984,7 +1002,7 @@ impl Engine {
 
     /// The texts of a group's children, each group among them in brackets (an "and" left with one text, not), with
     /// the options of one name told apart ([`Self::told_apart`]).
-    fn group_texts(&self, children: &[Prerequisite], most: Option<usize>) -> Vec<String> {
+    fn group_texts(&self, children: &[&Prerequisite], most: Option<usize>) -> Vec<String> {
         let texts = children
             .iter()
             .map(|child| match child {
@@ -1006,9 +1024,24 @@ impl Engine {
     }
 
     /// The texts of an "and"'s children, each once: "no Bloodline yet" twice (the Sorcerer's and the Bloodrager's
-    /// Bloodline selections share a name) is one. An "or" keeps every alternative.
+    /// Bloodline selections share a name) is one. An "and" among them reads as its parts, and what the "and" refuses
+    /// comes after what it needs ("Order of the Godclaw, not with Pentamic Faith", ticket 329). An "or" keeps every
+    /// alternative.
     fn all_texts(&self, children: &[Prerequisite], most: Option<usize>) -> Vec<String> {
-        distinct(self.group_texts(children, most))
+        fn push<'p>(children: &'p [Prerequisite], parts: &mut Vec<&'p Prerequisite>) {
+            for child in children {
+                match child {
+                    Prerequisite::All(inner) => push(inner, parts),
+                    child => parts.push(child),
+                }
+            }
+        }
+        let mut parts = Vec::new();
+        push(children, &mut parts);
+        parts.sort_by_key(|part| {
+            matches!(part, Prerequisite::Not(held) if !matches!(**held, Prerequisite::Not(_)))
+        });
+        distinct(self.group_texts(&parts, most))
     }
 
     /// The text of a prerequisite, its groups of more than `most` alternatives shortened when `most` is given.
@@ -1029,7 +1062,7 @@ impl Engine {
             Prerequisite::Any(children) | Prerequisite::AtLeast(_, children)
                 if most.is_some_and(|most| children.len() > most) =>
             {
-                let texts = self.group_texts(children, most);
+                let texts = self.group_texts(&refs(children), most);
                 let mut shown = texts[..SHOWN.min(texts.len())].join(", ");
                 if texts.len() > SHOWN {
                     shown.push_str(", …");
@@ -1044,9 +1077,12 @@ impl Engine {
                     self.alternatives_noun(children)
                 )
             }
-            Prerequisite::Any(children) => self.group_texts(children, most).join(" or "),
+            Prerequisite::Any(children) => self.group_texts(&refs(children), most).join(" or "),
             Prerequisite::AtLeast(n, children) => {
-                format!("{n} of: {}", self.group_texts(children, most).join(", "))
+                format!(
+                    "{n} of: {}",
+                    self.group_texts(&refs(children), most).join(", ")
+                )
             }
             // Two negations cancel.
             Prerequisite::Not(child) => match &**child {
@@ -1089,9 +1125,7 @@ impl Engine {
             }
             Prerequisite::Rank { fact, rank } => have(format!("{} ×{rank}", self.fact_name(fact))),
             Prerequisite::SelectionOption(option) => self.option_name(option).to_owned(),
-            Prerequisite::Selection(selection) => {
-                format!("the {} selection", self.selection_name(selection))
-            }
+            Prerequisite::Selection(selection) => self.selection_text(selection),
             Prerequisite::NoOptionFrom(selection) => {
                 format!("no {} yet", self.selection_name(selection))
             }
@@ -1143,6 +1177,21 @@ impl Engine {
             Prerequisite::DeityOffers(domain) => {
                 format!("a deity offering the {}", self.option_name(domain))
             }
+        }
+    }
+
+    /// A Feature selection as a prerequisite names it: "the Fey Tricks selection", or, when another selection shares
+    /// its name, with what names it in its rows ([`Self::selection_owner`]): "the Barbarian's Rage Power selection or
+    /// the Skald's Rage Power selection" (ticket 329). Like a feature's ([`Self::feature_name_apart`]), whether a name
+    /// is shared is the game data's, not one reason's.
+    fn selection_text(&self, key: &FeatureSelectionKey) -> String {
+        let name = self.selection_name(key);
+        let owner = (self.catalog.selection_shares_name(key))
+            .then(|| self.selection_owner(key))
+            .flatten();
+        match owner {
+            Some(owner) => format!("the {owner}'s {name} selection"),
+            None => format!("the {name} selection"),
         }
     }
 
@@ -1233,6 +1282,11 @@ impl Engine {
                 }
             })
     }
+}
+
+/// A group's children by reference, as [`Engine::group_texts`] takes them.
+fn refs(children: &[Prerequisite]) -> Vec<&Prerequisite> {
+    children.iter().collect()
 }
 
 /// A noun's plural: "hexes", "talents", "abilities"; one that ends in "s" is taken as plural already.
