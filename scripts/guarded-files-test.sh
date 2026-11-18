@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # The test of scripts/guarded-files.sh (ticket 322), on a throwaway git repository holding a small gold.rs, the gold
 # write-ups, a user-facts.txt and a ticket file: a staged gold change fails without a `User approved:` line and passes
-# with one, a change outside the guarded regions passes, a deleted known gap passes and an added one fails, a test
-# switched off fails, a `held` line's change fails and another line's passes, and the same holds for a committed
-# range. Last, it runs itself under a decoy hook environment and checks the decoy repository is untouched.
+# with one that names it, in any case, and fails beside another change no approval names (ticket 325); a change outside
+# the guarded regions passes, a deleted known gap passes and an added one fails, a test switched off fails, a `held`
+# line's change fails and another line's passes, the same holds for a committed range, and the 308 queue's range
+# (a pick added to the Enforcer, its gap deleted) passes with 308e's approval. Last, it runs itself under a decoy hook
+# environment and checks the decoy repository is untouched.
 #
 #   scripts/guarded-files-test.sh
 #
@@ -55,6 +57,12 @@ fn jack() -> Build {
     build
 }
 
+fn enforcer() -> Build {
+    let mut build = Build::default();
+    build.picks.extend([(feat_slot(1), feat("toughness"))]);
+    build
+}
+
 fn helper() -> u8 {
     41
 }
@@ -75,6 +83,15 @@ fn a_number() {
 const KNOWN_GAPS: &[Gap] = &[
     gap("jack", 3, "Wings", Why::Ticket(1)),
     gap("jack", 5, "Fly", Why::Ticket(4)),
+    gap(
+        "enforcer",
+        Place::Level(8),
+        "Uncanny Dodge",
+        Why::WriteUpMistaken(
+            173,
+            "a reason",
+        ),
+    ),
 ];
 EOF
 put "$ron" <<'EOF'
@@ -135,6 +152,15 @@ drop() {
     git_ add "$file"
 }
 
+# Deletes each line of $1 that is $2, leading spaces aside, and stages it.
+drop_line() {
+    local file=$1 line=$2 tmp
+    tmp=$(mktemp)
+    awk -v line="$line" '{ text = $0; sub(/^[[:space:]]+/, "", text) } text != line' "$repo/$file" >"$tmp"
+    mv "$tmp" "$repo/$file"
+    git_ add "$file"
+}
+
 reset() {
     git_ reset -q --hard "$base"
 }
@@ -145,7 +171,38 @@ change "$gold" 'feat("spell-penetration")' '    build.picks.extend([(feat_slot(1
 expect 1 "a gold pick, staged, without approval"
 echo 'User approved: the pick (test, 2026-11-17).' >>"$repo/$ticket"
 git_ add "$ticket"
-expect 0 "a gold pick, staged, with approval"
+expect 1 "a gold pick, staged, with an approval that doesn't name it"
+echo 'User approved: the jack pick (test, 2026-11-17).' >>"$repo/$ticket"
+git_ add "$ticket"
+expect 0 "a gold pick, staged, with an approval that names it"
+reset
+
+echo 'User approved: Jack-in-the-Green takes Toughness (test, 2026-11-17).' >>"$repo/$ticket"
+git_ add "$ticket"
+change "$gold" 'feat("spell-penetration")' '    build.picks.extend([(feat_slot(1), feat("toughness"))]);'
+expect 0 "a gold pick named in another case"
+reset
+
+echo 'User approved: jackal and jack_pick name no gold Build (test, 2026-11-17).' >>"$repo/$ticket"
+git_ add "$ticket"
+change "$gold" 'feat("spell-penetration")' '    build.picks.extend([(feat_slot(1), feat("toughness"))]);'
+expect 1 "a gold Build's name only inside another word"
+reset
+
+echo 'User approved: the jack pick (test, 2026-11-17).' >>"$repo/$ticket"
+git_ add "$ticket"
+change "$gold" 'feat("toughness"))]);' '    build.picks.extend([(feat_slot(1), feat("dodge"))]);'
+change "$gold" 'feat("spell-penetration")' '    build.picks.extend([(feat_slot(1), feat("toughness"))]);'
+expect 1 "one gold Build's pick named, another's unnamed"
+reset
+
+change "$gold" 'Why::Ticket(4)' '    gap("jack", 5, "Fly", Why::Ticket(4)),\n    gap("jack", 7, "Haste", Why::Ticket(5)),'
+echo 'User approved: gap 4 stays (test, 2026-11-17).' >>"$repo/$ticket"
+git_ add "$ticket"
+expect 1 "a known gap added, another gap named"
+echo 'User approved: gap 5 is added (test, 2026-11-17).' >>"$repo/$ticket"
+git_ add "$ticket"
+expect 0 "a known gap added, named by its number"
 reset
 
 echo '- User approved: not at the line start' >>"$repo/$ticket"
@@ -205,6 +262,9 @@ reset
 
 change "$facts" 'differ (the user'"'"'s facts) -> held' 'class tables / class skills differ (the user'"'"'s facts) -> applied 999'
 expect 1 "a held user fact"
+echo "User approved: class skills differ (the user's facts) is applied (test, 2026-11-17)." >>"$repo/$ticket"
+git_ add "$ticket"
+expect 0 "a held user fact, named"
 reset
 
 change "$gold" 'Why::Ticket(1)' '    gap("jack", 3, "Wings", Why::Ticket(2)),'
@@ -212,9 +272,26 @@ git_ commit -q -m "a gap moved"
 expect 1 "a range with a gold change" "$base"
 echo 'User approved: the gap (test, 2026-11-17).' >>"$repo/$ticket"
 git_ add "$ticket"
+git_ commit -q -m "an approval that doesn't name it"
+expect 1 "a range with a gold change and an approval that doesn't name it" "$base"
+echo 'User approved: gap 2 replaces gap 1 (test, 2026-11-17).' >>"$repo/$ticket"
+git_ add "$ticket"
 git_ commit -q -m "the approval"
 expect 0 "a range with a gold change and its approval" "$base"
 expect 2 "a base that isn't a commit" no-such-commit
+reset
+
+# The 308 queue's range (2e044a3c..0a10cf89): 308e added a pick to the Enforcer and deleted its gap, with this approval.
+change "$gold" 'feat("toughness"))]);' '    build.picks.extend([(feat_slot(1), feat("toughness")), (selection(8, 0), option("uncanny-dodge"))]);'
+git_ commit -q -m "the Enforcer's pick"
+for line in 'gap(' '"enforcer",' 'Place::Level(8),' '"Uncanny Dodge",' 'Why::WriteUpMistaken(' '173,' '"a reason",' '),'; do
+    drop_line "$gold" "$line"
+done
+git_ commit -q -m "the Enforcer's gap goes"
+echo 'User approved: the Enforcer gold build picks Uncanny Dodge at its level-8 slayer talent, and gap 173 goes (the user, 2026-11-17, "Yes, approve it").' >>"$repo/$ticket"
+git_ add "$ticket"
+git_ commit -q -m "308e's approval"
+expect 0 "the 308 queue's range, with 308e's approval" "$base"
 reset
 
 # Under a hook's environment pointing at a decoy repository, the test passes and leaves the decoy as it was: its

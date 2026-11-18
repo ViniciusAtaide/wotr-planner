@@ -310,7 +310,8 @@ fn each_extra_feat_gives_a_slot_of_its_classs_selection() {
             3,
             "kineticist/wild-talents",
         ),
-        // A witch who becomes a shaman: her Extra Hex is a witch's hex, the selection she had a slot of first.
+        // A witch who becomes a shaman: her Extra Hex is a witch's hex, of the selection the feat grants (ticket
+        // 306aa), whatever her classes.
         // Game: ExtraWitchHexSelection b6054088b4ab4be286724127cbf48b35 gives a witch hex (equivalent model: the game's
         // Extra Hex (Shaman) is another feat she may take instead)
         (
