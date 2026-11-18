@@ -164,6 +164,17 @@ pub enum Unmet {
     },
 }
 
+impl Unmet {
+    /// The parts of an "and", in order: its children, an "and" among them as its own parts (ticket 329: the game's
+    /// `PrerequisiteArchetypeLevel` beside a `PrerequisiteClassLevel` of the same class); anything else is its one part.
+    pub fn and_parts(&self) -> Vec<&Unmet> {
+        match self {
+            Unmet::All(children) => children.iter().flat_map(Unmet::and_parts).collect(),
+            unmet => vec![unmet],
+        }
+    }
+}
+
 /// The pick in a later slot of the same character level that would meet an unmet prerequisite
 /// ([`Unmet::MetLater`]).
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -29,3 +29,4 @@ mod totals;
 mod validate;
 mod walks;
 mod withdraw;
+mod wording;

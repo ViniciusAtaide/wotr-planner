@@ -266,23 +266,24 @@ fn leaves(unmet: &Unmet) -> Vec<&Prerequisite> {
     }
 }
 
-/// Each part of an unmet "and" on its own, in the engine's words without "Needs ": "Str 13 (have 12)",
-/// "power-attack". An "or" stays one part.
+/// Each part of an unmet "and" on its own ([`Unmet::and_parts`]), each once, in the engine's words without "Needs ":
+/// "Str 13 (have 12)", "power-attack". An "or" stays one part.
 pub(super) fn needs(engine: &Engine, unmet: &Unmet) -> Vec<String> {
-    let parts: Vec<&Unmet> = match unmet {
-        Unmet::All(children) => children.iter().collect(),
-        Unmet::MetLater { unmet, .. } => return needs(engine, unmet),
-        unmet => vec![unmet],
-    };
-    parts
-        .into_iter()
-        .map(|part| {
-            let text = issue_reason(engine, &Issue::Unmet(part.clone()));
-            text.strip_prefix("Needs ")
-                .map(str::to_owned)
-                .unwrap_or(text)
-        })
-        .collect()
+    if let Unmet::MetLater { unmet, .. } = unmet {
+        return needs(engine, unmet);
+    }
+    let mut texts: Vec<String> = Vec::new();
+    for part in unmet.and_parts() {
+        let text = issue_reason(engine, &Issue::Unmet(part.clone()));
+        let text = text
+            .strip_prefix("Needs ")
+            .map(str::to_owned)
+            .unwrap_or(text);
+        if !texts.contains(&text) {
+            texts.push(text);
+        }
+    }
+    texts
 }
 
 /// The failures placed in a tree, in order: each under the earliest earlier failure it needs, with the others it
