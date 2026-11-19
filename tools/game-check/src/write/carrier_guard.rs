@@ -43,7 +43,7 @@ impl Grants {
     pub(super) fn of(ctx: &Ctx) -> Grants {
         Grants {
             granters: granters(ctx.dump),
-            index: GrantIndex::new(ctx.planner.data),
+            index: GrantIndex::with_offers(ctx.planner.data),
         }
     }
 

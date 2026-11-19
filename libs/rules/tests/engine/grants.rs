@@ -331,11 +331,23 @@ fn the_index_ignores_the_datas_order() {
     for path in &mut shuffled.mythic_paths {
         path.ranks.reverse();
     }
-    assert_eq!(GrantIndex::new(&shuffled), GrantIndex::new(&data));
     assert_eq!(
-        GrantIndex::new(&data.clone().canonical()),
-        GrantIndex::new(&data)
+        GrantIndex::with_offers(&shuffled),
+        GrantIndex::with_offers(&data)
     );
+    assert_eq!(
+        GrantIndex::with_offers(&data.clone().canonical()),
+        GrantIndex::with_offers(&data)
+    );
+}
+
+/// The engine's index holds no offers: only game-check reads them, and builds its index with them.
+#[test]
+#[should_panic(expected = "an index built with_offers")]
+fn an_index_without_offers_has_none_to_give() {
+    let index = GrantIndex::new(&world());
+    assert_eq!(index.sites(), GrantIndex::with_offers(&world()).sites());
+    index.offered_in(&feat_fact("dodge"));
 }
 
 /// A key the data lacks gives nothing and is given by nothing; data naming keys it lacks (unchecked data, as
@@ -349,7 +361,7 @@ fn an_unknown_key_gives_nothing() {
     data.deities[0]
         .favoured_weapons
         .insert(rules::WeaponKey::new("no-such-weapon"));
-    let index = GrantIndex::new(&data);
+    let index = GrantIndex::with_offers(&data);
     assert!(
         index
             .gives(&DataAt::Feat(FeatKey::new("no-such-feat")))
@@ -357,11 +369,10 @@ fn an_unknown_key_gives_nothing() {
     );
     assert!(index.given_by(&feat_fact("no-such-feat")).next().is_none());
     assert!(index.offered_in(&feat_fact("no-such-feat")).is_empty());
-    assert!(
-        index
-            .given_by(&feature_fact("no-such-feature"))
-            .all(|(site, _)| site.by == DataAt::Class(ClassKey::new("monk")))
-    );
+    let givers: Vec<&DataAt> = (index.given_by(&feature_fact("no-such-feature")))
+        .map(|(site, _)| &site.by)
+        .collect();
+    assert_eq!(givers, [&DataAt::Class(ClassKey::new("monk"))]);
     let weapons: Vec<&GrantValue> = (index.gives(&DataAt::Deity(data.deities[0].key.clone())))
         .iter()
         .flat_map(|site| &site.grants)
@@ -377,7 +388,7 @@ fn an_unknown_key_gives_nothing() {
 /// mythic abilities.
 #[test]
 fn offered_in_lists_the_selections_whose_lists_offer_a_fact() {
-    let index = GrantIndex::new(&world());
+    let index = GrantIndex::with_offers(&world());
     // Its own selection's, and Extra Rogue Talent's, which shares the rogue talents.
     assert_eq!(
         index.offered_in(&Fact::Option(SelectionOptionKey::new(

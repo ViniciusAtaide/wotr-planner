@@ -6,8 +6,6 @@
 //! level, an archetype's replaced row, a switch's drops, a component's class level) stays the walk's question; a
 //! [`Site`]'s [`When`] only says which rule it applies by.
 
-use std::ops::Range;
-
 use rustc_hash::{FxHashMap, FxHashSet};
 
 use crate::check::DataAt;
@@ -20,17 +18,18 @@ use crate::keys::{ClassKey, FeatKey, FeatureKey, FeatureSelectionKey, WeaponKey}
 use crate::parameter::Parameter;
 
 /// Every grant in the game data, by granting entry and by fact. Built once ([`GrantIndex::new`]), independent of any
-/// Build, with no IO, so the browser builds it too.
+/// Build, with no IO, so the browser builds it too. It copies no key but each site's entry and grants' facts: both
+/// lookups halve sorted lists.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct GrantIndex {
-    /// Every site, sorted by its entry, its [`When`] and its grants, so the data's order changes nothing.
+    /// Every site, sorted by its entry, its [`When`] and its grants, so the data's order changes nothing; an entry's
+    /// sites are a run of it.
     sites: Vec<Site>,
-    /// Each entry's sites, as a range of `sites`.
-    by_entry: FxHashMap<DataAt, Range<u32>>,
-    /// Each fact's grants, as (site, grant) positions, in site order.
-    by_fact: FxHashMap<Fact, Vec<(u32, u16)>>,
-    /// The selections whose lists offer each fact as a pick, in key order.
-    offered_in: FxHashMap<Fact, Vec<FeatureSelectionKey>>,
+    /// Every grant, as its (site, grant) position, sorted by its fact, then by its position.
+    by_fact: Vec<(u32, u16)>,
+    /// The selections whose lists offer each fact as a pick, in key order: only an index built
+    /// [`with_offers`](GrantIndex::with_offers) has them (game-check's; the engine reads none).
+    offered_in: Option<FxHashMap<Fact, Vec<FeatureSelectionKey>>>,
 }
 
 /// One place the data gives facts together: a row at a level, a component, an entry's own fields (game-check's
@@ -115,50 +114,60 @@ impl GrantIndex {
         let mut sites = sites.out;
         sites
             .sort_unstable_by(|a, b| (&a.by, &a.when, &a.grants).cmp(&(&b.by, &b.when, &b.grants)));
-        let mut by_entry: FxHashMap<DataAt, Range<u32>> = FxHashMap::default();
-        let mut by_fact: FxHashMap<Fact, Vec<(u32, u16)>> = FxHashMap::default();
-        let mut start = 0;
+        let mut by_fact: Vec<(u32, u16)> = Vec::new();
         for (s, site) in sites.iter().enumerate() {
-            if sites[start].by != site.by {
-                by_entry.insert(sites[start].by.clone(), position(start)..position(s));
-                start = s;
-            }
-            for (g, grant) in site.grants.iter().enumerate() {
-                let g = u16::try_from(g).expect("a site gives fewer than 65,536 facts");
-                (by_fact.entry(grant.fact.clone()).or_default()).push((position(s), g));
-            }
+            let s = u32::try_from(s).expect("fewer than 4 billion sites");
+            let grants =
+                0..u16::try_from(site.grants.len()).expect("a site gives fewer than 65,536 facts");
+            by_fact.extend(grants.map(|g| (s, g)));
         }
-        if let Some(last) = sites.get(start) {
-            by_entry.insert(last.by.clone(), position(start)..position(sites.len()));
-        }
+        let fact = |&(s, g): &(u32, u16)| &sites[s as usize].grants[usize::from(g)].fact;
+        by_fact.sort_unstable_by(|a, b| fact(a).cmp(fact(b)).then(a.cmp(b)));
         Self {
             sites,
-            by_entry,
             by_fact,
-            offered_in: offered_in(data),
+            offered_in: None,
+        }
+    }
+
+    /// [`new`](Self::new), with the selections that offer each fact as a pick ([`offered_in`](Self::offered_in)).
+    pub fn with_offers(data: &GameData) -> Self {
+        Self {
+            offered_in: Some(offered_in(data)),
+            ..Self::new(data)
         }
     }
 
     /// What an entry gives, in [`When`] order (rows by level). Empty for an entry that gives nothing or that the data
     /// lacks.
     pub fn gives(&self, by: &DataAt) -> &[Site] {
-        self.by_entry.get(by).map_or(&[], |range| {
-            &self.sites[range.start as usize..range.end as usize]
-        })
+        let start = self.sites.partition_point(|site| site.by < *by);
+        let run = self.sites[start..].partition_point(|site| site.by == *by);
+        &self.sites[start..start + run]
     }
 
     /// Every site that grants `fact`, with the grant, ordered by (`by`, `when`).
     pub fn given_by(&self, fact: &Fact) -> impl Iterator<Item = (&Site, &Grant)> {
-        (self.by_fact.get(fact).into_iter().flatten()).map(|&(s, g)| {
+        let at = |&(s, g): &(u32, u16)| {
             let site = &self.sites[s as usize];
             (site, &site.grants[usize::from(g)])
-        })
+        };
+        let start = self
+            .by_fact
+            .partition_point(|position| at(position).1.fact < *fact);
+        let run = self.by_fact[start..].partition_point(|position| at(position).1.fact == *fact);
+        self.by_fact[start..start + run].iter().map(at)
     }
 
     /// The selections whose lists offer `fact` as a pick (their own and shared options, their feats and their
     /// mythic abilities), in key order.
+    ///
+    /// # Panics
+    ///
+    /// On an index not built [`with_offers`](Self::with_offers).
     pub fn offered_in(&self, fact: &Fact) -> &[FeatureSelectionKey] {
-        self.offered_in.get(fact).map_or(&[], Vec::as_slice)
+        let offered = (self.offered_in.as_ref()).expect("an index built with_offers");
+        offered.get(fact).map_or(&[], Vec::as_slice)
     }
 
     /// Every site, in (`by`, `when`, grants) order.
@@ -189,11 +198,6 @@ impl Grant {
             };
         if meets { Satisfies::Yes } else { Satisfies::No }
     }
-}
-
-/// A site's position as the index stores it.
-fn position(index: usize) -> u32 {
-    u32::try_from(index).expect("fewer than 4 billion sites")
 }
 
 /// The selections whose lists offer each fact as a pick, each list in key order and once.

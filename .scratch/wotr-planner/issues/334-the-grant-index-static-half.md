@@ -1,7 +1,7 @@
 # The grant index: its static half
 
 Type: build (engine, tooling)
-Status: open
+Status: resolved
 Blocked by: 331
 Model: Opus to build.
 Map: [WotR Build Planner](../map.md)
@@ -45,9 +45,9 @@ Four crates each answer "what gives this fact" (findings `4-grant-index.md` §1�
 
 ## Answer
 
-Built design-G §1's static half and §2's T3 rows. Every Done-when holds but the last: the index costs about 3 ms in wasm, about half of `Engine::new`, against a budget of 5% (see Cost). Status stays open until the main session decides that budget.
+Built design-G §1's static half and §2's T3 rows. The main session replaced the cost budget after the first commit: "5% of the engine line" was arbitrary, and the budget is now native `GrantIndex::new` under 10 ms and wasm `Engine::new` growing by at most 3 ms over the base. A second commit, "a leaner index", made the two cheap fixes it asked for (see Cost). Native is well within budget; the wasm growth measured 3.06 and 3.19 ms, at the 3 ms line or just over it, which is the main session's call.
 
-- **`rules::grants`** (`libs/rules/src/grants.rs`, `pub use grants::*`): `GrantIndex { sites, by_entry, by_fact, offered_in }`, `Site { by, class, when, grants }`, `When`, `GrantRule`, `Grant { fact, value, opens_slot }`, `GrantValue`, `Satisfies`; `new`, `gives`, `given_by`, `offered_in`, `sites`, `Grant::satisfies`. One pass over the data; no IO; never panics on a key the data lacks.
+- **`rules::grants`** (`libs/rules/src/grants.rs`, `pub use grants::*`): `GrantIndex { sites, by_fact, offered_in }`, `Site { by, class, when, grants }`, `When`, `GrantRule`, `Grant { fact, value, opens_slot }`, `GrantValue`, `Satisfies`; `new`, `with_offers` (second commit), `gives`, `given_by`, `offered_in`, `sites`, `Grant::satisfies`. One pass over the data; no IO; never panics on a key the data lacks.
   - The sites: class and archetype level rows (`ClassRow`, `class` = the class or the archetype's base class; features, feats `Every`, `feats_for` `Fixed`, selections opening slots); path rank rows (`Rank`); option level rows (`OptionRow`, chosen feats `Picked`); `Always` for an option's feats and chosen feat, a feat's and a mythic feat's `selection`, a mythic ability's features and selection, a switch's features, a background's feats (`feats_for` `Fixed`), a deity's favoured weapons (Improved Unarmed Strike `Every`, an exotic weapon's proficiency `Fixed` to it, nothing for a simple or martial one), a race's and a subrace's selections; one `Component` site per `Grant`, `GrantAtClassLevel`, `GrantIf`, `GrantOnApply`, `GrantWithValue` on every entry with components (gear too).
 - **`Catalog`** builds one in `Catalog::new` (after `canonical()`). `GrantedBy` stays as the projection of the row sites (`GrantedBy::of_row`, `holders(&GrantIndex)`), so `feature_holders`, `selection_holders` and `shared_selection_names` keep their answers and `labels.rs` is untouched. `favoured_weapon_feats` reads the deity's `Always` site.
 - **`check.rs`** `counts_toward_features`: a `ClassRow` site of the other class in `given_by`. It builds an index only when some class counts toward a feature (the real data has one).
@@ -85,16 +85,23 @@ Each one is in `--list`.
 - **Form proof** (`FORM_PROOF_OFFERS=1 FORM_PROOF_REASONS=1`, recorded on aedfb6ec in this lane before the first edit): `links: 1992 the same, 0 through an heir, 0 refused, 0 changed`; `offers: 18213559 options recorded, 18213559 now`, `0 statuses changed`; `reasons: 15217937 compared …, 0 changed in 0 edits`; `failures: 0 appeared, 0 gone`; `2157 Builds compared (1992 open), 2157 old links reopened, 0 differences, 0 offer differences, 0 reason problems`.
 - **Carrier audit**: 176 hits on the base and on the tip, byte-identical (`diff` empty). No hit moved: the new sites (switch features, a feat's and a mythic feat's selection, race selections, `replaced_by`, values) neither carry a fact a hit named nor break "every site gives both" for one.
 - **Game check** exit 0, its report byte-identical to the base's (`Carrier hits (ticket 322): 176, each listed in carriers-known.txt.`).
+- **Rerun on the second commit** (after its last edit): the form proof `compare` against the same base record printed the same counts (`0 differences, 0 offer differences, 0 reason problems`, `reasons: 15217937 compared …, 0 changed`). The game check exited 0, and its report and the carrier audit were byte-identical to the base's. `cargo test -p rules -p seeds -p game-check` passed (rules engine 769, rules lib 16, seeds game_data 651 with 90 ignored, seeds files 34, game-check fixture 172). The rules wasm build, `cargo fmt --all --check` and `scripts/test-modules.sh` passed.
 
 ### Cost
 
-The machine was loaded (another builder ran; load 30 to 100), so these are medians, not quiet-machine numbers.
+The machine was loaded (another builder ran; load 25 to 100), so these are medians, not quiet-machine numbers.
 
-- **Native** (release, `grant_index_build_time`, median of 20): `GrantIndex::new` 2.4 ms (2,656 sites, 5,146 grants), within the 10 ms budget. `Engine::new` took 9.1 ms at that load.
-- **Wasm**: a scratch `cdylib` built with the browser's profile (`opt-level = "z"`, LTO, one codegen unit, `panic = "abort"`) and run under node over the JSON the server serves, base and tip alternating, median of 40:
-  - base `Engine::new` 2.79 ms, tip 5.84 ms (+3.05 ms);
-  - `GrantIndex::new` 2.86 ms, **49% of the tip's `Engine::new`**: over the 5% budget.
-  - The browser's `check` line also builds one (`counts_toward_features`), about another 2.9 ms.
+**The leaner index** (second commit, the main session's two fixes; no interning):
+- **Offers only for game-check.** `GrantIndex::new` builds no offers; `GrantIndex::with_offers` does, for the carrier guard and the seeds tests. `offered_in` panics, with a message, on an index built without them.
+- **No key copied per grant.** `by_fact` is a `Vec<(site, grant)>` sorted by the fact it points at, and `given_by` halves it. `by_entry` is gone too: `gives` halves the sites, which are sorted by entry. The only keys the index copies are each site's entry and each grant's fact.
+- **Test**: `an_index_without_offers_has_none_to_give`. The tests that read offers build `with_offers`.
+
+**Measured on the tip**:
+- **Native** (release, `grant_index_build_time`, median of 20): `GrantIndex::new` **1.5 ms**, down from 2.4 ms in the first commit (2,656 sites, 5,146 grants). The budget is 10 ms. `Engine::new` took 5.1 ms at that load.
+- **Wasm**: the first commit's probe, rebuilt on the tip. Base and tip alternate, median of 40 each, run twice:
+  - base `Engine::new` 3.18 ms, tip 6.36 ms: **+3.19 ms**; `GrantIndex::new` 3.16 ms;
+  - base 2.94 ms, tip 6.01 ms: **+3.06 ms**; `GrantIndex::new` 2.98 ms.
+  - The first commit measured +3.05 ms (index 2.86 ms). In wasm the two fixes saved no measurable time, where natively they took 0.9 ms off. The growth sits at the 3 ms budget or just over it, and the next cut would be interning the keys, which is out of this ticket. The main session decides.
+  - The browser's `check` line also builds an index (`counts_toward_features`, without offers), about the same again.
   - Not measured in the browser: the planner's release `cargo leptos` build runs from the main checkout.
-- **Where it goes (native):** reading the sites about 0.8 ms, `offered_in` about 0.5 ms, the rest sorting and the two maps. Each grant clones its key strings.
-- **For the main session**, options that would bring it down: build `offered_in` apart (only game-check reads it); key `by_fact` without a clone per grant; build the index lazily in `Catalog`. That would move the cost to the first walk, not remove it. Interning the keys would cut most of it, but that is beyond this ticket. Or relax the budget.
+- **The probe**: a scratch `cdylib` built with the browser's profile (`opt-level = "z"`, LTO, one codegen unit, `panic = "abort"`) over the JSON the server serves. The base's probe built against `git archive aedfb6ec`. A JavaScript driver ran under node, once, for timing only, since no wasm runtime was installed: an inline `node -e`, never a file. Nothing of it is committed.

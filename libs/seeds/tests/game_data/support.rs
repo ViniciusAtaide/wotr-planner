@@ -940,8 +940,9 @@ pub struct Grants {
     pub selections: Vec<&'static rules::FeatureSelection>,
 }
 
-/// The grant index of [`DATA`] (ticket 334).
-pub static GRANTS: LazyLock<rules::GrantIndex> = LazyLock::new(|| rules::GrantIndex::new(&DATA));
+/// The grant index of [`DATA`] (ticket 334), with its offers.
+pub static GRANTS: LazyLock<rules::GrantIndex> =
+    LazyLock::new(|| rules::GrantIndex::with_offers(&DATA));
 
 /// One site of the grant index whose grants a [`grants`] reads: a level row, a rank row, a switch's features.
 type RowGrants = &'static rules::Site;
