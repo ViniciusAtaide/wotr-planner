@@ -13,6 +13,9 @@
 //! - `offers.bin` and `offers-kinds.txt` (ticket 311; only with `FORM_PROOF_OFFERS=1`): every option the slot pickers offer at every slot of the walk, as
 //!   9 bytes an option (a hash of its slot and pick, and the index of its status's kind: `ok`, `Unmet`, `Taken`, …),
 //!   about 160 MB for the corpus, written and read a Build at a time;
+//! - `reasons.bin` and `reasons-texts.txt` (ticket 331; only with `FORM_PROOF_REASONS=1`, which records the offers
+//!   too): the text of every refused option's reason and of every failed choice, 12 bytes an entry and a table of
+//!   the distinct texts, about 180 MB for the corpus;
 //! - `summary.txt`: the counts and a hash of each file.
 //!
 //! Two modes, both ignored (they take minutes in release, and only a ticket that claims no behaviour moves runs them):
@@ -42,23 +45,33 @@
 //!   `reason_text`'s text (the engine's one-line text, `BreaksLater` where it has none), and for each choice of
 //!   `Engine::failures` its text. A Build at a time, 12 bytes an entry (a hash of the slot and pick, or of the
 //!   choice, and an index into the table of distinct texts): 183 MB and 4,258 texts (293 KB) for the corpus's 15.2
-//!   million refused options and 220 failures. `compare` reads them whenever the record has them (`FORM_PROOF_REASONS=1`
-//!   on `compare` fails on a record without), and compares the options refused on both sides (a kind change is the
-//!   offers') and the failures by choice. It groups each changed text by its **edit**, both texts with their common
-//!   prefix and suffix removed (`Needs 1 more of: A` to `Needs A` is `1 more of: ` to nothing), and prints `reasons: N
-//!   compared, N changed in N edits`, then each edit, most frequent first (`FORM_PROOF_REASONS_SHOWN` sets how many,
-//!   40 by default): its count, its Builds and one full example. It fails on each edit unless
-//!   `FORM_PROOF_REASONS_ACCEPT=<file>` lists it, on a listed edit no change made, and on a failure that appeared or
-//!   went. The file has one edit a line, `before<TAB>now` (the prefix- and suffix-free parts, as printed; `\n`, `\t` and
-//!   `\\` escape a newline, a tab and a backslash), `#` comments and blank lines skipped, a side's spaces kept. With
-//!   `FORM_PROOF_CENSUS`, a change on an option or choice whose key the log names, or in a Build whose old link is
-//!   refused, is counted apart (`reasons census:`) and is not an edit; only the rest fails. A record without
-//!   `reasons.bin` compares everything else and says reasons were not recorded.
+//!   million refused options and 220 failures. `compare` reads them whenever the record has them, and compares the
+//!   options refused on both sides (a kind change is the offers') and the failures by choice. `FORM_PROOF_REASONS=1`
+//!   on `compare` fails on a record without `reasons.bin`, with or without the offers; one without says reasons were
+//!   not recorded. It groups each changed text by its **edit**, both texts with their common prefix and suffix
+//!   removed (`Needs 1 more of: A` to `Needs A` is `1 more of: ` to nothing), and prints `reasons: N compared, N
+//!   changed in N edits` (the compared count holds the options and the failures present on both sides), then each
+//!   edit, most frequent first (`FORM_PROOF_REASONS_SHOWN` sets how many, 40 by default): its count, its Builds, how
+//!   many distinct full texts it covered, and one full example. The edit's sides print with `{:?}`, so spaces and
+//!   tabs show. It fails on each edit unless `FORM_PROOF_REASONS_ACCEPT=<file>` lists it, on a listed edit no change
+//!   made, and on a failure that appeared or went.
+//!   - **The accept file** has one edit a line, `before<TAB>now` (the prefix- and suffix-free parts); `\n`, `\r`, `\t`,
+//!     `\\` and a leading `\#` escape a newline, a carriage return, a tab, a backslash and a `#`; `#` comments and
+//!     blank lines are skipped, a side's spaces kept. `FORM_PROOF_REASONS_ACCEPT_OUT=<file>` writes the edits no
+//!     accept line covers in that format, ready to paste into the accept file after the ticket's author has read
+//!     them.
+//!   - **With `FORM_PROOF_CENSUS`**, the reasons split as the statuses do, one unit throughout (an option or a
+//!     failure): a changed option text on a pick whose key the log names counts under `reasons census:` and is not an
+//!     edit; so does any changed, appeared or gone failure in a Build that holds a logged entry (the census's own
+//!     Build-level rule, `held_with_picks`: a choice's `Debug` names no pick key, so failures have no finer rule),
+//!     and any option or failure in a Build whose old link is refused (those links that opened with the base's
+//!     data: a Build that already failed on the base is not among them). Only the rest fails.
+//!   - **Measured** (the same tree, `record` with `FORM_PROOF_OFFERS=1 FORM_PROOF_REASONS=1`): 45 s for the test and
+//!     48 s for `compare` at a load of 4 to 13. The offers alone took 49 s at a load over 23, so what the reasons add
+//!     to the offers' time is unmeasured (the design estimated 50 %).
+//!
 //!   `reason_text` is the one function that makes the text, so a ticket that words refusals another way (336) changes
-//!   it and `compare` lists what it moved. Measured (the same tree, `record` with `FORM_PROOF_OFFERS=1
-//!   FORM_PROOF_REASONS=1`): 45 s for the test and 48 s for `compare` at a load of 4 to 13; the offers alone took 49 s
-//!   at a load over 23, so the pair is not a clean comparison: the reasons cost little beside the offers (the design
-//!   estimated 50 % more).
+//!   it and `compare` lists what it moved.
 //! - **The link census** (ticket 306c): `compare` opens each old link that opened with this tree's data and prints
 //!   how many opened with the same picks, through an heir (a pick carried to the entry whose `aliases` name its key)
 //!   or refused (`links: N the same, N through an heir, N refused, N changed`); one that opens as another Build is a
@@ -802,11 +815,18 @@ struct Found {
     failures: Vec<(String, String)>,
 }
 
-/// Text on one line: a backslash, a newline and a tab escaped.
+/// Text on one line: a backslash, a newline, a carriage return and a tab escaped, and a leading `#` (which would
+/// make an accept line a comment).
 fn escape(text: &str) -> String {
-    text.replace('\\', "\\\\")
+    let escaped = text
+        .replace('\\', "\\\\")
         .replace('\n', "\\n")
-        .replace('\t', "\\t")
+        .replace('\r', "\\r")
+        .replace('\t', "\\t");
+    match escaped.strip_prefix('#') {
+        Some(rest) => format!("\\#{rest}"),
+        None => escaped,
+    }
 }
 
 /// [`escape`]'s inverse.
@@ -821,6 +841,8 @@ fn unescape(text: &str) -> String {
         match chars.next() {
             Some('n') => plain.push('\n'),
             Some('t') => plain.push('\t'),
+            Some('r') => plain.push('\r'),
+            Some('#') => plain.push('#'),
             Some('\\') | None => plain.push('\\'),
             Some(other) => {
                 plain.push('\\');
@@ -862,8 +884,8 @@ fn edit_line(before: &str, now: &str) -> String {
     format!("{}\t{}", escape(before), escape(now))
 }
 
-/// `FORM_PROOF_REASONS_ACCEPT`'s file: one edit a line, `before<TAB>now` (`\n`, `\t` and `\\` escape a newline, a tab
-/// and a backslash), the texts with their common prefix and suffix removed, either side empty. Blank lines and lines
+/// `FORM_PROOF_REASONS_ACCEPT`'s file: one edit a line, `before<TAB>now` (`\n`, `\r`, `\t`, `\\` and a leading `\#`
+/// escape a newline, a carriage return, a tab, a backslash and a `#`), the texts with their common prefix and suffix removed, either side empty. Blank lines and lines
 /// starting with `#` are skipped; a side's spaces are kept.
 fn read_accept(text: &str) -> BTreeSet<(String, String)> {
     text.lines()
@@ -993,11 +1015,34 @@ impl<R: Read> ReasonsReader<R> {
     }
 }
 
-/// One edit's changes: how many, in which Builds, and the first full example.
+/// One edit's changes: how many, in which Builds, how many distinct full texts, and the first full example.
 struct EditGroup {
     count: u64,
     builds: BTreeSet<String>,
+    /// The distinct (before, now) texts the edit covered: `2 -> 3` may be three different texts.
+    pairs: BTreeSet<(String, String)>,
     example: String,
+}
+
+/// What `FORM_PROOF_CENSUS` gives the reasons: the log's entries, the Builds whose old links are refused, and the
+/// Builds that hold a logged entry (the census's own Build-level rule, `held_with_picks`).
+#[derive(Default)]
+struct ReasonCensus {
+    log: BTreeSet<String>,
+    refused: BTreeSet<String>,
+    holders: BTreeSet<String>,
+}
+
+/// Whether a record that was asked for (`FORM_PROOF_REASONS=1`) has its reasons: a record without `reasons.bin` fails,
+/// whether or not it has the offers.
+fn reasons_check(asked: bool, recorded: bool) -> Result<(), String> {
+    if asked && !recorded {
+        Err(format!(
+            "FORM_PROOF_REASONS=1, but {REASONS_FILE} is missing from FORM_PROOF_BEFORE: record with FORM_PROOF_REASONS=1"
+        ))
+    } else {
+        Ok(())
+    }
 }
 
 /// The reasons that changed between a record and a tree, grouped by their edit (ticket 331). Options are compared
@@ -1009,30 +1054,31 @@ struct ReasonChanges {
     edits: BTreeMap<(String, String), EditGroup>,
     failures_appeared: u64,
     failures_gone: u64,
-    /// With the census: the log's entries and the refused Builds. A change on an option or choice the log names, or in a
-    /// Build whose link is refused, is counted here and is not an edit.
-    split: Option<(BTreeSet<String>, BTreeSet<String>)>,
+    /// With the census. A changed option text on a pick the log names, or in a Build whose link is refused, and any
+    /// changed, appeared or gone failure in a Build that holds a logged entry (or whose link is refused), is counted
+    /// here, one for each option or failure, and is not an edit.
+    census: Option<ReasonCensus>,
     named: u64,
     in_refused: u64,
 }
 
 impl ReasonChanges {
-    fn new(split: Option<(BTreeSet<String>, BTreeSet<String>)>) -> Self {
+    fn new(census: Option<ReasonCensus>) -> Self {
         Self {
-            split,
+            census,
             ..Self::default()
         }
     }
 
-    /// Whether the census accounts for a change in `build` on an entry holding `keys`.
-    fn accounted(&mut self, build: &str, keys: &[&str]) -> bool {
-        let Some((log, refused)) = &self.split else {
+    /// Whether the census accounts for a change of an option in `build` on a pick holding `key`.
+    fn option_accounted(&mut self, build: &str, key: Option<&str>) -> bool {
+        let Some(census) = &self.census else {
             return false;
         };
-        if keys.iter().any(|key| log.contains(*key)) {
+        if key.is_some_and(|key| census.log.contains(key)) {
             self.named += 1;
             true
-        } else if refused.contains(build) {
+        } else if census.refused.contains(build) {
             self.in_refused += 1;
             true
         } else {
@@ -1040,18 +1086,24 @@ impl ReasonChanges {
         }
     }
 
-    /// One text that changed, on an entry holding `keys`, described by `what` for the example.
-    fn text_changed(
-        &mut self,
-        build: &str,
-        keys: &[&str],
-        what: &str,
-        (before, now): (&str, &str),
-    ) {
-        self.changed += 1;
-        if self.accounted(build, keys) {
-            return;
+    /// Whether the census accounts for a failure (changed, appeared or gone) in `build`.
+    fn failure_accounted(&mut self, build: &str) -> bool {
+        let Some(census) = &self.census else {
+            return false;
+        };
+        if census.holders.contains(build) {
+            self.named += 1;
+            true
+        } else if census.refused.contains(build) {
+            self.in_refused += 1;
+            true
+        } else {
+            false
         }
+    }
+
+    /// One text that changed (not accounted for by the census), described by `what` for the example.
+    fn edit(&mut self, build: &str, what: &str, (before, now): (&str, &str)) {
         let (from, to) = edit_of(before, now);
         let group = self
             .edits
@@ -1059,10 +1111,12 @@ impl ReasonChanges {
             .or_insert_with(|| EditGroup {
                 count: 0,
                 builds: BTreeSet::new(),
+                pairs: BTreeSet::new(),
                 example: format!("{build}: {what}: {before:?} -> {now:?}"),
             });
         group.count += 1;
         group.builds.insert(build.to_owned());
+        group.pairs.insert((before.to_owned(), now.to_owned()));
     }
 
     /// One Build's recorded reasons (`texts` names their indices) against what it gives now.
@@ -1077,36 +1131,41 @@ impl ReasonChanges {
             };
             self.compared += 1;
             if text(was) != reason {
+                self.changed += 1;
                 let key = pick_key(&offer.pick);
-                let what = format!("{} {}", offer.slot, key.unwrap_or(&offer.pick));
-                let keys: Vec<&str> = key.into_iter().collect();
-                self.text_changed(name, &keys, &what, (text(was), reason));
+                if !self.option_accounted(name, key) {
+                    let what = format!("{} {}", offer.slot, key.unwrap_or(&offer.pick));
+                    self.edit(name, &what, (text(was), reason));
+                }
             }
         }
         let mut seen = HashSet::new();
         for (choice, reason) in &now.failures {
             let hash = fnv(&[choice]);
             seen.insert(hash);
-            let keys = pick_keys(choice);
-            let keys: Vec<&str> = keys.iter().map(String::as_str).collect();
             let Some(&was) = before.failures.get(&hash) else {
-                if !self.accounted(name, &keys) {
+                if !self.failure_accounted(name) {
                     self.failures_appeared += 1;
                 }
                 continue;
             };
             self.compared += 1;
             if text(was) != reason {
-                self.text_changed(name, &keys, choice, (text(was), reason));
+                self.changed += 1;
+                if !self.failure_accounted(name) {
+                    self.edit(name, choice, (text(was), reason));
+                }
             }
         }
         let gone = before
             .failures
             .keys()
             .filter(|hash| !seen.contains(hash))
-            .count() as u64;
-        if gone > 0 && !self.accounted(name, &[]) {
-            self.failures_gone += gone;
+            .count();
+        for _ in 0..gone {
+            if !self.failure_accounted(name) {
+                self.failures_gone += 1;
+            }
         }
     }
 
@@ -1116,17 +1175,13 @@ impl ReasonChanges {
         let mut problems = Vec::new();
         for (before, now) in self.edits.keys() {
             if !accept.contains(&(before.clone(), now.clone())) {
-                problems.push(format!(
-                    "reasons: unaccepted edit {}",
-                    edit_line(before, now)
-                ));
+                problems.push(format!("reasons: unaccepted edit {before:?} -> {now:?}"));
             }
         }
         for (before, now) in accept {
             if !self.edits.contains_key(&(before.clone(), now.clone())) {
                 problems.push(format!(
-                    "reasons: stale accepted edit {} (no change made it)",
-                    edit_line(before, now)
+                    "reasons: stale accepted edit {before:?} -> {now:?} (no change made it)"
                 ));
             }
         }
@@ -1139,17 +1194,25 @@ impl ReasonChanges {
         problems
     }
 
+    /// The unaccepted edits as the accept file's lines, ready to paste (`FORM_PROOF_REASONS_ACCEPT_OUT`).
+    fn unaccepted(&self, accept: &BTreeSet<(String, String)>) -> String {
+        (self.edits.keys())
+            .filter(|(before, now)| !accept.contains(&(before.clone(), now.clone())))
+            .map(|(before, now)| edit_line(before, now) + "\n")
+            .collect()
+    }
+
     fn report(&self, accept: &BTreeSet<(String, String)>) -> String {
         let mut text = format!(
-            "reasons: {} compared, {} changed in {} edits\n",
+            "reasons: {} compared (options and failures present on both sides), {} changed in {} edits\n",
             self.compared,
             self.changed,
             self.edits.len()
         );
-        if self.split.is_some() {
+        if self.census.is_some() {
             writeln!(
                 text,
-                "reasons census: {} changes on options or choices the log names, {} in Builds whose links are refused",
+                "reasons census: {} on a pick or in a Build holding a logged entry, {} in Builds whose links are refused (each option or failure counted once)",
                 self.named, self.in_refused
             )
             .unwrap();
@@ -1174,10 +1237,10 @@ impl ReasonChanges {
             };
             writeln!(
                 text,
-                "  {:6} {} ({} Builds){accepted}\n         e.g. {}",
+                "  {:6} {before:?} -> {now:?} ({} Builds, {} distinct texts){accepted}\n         e.g. {}",
                 group.count,
-                edit_line(before, now),
                 group.builds.len(),
+                group.pairs.len(),
                 group.example
             )
             .unwrap();
@@ -1195,7 +1258,7 @@ struct ReasonsCompare {
 
 impl ReasonsCompare {
     /// The record in `dir`, if it has one.
-    fn open(dir: &Path, split: Option<(BTreeSet<String>, BTreeSet<String>)>) -> Option<Self> {
+    fn open(dir: &Path, census: Option<ReasonCensus>) -> Option<Self> {
         let file = std::fs::File::open(dir.join(REASONS_FILE)).ok()?;
         let texts = std::fs::read_to_string(dir.join(TEXTS_FILE))
             .expect("the reasons record has its texts table");
@@ -1204,7 +1267,7 @@ impl ReasonsCompare {
                 input: BufReader::with_capacity(1 << 20, file),
             },
             texts: read_texts(&texts),
-            changes: ReasonChanges::new(split),
+            changes: ReasonChanges::new(census),
         })
     }
 
@@ -1739,20 +1802,36 @@ fn compare() {
     }
 
     // The offers: every option's status kind at every slot of the old links' Builds, against the record, streamed.
-    // The reasons ride the offers' pass (ticket 331), so they are compared when the record has them.
+    // The reasons ride the offers' pass (ticket 331), so they are compared when the record has them. A record asked
+    // to hold them (`FORM_PROOF_REASONS=1`) that doesn't fails, with or without the offers.
+    let reasons_recorded = before_dir.join(REASONS_FILE).exists();
+    let asked = offers_wanted(std::env::var("FORM_PROOF_REASONS").ok().as_deref());
+    if let Err(why) = reasons_check(asked, reasons_recorded) {
+        panic!("{why}");
+    }
     let mut reasons_problems = Vec::new();
     let changes = if before_dir.join(OFFERS_FILE).exists() {
         // With the census, each change is split by why, and each logged entry's narrowing sized (ticket 322).
         let split = (attribution.as_ref())
             .map(|a| StatusSplit::new(a.log.keys().cloned().collect(), census.refused.clone()));
-        let census_split = (attribution.as_ref())
-            .map(|a| (a.log.keys().cloned().collect(), census.refused.clone()));
-        let mut reasons = ReasonsCompare::open(&before_dir, census_split);
-        let asked = offers_wanted(std::env::var("FORM_PROOF_REASONS").ok().as_deref());
-        assert!(
-            reasons.is_some() || !asked,
-            "FORM_PROOF_REASONS=1, but {REASONS_FILE} is missing from FORM_PROOF_BEFORE: record with FORM_PROOF_REASONS=1"
-        );
+        let census_reasons = attribution.as_ref().map(|a| {
+            let log: BTreeSet<String> = a.log.keys().cloned().collect();
+            // The Builds that hold a logged entry, by the census's own rule (ticket 308b).
+            let holders = (before.iter())
+                .filter_map(|b| by_name.get(b.name.as_str()).map(|n| (b, *n)))
+                .filter(|(b, n)| {
+                    let held = held_with_picks(&n.held, &[&b.picks, &n.picks]);
+                    held.iter().any(|key| log.contains(key))
+                })
+                .map(|(b, _)| b.name.clone())
+                .collect();
+            ReasonCensus {
+                log,
+                refused: census.refused.clone(),
+                holders,
+            }
+        });
+        let mut reasons = ReasonsCompare::open(&before_dir, census_reasons);
         let changes = compare_offers(
             &engine,
             &builds,
@@ -1772,6 +1851,10 @@ fn compare() {
                     })
                     .unwrap_or_default();
                 println!("{}", reasons.changes.report(&accept));
+                if let Some(file) = std::env::var_os("FORM_PROOF_REASONS_ACCEPT_OUT") {
+                    std::fs::write(file, reasons.changes.unaccepted(&accept))
+                        .expect("FORM_PROOF_REASONS_ACCEPT_OUT is writable");
+                }
                 reasons_problems = reasons.changes.problems(&accept);
             }
             None => println!(
@@ -1782,6 +1865,9 @@ fn compare() {
     } else {
         println!(
             "offers: not recorded in FORM_PROOF_BEFORE ({OFFERS_FILE} is missing), not compared"
+        );
+        println!(
+            "reasons: not recorded in FORM_PROOF_BEFORE ({REASONS_FILE} is missing), not compared"
         );
         None
     };
@@ -2966,7 +3052,7 @@ mod pieces {
         assert_eq!(changes.edits[&edit].builds.len(), 2);
         let report = changes.report(&BTreeSet::new());
         assert!(
-            report.contains("reasons: 6 compared, 4 changed in 1 edits"),
+            report.contains("reasons: 6 compared (options and failures present on both sides), 4 changed in 1 edits"),
             "{report}"
         );
         assert!(report.contains(NEEDS_BEFORE) && report.contains(NEEDS_NOW));
@@ -2988,10 +3074,9 @@ mod pieces {
         reasons_changed(&mut same, "b", &before, &before);
         assert!(same.problems(&BTreeSet::new()).is_empty());
         assert_eq!(same.problems(&accept).len(), 1);
-        assert!(
-            same.report(&accept)
-                .contains("reasons: 1 compared, 0 changed in 0 edits")
-        );
+        assert!(same.report(&accept).contains(
+            "reasons: 1 compared (options and failures present on both sides), 0 changed in 0 edits"
+        ));
     }
 
     #[test]
@@ -3010,21 +3095,38 @@ mod pieces {
         assert_eq!(changes.problems(&BTreeSet::new()).len(), 2);
         let report = changes.report(&BTreeSet::new());
         assert!(report.contains("failures: 1 appeared, 1 gone"), "{report}");
-        // A failure whose text changed groups under its edit with the options'.
+        // A failure whose text changed groups under its edit with an option's of the same edit.
+        let before = found(
+            vec![refused("s", "p", "Needs here")],
+            &[("Race", "Not allowed here"), ("Feat(a)", "Already taken")],
+        );
         let now = found(
-            vec![],
+            vec![refused("s", "p", "Needs")],
             &[("Race", "Not allowed"), ("Feat(a)", "Already taken")],
         );
         let mut changes = ReasonChanges::new(None);
         reasons_changed(&mut changes, "b", &before, &now);
-        assert_eq!(changes.edits[&(" here".to_owned(), String::new())].count, 1);
+        let group = &changes.edits[&(" here".to_owned(), String::new())];
+        assert_eq!((group.count, group.pairs.len()), (2, 2));
+        assert_eq!(
+            changes
+                .report(&BTreeSet::new())
+                .matches("2 distinct texts")
+                .count(),
+            1
+        );
     }
 
     #[test]
     fn with_a_census_only_changes_the_log_and_refused_links_do_not_name_fail() {
         let log = BTreeSet::from(["extra-feat".to_owned()]);
         let refused_builds = BTreeSet::from(["refused".to_owned()]);
-        let mut changes = ReasonChanges::new(Some((log, refused_builds)));
+        let census = ReasonCensus {
+            log,
+            refused: refused_builds,
+            holders: BTreeSet::new(),
+        };
+        let mut changes = ReasonChanges::new(Some(census));
         let before = found(
             vec![
                 refused("s", EXTRA, "Needs A"),
@@ -3052,5 +3154,88 @@ mod pieces {
         let (engine, _) = corpus::engine().expect("the game data loads");
         assert_eq!(reason_text(&engine, &Issue::AlreadyHeld), "Already taken");
         assert_eq!(reason_text(&engine, &Issue::BreaksLater), "BreaksLater");
+    }
+
+    #[test]
+    fn under_the_census_a_failure_in_a_build_holding_a_logged_entry_is_excused_one_by_one() {
+        let census = ReasonCensus {
+            log: BTreeSet::from(["x".to_owned()]),
+            refused: BTreeSet::from(["refused".to_owned()]),
+            holders: BTreeSet::from(["held".to_owned()]),
+        };
+        let mut changes = ReasonChanges::new(Some(census));
+        let before = found(
+            vec![],
+            &[
+                ("A", "Needs 1"),
+                ("B", "Needs 1"),
+                ("C", "Needs 1"),
+                ("D", "Needs 1"),
+            ],
+        );
+        // Two gone, one text changed, one new, in each Build.
+        let now = found(
+            vec![],
+            &[("A", "Needs 1"), ("C", "Needs 2"), ("E", "Needs 1")],
+        );
+        for build in ["held", "refused", "other"] {
+            reasons_changed(&mut changes, build, &before, &now);
+        }
+        // `held`: 4 failures counted (2 gone, 1 changed, 1 new); `refused`: 4 more; `other`: all fail.
+        assert_eq!((changes.named, changes.in_refused), (4, 4));
+        assert_eq!((changes.failures_appeared, changes.failures_gone), (1, 2));
+        assert_eq!(changes.edits[&("1".to_owned(), "2".to_owned())].count, 1);
+        assert_eq!(changes.changed, 3);
+        let report = changes.report(&BTreeSet::new());
+        assert!(report.contains("reasons census: 4 on a pick"), "{report}");
+    }
+
+    #[test]
+    fn a_record_asked_to_hold_reasons_without_them_fails_with_or_without_offers() {
+        assert!(reasons_check(false, false).is_ok());
+        assert!(reasons_check(true, true).is_ok());
+        let why = reasons_check(true, false).unwrap_err();
+        assert!(why.contains("reasons.bin is missing"), "{why}");
+        // A folder with neither file: the check reads only reasons.bin, so the offers' absence can't hide it.
+        let dir = std::env::temp_dir().join("form-proof-331-empty-record");
+        std::fs::create_dir_all(&dir).unwrap();
+        assert!(!dir.join(OFFERS_FILE).exists());
+        assert!(reasons_check(true, dir.join(REASONS_FILE).exists()).is_err());
+        assert!(ReasonsCompare::open(&dir, None).is_none());
+    }
+
+    #[test]
+    fn edits_print_with_debug_and_the_unaccepted_ones_write_as_accept_lines() {
+        let before = found(vec![refused("s", "p", " Needs\tA ")], &[]);
+        let now = found(vec![refused("s", "p", " Needs\tB ")], &[]);
+        let mut changes = ReasonChanges::new(None);
+        reasons_changed(&mut changes, "b", &before, &now);
+        let problems = changes.problems(&BTreeSet::new());
+        assert_eq!(problems, ["reasons: unaccepted edit \"A\" -> \"B\""]);
+        let line = changes.unaccepted(&BTreeSet::new());
+        assert_eq!(line, "A\tB\n");
+        assert_eq!(
+            read_accept(&line),
+            BTreeSet::from([("A".to_owned(), "B".to_owned())])
+        );
+        assert_eq!(changes.unaccepted(&read_accept(&line)), "");
+        // A tab in an edit shows as `\t` in the report and in the file.
+        let before = found(vec![refused("s", "p", "x\ta")], &[]);
+        let now = found(vec![refused("s", "p", "x\tb")], &[]);
+        let mut changes = ReasonChanges::new(None);
+        reasons_changed(&mut changes, "b", &before, &now);
+        assert!(changes.report(&BTreeSet::new()).contains("\"a\" -> \"b\""));
+    }
+
+    #[test]
+    fn a_leading_hash_and_a_carriage_return_survive_the_accept_file() {
+        let line = edit_line("# first", "\r\nsecond");
+        assert_eq!(line, "\\# first\t\\r\\nsecond");
+        assert!(!line.starts_with('#'));
+        assert_eq!(
+            read_accept(&format!("{line}\n")),
+            BTreeSet::from([("# first".to_owned(), "\r\nsecond".to_owned())])
+        );
+        assert_eq!(read_texts(&escape("#a\r")), ["#a\r"]);
     }
 }
