@@ -304,12 +304,12 @@ fn a_talent_needing_a_defensive_talent_waits_for_it() {
         "Needs Kineticist level 10 (have 2), Searing Flesh"
     );
     // Healing Burst needs Kinetic Healer. Game: HealingBUrstFeature c73b37aaa2b82b44686c56db8ce14e7f, a
-    // PrerequisiteFeaturesFromList of one, Amount 1 (308f), which the reason reads as a list.
+    // PrerequisiteFeaturesFromList of one, Amount 1 (308f): one of a list of one is that one (ticket 332).
     let water = kineticist_with("water", 8, &[(2, &talent("kinetic-healer"))]);
     assert!(open_talents(&water, 8).contains(&talent("healing-burst")));
     assert_eq!(
         talent_reason(&kineticist("water", 8), 8, "healing-burst"),
-        "Needs 1 more of: Kinetic Healer"
+        "Needs Kinetic Healer"
     );
 }
 

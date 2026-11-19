@@ -657,14 +657,14 @@ impl CharacterState {
         let flag = |holds: bool| (holds, None);
         let (holds, has) = match prerequisite {
             P::All(children) => {
-                let mut failed: Vec<Unmet> = children
+                let failed: Vec<Unmet> = children
                     .iter()
                     .filter_map(|c| self.check_in(c, picking).err())
                     .collect();
-                return match failed.len() {
-                    0 => Ok(()),
-                    1 => Err(failed.remove(0)),
-                    _ => Err(Unmet::All(failed)),
+                return if failed.is_empty() {
+                    Ok(())
+                } else {
+                    Err(Unmet::all(failed))
                 };
             }
             P::Any(children) => {
@@ -675,7 +675,7 @@ impl CharacterState {
                         Err(unmet) => failed.push(unmet),
                     }
                 }
-                return Err(Unmet::Any(failed));
+                return Err(Unmet::any(failed));
             }
             P::AtLeast(needed, children) => {
                 let failed: Vec<Unmet> = children
