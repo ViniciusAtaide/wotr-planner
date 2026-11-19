@@ -691,7 +691,7 @@ fn fact_of(
     if let Some(key) = targets.get(guid) {
         return Some(Fact::Feature(key.clone()));
     }
-    fact_at(one_entry(ctx, guid)?)
+    Fact::try_from(one_entry(ctx, guid)?).ok()
 }
 
 /// The facts of every entry that maps a blueprint, in entry order: several for a blueprint entries share (ticket
@@ -700,25 +700,8 @@ pub(super) fn facts_of(ctx: &Ctx, guid: &BlueprintGuid) -> Vec<Fact> {
     ctx.planner
         .entries_of(guid)
         .into_iter()
-        .filter_map(fact_at)
+        .filter_map(|at| Fact::try_from(at).ok())
         .collect()
-}
-
-/// The fact an entry is, when it is one a character holds.
-pub(super) fn fact_at(at: &DataAt) -> Option<Fact> {
-    Some(match at {
-        DataAt::Feat(key) => Fact::Feat(key.clone()),
-        DataAt::Feature(key) => Fact::Feature(key.clone()),
-        DataAt::SelectionOption(key) => Fact::Option(key.clone()),
-        DataAt::FeatureSelection(key) => Fact::Selection(key.clone()),
-        DataAt::MythicAbility(key) => Fact::MythicAbility(key.clone()),
-        DataAt::MythicFeat(key) => Fact::MythicFeat(key.clone()),
-        DataAt::Class(key) => Fact::Class(key.clone()),
-        DataAt::Archetype(key) => Fact::Archetype(key.clone()),
-        DataAt::Race(key) => Fact::Race(key.clone()),
-        DataAt::Deity(key) => Fact::Deity(key.clone()),
-        _ => return None,
-    })
 }
 
 /// An option's row as the files hold it: the level, then the lists it has.

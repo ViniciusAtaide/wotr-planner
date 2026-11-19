@@ -32,6 +32,6 @@ pub use gear::*;
 pub use grants::*;
 pub use keys::*;
 pub use parameter::*;
-pub use prerequisite::{Prerequisite, Story};
+pub use prerequisite::{Leaf, Prerequisite, Reading, Story};
 pub use spells::*;
 pub use state::*;

@@ -6,7 +6,7 @@ use crate::build::{GearSpot, Pick, SlotId};
 use crate::engine::SlotKind;
 use crate::game_data::{Ability, DeityDomains};
 use crate::keys::{ClassKey, DeityKey, FeatureSelectionKey, MythicPathKey, SkillKey, WeaponKey};
-use crate::prerequisite::Prerequisite;
+use crate::prerequisite::{Leaf, Prerequisite};
 
 /// Where a choice sits in a Build: what [`Engine::removable`](crate::Engine::removable) answers for, and where a
 /// walk finds a choice an edit would break (which locks the edit).
@@ -215,6 +215,24 @@ impl Unmet {
             Unmet::All(children) => children.iter().collect(),
             unmet => vec![unmet],
         }
+    }
+
+    /// The leaves it fails on, with their polarity, left to right: each failing `Condition`'s own `needs`, read by
+    /// [`Prerequisite::polar_leaves`].
+    pub fn leaves(&self) -> impl Iterator<Item = Leaf<'_>> {
+        let mut conditions: Vec<&Prerequisite> = Vec::new();
+        let mut pending = vec![self];
+        while let Some(unmet) = pending.pop() {
+            match unmet {
+                Unmet::Condition { needs, .. } => conditions.push(needs),
+                Unmet::All(children) | Unmet::Any(children) => {
+                    pending.extend(children.iter().rev());
+                }
+                Unmet::AtLeast { failed, .. } => pending.extend(failed.iter().rev()),
+                Unmet::MetLater { unmet, .. } => pending.push(unmet),
+            }
+        }
+        conditions.into_iter().flat_map(Prerequisite::polar_leaves)
     }
 }
 

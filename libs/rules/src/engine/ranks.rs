@@ -65,17 +65,14 @@ impl Engine {
     /// mend. What a reason that says a pick "depends on" another must not claim of those.
     pub fn unmet_negates(unmet: &Unmet) -> bool {
         fn negates(prerequisite: &Prerequisite) -> bool {
-            match prerequisite {
-                // A canonical tree holds no double negation. A group exclusion ("no other Draconic option", "no
-                // Bloodline yet") is a "not with" too.
-                Prerequisite::Not(_)
-                | Prerequisite::NoOtherOptionOfGroup(_)
-                | Prerequisite::NoOptionFrom(_) => true,
-                Prerequisite::All(children)
-                | Prerequisite::Any(children)
-                | Prerequisite::AtLeast(_, children) => children.iter().any(negates),
-                _ => false,
-            }
+            // A group exclusion ("no other Draconic option", "no Bloodline yet") is a "not with" too.
+            prerequisite.holds_not()
+                || prerequisite.leaves().any(|leaf| {
+                    matches!(
+                        leaf,
+                        Prerequisite::NoOtherOptionOfGroup(_) | Prerequisite::NoOptionFrom(_)
+                    )
+                })
         }
         match unmet {
             Unmet::Condition { needs, .. } => negates(needs),
@@ -102,31 +99,6 @@ struct MovedTo {
     level: u8,
     build: Build,
     moves: Vec<(u8, u8)>,
-}
-
-/// The conditions an unmet prerequisite is made of.
-fn unmet_leaves<'a>(unmet: &'a Unmet, out: &mut Vec<&'a Prerequisite>) {
-    match unmet {
-        Unmet::Condition { needs, .. } => prerequisite_leaves(needs, out),
-        Unmet::All(children) | Unmet::Any(children) => {
-            (children.iter()).for_each(|child| unmet_leaves(child, out));
-        }
-        Unmet::AtLeast { failed, .. } => (failed.iter()).for_each(|child| unmet_leaves(child, out)),
-        Unmet::MetLater { unmet, .. } => unmet_leaves(unmet, out),
-    }
-}
-
-fn prerequisite_leaves<'a>(prerequisite: &'a Prerequisite, out: &mut Vec<&'a Prerequisite>) {
-    match prerequisite {
-        Prerequisite::All(children)
-        | Prerequisite::Any(children)
-        | Prerequisite::AtLeast(_, children) => {
-            (children.iter()).for_each(|child| prerequisite_leaves(child, out));
-        }
-        // What a pick must not be isn't something it needs.
-        Prerequisite::Not(_) => {}
-        leaf => out.push(leaf),
-    }
 }
 
 /// Whether a condition names what a pick is: its key, and for a condition on a value the value too. `taken_for` is
@@ -441,11 +413,14 @@ impl Engine {
         unmet: &Unmet,
         taken_for: Option<&Parameter>,
     ) -> Vec<(SlotId, Pick)> {
-        let mut leaves = Vec::new();
-        unmet_leaves(unmet, &mut leaves);
+        // What a pick must not be isn't something it needs.
+        let needed: Vec<&Prerequisite> = (unmet.leaves())
+            .filter(|leaf| !leaf.refused)
+            .map(|leaf| leaf.condition)
+            .collect();
         (build.picks.iter())
             .filter(|(slot, _)| slot.rank().is_some())
-            .filter(|(_, pick)| leaves.iter().any(|leaf| names_pick(leaf, pick, taken_for)))
+            .filter(|(_, pick)| needed.iter().any(|leaf| names_pick(leaf, pick, taken_for)))
             .map(|(slot, pick)| (slot.clone(), pick.clone()))
             .collect()
     }

@@ -1253,27 +1253,30 @@ impl Checker {
     /// ([`DataIssue::NotADomain`]).
     fn condition_names(&mut self, at: &DataAt, condition: &Prerequisite) {
         use Prerequisite as P;
+        if let Some(fact) = condition.fact() {
+            self.names(at, DataAt::from(&fact));
+        }
         match condition {
-            P::Feat(feat) | P::FeatForSameValue(feat) => self.names(at, DataAt::Feat(feat.clone())),
-            P::FeatFor { feat, value } | P::FeatIfValue { value, feat } => {
-                self.names(at, DataAt::Feat(feat.clone()));
-                self.names_value(at, value);
-            }
-            P::MythicFeat(feat) => self.names(at, DataAt::MythicFeat(feat.clone())),
-            P::MythicAbility(ability) => self.names(at, DataAt::MythicAbility(ability.clone())),
-            P::ClassLevel { class, .. } | P::ClassSpellLevel { class, .. } => {
-                self.names(at, DataAt::Class(class.clone()));
-            }
-            P::Archetype(archetype) => self.names(at, DataAt::Archetype(archetype.clone())),
-            P::Feature { feature, .. } => self.names(at, DataAt::Feature(feature.clone())),
-            P::Rank { fact, .. } => self.names(at, fact_at(fact)),
-            P::SelectionOption(option) => self.names(at, DataAt::SelectionOption(option.clone())),
-            P::Selection(selection) | P::NoOptionFrom(selection) | P::PickedThrough(selection) => {
+            P::FeatFor { value, .. } | P::FeatIfValue { value, .. } => self.names_value(at, value),
+            P::ClassSpellLevel { class, .. } => self.names(at, DataAt::Class(class.clone())),
+            P::NoOptionFrom(selection) | P::PickedThrough(selection) => {
                 self.names(at, DataAt::FeatureSelection(selection.clone()));
             }
             P::SkillRanks { skill, .. } => self.names(at, DataAt::Skill(skill.clone())),
-            P::Deity(deity) => self.names(at, DataAt::Deity(deity.clone())),
-            P::Race(race) => self.names(at, DataAt::Race(race.clone())),
+            // A fact, named above by `fact()`.
+            P::Feat(_)
+            | P::FeatForSameValue(_)
+            | P::MythicFeat(_)
+            | P::MythicAbility(_)
+            | P::ClassLevel { .. }
+            | P::Archetype(_)
+            | P::Feature { .. }
+            | P::Rank { .. }
+            | P::SelectionOption(_)
+            | P::Selection(_)
+            | P::Race(_)
+            | P::Deity(_) => {}
+            // A group, a `Not`, a number or a state of the Build: no key. A new variant is placed here or above.
             P::All(_)
             | P::Any(_)
             | P::AtLeast(..)
@@ -2323,7 +2326,7 @@ impl Checker {
             Component::ExpandedArsenal { focuses } => {
                 for fact in focuses {
                     self.fact_names(at, fact);
-                    self.arsenal_focuses.push((at.clone(), fact_at(fact)));
+                    self.arsenal_focuses.push((at.clone(), DataAt::from(fact)));
                 }
                 if takes != Some(ParameterKind::SpellSchool) {
                     self.problem(at, DataIssue::BonusValueWithoutParameter);
@@ -2417,7 +2420,7 @@ impl Checker {
 
     /// The key a fact names.
     fn fact_names(&mut self, at: &DataAt, fact: &Fact) {
-        self.names(at, fact_at(fact));
+        self.names(at, DataAt::from(fact));
     }
 
     /// The key a stat names: a skill's.
@@ -2592,20 +2595,4 @@ fn reads_full_skill(condition: &Condition) -> bool {
             ..
         }
     )
-}
-
-/// Where a fact's entry is.
-fn fact_at(fact: &Fact) -> DataAt {
-    match fact {
-        Fact::Feat(key) => DataAt::Feat(key.clone()),
-        Fact::Feature(key) => DataAt::Feature(key.clone()),
-        Fact::Option(key) => DataAt::SelectionOption(key.clone()),
-        Fact::Selection(key) => DataAt::FeatureSelection(key.clone()),
-        Fact::MythicAbility(key) => DataAt::MythicAbility(key.clone()),
-        Fact::MythicFeat(key) => DataAt::MythicFeat(key.clone()),
-        Fact::Class(key) => DataAt::Class(key.clone()),
-        Fact::Archetype(key) => DataAt::Archetype(key.clone()),
-        Fact::Race(key) => DataAt::Race(key.clone()),
-        Fact::Deity(key) => DataAt::Deity(key.clone()),
-    }
 }

@@ -25,10 +25,9 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use rules::{BlueprintGuid, DataAt, Fact, GrantIndex, Prerequisite, Site};
+use rules::{BlueprintGuid, DataAt, Fact, GrantIndex, Prerequisite, Reading, Site};
 
-use super::carriers::{fact_at, facts_of, granters};
-use super::prerequisites::leaf_at;
+use super::carriers::{facts_of, granters};
 use crate::areas::Ctx;
 use crate::lookup::chains_up;
 
@@ -58,7 +57,10 @@ impl Grants {
         if self.index.gives(by).iter().any(gives) {
             return true;
         }
-        let Some(held) = fact_at(by).filter(|held| self.index.offered_in(held).is_empty()) else {
+        let Some(held) = Fact::try_from(by)
+            .ok()
+            .filter(|held| self.index.offered_in(held).is_empty())
+        else {
             return false;
         };
         let mut giving = self.index.given_by(&held).map(|(site, _)| site);
@@ -79,7 +81,7 @@ pub(super) fn gaps(
         return out;
     };
     let mut required = Vec::new();
-    walk(tree, &BTreeSet::new(), &mut required);
+    walk(&tree.reading(), &BTreeSet::new(), &mut required);
     for (fact, alternatives) in required {
         let Some(guid) = ctx.planner.guid(fact.clone()) else {
             continue;
@@ -111,32 +113,32 @@ pub(super) fn gaps(
     out
 }
 
-/// The facts a tree requires, each with the facts its `Any`s accept in its place (an `AtLeast` of one is an `Any`).
-/// A fact under a `Not` is refused, not required: no grant of it can refuse anyone.
+/// The facts a tree requires, each with the facts its `Any`s accept in its place. A fact the tree refuses (under a
+/// `Not`, as [`Prerequisite::reading`] pushes it onto the leaf) is not required: no grant of it can refuse anyone.
 fn walk(
-    node: &Prerequisite,
+    node: &Reading,
     alternatives: &BTreeSet<DataAt>,
     out: &mut Vec<(DataAt, BTreeSet<DataAt>)>,
 ) {
+    // The entry a needed leaf names.
+    let needed = |node: &Reading| match node {
+        Reading::Leaf(leaf) if !leaf.refused => leaf.fact().map(|fact| DataAt::from(&fact)),
+        _ => None,
+    };
     match node {
-        Prerequisite::Any(children) | Prerequisite::AtLeast(0 | 1, children) => {
+        Reading::Any(children) => {
             let mut wider = alternatives.clone();
-            wider.extend(children.iter().filter_map(leaf_at));
+            wider.extend(children.iter().filter_map(needed));
             for child in children {
                 walk(child, &wider, out);
             }
         }
-        Prerequisite::All(children) | Prerequisite::AtLeast(_, children) => {
+        Reading::All(children) | Reading::AtLeast(_, children) => {
             for child in children {
                 walk(child, alternatives, out);
             }
         }
-        Prerequisite::Not(_) => {}
-        leaf => {
-            if let Some(at) = leaf_at(leaf) {
-                out.push((at, alternatives.clone()));
-            }
-        }
+        leaf => out.extend(needed(leaf).map(|at| (at, alternatives.clone()))),
     }
 }
 

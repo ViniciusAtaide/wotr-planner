@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::component::Fact;
 use crate::keys::{FeatKey, SkillKey, WeaponKey};
-use crate::prerequisite::Prerequisite;
+use crate::prerequisite::{Prerequisite, Reading};
 
 /// The kind of value a parameterised feat is taken for.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -286,24 +286,26 @@ impl Repeat {
         }
         let own = own();
         let leaf = own.leaf();
-        let all = match prerequisite {
-            Some(Prerequisite::All(children)) => children.as_slice(),
-            Some(lone) => std::slice::from_ref(lone),
-            None => &[],
-        };
-        let negated = all.iter().filter_map(|child| match child {
-            Prerequisite::Not(inner) => Some(&**inner),
-            _ => None,
-        });
-        for inner in negated {
-            match inner {
-                Prerequisite::Rank { fact, rank } if *fact == own => return Self::of_ranks(*rank),
-                inner if *inner == leaf => return Self::Once,
-                Prerequisite::Any(members) if members.contains(&leaf) => return Self::Once,
-                _ => {}
-            }
+        let reading = prerequisite.map(Prerequisite::reading);
+        let refused: Vec<&Prerequisite> = reading
+            .iter()
+            .flat_map(|reading| reading.parts())
+            .filter_map(|part| match part {
+                Reading::Leaf(leaf) if leaf.refused => Some(leaf.condition),
+                _ => None,
+            })
+            .collect();
+        // Its own leaf refused says once, whatever else is refused beside it; then its own rank refused.
+        if refused.contains(&&leaf) {
+            return Self::Once;
         }
-        Self::WhileOptionLeft
+        refused
+            .iter()
+            .find_map(|condition| match condition {
+                Prerequisite::Rank { fact, rank } if *fact == own => Some(Self::of_ranks(*rank)),
+                _ => None,
+            })
+            .unwrap_or(Self::WhileOptionLeft)
     }
 
     /// Once for one rank, else up to that many times.
@@ -322,5 +324,57 @@ impl Repeat {
             Self::Times(times) => times,
             Self::PerValue | Self::WhileOptionLeft => u8::MAX,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::keys::SelectionOptionKey;
+
+    fn not(condition: Prerequisite) -> Prerequisite {
+        Prerequisite::Not(Box::new(condition))
+    }
+
+    fn derive(prerequisite: Prerequisite) -> Repeat {
+        let own = Fact::Option(SelectionOptionKey::new("own"));
+        Repeat::derive(false, true, 1, Some(&prerequisite), || own)
+    }
+
+    #[test]
+    fn a_refused_own_leaf_beside_a_refused_own_rank_is_once() {
+        let own = Fact::Option(SelectionOptionKey::new("own"));
+        let leaf = own.leaf();
+        let rank = Prerequisite::Rank { fact: own, rank: 3 };
+        let any = |children| Prerequisite::Any(children);
+        // The leaf is checked first, in either order and in any group of refusals.
+        assert_eq!(
+            derive(not(any(vec![leaf.clone(), rank.clone()]))),
+            Repeat::Once
+        );
+        assert_eq!(
+            derive(not(any(vec![rank.clone(), leaf.clone()]))),
+            Repeat::Once
+        );
+        assert_eq!(
+            derive(Prerequisite::All(vec![not(rank), not(leaf)])),
+            Repeat::Once
+        );
+    }
+
+    #[test]
+    fn a_refused_own_rank_inside_a_refused_or_is_times() {
+        let own = Fact::Option(SelectionOptionKey::new("own"));
+        let rank = Prerequisite::Rank { fact: own, rank: 3 };
+        let other = Prerequisite::CharacterLevel(5);
+        assert_eq!(
+            derive(not(Prerequisite::Any(vec![rank.clone(), other]))),
+            Repeat::Times(3)
+        );
+        assert_eq!(derive(not(rank)), Repeat::Times(3));
+        assert_eq!(
+            derive(Prerequisite::CharacterLevel(5)),
+            Repeat::WhileOptionLeft
+        );
     }
 }
