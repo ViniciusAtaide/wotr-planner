@@ -988,7 +988,7 @@ impl Engine {
 
     /// One prerequisite as the sheet says it, with what the character has for a numeric one ("BAB +4 (have
     /// +1)"). It reads a canonical tree, as the data holds ([`Prerequisite::canonicalize`]): a tree in another shape
-    /// reads with its nesting shown (an "or" in an "or" in brackets, a double negation as one).
+    /// reads with its nesting shown (an "or" in an "or" in brackets, a double negation with both its negations).
     pub fn prerequisite_text(&self, prerequisite: &Prerequisite, has: Option<u8>) -> String {
         self.prerequisite_text_within(prerequisite, has, None)
     }

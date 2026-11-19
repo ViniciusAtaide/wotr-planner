@@ -227,7 +227,10 @@ async fn real_data_impossible_domain_tells_its_domain_selections_apart() {
 /// The game's Diva Strike (DivaStrike 3306f4c6913d4d429358b907cdb4ffd1) needs 3 of Diva Style
 /// (b46bf228d6b2427abd028e2fe7b84600), Feint (c610310d31414edabcedf0c8a6fe32c4) and Combat Expertise
 /// (CombatExpertiseFeature 4c44724ffa8844f4d9bedb5bb27d144a): a `PrerequisiteFeaturesFromList` with `Amount` 3. With
-/// none of them held, the reason says how many it needs, not how many more (ticket 330 item 3).
+/// none of them held, the reason says how many it needs, not how many more (ticket 330 item 3). Its other two parts
+/// are the same blueprint's: a `PrerequisiteStatValue` of Charisma 15 (Group All), and BAB 7 (`PrerequisiteStatValue`
+/// BaseAttackBonus 7) or BardClass 772c83a25e2268e448e841dcd548235f level 7 (`PrerequisiteClassLevel`), both Group Any:
+/// a skald's reason keeps the BAB alone, the bard being out of its classes' reach.
 #[tokio::test]
 async fn real_data_n_of_with_none_held_reads_n_of() {
     let client = Client::start().await;

@@ -271,13 +271,17 @@ impl Prerequisite {
     /// - no `All` directly in an `All`, and no `Any` directly in an `Any`: it gives its children;
     /// - no `AtLeast(1, ..)`: it is an `Any`;
     /// - no `Not(Not(x))`: it is `x`;
+    /// - no two equal children in an `All` or an `Any`: an "and" or an "or" of one condition twice is of it once (the
+    ///   game's `PrerequisiteArchetypeLevel` beside a `PrerequisiteClassLevel` of the same class and level);
     /// - no `All` or `Any` of one child: it is the child;
     /// - every group's children sorted.
     ///
     /// Kept as they are: an empty group (`All([])` holds, `Any([])` fails, `Not(All([]))` never holds), an
-    /// `AtLeast(n, ..)` of two or more (an `AtLeast` of every child stays one), and duplicate children. Every load
-    /// path calls it (the files' reader, [`GameData::checked`](crate::GameData::checked)'s compile for every entry,
-    /// the engine's catalog, the game check's writer), so every tree the data holds is in it.
+    /// `AtLeast(n, ..)` for any `n` but 1 (an `AtLeast` of every child stays one), and an `AtLeast`'s equal children,
+    /// which each count. An empty group directly in a group of its own kind gives no children, so it is dropped
+    /// (`All([a, All([])])` is `a`): the meaning is the same, and the data check's `EmptyPrerequisiteGroup` no longer
+    /// sees it there. Every load path calls it (the files' reader, [`GameData::checked`](crate::GameData::checked)'s
+    /// compile for every entry, the engine's catalog, the game check's writer), so every tree the data holds is in it.
     pub fn canonicalize(&mut self) {
         let tree = std::mem::replace(self, Prerequisite::All(Vec::new()));
         *self = tree.into_canonical();
@@ -321,16 +325,17 @@ impl Prerequisite {
     }
 }
 
-/// A group of canonical children, those of a child of its own kind already taken in: the child alone when there is
-/// one, else `group` of them sorted.
+/// An `All` or an `Any` of canonical children, those of a child of its own kind already taken in: sorted, each once,
+/// and the child alone when one is left, else `group` of them.
 fn joined(
     children: impl Iterator<Item = Prerequisite>,
     group: fn(Vec<Prerequisite>) -> Prerequisite,
 ) -> Prerequisite {
     let mut children: Vec<Prerequisite> = children.collect();
+    children.sort();
+    children.dedup();
     if children.len() == 1 {
         return children.remove(0);
     }
-    children.sort();
     group(children)
 }

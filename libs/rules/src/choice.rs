@@ -146,7 +146,8 @@ pub enum Unmet {
     /// The failing children of an `All` that has more than one failure (a single failure is reported on its own),
     /// none of them an `All` (`Unmet::all`).
     All(Vec<Unmet>),
-    /// Every child of an `Any`, all failing, none of them an `Any` (`Unmet::any`). A picker's reason keeps only
+    /// Every child of an `Any`, all failing, none of them an `Any` (`Unmet::any`): an "and" among the alternatives
+    /// whose one failure is an "or" gives that "or"'s alternatives, flattened in. A picker's reason then keeps only
     /// those the character's classes give, when any does ([`Engine::options`](crate::Engine::options)).
     Any(Vec<Unmet>),
     /// An `AtLeast(needed, ..)` with only `met` children holding; `failed` are the others.

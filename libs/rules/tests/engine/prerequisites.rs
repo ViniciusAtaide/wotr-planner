@@ -286,16 +286,70 @@ fn empty_groups_and_never_stay_as_they_are() {
         canonical(all(vec![feat("dodge"), any(Vec::new())])),
         all(vec![any(Vec::new()), feat("dodge")])
     );
-    // Duplicate children stay too.
+    // An empty group directly in a group of its kind gives no children: it goes, and what means the same is left.
+    assert_eq!(
+        canonical(all(vec![feat("dodge"), all(Vec::new())])),
+        feat("dodge")
+    );
+    assert_eq!(
+        canonical(any(vec![feat("toughness"), any(Vec::new()), feat("dodge")])),
+        any(vec![feat("dodge"), feat("toughness")])
+    );
+}
+
+/// An "and" or an "or" of one condition twice is of it once, those flattening brings together too (the game's
+/// `PrerequisiteArchetypeLevel` beside a `PrerequisiteClassLevel` of the same class and level); in an "n of" each
+/// counts, so they stay.
+#[test]
+fn equal_children_are_one_in_an_and_or_an_or_and_stay_in_an_at_least() {
     assert_eq!(
         canonical(all(vec![feat("dodge"), feat("dodge")])),
-        all(vec![feat("dodge"), feat("dodge")])
+        feat("dodge")
+    );
+    assert_eq!(
+        canonical(all(vec![
+            level("kineticist", 16),
+            all(vec![level("kineticist", 16), feat("dodge")]),
+        ])),
+        all(vec![feat("dodge"), level("kineticist", 16)])
+    );
+    assert_eq!(
+        canonical(any(vec![
+            feat("dodge"),
+            any(vec![feat("dodge"), feat("toughness")])
+        ])),
+        any(vec![feat("dodge"), feat("toughness")])
+    );
+    assert_eq!(
+        canonical(Prerequisite::AtLeast(
+            2,
+            vec![feat("toughness"), feat("dodge"), feat("dodge")]
+        )),
+        Prerequisite::AtLeast(2, vec![feat("dodge"), feat("dodge"), feat("toughness")])
+    );
+}
+
+#[test]
+fn at_least_none_keeps_its_count_and_normalises_its_children() {
+    assert_eq!(
+        canonical(Prerequisite::AtLeast(
+            0,
+            vec![
+                feat("toughness"),
+                not(not(feat("dodge"))),
+                all(vec![feat("mobility")]),
+            ]
+        )),
+        Prerequisite::AtLeast(0, vec![feat("dodge"), feat("mobility"), feat("toughness")])
     );
 }
 
 /// Trees of every shape the normal form rewrites, nested.
 fn raw_trees() -> Vec<Prerequisite> {
     vec![
+        all(vec![level("rogue", 1), all(Vec::new())]),
+        Prerequisite::AtLeast(1, Vec::new()),
+        any(vec![race("human"), any(Vec::new())]),
         all(vec![
             level("fighter", 2),
             all(vec![race("human"), not(not(level("fighter", 1)))]),

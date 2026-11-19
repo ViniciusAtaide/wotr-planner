@@ -39,3 +39,26 @@ fn no_tree_nests_a_not_under_a_not() {
         .collect();
     assert!(nesting.is_empty(), "{nesting:#?}");
 }
+
+/// No group holds two equal children: the normal form keeps duplicates (flattening an "or" into an "or" can bring
+/// two together), so the data must not have any.
+#[test]
+fn no_group_holds_two_equal_children() {
+    fn doubled(tree: &Prerequisite) -> bool {
+        match tree {
+            Prerequisite::All(children)
+            | Prerequisite::Any(children)
+            | Prerequisite::AtLeast(_, children) => {
+                // Sorted, so equal children sit side by side.
+                children.windows(2).any(|pair| pair[0] == pair[1]) || children.iter().any(doubled)
+            }
+            Prerequisite::Not(child) => doubled(child),
+            _ => false,
+        }
+    }
+    let doubling: Vec<&Prerequisite> = data_prerequisites(&DATA)
+        .into_iter()
+        .filter(|tree| doubled(tree))
+        .collect();
+    assert!(doubling.is_empty(), "{doubling:#?}");
+}

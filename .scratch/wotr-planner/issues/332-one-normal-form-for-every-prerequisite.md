@@ -61,7 +61,7 @@ Built as design-P T1 describes. The normal form lives in `Prerequisite::canonica
   - N4: a group of one is its child;
   - N5: children sorted.
 
-  Kept as they are: empty groups, `AtLeast(n ≥ 2)` (`AtLeast(0)` is untouched too), and duplicate children. New `is_canonical`.
+  Kept as they are: empty groups, `AtLeast(n ≥ 2)` (`AtLeast(0)` is untouched too), and an `AtLeast`'s equal children. Since the review fixes, equal children of an `All` or `Any` are removed (see "Review fixes"). New `is_canonical`.
 - **`component.rs`:** `compile_prerequisites` canonicalises every entry's tree, compiled or hand-written.
 - **`choice.rs`:** new `Unmet::all` (debug-asserts at least one failure) and `Unmet::any`. Each takes in the children of a child of its own kind; one failure alone is itself. `and_parts` is no longer recursive.
 - **Callers:** `check_in` (`state.rs`), `unmet_for` (`labels.rs`) and `Entry::issue` (`walk/judge.rs`) build with the constructors.
@@ -158,3 +158,28 @@ Built as design-P T1 describes. The normal form lives in `Prerequisite::canonica
 ### Left
 - The GLOSSARY "normal form" sentence, which the main session adds.
 - The self-checks' `--ignored` long runs, which are the main session's.
+
+### Review fixes
+- **Empty groups.** An empty group directly in a group of its own kind gives no children, so it is dropped (`All([a, All([])])` is `a`). The meaning is unchanged. The data check's `EmptyPrerequisiteGroup` runs before the compile, on the files' canonical trees, and can no longer see that case. The `canonicalize` doc says so, and `empty_groups_and_never_stay_as_they_are` pins it.
+- **Equal children** (main session's decision (b)). The review's real-data test `canonical_trees::no_group_holds_two_equal_children` found four trees where flattening put the game's `PrerequisiteClassLevel` beside the `ClassLevel` of its `PrerequisiteArchetypeLevel` (same class and level) in one "and":
+  - Chain Arrows (ChainArrowsInfusion 0ff81c5691c64c4aa8b2ecc35c885901): kineticist 16;
+  - Rending Arrows (8896ac251d394dceaf650793aa85e177): kineticist 11;
+  - Honed Infusion (cf531860c9fb44c09bda9d8904657314): kineticist 12;
+  - Exploding Arrows (7c8ded7015114e4086b3dbdd16388b29): kineticist 3.
+
+  `canonicalize` now removes equal children from an `All` or an `Any`, after flattening and sorting, and a group left with one child is that child. An "and" or "or" of one condition twice means it once. An `AtLeast` keeps its equal children, since each counts. The duplicates test passes over the real data.
+- **Form proof, rerun** against the same base record with the full accept file: `0 statuses changed`, `failures: 0 appeared, 0 gone`, `reasons: 15217937 compared, 214231 changed in 52 edits`, `0 differences, 0 offer differences, 0 reason problems`. No new reason edit appeared: the texts already read each condition once (`distinct`).
+- **Tests** (each in `--list`):
+  - `prerequisites::equal_children_are_one_in_an_and_or_an_or_and_stay_in_an_at_least`: an "and" of a condition twice, the flattened Chain Arrows shape, `Any([dodge, Any([dodge, toughness])])` becoming `Any([dodge, toughness])`, and `AtLeast(2, [dodge, dodge, toughness])` kept;
+  - `prerequisites::at_least_none_keeps_its_count_and_normalises_its_children`;
+  - `empty_groups_and_never_stay_as_they_are` gains the dropped empty groups;
+  - `raw_trees()` gains `All([rogue 1, All([])])`, `AtLeast(1, [])` and `Any([human, Any([])])`;
+  - `canonical_trees::no_group_holds_two_equal_children`.
+- **Diva Strike's other parts, cited** (`wording.rs`): the same blueprint DivaStrike 3306f4c6913d4d429358b907cdb4ffd1 has a `PrerequisiteStatValue` Charisma 15 (Group All), and BAB 7 (`PrerequisiteStatValue`) or BardClass 772c83a25e2268e448e841dcd548235f level 7 (`PrerequisiteClassLevel`), both Group Any. A skald's reason keeps the BAB.
+- **Docs.** `Unmet::Any`: a failing "and"'s "or" is flattened in, then trimmed. `prerequisite_text`: a raw double negation reads with both its negations.
+- **Checks after the last edit:**
+  - `cargo test -p rules -p seeds -p mcp -p game-check`: every binary ok (rules engine 771 passed, seeds `game_data` 649 passed, mcp 251 passed);
+  - `check-data`: exit 0;
+  - the game check: exit 0, its report byte-identical to the base's;
+  - `--write prerequisites --dry-run`: byte-identical;
+  - `cargo fmt --all --check`: exit 0.
