@@ -291,12 +291,13 @@ impl Prerequisite {
                 Reading::merged(Self::read_all(children, refused), refused)
             }
             Prerequisite::AtLeast(needed, children) => {
-                // Refused, at least `needed` holding means at most `len - needed` do: `len - needed + 1` fail.
+                // Refused, fewer than `needed` hold, so at least `len - needed + 1` fail. When that is none (`needed`
+                // beyond the children: the `AtLeast` can never hold) the refusal always holds: an empty `All`.
                 let needed = if refused {
-                    u8::try_from(children.len())
-                        .unwrap_or(u8::MAX)
-                        .saturating_sub(*needed)
-                        .saturating_add(1)
+                    match (children.len() + 1).checked_sub(usize::from(*needed)) {
+                        Some(failing) if failing > 0 => u8::try_from(failing).unwrap_or(u8::MAX),
+                        _ => return Reading::All(Vec::new()),
+                    }
                 } else {
                     *needed
                 };
@@ -358,7 +359,32 @@ impl Prerequisite {
             P::Selection(key) => Fact::Selection(key.clone()),
             P::Race(key) => Fact::Race(key.clone()),
             P::Deity(key) => Fact::Deity(key.clone()),
-            _ => return None,
+            // No fact: a group, a `Not`, a number, a state of the Build, and the leaves that read a selection's
+            // options (`NoOptionFrom`, `PickedThrough`) or a class's spells (`ClassSpellLevel`), not a fact held. A new
+            // variant is placed here or above.
+            P::All(_)
+            | P::Any(_)
+            | P::AtLeast(..)
+            | P::Not(_)
+            | P::NoOptionFrom(_)
+            | P::NoOtherOptionOfGroup(_)
+            | P::PickedThrough(_)
+            | P::SkillRanks { .. }
+            | P::AbilityScore { .. }
+            | P::FullAbilityScore { .. }
+            | P::BaseAttackBonus(_)
+            | P::ClassSpellLevel { .. }
+            | P::CasterType(_)
+            | P::SpellLevel { .. }
+            | P::SpontaneousSpellLevel { .. }
+            | P::CasterLevel(_)
+            | P::CharacterLevel(_)
+            | P::MythicRank(_)
+            | P::Alignment(_)
+            | P::Atheist
+            | P::Worships
+            | P::DeityOffers(_)
+            | P::Story(_) => return None,
         })
     }
 
@@ -530,6 +556,22 @@ mod tests {
 
     #[test]
     fn fact_leaf_round_trips_for_every_kind() {
+        // A new `Fact` kind fails to compile in `kind_number` until it is numbered, and then the assertion fails until a
+        // sample of it is listed.
+        fn kind_number(fact: &Fact) -> usize {
+            match fact {
+                Fact::Feat(_) => 0,
+                Fact::Feature(_) => 1,
+                Fact::Option(_) => 2,
+                Fact::Selection(_) => 3,
+                Fact::MythicAbility(_) => 4,
+                Fact::MythicFeat(_) => 5,
+                Fact::Class(_) => 6,
+                Fact::Archetype(_) => 7,
+                Fact::Race(_) => 8,
+                Fact::Deity(_) => 9,
+            }
+        }
         let facts = [
             Fact::Feat(FeatKey::new("a")),
             Fact::Feature(FeatureKey::new("a")),
@@ -542,6 +584,8 @@ mod tests {
             Fact::Race(RaceKey::new("a")),
             Fact::Deity(DeityKey::new("a")),
         ];
+        let numbers: Vec<usize> = facts.iter().map(kind_number).collect();
+        assert_eq!(numbers, (0..10).collect::<Vec<_>>());
         for fact in facts {
             assert_eq!(fact.leaf().fact(), Some(fact.clone()), "{fact:?}");
         }

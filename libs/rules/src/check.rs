@@ -1263,8 +1263,39 @@ impl Checker {
                 self.names(at, DataAt::FeatureSelection(selection.clone()));
             }
             P::SkillRanks { skill, .. } => self.names(at, DataAt::Skill(skill.clone())),
-            // A group, a `Not`, a number or a fact (named above): no other key.
-            _ => {}
+            // A fact, named above by `fact()`.
+            P::Feat(_)
+            | P::FeatForSameValue(_)
+            | P::MythicFeat(_)
+            | P::MythicAbility(_)
+            | P::ClassLevel { .. }
+            | P::Archetype(_)
+            | P::Feature { .. }
+            | P::Rank { .. }
+            | P::SelectionOption(_)
+            | P::Selection(_)
+            | P::Race(_)
+            | P::Deity(_) => {}
+            // A group, a `Not`, a number or a state of the Build: no key. A new variant is placed here or above.
+            P::All(_)
+            | P::Any(_)
+            | P::AtLeast(..)
+            | P::Not(_)
+            | P::NoOtherOptionOfGroup(_)
+            | P::AbilityScore { .. }
+            | P::FullAbilityScore { .. }
+            | P::BaseAttackBonus(_)
+            | P::CasterType(_)
+            | P::SpellLevel { .. }
+            | P::SpontaneousSpellLevel { .. }
+            | P::CasterLevel(_)
+            | P::CharacterLevel(_)
+            | P::MythicRank(_)
+            | P::Alignment(_)
+            | P::Atheist
+            | P::Worships
+            | P::DeityOffers(_)
+            | P::Story(_) => {}
         }
     }
 
