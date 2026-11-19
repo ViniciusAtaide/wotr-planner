@@ -940,8 +940,23 @@ pub struct Grants {
     pub selections: Vec<&'static rules::FeatureSelection>,
 }
 
-/// One level row's grants: the features and the Feature selections it names.
-type RowGrants = (&'static [FeatureKey], &'static [rules::FeatureSelectionKey]);
+/// The grant index of [`DATA`] (ticket 334).
+pub static GRANTS: LazyLock<rules::GrantIndex> = LazyLock::new(|| rules::GrantIndex::new(&DATA));
+
+/// One site of the grant index whose grants a [`grants`] reads: a level row, a rank row, a switch's features.
+type RowGrants = &'static rules::Site;
+
+/// The sites of the grant index that `by` gives in its rows (a class's or archetype's level rows, a path's rank rows,
+/// an option's level rows).
+fn row_sites(by: rules::DataAt) -> impl Iterator<Item = RowGrants> {
+    let grants: &'static rules::GrantIndex = &GRANTS;
+    (grants.gives(&by).iter()).filter(|site| {
+        matches!(
+            site.when,
+            rules::When::ClassRow { .. } | rules::When::OptionRow { .. } | rules::When::Rank { .. }
+        )
+    })
+}
 
 /// What `rows` grant, in key order: the features and selections the rows name, and the ones the own options of those
 /// selections name on their rows, all the way down.
@@ -950,9 +965,16 @@ pub fn grants(rows: impl IntoIterator<Item = RowGrants>) -> Grants {
     let mut features = BTreeSet::new();
     let mut selections = BTreeSet::new();
     let mut waiting: Vec<RowGrants> = rows.into_iter().collect();
-    while let Some((row_features, row_selections)) = waiting.pop() {
-        features.extend(row_features);
-        for key in row_selections {
+    while let Some(site) = waiting.pop() {
+        for grant in &site.grants {
+            let key = match &grant.fact {
+                rules::Fact::Feature(key) => {
+                    features.insert(key);
+                    continue;
+                }
+                rules::Fact::Selection(key) => key,
+                _ => continue,
+            };
             if !selections.insert(key) {
                 continue;
             }
@@ -960,12 +982,9 @@ pub fn grants(rows: impl IntoIterator<Item = RowGrants>) -> Grants {
                 continue;
             };
             for option in data.options_of(selection) {
-                waiting.extend(
-                    option
-                        .levels
-                        .iter()
-                        .map(|row| (&row.features[..], &row.selections[..])),
-                );
+                waiting.extend(row_sites(rules::DataAt::SelectionOption(
+                    option.key.clone(),
+                )));
             }
         }
     }
@@ -985,16 +1004,10 @@ pub fn grants(rows: impl IntoIterator<Item = RowGrants>) -> Grants {
 
 /// The rows of `class` and of its archetypes.
 pub fn class_rows(class: &'static rules::Class) -> Vec<RowGrants> {
-    let own = class
-        .levels
-        .iter()
-        .map(|row| (&row.features[..], &row.selections[..]));
-    let archetypes = DATA
-        .archetypes
-        .iter()
+    let own = row_sites(rules::DataAt::Class(class.key.clone()));
+    let archetypes = (DATA.archetypes.iter())
         .filter(move |a| a.class == class.key)
-        .flat_map(|a| a.levels.iter())
-        .map(|row| (&row.features[..], &row.selections[..]));
+        .flat_map(|a| row_sites(rules::DataAt::Archetype(a.key.clone())));
     own.chain(archetypes).collect()
 }
 
@@ -1023,22 +1036,13 @@ pub fn all_class_grants() -> Grants {
 
 /// What the Mythic paths grant: their rank rows' grants, and the features a switch to a path grants.
 pub fn all_path_grants() -> Grants {
-    let data: &'static GameData = &DATA;
-    let mut grants = grants(data.mythic_paths.iter().flat_map(|path| {
-        path.ranks
-            .iter()
-            .map(|row| (&row.features[..], &row.selections[..]))
-    }));
-    let switched = data
-        .mythic_paths
-        .iter()
-        .filter_map(|path| path.switch.as_ref())
-        .flat_map(|switch| &switch.features)
-        .filter_map(|key| data.feature(key));
-    grants.features.extend(switched);
-    grants.features.sort_by(|a, b| a.key.cmp(&b.key));
-    grants.features.dedup_by(|a, b| a.key == b.key);
-    grants
+    let index: &'static rules::GrantIndex = &GRANTS;
+    grants(DATA.mythic_paths.iter().flat_map(|path| {
+        (index
+            .gives(&rules::DataAt::MythicPath(path.key.clone()))
+            .iter())
+        .filter(|site| matches!(site.when, rules::When::Rank { .. } | rules::When::Always))
+    }))
 }
 
 // ---- feat slots and feat lists as selections (ticket 301) ------------------------------------------------------

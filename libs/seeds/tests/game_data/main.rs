@@ -33,6 +33,7 @@ mod follow_ups;
 mod gear;
 mod gear_engine;
 mod gold;
+mod grant_index;
 mod held_selections;
 mod importer_lists;
 mod infusions;

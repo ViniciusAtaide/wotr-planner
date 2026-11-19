@@ -15,15 +15,17 @@ use super::{
     EffectiveRow, SlotKind, canonical_archetype_row, class_row, effective_rows, merged_row,
 };
 use crate::build::{BuildStart, Pick};
-use crate::check::CheckedGameData;
+use crate::check::{CheckedGameData, DataAt};
+use crate::component::Fact;
 use crate::game_data::{
     AbilityModifier, Archetype, BabFromRanks, Background, Band, Class, Deity,
     EXOTIC_WEAPON_PROFICIENCY, Feat, FeatCategory, FeatureSelection, GameData,
-    IMPROVED_UNARMED_STRIKE, MARTIAL_WEAPONS_PROFICIENCY, MythicAbility, MythicFeat, MythicPath,
-    OptionRow, ProgressionHeader, Race, SIMPLE_WEAPON_PROFICIENCY, SelectionOption, Skill, Subrace,
-    UNARMED_STRIKE, Weapon, WeaponProficiency,
+    MARTIAL_WEAPONS_PROFICIENCY, MythicAbility, MythicFeat, MythicPath, OptionRow,
+    ProgressionHeader, Race, SIMPLE_WEAPON_PROFICIENCY, SelectionOption, Skill, Subrace, Weapon,
+    WeaponProficiency,
 };
 use crate::gear::GearItem;
+use crate::grants::{GrantIndex, GrantValue, When};
 use crate::keys::{
     ArchetypeKey, BackgroundKey, ClassKey, DeityKey, FeatKey, FeatureKey, FeatureSelectionKey,
     GearKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey, SelectionOptionKey, SkillKey,
@@ -57,6 +59,8 @@ pub(super) struct Catalog {
     /// The header each selection naming classes makes ([`ProgressionHeader::of_selection`]), the planner's form until
     /// 293 and 294.
     own_headers: FxHashMap<FeatureSelectionKey, ProgressionHeader>,
+    /// Every grant of the data (ticket 334).
+    grants: GrantIndex,
 }
 
 /// What a pick takes, read once ([`Catalog::pick_item`]): its name, picker chip, summary, prerequisite, the kind
@@ -93,9 +97,11 @@ impl Catalog {
                     .then(|| (class.key.clone(), prerequisite.without_alignment()))
             })
             .collect();
+        let grants = GrantIndex::new(&data);
         let mut catalog = Self {
             indexes: Indexes::new(&data),
-            features: FeatureFacts::new(&data),
+            features: FeatureFacts::new(&data, &grants),
+            grants,
             single_options: FxHashMap::default(),
             casting: Casting::new(&data),
             without_alignment,
@@ -741,27 +747,21 @@ impl Catalog {
     }
 
     /// The feats a follower of `deity` holds for its favoured weapons while holding a feature that grants them,
-    /// each with the values it's held for: an exotic weapon's proficiency for that weapon, Improved Unarmed Strike for
-    /// the unarmed strike, and nothing for a simple or martial weapon (no feat checks proficiency with one weapon).
+    /// each with the values it's held for: the deity's site in the grant index ([`GrantIndex`]: an exotic weapon's
+    /// proficiency for that weapon, Improved Unarmed Strike for the unarmed strike, and nothing for a simple or
+    /// martial weapon).
     pub(super) fn favoured_weapon_feats(&self, deity: &DeityKey) -> Vec<(FeatKey, Vec<Parameter>)> {
-        let Some(deity) = self.deity(deity) else {
-            return Vec::new();
-        };
-        let mut feats = Vec::new();
-        for key in &deity.favoured_weapons {
-            if key.as_str() == UNARMED_STRIKE {
-                feats.push((FeatKey::new(IMPROVED_UNARMED_STRIKE), Vec::new()));
-            } else if self
-                .weapon(key)
-                .is_some_and(|weapon| weapon.proficiency == Some(WeaponProficiency::Exotic))
-            {
-                feats.push((
-                    FeatKey::new(EXOTIC_WEAPON_PROFICIENCY),
-                    vec![Parameter::Weapon(key.clone())],
-                ));
-            }
-        }
-        feats
+        (self.grants.gives(&DataAt::Deity(deity.clone())).iter())
+            .filter(|site| site.when == When::Always)
+            .flat_map(|site| &site.grants)
+            .filter_map(|grant| match (&grant.fact, &grant.value) {
+                (Fact::Feat(feat), GrantValue::Fixed(value)) => {
+                    Some((feat.clone(), vec![value.clone()]))
+                }
+                (Fact::Feat(feat), _) => Some((feat.clone(), Vec::new())),
+                _ => None,
+            })
+            .collect()
     }
 
     /// The name of a feature a class, archetype or path defines.
@@ -775,7 +775,8 @@ impl Catalog {
     }
 
     /// What grants a feature by its rows (ticket 244): the classes, then the archetypes, the paths and the options,
-    /// each in key order. Empty for a feature only a mythic ability, a path switch or a selection gives.
+    /// each in key order: the grant index's row sites ([`GrantIndex`], ticket 334). Empty for a feature only a mythic
+    /// ability, a path switch, a component or a selection gives.
     pub(super) fn feature_holders(&self, feature: &FeatureKey) -> &[GrantedBy] {
         self.features
             .holders
@@ -981,9 +982,9 @@ struct FeatureFacts {
     weapons: FxHashMap<FeatureKey, BTreeSet<WeaponKey>>,
     /// The name of every feature a class, archetype or path defines, for the sheet's labels.
     names: FxHashMap<FeatureKey, String>,
-    /// What grants each feature by its rows ([`Catalog::feature_holders`]).
+    /// What grants each feature by its rows ([`Catalog::feature_holders`]): the grant index's row sites.
     holders: FxHashMap<FeatureKey, Vec<GrantedBy>>,
-    /// What names each selection in its rows ([`Catalog::selection_holders`]).
+    /// What names each selection in its rows ([`Catalog::selection_holders`]): the grant index's row sites.
     selection_holders: FxHashMap<FeatureSelectionKey, Vec<GrantedBy>>,
     /// The features whose name another feature shares (the Fighter's and the Sohei's Weapon Training), so a reason
     /// can tell them apart.
@@ -994,9 +995,9 @@ struct FeatureFacts {
 }
 
 impl FeatureFacts {
-    fn new(data: &GameData) -> Self {
+    fn new(data: &GameData, grants: &GrantIndex) -> Self {
         let features: Vec<&crate::game_data::Feature> = data.features.iter().collect();
-        let (holders, selection_holders) = holders(data);
+        let (holders, selection_holders) = holders(grants);
         let mut name_counts: FxHashMap<&str, usize> = FxHashMap::default();
         for feature in &features {
             *name_counts.entry(feature.name.as_str()).or_default() += 1;
@@ -1058,7 +1059,8 @@ impl FeatureFacts {
     }
 }
 
-/// What grants a feature by its rows: the sheet's holder of the feature (ticket 244, decision 7).
+/// What grants a feature by its rows: the sheet's holder of the feature (ticket 244, decision 7). A projection of the
+/// grant index's row sites, kept until the engine reads the index itself (design-G's T4).
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub(super) enum GrantedBy {
     Class(ClassKey),
@@ -1067,65 +1069,43 @@ pub(super) enum GrantedBy {
     Option(SelectionOptionKey),
 }
 
+impl GrantedBy {
+    /// The holder a row site names: a class's or archetype's level row, a path's rank row, an option's level row.
+    /// `None` for every other site.
+    fn of_row(by: &DataAt, when: &When) -> Option<Self> {
+        Some(match (by, when) {
+            (DataAt::Class(key), When::ClassRow { .. }) => Self::Class(key.clone()),
+            (DataAt::Archetype(key), When::ClassRow { .. }) => Self::Archetype(key.clone()),
+            (DataAt::MythicPath(key), When::Rank { .. }) => Self::Path(key.clone()),
+            (DataAt::SelectionOption(key), When::OptionRow { .. }) => Self::Option(key.clone()),
+            _ => return None,
+        })
+    }
+}
+
 /// The holders of the features and of the selections rows name, each in [`GrantedBy`]'s order and once.
 type Holders = (
     FxHashMap<FeatureKey, Vec<GrantedBy>>,
     FxHashMap<FeatureSelectionKey, Vec<GrantedBy>>,
 );
 
-/// What grants each feature and names each selection by its rows: classes', archetypes', paths' and options'.
-fn holders(data: &GameData) -> Holders {
+/// What grants each feature and names each selection by its rows: the classes', archetypes', paths' and options' row
+/// sites of the grant index.
+fn holders(grants: &GrantIndex) -> Holders {
     let mut features: FxHashMap<FeatureKey, BTreeSet<GrantedBy>> = FxHashMap::default();
     let mut selections: FxHashMap<FeatureSelectionKey, BTreeSet<GrantedBy>> = FxHashMap::default();
-    let mut add =
-        |by: GrantedBy, row_features: &[FeatureKey], row_selections: &[FeatureSelectionKey]| {
-            for feature in row_features {
-                features
-                    .entry(feature.clone())
-                    .or_default()
-                    .insert(by.clone());
-            }
-            for selection in row_selections {
-                selections
-                    .entry(selection.clone())
-                    .or_default()
-                    .insert(by.clone());
-            }
+    for site in grants.sites() {
+        let Some(by) = GrantedBy::of_row(&site.by, &site.when) else {
+            continue;
         };
-    for class in data.all_classes() {
-        for row in &class.levels {
-            add(
-                GrantedBy::Class(class.key.clone()),
-                &row.features,
-                &row.selections,
-            );
-        }
-    }
-    for archetype in &data.archetypes {
-        for row in &archetype.levels {
-            add(
-                GrantedBy::Archetype(archetype.key.clone()),
-                &row.features,
-                &row.selections,
-            );
-        }
-    }
-    for path in &data.mythic_paths {
-        for row in &path.ranks {
-            add(
-                GrantedBy::Path(path.key.clone()),
-                &row.features,
-                &row.selections,
-            );
-        }
-    }
-    for option in &data.options {
-        for row in &option.levels {
-            add(
-                GrantedBy::Option(option.key.clone()),
-                &row.features,
-                &row.selections,
-            );
+        for grant in &site.grants {
+            match &grant.fact {
+                Fact::Feature(key) => features.entry(key.clone()).or_default().insert(by.clone()),
+                Fact::Selection(key) => {
+                    (selections.entry(key.clone()).or_default()).insert(by.clone())
+                }
+                _ => continue,
+            };
         }
     }
     let ordered = |by: BTreeSet<GrantedBy>| by.into_iter().collect();
@@ -1146,4 +1126,71 @@ fn holders(data: &GameData) -> Holders {
 enum ClassAt {
     Base(usize),
     Prestige(usize),
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Ticket 334's transitional pin, deleted with [`GrantedBy`] (design-G's T4): the row sites' projection is the
+    /// holders the rows gave before the grant index, read off the test world's rows as they were.
+    #[test]
+    fn row_sites_are_the_old_holders() {
+        let data = crate::test_world::world()
+            .checked()
+            .expect("the test world checks");
+        let catalog = Catalog::new(data);
+        let data = catalog.data();
+        let mut features: FxHashMap<FeatureKey, BTreeSet<GrantedBy>> = FxHashMap::default();
+        let mut selections: FxHashMap<FeatureSelectionKey, BTreeSet<GrantedBy>> =
+            FxHashMap::default();
+        let mut add = |by: GrantedBy, row: (&[FeatureKey], &[FeatureSelectionKey])| {
+            for feature in row.0 {
+                (features.entry(feature.clone()).or_default()).insert(by.clone());
+            }
+            for selection in row.1 {
+                (selections.entry(selection.clone()).or_default()).insert(by.clone());
+            }
+        };
+        for class in data.all_classes() {
+            for row in &class.levels {
+                add(
+                    GrantedBy::Class(class.key.clone()),
+                    (&row.features, &row.selections),
+                );
+            }
+        }
+        for archetype in &data.archetypes {
+            for row in &archetype.levels {
+                let by = GrantedBy::Archetype(archetype.key.clone());
+                add(by, (&row.features, &row.selections));
+            }
+        }
+        for path in &data.mythic_paths {
+            for row in &path.ranks {
+                add(
+                    GrantedBy::Path(path.key.clone()),
+                    (&row.features, &row.selections),
+                );
+            }
+        }
+        for option in &data.options {
+            for row in &option.levels {
+                add(
+                    GrantedBy::Option(option.key.clone()),
+                    (&row.features, &row.selections),
+                );
+            }
+        }
+        fn listed<K: std::hash::Hash + Eq>(
+            map: FxHashMap<K, BTreeSet<GrantedBy>>,
+        ) -> FxHashMap<K, Vec<GrantedBy>> {
+            map.into_iter()
+                .map(|(k, by)| (k, by.into_iter().collect()))
+                .collect()
+        }
+        assert!(!features.is_empty() && !selections.is_empty());
+        assert_eq!(catalog.features.holders, listed(features));
+        assert_eq!(catalog.features.selection_holders, listed(selections));
+    }
 }
