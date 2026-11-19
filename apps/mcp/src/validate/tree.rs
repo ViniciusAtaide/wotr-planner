@@ -142,11 +142,12 @@ impl Node {
         let Some(unmet) = self.why.unmet() else {
             return false;
         };
-        leaves(unmet).iter().any(|leaf| {
+        // What a failure must not be isn't something it needs.
+        unmet.leaves().filter(|leaf| !leaf.refused).any(|leaf| {
             cause
                 .gives
                 .iter()
-                .any(|given| given.is_named_by(data, leaf))
+                .any(|given| given.is_named_by(data, leaf.condition))
         })
     }
 }
@@ -253,16 +254,6 @@ pub(super) fn pick_gives(data: &GameData, pick: &Pick) -> Vec<Given> {
         }
         Pick::MythicAbility { ability, .. } => vec![Given::MythicAbility(ability.clone())],
         Pick::MythicFeat { feat, .. } => vec![Given::MythicFeat(feat.clone())],
-    }
-}
-
-/// The single conditions an unmet prerequisite fails on, left to right.
-fn leaves(unmet: &Unmet) -> Vec<&Prerequisite> {
-    match unmet {
-        Unmet::Condition { needs, .. } => vec![needs],
-        Unmet::All(children) | Unmet::Any(children) => children.iter().flat_map(leaves).collect(),
-        Unmet::AtLeast { failed, .. } => failed.iter().flat_map(leaves).collect(),
-        Unmet::MetLater { unmet, .. } => leaves(unmet),
     }
 }
 

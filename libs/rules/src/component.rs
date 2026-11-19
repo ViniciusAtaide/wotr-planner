@@ -27,6 +27,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::bonus::SpellScope;
 use crate::build::AbilityScores;
+use crate::check::DataAt;
 use crate::game_data::{Ability, Alignment, GameData, Save, SpellType, WeaponProficiency};
 use crate::gear::GearTarget;
 use crate::keys::{
@@ -345,6 +346,46 @@ impl Fact {
             Self::Race(key) => Prerequisite::Race(key.clone()),
             Self::Deity(key) => Prerequisite::Deity(key.clone()),
         }
+    }
+}
+
+/// Where a fact's entry is.
+impl From<&Fact> for DataAt {
+    fn from(fact: &Fact) -> Self {
+        match fact {
+            Fact::Feat(key) => DataAt::Feat(key.clone()),
+            Fact::Feature(key) => DataAt::Feature(key.clone()),
+            Fact::Option(key) => DataAt::SelectionOption(key.clone()),
+            Fact::Selection(key) => DataAt::FeatureSelection(key.clone()),
+            Fact::MythicAbility(key) => DataAt::MythicAbility(key.clone()),
+            Fact::MythicFeat(key) => DataAt::MythicFeat(key.clone()),
+            Fact::Class(key) => DataAt::Class(key.clone()),
+            Fact::Archetype(key) => DataAt::Archetype(key.clone()),
+            Fact::Race(key) => DataAt::Race(key.clone()),
+            Fact::Deity(key) => DataAt::Deity(key.clone()),
+        }
+    }
+}
+
+/// The fact an entry is, when it is one a character holds; the entry itself when it is not (a weapon, a spell, a
+/// skill).
+impl<'a> TryFrom<&'a DataAt> for Fact {
+    type Error = &'a DataAt;
+
+    fn try_from(at: &'a DataAt) -> Result<Self, Self::Error> {
+        Ok(match at {
+            DataAt::Feat(key) => Fact::Feat(key.clone()),
+            DataAt::Feature(key) => Fact::Feature(key.clone()),
+            DataAt::SelectionOption(key) => Fact::Option(key.clone()),
+            DataAt::FeatureSelection(key) => Fact::Selection(key.clone()),
+            DataAt::MythicAbility(key) => Fact::MythicAbility(key.clone()),
+            DataAt::MythicFeat(key) => Fact::MythicFeat(key.clone()),
+            DataAt::Class(key) => Fact::Class(key.clone()),
+            DataAt::Archetype(key) => Fact::Archetype(key.clone()),
+            DataAt::Race(key) => Fact::Race(key.clone()),
+            DataAt::Deity(key) => Fact::Deity(key.clone()),
+            other => return Err(other),
+        })
     }
 }
 

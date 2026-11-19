@@ -1,7 +1,7 @@
 //! A prerequisite tree's leaves (the single conditions under its groups and negations), and its normal form
 //! (ticket 332).
 
-use rules::{FeatKey, Issue, Prerequisite, RaceKey, Unmet};
+use rules::{FeatKey, Issue, Leaf, Prerequisite, RaceKey, Reading, Unmet};
 
 use crate::support::*;
 
@@ -481,4 +481,257 @@ fn a_class_and_its_archetype_failing_read_as_one_and() {
             condition(Prerequisite::BaseAttackBonus(5), Some(1)),
         ])))
     );
+}
+
+// ---- the polarity-aware view (ticket 333) -----------------------------------------------------------------------
+
+fn leaf(condition: &Prerequisite, refused: bool) -> Leaf<'_> {
+    Leaf { condition, refused }
+}
+
+#[test]
+fn a_leaf_under_one_not_is_refused_and_under_two_is_needed() {
+    let tree = all(vec![
+        feat("a"),
+        not(feat("b")),
+        not(not(feat("c"))),
+        not(any(vec![feat("d"), not(feat("e"))])),
+    ]);
+    let seen: Vec<(&Prerequisite, bool)> = tree
+        .polar_leaves()
+        .map(|l| (l.condition, l.refused))
+        .collect();
+    let (a, b, c, d, e) = (feat("a"), feat("b"), feat("c"), feat("d"), feat("e"));
+    assert_eq!(
+        seen,
+        [
+            (&a, false),
+            (&b, true),
+            (&c, false),
+            (&d, true),
+            (&e, false)
+        ]
+    );
+}
+
+#[test]
+fn the_reading_pushes_a_not_onto_its_leaves() {
+    let (a, b, c) = (feat("a"), feat("b"), feat("c"));
+    let refused = |p| Reading::Leaf(leaf(p, true));
+    // `Not(Any)` is an `All` of refused leaves.
+    let tree = not(any(vec![a.clone(), b.clone()]));
+    assert_eq!(tree.reading(), Reading::All(vec![refused(&a), refused(&b)]));
+    // `Not(All)` is an `Any` of them.
+    let tree = not(all(vec![a.clone(), b.clone()]));
+    assert_eq!(tree.reading(), Reading::Any(vec![refused(&a), refused(&b)]));
+    // `Not(AtLeast(2, 3 children))` needs 2 refused of the 3.
+    let tree = not(Prerequisite::AtLeast(
+        2,
+        vec![a.clone(), b.clone(), c.clone()],
+    ));
+    assert_eq!(
+        tree.reading(),
+        Reading::AtLeast(2, vec![refused(&a), refused(&b), refused(&c)])
+    );
+    // `Not(Not(x))` is `x`.
+    assert_eq!(
+        not(not(a.clone())).reading(),
+        Reading::Leaf(leaf(&a, false))
+    );
+}
+
+#[test]
+fn a_reading_of_a_not_inside_an_all_merges_into_it() {
+    let (a, b, c) = (feat("a"), feat("b"), feat("c"));
+    let tree = all(vec![a.clone(), not(any(vec![b.clone(), c.clone()]))]);
+    let reading = tree.reading();
+    assert_eq!(
+        reading,
+        Reading::All(vec![
+            Reading::Leaf(leaf(&a, false)),
+            Reading::Leaf(leaf(&b, true)),
+            Reading::Leaf(leaf(&c, true)),
+        ])
+    );
+    assert_eq!(reading.parts().len(), 3);
+    // Not an `All`: itself alone.
+    let lone = a.reading();
+    assert_eq!(lone.parts(), [Reading::Leaf(leaf(&a, false))]);
+    // The reading's leaves run left to right.
+    assert_eq!(reading.leaves().count(), 3);
+}
+
+#[test]
+fn each_fact_leaf_names_its_fact() {
+    use rules::{
+        ArchetypeKey, ClassKey, DeityKey, Fact, FeatKey, FeatureKey, FeatureSelectionKey,
+        MythicAbilityKey, MythicFeatKey, RaceKey, SelectionOptionKey,
+    };
+    let feat_key = FeatKey::new("f");
+    let cases: Vec<(Prerequisite, Option<Fact>)> = vec![
+        (
+            Prerequisite::Feat(feat_key.clone()),
+            Some(Fact::Feat(feat_key.clone())),
+        ),
+        (
+            Prerequisite::FeatForSameValue(feat_key.clone()),
+            Some(Fact::Feat(feat_key.clone())),
+        ),
+        (
+            Prerequisite::MythicFeat(MythicFeatKey::new("m")),
+            Some(Fact::MythicFeat(MythicFeatKey::new("m"))),
+        ),
+        (
+            Prerequisite::MythicAbility(MythicAbilityKey::new("m")),
+            Some(Fact::MythicAbility(MythicAbilityKey::new("m"))),
+        ),
+        (
+            Prerequisite::ClassLevel {
+                class: ClassKey::new("c"),
+                level: 3,
+            },
+            Some(Fact::Class(ClassKey::new("c"))),
+        ),
+        (
+            Prerequisite::Archetype(ArchetypeKey::new("a")),
+            Some(Fact::Archetype(ArchetypeKey::new("a"))),
+        ),
+        (
+            Prerequisite::Feature {
+                feature: FeatureKey::new("x"),
+                count: 2,
+            },
+            Some(Fact::Feature(FeatureKey::new("x"))),
+        ),
+        (
+            Prerequisite::Rank {
+                fact: Fact::Feat(feat_key.clone()),
+                rank: 3,
+            },
+            Some(Fact::Feat(feat_key.clone())),
+        ),
+        (
+            Prerequisite::SelectionOption(SelectionOptionKey::new("o")),
+            Some(Fact::Option(SelectionOptionKey::new("o"))),
+        ),
+        (
+            Prerequisite::Selection(FeatureSelectionKey::new("s")),
+            Some(Fact::Selection(FeatureSelectionKey::new("s"))),
+        ),
+        (
+            Prerequisite::Race(RaceKey::new("r")),
+            Some(Fact::Race(RaceKey::new("r"))),
+        ),
+        (
+            Prerequisite::Deity(DeityKey::new("d")),
+            Some(Fact::Deity(DeityKey::new("d"))),
+        ),
+        // No fact: a group, a `Not`, a score, a selection read as none held.
+        (all(vec![feat("a")]), None),
+        (not(feat("a")), None),
+        (Prerequisite::BaseAttackBonus(4), None),
+        (
+            Prerequisite::NoOptionFrom(FeatureSelectionKey::new("s")),
+            None,
+        ),
+    ];
+    for (condition, fact) in cases {
+        assert_eq!(condition.fact(), fact, "{condition:?}");
+    }
+}
+
+#[test]
+fn a_leaf_says_its_threshold_and_value() {
+    use rules::{ClassKey, Fact, Parameter, SkillKey};
+    let value = Parameter::Skill(SkillKey::new("stealth"));
+    let with_value = Prerequisite::FeatFor {
+        feat: FeatKey::new("f"),
+        value: value.clone(),
+    };
+    let if_value = Prerequisite::FeatIfValue {
+        value: value.clone(),
+        feat: FeatKey::new("f"),
+    };
+    assert_eq!(leaf(&with_value, false).value(), Some(&value));
+    assert_eq!(leaf(&if_value, false).value(), Some(&value));
+    assert_eq!(leaf(&feat("f"), false).value(), None);
+    let thresholds = [
+        (
+            Prerequisite::ClassLevel {
+                class: ClassKey::new("c"),
+                level: 5,
+            },
+            5,
+        ),
+        (
+            Prerequisite::Rank {
+                fact: Fact::Feat(FeatKey::new("f")),
+                rank: 3,
+            },
+            3,
+        ),
+        (
+            Prerequisite::SkillRanks {
+                skill: SkillKey::new("s"),
+                ranks: 7,
+            },
+            7,
+        ),
+        (Prerequisite::BaseAttackBonus(6), 6),
+        (Prerequisite::CasterLevel(9), 9),
+        (Prerequisite::CharacterLevel(11), 11),
+        (Prerequisite::MythicRank(4), 4),
+    ];
+    for (condition, number) in thresholds {
+        assert_eq!(
+            leaf(&condition, true).threshold(),
+            Some(number),
+            "{condition:?}"
+        );
+    }
+    assert_eq!(leaf(&feat("f"), false).threshold(), None);
+}
+
+#[test]
+fn the_unmet_leaves_carry_polarity() {
+    let needs = all(vec![feat("a"), not(feat("b"))]);
+    let single = not(feat("c"));
+    let unmet = Unmet::All(vec![
+        Unmet::Condition {
+            needs: needs.clone(),
+            has: None,
+        },
+        Unmet::Any(vec![Unmet::Condition {
+            needs: single.clone(),
+            has: None,
+        }]),
+    ]);
+    let seen: Vec<bool> = unmet.leaves().map(|l| l.refused).collect();
+    assert_eq!(seen, [false, true, true]);
+    let named: Vec<&Prerequisite> = unmet.leaves().map(|l| l.condition).collect();
+    assert_eq!(named, [&feat("a"), &feat("b"), &feat("c")]);
+}
+
+#[test]
+fn fact_and_data_at_convert_both_ways() {
+    use rules::{DataAt, Fact, WeaponKey};
+    let facts = [
+        Fact::Feat(FeatKey::new("a")),
+        Fact::Feature(rules::FeatureKey::new("a")),
+        Fact::Option(rules::SelectionOptionKey::new("a")),
+        Fact::Selection(rules::FeatureSelectionKey::new("a")),
+        Fact::MythicAbility(rules::MythicAbilityKey::new("a")),
+        Fact::MythicFeat(rules::MythicFeatKey::new("a")),
+        Fact::Class(rules::ClassKey::new("a")),
+        Fact::Archetype(rules::ArchetypeKey::new("a")),
+        Fact::Race(rules::RaceKey::new("a")),
+        Fact::Deity(rules::DeityKey::new("a")),
+    ];
+    for fact in facts {
+        let at = DataAt::from(&fact);
+        assert_eq!(Fact::try_from(&at), Ok(fact));
+    }
+    // An entry no character holds is no fact.
+    assert!(Fact::try_from(&DataAt::Weapon(WeaponKey::new("w"))).is_err());
+    assert!(Fact::try_from(&DataAt::Progression).is_err());
 }

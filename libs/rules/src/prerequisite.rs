@@ -170,24 +170,208 @@ impl Story {
     }
 }
 
-impl Prerequisite {
-    /// The single conditions in the tree, left to right: everything under its groups and `Not`s, and never a group
-    /// or a `Not` itself.
-    pub fn leaves(&self) -> impl Iterator<Item = &Prerequisite> {
-        // A stack of the nodes still to visit, the next one on top.
+/// One condition of a tree, with whether the tree needs it or refuses it (ticket 333).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Leaf<'p> {
+    /// Never a group or a `Not`.
+    pub condition: &'p Prerequisite,
+    /// Under an odd number of `Not`s: the tree needs it not to hold.
+    pub refused: bool,
+}
+
+impl Leaf<'_> {
+    /// The Fact whose holding it reads ([`Prerequisite::fact`]).
+    pub fn fact(&self) -> Option<Fact> {
+        self.condition.fact()
+    }
+
+    /// The number it needs: a class level, a feature count, a rank, skill ranks, an ability score, a base attack bonus,
+    /// a spell level, a caster level, a character level or a Mythic rank.
+    pub fn threshold(&self) -> Option<u8> {
+        use Prerequisite as P;
+        match self.condition {
+            P::ClassLevel { level: number, .. }
+            | P::Feature { count: number, .. }
+            | P::Rank { rank: number, .. }
+            | P::SkillRanks { ranks: number, .. }
+            | P::AbilityScore { score: number, .. }
+            | P::FullAbilityScore { score: number, .. }
+            | P::ClassSpellLevel { level: number, .. }
+            | P::SpellLevel { level: number, .. }
+            | P::SpontaneousSpellLevel { level: number, .. }
+            | P::BaseAttackBonus(number)
+            | P::CasterLevel(number)
+            | P::CharacterLevel(number)
+            | P::MythicRank(number) => Some(*number),
+            _ => None,
+        }
+    }
+
+    /// The value it names: `FeatFor`'s or `FeatIfValue`'s.
+    pub fn value(&self) -> Option<&Parameter> {
+        match self.condition {
+            Prerequisite::FeatFor { value, .. } | Prerequisite::FeatIfValue { value, .. } => {
+                Some(value)
+            }
+            _ => None,
+        }
+    }
+}
+
+/// A tree with each `Not` pushed onto its leaves (De Morgan: `Not(Any)` is an `All` of refused leaves, `Not(All)` an
+/// `Any`, `Not(AtLeast(n, k children))` an `AtLeast(k - n + 1, ..)`). A pushed group merges into a parent of its kind,
+/// and an `AtLeast(1, ..)` is an `Any`. The stored tree keeps its `Not`s, so "not with A or B" keeps its wording.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Reading<'p> {
+    All(Vec<Reading<'p>>),
+    Any(Vec<Reading<'p>>),
+    AtLeast(u8, Vec<Reading<'p>>),
+    Leaf(Leaf<'p>),
+}
+
+impl<'p> Reading<'p> {
+    /// An `All`'s children, or itself alone.
+    pub fn parts(&self) -> &[Reading<'p>] {
+        match self {
+            Reading::All(children) => children,
+            lone => std::slice::from_ref(lone),
+        }
+    }
+
+    /// The leaves, left to right.
+    pub fn leaves(&self) -> impl Iterator<Item = &Leaf<'p>> {
         let mut pending = vec![self];
         std::iter::from_fn(move || {
             while let Some(node) = pending.pop() {
                 match node {
-                    Prerequisite::All(children)
-                    | Prerequisite::Any(children)
-                    | Prerequisite::AtLeast(_, children) => pending.extend(children.iter().rev()),
-                    Prerequisite::Not(child) => pending.push(child),
-                    leaf => return Some(leaf),
+                    Reading::All(children)
+                    | Reading::Any(children)
+                    | Reading::AtLeast(_, children) => pending.extend(children.iter().rev()),
+                    Reading::Leaf(leaf) => return Some(leaf),
                 }
             }
             None
         })
+    }
+
+    /// An `All` (`all`) or an `Any` of `read`, with the children of a child of its own kind taken in.
+    fn merged(read: Vec<Reading<'p>>, all: bool) -> Reading<'p> {
+        let mut flat = Vec::with_capacity(read.len());
+        for part in read {
+            match part {
+                Reading::All(parts) if all => flat.extend(parts),
+                Reading::Any(parts) if !all => flat.extend(parts),
+                part => flat.push(part),
+            }
+        }
+        if all {
+            Reading::All(flat)
+        } else {
+            Reading::Any(flat)
+        }
+    }
+}
+
+impl Prerequisite {
+    /// The tree as a [`Reading`]. It allocates: for load-time and tool callers, not the per-option path.
+    pub fn reading(&self) -> Reading<'_> {
+        self.read(false)
+    }
+
+    fn read_all(children: &[Prerequisite], refused: bool) -> Vec<Reading<'_>> {
+        children.iter().map(|child| child.read(refused)).collect()
+    }
+
+    fn read(&self, refused: bool) -> Reading<'_> {
+        match self {
+            Prerequisite::All(children) => {
+                Reading::merged(Self::read_all(children, refused), !refused)
+            }
+            Prerequisite::Any(children) => {
+                Reading::merged(Self::read_all(children, refused), refused)
+            }
+            Prerequisite::AtLeast(needed, children) => {
+                // Refused, at least `needed` holding means at most `len - needed` do: `len - needed + 1` fail.
+                let needed = if refused {
+                    u8::try_from(children.len())
+                        .unwrap_or(u8::MAX)
+                        .saturating_sub(*needed)
+                        .saturating_add(1)
+                } else {
+                    *needed
+                };
+                let read = Self::read_all(children, refused);
+                if needed == 1 {
+                    Reading::merged(read, false)
+                } else {
+                    Reading::AtLeast(needed, read)
+                }
+            }
+            Prerequisite::Not(child) => child.read(!refused),
+            condition => Reading::Leaf(Leaf { condition, refused }),
+        }
+    }
+
+    /// Every leaf with its polarity, left to right: everything under its groups and `Not`s, and never a group or a
+    /// `Not` itself.
+    pub fn polar_leaves(&self) -> impl Iterator<Item = Leaf<'_>> {
+        // A stack of the nodes still to visit with their polarity, the next one on top.
+        let mut pending = vec![(self, false)];
+        std::iter::from_fn(move || {
+            while let Some((node, refused)) = pending.pop() {
+                match node {
+                    Prerequisite::All(children)
+                    | Prerequisite::Any(children)
+                    | Prerequisite::AtLeast(_, children) => {
+                        pending.extend(children.iter().rev().map(|child| (child, refused)));
+                    }
+                    Prerequisite::Not(child) => pending.push((child, !refused)),
+                    condition => return Some(Leaf { condition, refused }),
+                }
+            }
+            None
+        })
+    }
+
+    /// The single conditions in the tree, left to right: everything under its groups and `Not`s, and never a group
+    /// or a `Not` itself. Blind to polarity ([`polar_leaves`](Self::polar_leaves)).
+    pub fn leaves(&self) -> impl Iterator<Item = &Prerequisite> {
+        self.polar_leaves().map(|leaf| leaf.condition)
+    }
+
+    /// The Fact a leaf reads the holding of, `None` for a group, a `Not` and every other leaf (`NoOptionFrom` names a
+    /// selection but reads that none of its options is held, not the selection).
+    pub fn fact(&self) -> Option<Fact> {
+        use Prerequisite as P;
+        Some(match self {
+            P::Feat(feat)
+            | P::FeatFor { feat, .. }
+            | P::FeatForSameValue(feat)
+            | P::FeatIfValue { feat, .. } => Fact::Feat(feat.clone()),
+            P::MythicFeat(key) => Fact::MythicFeat(key.clone()),
+            P::MythicAbility(key) => Fact::MythicAbility(key.clone()),
+            P::ClassLevel { class, .. } => Fact::Class(class.clone()),
+            P::Archetype(key) => Fact::Archetype(key.clone()),
+            P::Feature { feature, .. } => Fact::Feature(feature.clone()),
+            P::Rank { fact, .. } => fact.clone(),
+            P::SelectionOption(key) => Fact::Option(key.clone()),
+            P::Selection(key) => Fact::Selection(key.clone()),
+            P::Race(key) => Fact::Race(key.clone()),
+            P::Deity(key) => Fact::Deity(key.clone()),
+            _ => return None,
+        })
+    }
+
+    /// Whether the tree holds a negation: a `Not`, anywhere (an empty group under it too, which has no leaf to show
+    /// it).
+    pub(crate) fn holds_not(&self) -> bool {
+        match self {
+            Prerequisite::Not(_) => true,
+            Prerequisite::All(children)
+            | Prerequisite::Any(children)
+            | Prerequisite::AtLeast(_, children) => children.iter().any(Prerequisite::holds_not),
+            _ => false,
+        }
     }
 
     /// The story conditions anywhere in the tree, for the note beside the option: they never block.
@@ -338,4 +522,28 @@ fn joined(
         return children.remove(0);
     }
     group(children)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn fact_leaf_round_trips_for_every_kind() {
+        let facts = [
+            Fact::Feat(FeatKey::new("a")),
+            Fact::Feature(FeatureKey::new("a")),
+            Fact::Option(SelectionOptionKey::new("a")),
+            Fact::Selection(FeatureSelectionKey::new("a")),
+            Fact::MythicAbility(MythicAbilityKey::new("a")),
+            Fact::MythicFeat(MythicFeatKey::new("a")),
+            Fact::Class(ClassKey::new("a")),
+            Fact::Archetype(ArchetypeKey::new("a")),
+            Fact::Race(RaceKey::new("a")),
+            Fact::Deity(DeityKey::new("a")),
+        ];
+        for fact in facts {
+            assert_eq!(fact.leaf().fact(), Some(fact.clone()), "{fact:?}");
+        }
+    }
 }

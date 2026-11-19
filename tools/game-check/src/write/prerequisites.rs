@@ -35,7 +35,7 @@ use rules::{
 use serde_json::Value;
 
 use super::carrier_guard::{self, Grants};
-use super::carriers::{fact_at, facts_of, words};
+use super::carriers::{facts_of, words};
 use super::span::{Value as Field, ron_text};
 use super::{Change, Unexpressed};
 use crate::areas::fixed::{ANIMAL_CLASS, guid};
@@ -464,73 +464,27 @@ struct Named {
 impl Named {
     fn of(tree: Option<&Prerequisite>) -> Named {
         let mut named = Named::default();
-        if let Some(tree) = tree {
-            named.walk(tree, false);
-        }
-        named
-    }
-
-    fn walk(&mut self, node: &Prerequisite, refused: bool) {
-        match node {
-            Prerequisite::All(children)
-            | Prerequisite::Any(children)
-            | Prerequisite::AtLeast(_, children) => {
-                for child in children {
-                    self.walk(child, refused);
-                }
-            }
-            Prerequisite::Not(child) => self.walk(child, !refused),
-            leaf => match (leaf_at(leaf), refused) {
+        for leaf in tree.into_iter().flat_map(Prerequisite::polar_leaves) {
+            let at = leaf.fact().map(|fact| DataAt::from(&fact));
+            match (at, leaf.refused) {
                 (Some(at), false) => {
-                    self.accepted.insert(at.to_string(), at);
+                    named.accepted.insert(at.to_string(), at);
                 }
                 (Some(at), true) => {
-                    self.refused.insert(at.to_string(), Some(at));
+                    named.refused.insert(at.to_string(), Some(at));
                 }
                 (None, true) => {
-                    self.refused.insert(format!("{leaf:?}"), None);
+                    named.refused.insert(format!("{:?}", leaf.condition), None);
                 }
                 (None, false) => {}
-            },
+            }
         }
+        named
     }
 
     fn names(&self, fact: &str) -> bool {
         self.accepted.contains_key(fact) || self.refused.contains_key(fact)
     }
-}
-
-/// The entry a fact leaf names, whatever its count, rank or value: a feat for `Weapon Focus (Longsword)`, a class for
-/// a class level.
-pub(super) fn leaf_at(leaf: &Prerequisite) -> Option<DataAt> {
-    Some(match leaf {
-        Prerequisite::Feat(feat)
-        | Prerequisite::FeatFor { feat, .. }
-        | Prerequisite::FeatForSameValue(feat)
-        | Prerequisite::FeatIfValue { feat, .. } => DataAt::Feat(feat.clone()),
-        Prerequisite::MythicFeat(key) => DataAt::MythicFeat(key.clone()),
-        Prerequisite::MythicAbility(key) => DataAt::MythicAbility(key.clone()),
-        Prerequisite::ClassLevel { class, .. } => DataAt::Class(class.clone()),
-        Prerequisite::Archetype(key) => DataAt::Archetype(key.clone()),
-        Prerequisite::Feature { feature, .. } => DataAt::Feature(feature.clone()),
-        Prerequisite::SelectionOption(key) => DataAt::SelectionOption(key.clone()),
-        Prerequisite::Selection(key) => DataAt::FeatureSelection(key.clone()),
-        Prerequisite::Race(key) => DataAt::Race(key.clone()),
-        Prerequisite::Deity(key) => DataAt::Deity(key.clone()),
-        Prerequisite::Rank { fact, .. } => match fact {
-            Fact::Feat(key) => DataAt::Feat(key.clone()),
-            Fact::Feature(key) => DataAt::Feature(key.clone()),
-            Fact::Option(key) => DataAt::SelectionOption(key.clone()),
-            Fact::Selection(key) => DataAt::FeatureSelection(key.clone()),
-            Fact::MythicAbility(key) => DataAt::MythicAbility(key.clone()),
-            Fact::MythicFeat(key) => DataAt::MythicFeat(key.clone()),
-            Fact::Class(key) => DataAt::Class(key.clone()),
-            Fact::Archetype(key) => DataAt::Archetype(key.clone()),
-            Fact::Race(key) => DataAt::Race(key.clone()),
-            Fact::Deity(key) => DataAt::Deity(key.clone()),
-        },
-        _ => return None,
-    })
 }
 
 /// One way a rewrite narrows who qualifies: `drops <fact>` or `adds Not <fact>`, the fact's blueprint, and the ticket
@@ -794,7 +748,7 @@ fn condition(
         }
         "PrerequisiteCondition" => match own_cap(own, part) {
             Some(cap) if i64::from(entry.ranks) == cap => {
-                let Some(fact) = fact_at(&entry.at) else {
+                let Some(fact) = Fact::try_from(&entry.at).ok() else {
                     return Err(Gap::new("an own cap on an entry that is no fact", "308"));
                 };
                 Condition::Not(Box::new(Condition::FactRank(fact, entry.ranks)))
@@ -836,7 +790,7 @@ fn own_no_feature(
     if plain && !shared {
         return None;
     }
-    let itself = fact_at(&entry.at);
+    let itself = Fact::try_from(&entry.at).ok();
     let refused: Vec<Fact> = facts_of(ctx, own)
         .into_iter()
         .filter(|fact| !plain || Some(fact) != itself.as_ref())

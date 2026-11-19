@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::component::Fact;
 use crate::keys::{FeatKey, SkillKey, WeaponKey};
-use crate::prerequisite::Prerequisite;
+use crate::prerequisite::{Prerequisite, Reading};
 
 /// The kind of value a parameterised feat is taken for.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
@@ -286,20 +286,18 @@ impl Repeat {
         }
         let own = own();
         let leaf = own.leaf();
-        let all = match prerequisite {
-            Some(Prerequisite::All(children)) => children.as_slice(),
-            Some(lone) => std::slice::from_ref(lone),
-            None => &[],
-        };
-        let negated = all.iter().filter_map(|child| match child {
-            Prerequisite::Not(inner) => Some(&**inner),
-            _ => None,
-        });
-        for inner in negated {
-            match inner {
+        let reading = prerequisite.map(Prerequisite::reading);
+        let refused = reading
+            .iter()
+            .flat_map(|reading| reading.parts())
+            .filter_map(|part| match part {
+                Reading::Leaf(leaf) if leaf.refused => Some(leaf.condition),
+                _ => None,
+            });
+        for condition in refused {
+            match condition {
                 Prerequisite::Rank { fact, rank } if *fact == own => return Self::of_ranks(*rank),
-                inner if *inner == leaf => return Self::Once,
-                Prerequisite::Any(members) if members.contains(&leaf) => return Self::Once,
+                condition if *condition == leaf => return Self::Once,
                 _ => {}
             }
         }
