@@ -574,7 +574,7 @@ fn a_living_deity_below_arcanist_20_cant_take_impossible_domain() {
     // FakeDivineSparkSelection e6d337e709b4478cb6e5389d3f85b601; MagicDeceiverWayOfLivingGodProgression
     // 464ffaf88140474a949618bec7955e78 grants the last only at 20 (308d). Equivalent model: DomainsSelection is the
     // cleric's, the inquisitor's and the Sacred Huntsmaster's domain selections, FakeDivineSparkSelection
-    // `arcanist/magic-deceiver/domain`.
+    // `arcanist/magic-deceiver/domain`. One "or" of the five in the normal form (ticket 332).
     let held = |selection: &str| Unmet::Condition {
         needs: Prerequisite::Selection(rules::FeatureSelectionKey::new(selection)),
         has: None,
@@ -582,13 +582,11 @@ fn a_living_deity_below_arcanist_20_cant_take_impossible_domain() {
     assert_eq!(
         feat_status(&build, &SlotId::Mythic { rank: 1 }, "impossible-domain"),
         Err(Issue::Unmet(Unmet::Any(vec![
-            Unmet::Any(vec![
-                held("cleric/domain"),
-                held("inquisitor/domain"),
-                held("inquisitor/sacred-huntsmaster/domain"),
-            ]),
             held("arcanist/magic-deceiver/domain"),
+            held("cleric/domain"),
             held("hunter/divine-hunter/domain"),
+            held("inquisitor/domain"),
+            held("inquisitor/sacred-huntsmaster/domain"),
         ])))
     );
 }

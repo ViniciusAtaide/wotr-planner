@@ -143,10 +143,12 @@ pub enum Unmet {
         needs: Prerequisite,
         has: Option<u8>,
     },
-    /// The failing children of an `All` that has more than one failure (a single failure is reported on its own).
+    /// The failing children of an `All` that has more than one failure (a single failure is reported on its own),
+    /// none of them an `All` (`Unmet::all`).
     All(Vec<Unmet>),
-    /// Every child of an `Any`, all failing. A picker's reason keeps only those the character's classes give, when
-    /// any does ([`Engine::options`](crate::Engine::options)).
+    /// Every child of an `Any`, all failing, none of them an `Any` (`Unmet::any`): an "and" among the alternatives
+    /// whose one failure is an "or" gives that "or"'s alternatives, flattened in. A picker's reason then keeps only
+    /// those the character's classes give, when any does ([`Engine::options`](crate::Engine::options)).
     Any(Vec<Unmet>),
     /// An `AtLeast(needed, ..)` with only `met` children holding; `failed` are the others.
     AtLeast {
@@ -165,11 +167,52 @@ pub enum Unmet {
 }
 
 impl Unmet {
-    /// The parts of an "and", in order: its children, an "and" among them as its own parts (ticket 329: the game's
-    /// `PrerequisiteArchetypeLevel` beside a `PrerequisiteClassLevel` of the same class); anything else is its one part.
+    /// An "and" of failures, in order: an "and" among them gives its parts, and one failure alone is itself. With
+    /// [`any`](Self::any), what keeps an `Unmet` of a canonical tree ([`Prerequisite::canonicalize`]) free of an "and"
+    /// in an "and" and an "or" in an "or" (an "and" in an "or" whose one failure is an "or" gives its alternatives).
+    pub(crate) fn all(failed: Vec<Unmet>) -> Unmet {
+        debug_assert!(!failed.is_empty(), "an \"and\" of no failure");
+        Self::joined(failed, Unmet::All, |unmet| match unmet {
+            Unmet::All(parts) => Ok(parts),
+            unmet => Err(unmet),
+        })
+    }
+
+    /// An "or" of failures, in order: an "or" among them gives its alternatives, and one alone is itself. An empty
+    /// "or" fails with none.
+    pub(crate) fn any(failed: Vec<Unmet>) -> Unmet {
+        Self::joined(failed, Unmet::Any, |unmet| match unmet {
+            Unmet::Any(alternatives) => Ok(alternatives),
+            unmet => Err(unmet),
+        })
+    }
+
+    /// `group` of `failed`, each of its kind (`Ok` from `parts`) giving its children in its place; one alone is
+    /// itself.
+    fn joined(
+        failed: Vec<Unmet>,
+        group: fn(Vec<Unmet>) -> Unmet,
+        parts: fn(Unmet) -> Result<Vec<Unmet>, Unmet>,
+    ) -> Unmet {
+        let mut joined = Vec::with_capacity(failed.len());
+        for unmet in failed {
+            match parts(unmet) {
+                Ok(children) => joined.extend(children),
+                Err(unmet) => joined.push(unmet),
+            }
+        }
+        if joined.len() == 1 {
+            return joined.remove(0);
+        }
+        group(joined)
+    }
+
+    /// The parts of an "and": its children, or itself alone. An "and" holds no "and" (`Unmet::all`), so the
+    /// game's `PrerequisiteArchetypeLevel` beside a `PrerequisiteClassLevel` of the same class reads as their parts
+    /// (ticket 329).
     pub fn and_parts(&self) -> Vec<&Unmet> {
         match self {
-            Unmet::All(children) => children.iter().flat_map(Unmet::and_parts).collect(),
+            Unmet::All(children) => children.iter().collect(),
             unmet => vec![unmet],
         }
     }

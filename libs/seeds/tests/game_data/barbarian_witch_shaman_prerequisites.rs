@@ -278,7 +278,7 @@ fn the_wild_talents_name_their_features_and_levels_not_an_element() {
         assert_prerequisite(
             &talent(name),
             Prerequisite::All(vec![
-                Prerequisite::AtLeast(1, vec![has_option(&talent("kinetic-healer"))]),
+                has_option(&talent("kinetic-healer")),
                 class_level("kineticist", level),
             ]),
         );

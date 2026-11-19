@@ -194,13 +194,11 @@ fn the_mutagen_discoveries_accept_the_mutation_warrior() {
         prerequisite("alchemist/discovery/greater-mutagen"),
         &Prerequisite::All(vec![
             Prerequisite::Any(vec![mutation_warrior(12), class_level("alchemist", 12)]),
-            Prerequisite::AtLeast(
-                1,
-                vec![
-                    has_feature("alchemist/mutagen"),
-                    has_feature("fighter/mutation-warrior/mutagen"),
-                ]
-            ),
+            // One of the two: an "or" in the normal form (ticket 332).
+            Prerequisite::Any(vec![
+                has_feature("alchemist/mutagen"),
+                has_feature("fighter/mutation-warrior/mutagen"),
+            ]),
         ])
     );
     // Game: GrandMutagenFeature 6f5cb651e26bd97428523061b07ffc85 (16, after Greater Mutagen) and FeralWings

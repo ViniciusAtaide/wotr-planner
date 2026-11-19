@@ -24,6 +24,12 @@ Add design-G §1's Engine half: `grants()`, `pick_gives`, `grantor_in`, `in_reac
   - The label names the selection the feat would open, in `placed_label`'s style, pinned by an exact-text test.
   - 330 item 2 is marked done in ticket 330.
 - The MCP `validate` tests pass unchanged.
+- **The index agrees with the walk beyond the bench** (moved here from 334's review):
+  - `the_index_agrees_with_the_walk` also runs over the gold Builds and the seeds' Build fixtures;
+  - a corpus long run of the same check goes in `tools/corpus/tests/self_checks.rs`, under `--ignored`;
+  - a held feat counts only through a site the Build holds or a pick, never through a selection that merely offers it;
+  - the general feat slot (`BasicFeatsProgression` 5b72dd2ca2cb73b49903806ee8986325) is the one named exception;
+  - every miss is an index bug.
 - The form proof (`FORM_PROOF_OFFERS=1 FORM_PROOF_REASONS=1`) shows statuses and reasons unchanged.
 
 ## Files
@@ -33,6 +39,8 @@ Add design-G §1's Engine half: `grants()`, `pick_gives`, `grantor_in`, `in_reac
 - `apps/mcp/tests/server/validate.rs`
 - `libs/rules/tests/engine/grants.rs`
 - `libs/seeds/tests/game_data/grant_index.rs`
+- `libs/seeds/tests/game_data/gold.rs` (the agreement call only; no guarded region changes)
+- `tools/corpus/tests/self_checks.rs`
 - `.scratch/wotr-planner/issues/330-older-texts-the-308-qa-found.md` (item 2's status)
 
 ## Checks
