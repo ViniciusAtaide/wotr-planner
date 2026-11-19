@@ -16,6 +16,7 @@ mod bonus_feat_choices;
 mod borrowed_selections;
 mod browser_json;
 mod build_sheets;
+mod canonical_trees;
 mod caster_line;
 mod class_rules;
 mod class_skills;

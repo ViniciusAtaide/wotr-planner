@@ -66,9 +66,11 @@ impl Engine {
     pub fn unmet_negates(unmet: &Unmet) -> bool {
         fn negates(prerequisite: &Prerequisite) -> bool {
             match prerequisite {
-                Prerequisite::Not(held) => !matches!(**held, Prerequisite::Not(_)),
-                // A group exclusion ("no other Draconic option", "no Bloodline yet") is a "not with" too.
-                Prerequisite::NoOtherOptionOfGroup(_) | Prerequisite::NoOptionFrom(_) => true,
+                // A canonical tree holds no double negation. A group exclusion ("no other Draconic option", "no
+                // Bloodline yet") is a "not with" too.
+                Prerequisite::Not(_)
+                | Prerequisite::NoOtherOptionOfGroup(_)
+                | Prerequisite::NoOptionFrom(_) => true,
                 Prerequisite::All(children)
                 | Prerequisite::Any(children)
                 | Prerequisite::AtLeast(_, children) => children.iter().any(negates),

@@ -255,19 +255,16 @@ fn an_unstoppable_dwarf_may_be_a_stalwart_defender_without_taking_endurance() {
 fn limitless_rage_counts_the_rampage_and_the_devastating_form() {
     // Game: LimitlessRage 5cb58e6e406525342842a073fb70d068: PrerequisiteFeaturesFromList, Amount 0, of five features,
     // which passes on the first one held (PrerequisiteFeaturesFromList.CheckInternal, WrathDecompiled 6ce4a6b): at
-    // least one.
+    // least one: an "or" in the normal form (ticket 332).
     assert_eq!(
         ability_prerequisite("limitless-rage"),
-        &Prerequisite::AtLeast(
-            1,
-            vec![
-                has_feature("barbarian/instinctual-warrior/focused-rage"),
-                has_feature("barbarian/rage"),
-                has_feature("bloodrager/bloodrage"),
-                has_feature("druid/elemental-rampager/rampage"),
-                has_feature("shifter/rageshaper/devastating-form"),
-            ]
-        )
+        &Prerequisite::Any(vec![
+            has_feature("barbarian/instinctual-warrior/focused-rage"),
+            has_feature("barbarian/rage"),
+            has_feature("bloodrager/bloodrage"),
+            has_feature("druid/elemental-rampager/rampage"),
+            has_feature("shifter/rageshaper/devastating-form"),
+        ])
     );
 }
 
@@ -289,15 +286,13 @@ fn the_second_abilities_need_their_selection() {
     );
     // Game: SecondMystery 277b0164740b97945a3f8022bd572f48: OracleMysterySelection 5531b975dcdf0e24c98f1ff7e017e741
     // (the oracle's and two archetypes') or MysteryGiftFeatureMisterySelection e9629fc4de4c4b3ea1c26e9c13c2402d (the
-    // Living Deity's).
+    // Living Deity's): one "or" of the four in the normal form (ticket 332).
     assert!(
         all_of(ability_prerequisite("second-mystery")).contains(&Prerequisite::Any(vec![
-            Prerequisite::Any(vec![
-                selection("oracle/lone-strider/mystery"),
-                selection("oracle/mystery"),
-                selection("oracle/wind-whisperer/mystery"),
-            ]),
             selection("arcanist/magic-deceiver/mystery"),
+            selection("oracle/lone-strider/mystery"),
+            selection("oracle/mystery"),
+            selection("oracle/wind-whisperer/mystery"),
         ]))
     );
     // Game: BeneficialCurse 2dda67424ee8e0b4d83ef01a73ca6bff: PrerequisiteFeature OracleCurseSelection

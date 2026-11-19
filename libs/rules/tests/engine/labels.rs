@@ -529,11 +529,6 @@ fn a_negated_condition_says_what_rules_the_option_out() {
         ])),
         "Not with dodge"
     );
-    // Two negations cancel.
-    assert_eq!(
-        text(not(Prerequisite::Feat(feat("power-attack")))),
-        "Needs power-attack"
-    );
 }
 
 /// Beside other unmet conditions, what rules an option out comes first, each kind once ("Not with A or B"), then what
@@ -694,6 +689,24 @@ fn groups_of_unmet_conditions_read_as_a_list() {
     );
 }
 
+/// "N more of" counts what the character holds: with none held, it reads "N of" (ticket 330 item 3).
+#[test]
+fn none_held_reads_n_of() {
+    let engine = engine();
+    let at_least = Unmet::AtLeast {
+        needed: 2,
+        met: 0,
+        failed: vec![
+            needs(Prerequisite::Feat(feat("dodge")), None),
+            needs(Prerequisite::Feat(feat("toughness")), None),
+        ],
+    };
+    assert_eq!(
+        reason(&engine, &Issue::Unmet(at_least)),
+        "Needs 2 of: dodge, toughness"
+    );
+}
+
 #[test]
 fn the_other_issues_read_plainly() {
     let engine = engine();
@@ -837,10 +850,10 @@ fn an_and_of_two_texts_that_read_alike_reads_once_and_an_or_keeps_every_alternat
     );
 }
 
-/// An "and" inside an "and" reads as its parts, each once (ticket 329: the game's Chain Arrows has a
-/// `PrerequisiteClassLevel` and a `PrerequisiteArchetypeLevel` of the same class and level, which read "(Kineticist
-/// level 16 (have 5), the Kinetic Sharpshooter archetype), Kineticist level 16 (have 5)"); what an "and" refuses
-/// comes after what it needs ("Order of the Godclaw, not with Pentamic Faith").
+/// An "and" inside an "and" is one "and" in the normal form (ticket 332), so it reads as its parts, each once (ticket
+/// 329: the game's Chain Arrows has a `PrerequisiteClassLevel` and a `PrerequisiteArchetypeLevel` of the same class
+/// and level, which read "(Kineticist level 16 (have 5), the Kinetic Sharpshooter archetype), Kineticist level 16
+/// (have 5)"); what an "and" refuses comes after what it needs ("Order of the Godclaw, not with Pentamic Faith").
 #[test]
 fn an_and_inside_an_and_reads_its_parts_once_and_its_refusals_last() {
     let engine = engine();
@@ -849,15 +862,27 @@ fn an_and_inside_an_and_reads_its_parts_once_and_its_refusals_last() {
         level: 4,
     };
     let scoundrel = || Prerequisite::Archetype(ArchetypeKey::new("rogue/eldritch-scoundrel"));
-    let nested = Prerequisite::All(vec![level(), Prerequisite::All(vec![scoundrel(), level()])]);
+    let canonical = |mut tree: Prerequisite| {
+        tree.canonicalize();
+        tree
+    };
+    let nested = canonical(Prerequisite::All(vec![
+        level(),
+        Prerequisite::All(vec![scoundrel(), level()]),
+    ]));
     assert_eq!(
         engine.prerequisite_text(&nested, None),
         "Fighter level 4, the Eldritch Scoundrel archetype"
     );
-    let unmet = Unmet::All(vec![
-        needs(level(), Some(1)),
-        Unmet::All(vec![needs(scoundrel(), None), needs(level(), Some(1))]),
-    ]);
+    // A fighter 1 holding Dodge.
+    let fighter = with(
+        &build("human", &["fighter"]),
+        general_slot(1),
+        pick_feat("dodge"),
+    );
+    let sheet = walked(&engine, &fighter);
+    let state = sheet.at(1).expect("level 1");
+    let unmet = state.check(&nested).expect_err("unmet");
     assert_eq!(
         reason(&engine, &Issue::Unmet(unmet.clone())),
         "Needs Fighter level 4 (have 1), the Eldritch Scoundrel archetype"
@@ -867,14 +892,16 @@ fn an_and_inside_an_and_reads_its_parts_once_and_its_refusals_last() {
         "Fighter level 4 (have 1), the Eldritch Scoundrel archetype"
     );
     // Beside a refusal, the needs still read once.
-    let refused = Unmet::All(vec![
-        needs(not(Prerequisite::Feat(feat("dodge"))), None),
-        unmet,
-        needs(Prerequisite::Feat(feat("toughness")), None),
-    ]);
+    let beside_a_refusal = canonical(Prerequisite::All(vec![
+        not(Prerequisite::Feat(feat("dodge"))),
+        nested,
+        Prerequisite::Feat(feat("toughness")),
+    ]));
+    // The needs in the tree's sorted order.
+    let refused = state.check(&beside_a_refusal).expect_err("unmet");
     assert_eq!(
         reason(&engine, &Issue::Unmet(refused)),
-        "Not with dodge; needs Fighter level 4 (have 1), the Eldritch Scoundrel archetype, toughness"
+        "Not with dodge; needs toughness, Fighter level 4 (have 1), the Eldritch Scoundrel archetype"
     );
     let refusing = Prerequisite::All(vec![
         not(Prerequisite::Feat(feat("dodge"))),

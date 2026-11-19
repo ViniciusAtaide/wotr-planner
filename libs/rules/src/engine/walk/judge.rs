@@ -287,7 +287,7 @@ pub(super) fn class_entry(
 
 impl Entry {
     /// The entry as one issue, as a class option shows it: the archetype's key problem, else every unmet
-    /// prerequisite, the class's then the archetype's (one alone, or all of them).
+    /// prerequisite, the class's then the archetype's (one alone, or one "and" of all their parts).
     pub(super) fn issue(self) -> Result<(), Issue> {
         let archetype = match self.archetype {
             Some(Issue::Unmet(unmet)) => Some(unmet),
@@ -295,10 +295,10 @@ impl Entry {
             None => None,
         };
         let unmet: Vec<Unmet> = self.class.into_iter().chain(archetype).collect();
-        match <[Unmet; 1]>::try_from(unmet) {
-            Ok([unmet]) => Err(Issue::Unmet(unmet)),
-            Err(unmet) if unmet.is_empty() => Ok(()),
-            Err(unmet) => Err(Issue::Unmet(Unmet::All(unmet))),
+        if unmet.is_empty() {
+            Ok(())
+        } else {
+            Err(Issue::Unmet(Unmet::all(unmet)))
         }
     }
 }

@@ -18,7 +18,9 @@ use crate::parameter::Parameter;
 /// The guide's lines are ANDed, so a typical entry is an `All` of leaf conditions. "One of" is `Any`
 /// and "Two of" is `AtLeast(2, ..)`.
 ///
-/// A group's children are a set: their order means nothing, and [`canonicalize`](Self::canonicalize) sorts them.
+/// A group's children are a set: their order means nothing. Every tree the checked data holds is in its normal form
+/// ([`canonicalize`](Self::canonicalize)): no group in a group of its kind, no "at least 1", no double negation, no group
+/// of one, every group sorted.
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Prerequisite {
     /// Every child must hold.
@@ -264,19 +266,71 @@ impl Prerequisite {
             .any(|leaf| matches!(leaf, Prerequisite::Alignment(_)))
     }
 
-    /// Sorts every group's children, recursively, so equal trees compare equal.
+    /// Puts the tree in its normal form (ticket 332), so trees that mean the same in the same shape compare equal and
+    /// every reader reads one shape:
+    /// - no `All` directly in an `All`, and no `Any` directly in an `Any`: it gives its children;
+    /// - no `AtLeast(1, ..)`: it is an `Any`;
+    /// - no `Not(Not(x))`: it is `x`;
+    /// - no `All` or `Any` of one child: it is the child;
+    /// - every group's children sorted.
+    ///
+    /// Kept as they are: an empty group (`All([])` holds, `Any([])` fails, `Not(All([]))` never holds), an
+    /// `AtLeast(n, ..)` of two or more (an `AtLeast` of every child stays one), and duplicate children. Every load
+    /// path calls it (the files' reader, [`GameData::checked`](crate::GameData::checked)'s compile for every entry,
+    /// the engine's catalog, the game check's writer), so every tree the data holds is in it.
     pub fn canonicalize(&mut self) {
+        let tree = std::mem::replace(self, Prerequisite::All(Vec::new()));
+        *self = tree.into_canonical();
+    }
+
+    /// The tree in its normal form, from the leaves up: each child is in it before its parent is.
+    fn into_canonical(self) -> Prerequisite {
+        use Prerequisite as P;
+        let canonical = |children: Vec<P>| children.into_iter().map(P::into_canonical);
         match self {
-            Prerequisite::All(children)
-            | Prerequisite::Any(children)
-            | Prerequisite::AtLeast(_, children) => {
-                for child in children.iter_mut() {
-                    child.canonicalize();
-                }
+            P::All(children) => joined(
+                canonical(children).flat_map(|child| match child {
+                    P::All(parts) => parts,
+                    child => vec![child],
+                }),
+                P::All,
+            ),
+            P::Any(children) | P::AtLeast(1, children) => joined(
+                canonical(children).flat_map(|child| match child {
+                    P::Any(alternatives) => alternatives,
+                    child => vec![child],
+                }),
+                P::Any,
+            ),
+            P::AtLeast(needed, children) => {
+                let mut children: Vec<P> = canonical(children).collect();
                 children.sort();
+                P::AtLeast(needed, children)
             }
-            Prerequisite::Not(child) => child.canonicalize(),
-            _ => {}
+            P::Not(child) => match (*child).into_canonical() {
+                P::Not(held) => *held,
+                child => P::Not(Box::new(child)),
+            },
+            leaf => leaf,
         }
     }
+
+    /// Whether [`canonicalize`](Self::canonicalize) would change nothing.
+    pub fn is_canonical(&self) -> bool {
+        self.clone().into_canonical() == *self
+    }
+}
+
+/// A group of canonical children, those of a child of its own kind already taken in: the child alone when there is
+/// one, else `group` of them sorted.
+fn joined(
+    children: impl Iterator<Item = Prerequisite>,
+    group: fn(Vec<Prerequisite>) -> Prerequisite,
+) -> Prerequisite {
+    let mut children: Vec<Prerequisite> = children.collect();
+    if children.len() == 1 {
+        return children.remove(0);
+    }
+    children.sort();
+    group(children)
 }

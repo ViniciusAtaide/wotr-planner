@@ -83,13 +83,13 @@ impl Lead {
     }
 }
 
-/// The condition a failing `Not` holds, when the unmet condition is one (a double negation is a plain condition).
+/// The condition a failing `Not` holds, when the unmet condition is one.
 fn negated(unmet: &Unmet) -> Option<&Prerequisite> {
     match unmet {
         Unmet::Condition {
             needs: Prerequisite::Not(held),
             ..
-        } if !matches!(**held, Prerequisite::Not(_)) => Some(held),
+        } => Some(held),
         _ => None,
     }
 }
@@ -316,7 +316,8 @@ impl Engine {
     fn unmet_for(&self, unmet: Unmet, state: &CharacterState) -> Unmet {
         match unmet {
             Unmet::Condition { .. } => unmet,
-            Unmet::All(children) => Unmet::All(
+            // An "or" left with one alternative may be an "and", which joins this one.
+            Unmet::All(children) => Unmet::all(
                 children
                     .into_iter()
                     .map(|child| self.unmet_for(child, state))
@@ -343,14 +344,14 @@ impl Engine {
                     .into_iter()
                     .map(|child| self.unmet_for(child, state))
                     .collect();
-                let (mut reachable, others): (Vec<Unmet>, Vec<Unmet>) = children
+                let (reachable, others): (Vec<Unmet>, Vec<Unmet>) = children
                     .into_iter()
                     .partition(|child| self.within_reach(child, state));
-                match reachable.len() {
-                    0 => Unmet::Any(others),
-                    1 => reachable.pop().expect("one"),
-                    _ => Unmet::Any(reachable),
-                }
+                Unmet::any(if reachable.is_empty() {
+                    others
+                } else {
+                    reachable
+                })
             }
         }
     }
@@ -951,23 +952,22 @@ impl Engine {
                     .iter()
                     .map(|child| self.nested_unmet_text(child))
                     .collect();
-                format!(
-                    "{} more of: {}",
-                    needed.saturating_sub(*met),
-                    children.join(", ")
-                )
+                // "More" only when some are held (ticket 330 item 3).
+                let count = match met {
+                    0 => format!("{needed} of"),
+                    met => format!("{} more of", needed.saturating_sub(*met)),
+                };
+                format!("{count}: {}", children.join(", "))
             }
             Unmet::MetLater { unmet, .. } => self.unmet_text(unmet),
         }
     }
 
-    /// The failing children of an "and", each once: two that read alike (both "no Bloodline yet") are one, and an
-    /// "and" among them reads as its parts ([`Unmet::and_parts`]).
+    /// The failing children of an "and", each once: two that read alike (both "no Bloodline yet") are one.
     fn unmet_all_texts(&self, children: &[Unmet]) -> Vec<String> {
         distinct(
             children
                 .iter()
-                .flat_map(Unmet::and_parts)
                 .map(|child| self.nested_unmet_text(child))
                 .collect(),
         )
@@ -987,7 +987,8 @@ impl Engine {
     }
 
     /// One prerequisite as the sheet says it, with what the character has for a numeric one ("BAB +4 (have
-    /// +1)").
+    /// +1)"). It reads a canonical tree, as the data holds ([`Prerequisite::canonicalize`]): a tree in another shape
+    /// reads with its nesting shown (an "or" in an "or" in brackets, a double negation as one).
     pub fn prerequisite_text(&self, prerequisite: &Prerequisite, has: Option<u8>) -> String {
         self.prerequisite_text_within(prerequisite, has, None)
     }
@@ -1024,23 +1025,11 @@ impl Engine {
     }
 
     /// The texts of an "and"'s children, each once: "no Bloodline yet" twice (the Sorcerer's and the Bloodrager's
-    /// Bloodline selections share a name) is one. An "and" among them reads as its parts, and what the "and" refuses
-    /// comes after what it needs ("Order of the Godclaw, not with Pentamic Faith", ticket 329). An "or" keeps every
-    /// alternative.
+    /// Bloodline selections share a name) is one. What the "and" refuses comes after what it needs ("Order of the
+    /// Godclaw, not with Pentamic Faith", ticket 329). An "or" keeps every alternative.
     fn all_texts(&self, children: &[Prerequisite], most: Option<usize>) -> Vec<String> {
-        fn push<'p>(children: &'p [Prerequisite], parts: &mut Vec<&'p Prerequisite>) {
-            for child in children {
-                match child {
-                    Prerequisite::All(inner) => push(inner, parts),
-                    child => parts.push(child),
-                }
-            }
-        }
-        let mut parts = Vec::new();
-        push(children, &mut parts);
-        parts.sort_by_key(|part| {
-            matches!(part, Prerequisite::Not(held) if !matches!(**held, Prerequisite::Not(_)))
-        });
+        let mut parts = refs(children);
+        parts.sort_by_key(|part| matches!(part, Prerequisite::Not(_)));
         distinct(self.group_texts(&parts, most))
     }
 
@@ -1084,14 +1073,10 @@ impl Engine {
                     self.group_texts(&refs(children), most).join(", ")
                 )
             }
-            // Two negations cancel.
-            Prerequisite::Not(child) => match &**child {
-                Prerequisite::Not(held) => self.prerequisite_text(held, has),
-                held => {
-                    let (lead, object) = self.held_text(held);
-                    lead.refusal(&[object])
-                }
-            },
+            Prerequisite::Not(held) => {
+                let (lead, object) = self.held_text(held);
+                lead.refusal(&[object])
+            }
             Prerequisite::Feat(feat) => self.feat_name(feat).to_owned(),
             Prerequisite::FeatFor { feat, value } => {
                 format!("{} ({})", self.feat_name(feat), self.parameter_name(value))

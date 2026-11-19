@@ -1,6 +1,7 @@
 //! Three reasons the 308 queue's QA found reading wrongly (ticket 329), on the real game data, through `validate`,
 //! `options`, `choose` and `describe`: selections named alike told apart by their owners, an archetype's level clause
-//! read once, and Pentamic Faith's refusal of itself read as the game's rule.
+//! read once, and Pentamic Faith's refusal of itself read as the game's rule. With the normal form (ticket 332), an
+//! "or" inside an "or" reads as one, and "n of" with none held says no "more".
 
 use rmcp::serde_json::{Map, Value, json};
 
@@ -93,11 +94,12 @@ async fn real_data_selections_named_alike_read_with_their_owners() {
     // ExtraRogueTalentSelection 14d9089df87a43b696fa9451ca2f0a12: SylvanTricksterTalentSelection
     // 290bbcc3c3bb92144b853fd8fb8ff452, DarkLurkerRogueTalentSelection 1edbb68422c046f98a86f4726f6721b2
     // (DarkLurkerArchetype 33eb002078e5437b8c25db4b80b4a4fe) or RogueTalentSelection c074a5d615200494b8f2a9c845799d93
-    // (RogueProgression b57b2a75a5abcaf47a01cf84672b50e9); the two "Rogue Talents" read with their owners.
+    // (RogueProgression b57b2a75a5abcaf47a01cf84672b50e9); the two "Rogue Talents" read with their owners. One "or" of
+    // four, in the tree's sorted order (ticket 332).
     assert_eq!(
         reason(&listed, "extra-rogue-talent"),
-        "Needs the Fey Tricks selection or (the Rogue's Rogue Talents selection or the Rogue Talent selection) or the \
-         Dark Lurker's Rogue Talents selection"
+        "Needs the Dark Lurker's Rogue Talents selection or the Rogue's Rogue Talents selection or the Fey Tricks \
+         selection or the Rogue Talent selection"
     );
 
     let refused = client
@@ -213,10 +215,34 @@ async fn real_data_impossible_domain_tells_its_domain_selections_apart() {
             json!({ "kind": "mythic_ability", "key": "impossible-domain" }),
         )
         .await;
+    // One "or" of five, in the tree's sorted order (ticket 332).
     assert_eq!(
         described["prerequisite"],
-        "(the Cleric's Domain selection or the Inquisitor's Domain selection or the Domain (Sacred Huntsmaster) \
-         selection) or the Domain (Living Deity) selection or the Domain (Divine Hunter) selection",
+        "the Domain (Living Deity) selection or the Cleric's Domain selection or the Domain (Divine Hunter) selection \
+         or the Inquisitor's Domain selection or the Domain (Sacred Huntsmaster) selection",
         "{described}"
+    );
+}
+
+/// The game's Diva Strike (DivaStrike 3306f4c6913d4d429358b907cdb4ffd1) needs 3 of Diva Style
+/// (b46bf228d6b2427abd028e2fe7b84600), Feint (c610310d31414edabcedf0c8a6fe32c4) and Combat Expertise
+/// (CombatExpertiseFeature 4c44724ffa8844f4d9bedb5bb27d144a): a `PrerequisiteFeaturesFromList` with `Amount` 3. With
+/// none of them held, the reason says how many it needs, not how many more (ticket 330 item 3).
+#[tokio::test]
+async fn real_data_n_of_with_none_held_reads_n_of() {
+    let client = Client::start().await;
+    let scion = client
+        .ok("validate", declared("skald", "skald/battle-scion", 5, &[]))
+        .await;
+    assert_eq!(scion["status"], "valid", "{scion}");
+    let listed = client
+        .ok(
+            "options",
+            json!({ "build": scion["build"], "choice": "slot.feat.5.general.0", "query": "diva", "only_open": false }),
+        )
+        .await;
+    assert_eq!(
+        reason(&listed, "diva-strike"),
+        "Needs BAB +7 (have +3), (3 of: Combat Expertise, Diva Style, Feint), Cha 15 (have 10)"
     );
 }

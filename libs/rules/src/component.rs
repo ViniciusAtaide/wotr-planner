@@ -1185,21 +1185,24 @@ pub fn compile_requires<'a>(
 }
 
 impl GameData {
-    /// Compiles every picked entry's `Requires` into its `prerequisite` ([`compile_requires`]), canonical as a tree
-    /// read from the files is, and takes them out of its components: the data [`checked`](GameData::checked) holds, so
-    /// the engine, the MCP server, the game check and the browser's JSON read one tree. An entry without one keeps its
-    /// field; the check refuses an entry holding both.
+    /// Compiles every picked entry's `Requires` into its `prerequisite` ([`compile_requires`]) and takes them out of
+    /// its components, and puts every entry's tree, compiled or hand-written, in its normal form
+    /// ([`Prerequisite::canonicalize`], ticket 332): the data [`checked`](GameData::checked) holds, so the engine, the
+    /// MCP server, the game check and the browser's JSON read one tree in one shape. An entry without `Requires` keeps
+    /// its field; the check refuses an entry holding both.
     pub(crate) fn compile_prerequisites(&mut self) {
         let archetype_classes: HashMap<ArchetypeKey, ClassKey> = (self.archetypes.iter())
             .map(|archetype| (archetype.key.clone(), archetype.class.clone()))
             .collect();
         let compile = |prerequisite: &mut Option<Prerequisite>, components: &mut Vec<Component>| {
-            if let Some(mut compiled) =
+            if let Some(compiled) =
                 compile_requires(components, |archetype| archetype_classes.get(archetype))
             {
-                compiled.canonicalize();
                 *prerequisite = Some(compiled);
                 components.retain(|component| !component.is_requires());
+            }
+            if let Some(tree) = prerequisite {
+                tree.canonicalize();
             }
         };
         for feat in &mut self.feats {
