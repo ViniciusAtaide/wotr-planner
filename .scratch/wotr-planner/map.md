@@ -9,6 +9,7 @@ A working, locally run Leptos app at `~/code/wotr-planner` for planning Pathfind
 ## Notes
 
 - **This map includes building the app**, not just planning it. Tickets may build things, not only decide them.
+- **Next bulk of work after the six deepenings (331–339): gear, second stage** (user, 2026-11-19). [139](issues/139-attack-line-weapon-features-and-mythic-feats.md) first, since [221](issues/221-gear-weapons.md) and [144](issues/144-bonus-types-and-stacking.md) wait on its `ItemBonus` targets; then 221, [222](issues/222-gear-other-items.md), 144 and [223](issues/223-armour-class.md) (which also waits on companions, [217](issues/217-animal-companions-stage-1.md), for the companion's AC only); [224](issues/224-relics-and-artifacts.md) stays a design.
 - **Stack:**
   - cargo-leptos SSR on Axum, using a dated nightly pinned in `rust-toolchain.toml`.
   - No database (user, 2026-11-13, [ticket 187](issues/187-game-data-json-from-the-files.md), reversing "SQLite stays for now" of 2026-11-06 and [ticket 85](issues/85-sqlite-instead-of-postgres.md)'s SQLite): the server reads and checks the `libs/game-data/` files at startup, as the MCP server does, and gives the browser the game data as one JSON document at a content-hash URL. Deployed as a static site on GitHub Pages (user, 2026-11-08, [ticket 100](issues/100-static-site-for-github-pages.md)): the release server's page, wasm and game data saved as files at build time.
