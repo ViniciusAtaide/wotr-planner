@@ -3,6 +3,7 @@
 Type: build (tooling)
 Status: open
 Blocked by: —
+Built as: 337b (the six deepenings, `research/architecture/`); Greater Enduring Spells is ticket 208's (decision 6).
 Model: Opus to build.
 Map: [WotR Build Planner](../map.md)
 
