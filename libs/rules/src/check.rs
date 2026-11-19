@@ -24,6 +24,7 @@ use crate::game_data::{
     Save, SelectionOption, SpellLevels, WeaponProficiency,
 };
 use crate::gear::GearTarget;
+use crate::grants::{GrantIndex, When};
 use crate::keys::{
     ArchetypeKey, BackgroundKey, BlueprintGuid, ClassKey, DeityKey, FeatKey, FeatureKey,
     FeatureSelectionKey, GearKey, MythicAbilityKey, MythicFeatKey, MythicPathKey, RaceKey,
@@ -1919,25 +1920,28 @@ impl Checker {
     }
 
     /// A class's levels can count toward another class's feature only when that class's rows (or its
-    /// archetypes') grant it. An unknown class is an unknown key of its own.
+    /// archetypes') grant it: a row site of that class in the grant index ([`GrantIndex`]). An unknown class is an
+    /// unknown key of its own.
     fn counts_toward_features(&mut self, data: &GameData) {
+        let counts_toward_a_feature = |class: &Class| {
+            (class.counts_as.iter()).any(|counts| matches!(counts.toward, CountsToward::Feature(_)))
+        };
+        if !data.all_classes().any(counts_toward_a_feature) {
+            return;
+        }
+        let grants = GrantIndex::new(data);
         for class in data.all_classes() {
             for counts in &class.counts_as {
                 let CountsToward::Feature(feature) = &counts.toward else {
                     continue;
                 };
-                let Some(other) = data.class(&counts.class) else {
+                if data.class(&counts.class).is_none() {
                     continue;
-                };
-                let granted = other
-                    .levels
-                    .iter()
-                    .any(|row| row.features.contains(feature))
-                    || data.archetypes_of(&other.key).any(|archetype| {
-                        archetype
-                            .levels
-                            .iter()
-                            .any(|row| row.features.contains(feature))
+                }
+                let granted =
+                    (grants.given_by(&Fact::Feature(feature.clone()))).any(|(site, _)| {
+                        matches!(site.when, When::ClassRow { .. })
+                            && site.class.as_ref() == Some(&counts.class)
                     });
                 if !granted {
                     self.problem(

@@ -31,6 +31,7 @@ mod feature_steps;
 mod first_ascension;
 mod gear;
 mod granted_feats;
+mod grants;
 mod held_selections;
 mod indexed_lookups;
 mod labels;

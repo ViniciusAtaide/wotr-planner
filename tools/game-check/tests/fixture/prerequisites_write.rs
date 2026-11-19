@@ -119,6 +119,10 @@ fn blueprint(n: u32, name: &str, type_name: &str, ranks: u8, parts: &[String]) -
 ///   (235, `proficiencies`) grants and the planner's class `keeper` gives beside it, as a class row gives a class's
 ///   proficiencies; `fist-feat` (238) needs `improved-unarmed-strike` (237), which `PlantedGodFeature` (236, the deity
 ///   `keeper-god`, whose favoured weapon is the unarmed strike) grants.
+/// - the grant index's sites (334): `saber-feat` (241) needs `exotic-weapon-proficiency` (240), which
+///   `PlantedSaberGodFeature` (239, the deity `saber-god`, whose favoured weapon is the exotic `fixture-saber`) grants;
+///   `boon-feat` (245) needs `boon` (244), which `PlantedSwitchBoonFeature` (243, the feature `switch-boon`) grants
+///   through `AddFacts`, and the path `fixture-legend`'s switch grants both features.
 fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
     let dir = data_copy();
     std::fs::create_dir_all(dir.path().join("features")).unwrap();
@@ -209,6 +213,28 @@ fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
     );
     feat("improved-unarmed-strike", 237, "");
     feat("fist-feat", 238, "");
+    std::fs::create_dir_all(dir.path().join("weapons")).unwrap();
+    put(
+        "weapons/fixture-saber.ron",
+        "(key: \"fixture-saber\", name: \"Fixture Saber\", proficiency: Exotic)\n".to_owned(),
+    );
+    put(
+        "deities/saber-god.ron",
+        format!(
+            "(key: \"saber-god\", blueprint: \"{}\", name: \"Saber God\", alignments: [LawfulGood], favoured_weapons: [\"fixture-saber\"], domains: [])\n",
+            guid(239)
+        ),
+    );
+    feat("exotic-weapon-proficiency", 240, "");
+    feat("saber-feat", 241, "");
+    feature("switch-boon", 243, "");
+    feature("boon", 244, "");
+    feat("boon-feat", 245, "");
+    std::fs::create_dir_all(dir.path().join("mythic/paths")).unwrap();
+    put(
+        "mythic/paths/fixture-legend.ron",
+        "(key: \"fixture-legend\", name: \"Fixture Legend\", switch: (kept_through_rank: 2, path_kept_through_rank: 2, features: [\"switch-boon\", \"boon\"], further_ascensions: false, level_cap: Some(40)))\n".to_owned(),
+    );
     put(
         "feats/same-feat.ron",
         format!(
@@ -440,6 +466,28 @@ fn world() -> (tempfile::TempDir, game_check::Pins, game_check::Dump) {
         ),
         blueprint(237, "ImprovedUnarmedStrike", FEATURE, 1, &[]),
         blueprint(238, "FistFeat", FEATURE, 1, &[needs("All", &guid(237))]),
+        blueprint(
+            239,
+            "PlantedSaberGodFeature",
+            FEATURE,
+            1,
+            &[format!(
+                "{{\"$type\": \"0, AddFeatureOnClassLevel\", \"m_Feature\": {}, \"m_Class\": {}, \"Level\": 1}}",
+                bp(&guid(240)),
+                bp(WARDEN)
+            )],
+        ),
+        blueprint(240, "ExoticWeaponProficiency", FEATURE, 1, &[]),
+        blueprint(241, "SaberFeat", FEATURE, 1, &[needs("All", &guid(240))]),
+        blueprint(
+            243,
+            "PlantedSwitchBoonFeature",
+            FEATURE,
+            1,
+            &[add_facts(244)],
+        ),
+        blueprint(244, "PlantedBoonFeature", FEATURE, 1, &[]),
+        blueprint(245, "BoonFeat", FEATURE, 1, &[needs("All", &guid(244))]),
     ];
     let (pins, dump) = dump(&binz(&records, 1));
     (dir, pins, dump)
@@ -1309,6 +1357,56 @@ fn a_deitys_favoured_unarmed_strike_gives_improved_unarmed_strike() {
         feat_components(dir.path(), "fist-feat"),
         [requires(
             Condition::Has(feat("improved-unarmed-strike")),
+            Group::All
+        )]
+    );
+}
+
+/// 334: a deity's site in the grant index gives an exotic favoured weapon's proficiency for that weapon, as the engine
+/// holds it (Achaekek's Sawtooth Saber), so the guard finds the deity carries the fact its feature grants.
+#[test]
+fn an_exotic_favoured_weapon_gives_its_proficiency_for_that_weapon() {
+    let (dir, _, dump) = world();
+    let data = seeds::read_game_data_files(dir.path()).unwrap();
+    let index = rules::GrantIndex::new(&data);
+    let given: Vec<&rules::Grant> = (index
+        .gives(&rules::DataAt::Deity(rules::DeityKey::new("saber-god"))))
+    .iter()
+    .flat_map(|site| &site.grants)
+    .collect();
+    assert_eq!(
+        given,
+        [&rules::Grant {
+            fact: feat("exotic-weapon-proficiency"),
+            value: rules::GrantValue::Fixed(rules::Parameter::Weapon(rules::WeaponKey::new(
+                "fixture-saber"
+            ))),
+            opens_slot: false,
+        }]
+    );
+    let outcome = write(dir.path(), &dump);
+    assert!(unexpressed(&outcome, "feat saber-feat").is_empty());
+    assert_eq!(
+        feat_components(dir.path(), "saber-feat"),
+        [requires(
+            Condition::Has(feat("exotic-weapon-proficiency")),
+            Group::All
+        )]
+    );
+}
+
+/// 334: the features a switch to a path grants are a site of the path, given together (Legend's `LegendProgression`
+/// 905383229aaf79e4b8d7e2d316b68715 gives `LegendFeature` and `Legend_UniqueRestFeature` at its one level), so a
+/// switch feature whose blueprint grants a fact the switch gives beside it carries that fact.
+#[test]
+fn a_switch_feature_carries_its_fact() {
+    let (dir, _, dump) = world();
+    let outcome = write(dir.path(), &dump);
+    assert!(unexpressed(&outcome, "feat boon-feat").is_empty());
+    assert_eq!(
+        feat_components(dir.path(), "boon-feat"),
+        [requires(
+            Condition::Has(Fact::Feature(rules::FeatureKey::new("boon"))),
             Group::All
         )]
     );
