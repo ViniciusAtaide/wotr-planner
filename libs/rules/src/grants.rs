@@ -49,8 +49,10 @@ pub struct Site {
 #[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum When {
     /// While the entry is held: an option's feats and chosen feat, a feat's or mythic feat's selection, a mythic
-    /// ability's features and selection, a race's or subrace's selections, a background's feats, a deity's favoured
-    /// weapons' feats, the features a switch to a path grants.
+    /// ability's features and selection, a race's or subrace's selections, a background's feats, the features a switch
+    /// to a path grants. Also a deity's favoured weapons' feats, which a follower holds only while also holding a
+    /// feature that grants them ([`Feature::favoured_weapon_proficiency`](crate::Feature::favoured_weapon_proficiency):
+    /// Cleric Proficiencies; the walk's `Hold::favoured_weapon_feats`).
     Always,
     /// A class's or archetype's level row.
     ClassRow { level: u8 },
@@ -420,9 +422,6 @@ impl<'a> Sites<'a> {
                 .collect();
             self.push(&by, None, When::Always, grants);
             self.components(&by, &deity.components);
-        }
-        for item in &data.gear {
-            self.components(&DataAt::Gear(item.key.clone()), &item.components);
         }
     }
 

@@ -55,10 +55,14 @@ fn picked(feat: &str) -> Grant {
     }
 }
 
-/// The test world with a feature that carries each grant component: Grant, GrantAtClassLevel, GrantIf,
-/// GrantOnApply and GrantWithValue.
+/// The test world with a feature that carries each grant component (Grant, GrantAtClassLevel, GrantIf, GrantOnApply
+/// and GrantWithValue), and a selection that gives a feature in place of its options' row at 20, as the Empyreal
+/// Sorcerer's bloodline gives Apotheosis.
 fn world_with_components() -> GameData {
     let mut data = world();
+    selection_mut(&mut data, "sorcerer/bloodline")
+        .replaced_by
+        .insert(20, FeatureKey::new("legend/legend"));
     feature_mut(&mut data, "legend/legend").components.extend([
         Component::Grant(BTreeSet::from([feat_fact("dodge")])),
         Component::GrantAtClassLevel {
@@ -161,11 +165,22 @@ fn every_grant_kind_is_a_site() {
             When::Always,
             slot("sorcerer/bloodline"),
         ),
-        // A race's selection of feats.
+        // A race's selection of feats, and a subrace's selection.
         (
             DataAt::Race(RaceKey::new("human")),
             When::Always,
             slot(rules::BASIC_FEAT_SELECTION),
+        ),
+        (
+            DataAt::Subrace(rules::SubraceKey::new("half-elf/adaptable")),
+            When::Always,
+            slot("half-elf/adaptability"),
+        ),
+        // The feature a selection gives in place of its options' row at a skipped level.
+        (
+            DataAt::FeatureSelection(FeatureSelectionKey::new("sorcerer/bloodline")),
+            When::OptionRow { level: 20 },
+            every(feature_fact("legend/legend")),
         ),
         // A background's feats, and its feat for one value.
         (
@@ -327,9 +342,34 @@ fn the_index_ignores_the_datas_order() {
     shuffled.gear.reverse();
     for class in shuffled.all_classes_mut() {
         class.levels.reverse();
+        for row in &mut class.levels {
+            row.features.reverse();
+            row.selections.reverse();
+        }
+    }
+    for archetype in &mut shuffled.archetypes {
+        archetype.levels.reverse();
+        for row in &mut archetype.levels {
+            row.features.reverse();
+            row.selections.reverse();
+        }
+    }
+    for option in &mut shuffled.options {
+        option.levels.reverse();
+        for row in &mut option.levels {
+            row.features.reverse();
+            row.selections.reverse();
+        }
     }
     for path in &mut shuffled.mythic_paths {
         path.ranks.reverse();
+        for row in &mut path.ranks {
+            row.features.reverse();
+            row.selections.reverse();
+        }
+    }
+    for ability in &mut shuffled.mythic_abilities {
+        ability.features.reverse();
     }
     assert_eq!(
         GrantIndex::with_offers(&shuffled),

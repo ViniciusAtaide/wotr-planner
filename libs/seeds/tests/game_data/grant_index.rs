@@ -167,15 +167,33 @@ fn held_facts(engine: &Engine, build: &Build) -> BTreeSet<Fact> {
         .collect()
 }
 
+/// Whether a held selection grants `fact` with no pick: the planner gives a selection offering exactly one option, with
+/// no value to name, that option without a pick (`Catalog::find_single_option`). An archetype's own selection is often
+/// one (the Sage Sorcerer's bloodline, the Blood Kineticist's element: the corpus holds 51 such options). Never a
+/// feat: a feat held without a pick comes from a site the Build holds.
+fn single_option_of_a_held_selection(fact: &Fact, held: &BTreeSet<DataAt>) -> bool {
+    let Fact::Option(option) = fact else {
+        return false;
+    };
+    let index: &GrantIndex = &GRANTS;
+    (index.offered_in(fact).iter()).any(|key| {
+        held.contains(&DataAt::FeatureSelection(key.clone()))
+            && DATA.selection(key).is_some_and(|selection| {
+                selection.filtered_by.is_none() && selection.offered().into_iter().eq([option])
+            })
+    })
+}
+
 /// A self-check of design-G §4: every feature, feat, option and selection a bench Build's walk holds has a grantor the
-/// Build holds in the index, or was picked, or a selection the Build holds offers it. A miss is a grant kind the index
-/// lacks. The one exception is the general feat slot's selection ([`BASIC_FEAT_SELECTION`]), which no entry of the
-/// data grants: the walk holds it at odd levels by its own rule, as the game's `BasicFeatsProgression`
-/// 5b72dd2ca2cb73b49903806ee8986325 grants it (`hold_feat_selections`, ticket 305).
+/// Build holds in the index, or was picked, or is a held selection's one option
+/// ([`single_option_of_a_held_selection`]). A miss is a grant kind the index lacks.
 #[test]
 fn the_index_agrees_with_the_walk() {
     let engine = engine();
     let index: &GrantIndex = &GRANTS;
+    // The one fact no entry of the data grants: the general feat slot's selection, which the walk holds at odd levels
+    // by its own rule (`hold_feat_selections`, ticket 305), as the game's `BasicFeatsProgression`
+    // 5b72dd2ca2cb73b49903806ee8986325 grants `BasicFeatSelection` 247a4068296e8be42890143f451b4b45.
     let general = Fact::Selection(FeatureSelectionKey::new(BASIC_FEAT_SELECTION));
     let mut misses = Vec::new();
     let mut checked = 0;
@@ -192,9 +210,11 @@ fn the_index_agrees_with_the_walk() {
         for fact in held_facts(&engine, &build) {
             checked += 1;
             let granted = (index.given_by(&fact)).any(|(site, _)| held.contains(&site.by));
-            let offered = (index.offered_in(&fact).iter())
-                .any(|selection| held.contains(&DataAt::FeatureSelection(selection.clone())));
-            if !(granted || offered || picked.contains(&fact) || fact == general) {
+            if !(granted
+                || picked.contains(&fact)
+                || single_option_of_a_held_selection(&fact, &held)
+                || fact == general)
+            {
                 misses.push(format!("{name}: {fact:?}"));
             }
         }
