@@ -123,3 +123,24 @@ The machine was loaded (another builder ran; load 25 to 100), so these are media
 - **`the_index_ignores_the_datas_order` now reverses more:** each row's own `features` and `selections`, the archetype, option and rank rows, and a mythic ability's features. The test does what its comment says.
 - **`When::Always`'s doc** says a deity's favoured-weapon feats are held only while the follower also holds a feature with `favoured_weapon_proficiency` (`Hold::favoured_weapon_feats`).
 - Gold Builds and the corpus long run: ticket 335 (main session).
+
+### After merging `main` (ticket 332's normal form, 36da7e7b)
+
+The merge had no conflicts. A fresh base was recorded in this lane on `main` at 36da7e7b before the merge: the form proof (`FORM_PROOF_OFFERS=1 FORM_PROOF_REASONS=1`), the game check's report and the carrier audit. After the merge:
+
+- **Form proof** `compare` against that record:
+  - `links: 1992 the same, 0 through an heir, 0 refused, 0 changed`
+  - `offers: 18213559 options recorded, 18213559 now`, `0 statuses changed`
+  - `reasons: 15217937 compared …, 0 changed in 0 edits`
+  - `failures: 0 appeared, 0 gone`
+  - `2157 Builds compared (1992 open), 2157 old links reopened, 0 differences, 0 offer differences, 0 reason problems`
+- **Game check:** exit 0, its report byte-identical to `main`'s.
+- **Carrier audit:** byte-identical to `main`'s (176 hits).
+- **`cargo test -p rules -p seeds -p corpus -p game-check`:** every binary ok:
+  - rules engine: 783 passed, 1 ignored
+  - rules lib: 16 passed
+  - seeds game_data: 654 passed, 90 ignored
+  - seeds files: 34 passed
+  - game-check fixture: 172 passed
+  - corpus: form_proof 36, links 6, self_checks 1
+- **The rules wasm build, `cargo fmt --all --check` and `scripts/test-modules.sh`** pass.
